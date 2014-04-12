@@ -106,6 +106,34 @@ define(`OST_STATS_ITEM',
 PATTERN($1 + 1, `$2 +([[:digit:]]+) samples \[reqs\]', 0)
 FIELD($1 + 1, 1, $2, number, ${subpath:ost_name}, stats, , derive, $2, 0)', $3)')dnl
 dnl
+dnl $1: number of INDENT
+dnl $2: value of CONTEXT
+dnl $3: is first child of parent ELEMENT
+define(`CONTEXT',
+	`ELEMENT_ONELINE($1, context, $2, $3)')dnl
+dnl
+dnl $1: number of INDENT
+dnl $2: name of OST_BRW_STATS_ITEM
+dnl $3: context regular expression
+dnl $4: start pattern of item
+dnl $5: first field name 
+dnl $6: field instance type 
+dnl $7: is first child of parent ELEMENT
+define(`OST_BRW_STATS_ITEM',
+        `ELEMENT($1, item,
+        `NAME($1 + 1, ost_brw_stats_$2, 1)
+CONTEXT($1 + 1, $3, 0)
+PATTERN($1 + 1, `^($4):[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+)[[:blank:]]+\|[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+).*', 0)
+FIELD($1 + 1, 1, $5, string, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, $6, $5, 0)
+FIELD($1 + 1, 2, read_sample, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, $6, read_sample, 0)
+FIELD($1 + 1, 3, read_percentage, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, $6, read_percentage, 0)
+FIELD($1 + 1, 4, read_cum, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, $6, read_cum, 0)
+FIELD($1 + 1, 5, write_sample, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, $6, write_sample, 0)
+FIELD($1 + 1, 6, write_percentage, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, $6, write_percentage, 0)
+FIELD($1 + 1, 7, write_cum, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, $6, write_cum, 0)
+', $7)')dnl
+dnl ', $6)')dnl
+dnl
 `<?xml version="1.0"?>
 
 <!-- XML definition file for Lustre monitor -->
