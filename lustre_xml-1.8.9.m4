@@ -7,39 +7,17 @@ include(`lustre_xml.m4')dnl
 			<path>/proc/fs/lustre</path>
 		</subpath>
 		<mode>directory</mode>
-		<entry>
-			<subpath>
-				<subpath_type>constant</subpath_type>
-				<path>health_check</path>
-			</subpath>
-			<mode>file</mode>
-			<item>
-				<name>health</name>
-				<pattern>(.+)</pattern>
-				FIELD(4, 1, health, string, NA, NA, NA, NA, NA, 1)
-			</item>
-		</entry>
+		CONSTANT_FILE_ENTRY(2, health_check, lustre_health, (.+), string, NA, NA, NA, NA, NA, 1)
 		<entry>
 			<subpath>
 				<subpath_type>constant</subpath_type>
 				<path>version</path>
 			</subpath>
 			<mode>file</mode>
-			<item>
-				<name>lustre_version</name>
-				<pattern>lustre: ([[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+)</pattern>
-				FIELD(4, 1, version, string, NA, NA, NA, NA, NA, 1)
-			</item>
-			<item>
-				<name>kernel_type</name>
-				<pattern>kernel: (patchless_client)</pattern>
-				FIELD(4, 1, kernel_type, string, NA, NA, NA, NA, NA, 1)
-			</item>
-			<item>
-				<name>build_version</name>
-				<pattern>build:  (.+)</pattern>
-				FIELD(4, 1, build_version, string, NA, NA, NA, NA, NA, 1)
-			</item>
+			ONE_FIELD_ITEM(3, lustre_version, lustre_version, 
+			lustre: ([[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+), string, NA, NA, NA, NA, NA, 1)
+			ONE_FIELD_ITEM(3, kernel_type, kernel_type, kernel: (patchless_client), string, NA, NA, NA, NA, NA, 1)
+			ONE_FIELD_ITEM(3, build_version, build_version, build:  (.+), string, NA, NA, NA, NA, NA, 1)
 		</entry>
 		<entry>
 			<subpath>
@@ -169,66 +147,16 @@ include(`lustre_xml.m4')dnl
 (.+
 )*$, [[:digit:]]+[KM]?, Bytes, derive, 1)
 				</entry>
-				<entry>
-					<subpath>
-						<subpath_type>constant</subpath_type>
-						<path>kbytestotal</path>
-					</subpath>
-					<mode>file</mode>
-					<item>
-						<name>kbytestotal</name>
-						<pattern>(.+)</pattern>
-						FIELD(6, 1, kbytestotal, number, ${subpath:ost_name}, NA, NA, NA, NA, 1)
-					</item>
-				</entry>
-				<entry>
-					<subpath>
-						<subpath_type>constant</subpath_type>
-						<path>kbytesavail</path>
-					</subpath>
-					<mode>file</mode>
-					<item>
-						<name>kbytesavail</name>
-						<pattern>(.+)</pattern>
-						FIELD(6, 1, kbytesavail, number, ${subpath:ost_name}, NA, NA, NA, NA, 1)
-					</item>
-				</entry>
-				<entry>
-					<subpath>
-						<subpath_type>constant</subpath_type>
-						<path>kbytesfree</path>
-					</subpath>
-					<mode>file</mode>
-					<item>
-						<name>kbytesfree</name>
-						<pattern>(.+)</pattern>
-						FIELD(6, 1, kbytesfree, number, ${subpath:ost_name}, NA, NA, NA, NA, 1)
-					</item>
-				</entry>
-				<entry>
-					<subpath>
-						<subpath_type>constant</subpath_type>
-						<path>filestotal</path>
-					</subpath>
-					<mode>file</mode>
-					<item>
-						<name>filestotal</name>
-						<pattern>(.+)</pattern>
-						FIELD(6, 1, filestotal, number, ${subpath:ost_name}, NA, NA, NA, NA, 1)
-					</item>
-				</entry>
-				<entry>
-					<subpath>
-						<subpath_type>constant</subpath_type>
-						<path>filesfree</path>
-					</subpath>
-					<mode>file</mode>
-					<item>
-						<name>filesfree</name>
-						<pattern>(.+)</pattern>
-						FIELD(6, 1, filesfree, number, ${subpath:ost_name}, NA, NA, NA, NA, 1)
-					</item>
-				</entry>
+				CONSTANT_FILE_ENTRY(4, kbytestotal, ost_kbytestotal, (.+), 
+					number, ${subpath:ost_name}, kbytesinfo, , gauge, kbytestotal, 1)
+				CONSTANT_FILE_ENTRY(4, kbytesavail, ost_kbytesavail, (.+), 
+					number, ${subpath:ost_name}, kbytesinfo, , gauge, kbytesavail, 1)
+				CONSTANT_FILE_ENTRY(4, kbytesfree, ost_kbytesfree, (.+), 
+					number, ${subpath:ost_name}, kbytesinfo, , gauge, kbytesfree, 1)
+				CONSTANT_FILE_ENTRY(4, filestotal, ost_filestotal, (.+), 
+					number, ${subpath:ost_name}, filesinfo, , gauge, filestotal, 1)
+				CONSTANT_FILE_ENTRY(4, filesfree, ost_filesfree, (.+), 
+					number, ${subpath:ost_name}, filesinfo, , gauge, filesfree, 1)
 			</entry>
 		</entry>
 		<entry>
@@ -240,25 +168,15 @@ include(`lustre_xml.m4')dnl
 			<entry>
 				<subpath>
 					<subpath_type>regular_expression</subpath_type>
-					<path>(^.+-MDT.+$)</path>
+					<path>(^.+-MDT.+-mdc).+$</path>
 					<subpath_field>
 						<index>1</index>
 						<name>mdc_mdt_name</name>
 					</subpath_field>
 				</subpath>
 				<mode>directory</mode>
-				<entry>
-					<subpath>
-						<subpath_type>constant</subpath_type>
-						<path>max_rpcs_in_flight</path>
-					</subpath>
-					<mode>file</mode>
-					<item>
-						<name>max_rpcs_in_flight</name>
-						<pattern>(.+)</pattern>
-						FIELD(6, 1, max_rpcs_in_flight, number, ${subpath:mdc_mdt_name}, NA, NA, derive, max_rpcs_in_flight, 1)
-					</item>
-				</entry>
+				CONSTANT_FILE_ENTRY(4, max_rpcs_in_flight, max_rpcs_in_flight, (.+), 
+					number, ${subpath:mdc_mdt_name}, mdc_rpcs, , gauge, max_rpcs_in_flight, 1)
 			</entry>
 		</entry>
 		<entry>
@@ -279,45 +197,12 @@ include(`lustre_xml.m4')dnl
 						<path>mds</path>
 					</subpath>
 					<mode>directory</mode>
-					<entry>
-						<subpath>
-							<subpath_type>constant</subpath_type>
-							<path>threads_max</path>
-						</subpath>
-						<mode>file</mode>
-						<item>
-							<name>mds_threads_max</name>
-							<pattern>(.+)</pattern>
-							FIELD(7, 1, threads_max, number, mds, 
-								normal_metadata_ops, NA, derive, threads_max, 1)
-						</item>
-					</entry>
-					<entry>
-						<subpath>
-							<subpath_type>constant</subpath_type>
-							<path>threads_min</path>
-						</subpath>
-						<mode>file</mode>
-						<item>
-							<name>mds_threads_min</name>
-							<pattern>(.+)</pattern>
-							FIELD(7, 1, threads_min, number, mds, 
-								normal_metadata_ops, NA, derive, threads_min, 1)
-						</item>
-					</entry>
-					<entry>
-						<subpath>
-							<subpath_type>constant</subpath_type>
-							<path>threads_started</path>
-						</subpath>
-						<mode>file</mode>
-						<item>
-							<name>mds_threads_started</name>
-							<pattern>(.+)</pattern>
-							FIELD(7, 1, threads_started, number, mds, 
-								normal_metadata_ops, NA, derive, threads_started, 1)
-						</item>
-					</entry>
+					CONSTANT_FILE_ENTRY(5, threads_max, mds_threads_max, (.+), 
+						number, mds, normal_metadata_ops, , derive, threads_max, 1)
+					CONSTANT_FILE_ENTRY(5, threads_min, mds_threads_min, (.+), 
+						number, mds, normal_metadata_ops, , derive, threads_min, 1)
+					CONSTANT_FILE_ENTRY(5, threads_started, mds_threads_started, (.+), 
+						number, mds, normal_metadata_ops, , derive, threads_started, 1)
 				</entry>
 			</entry>
 		</entry>
@@ -339,45 +224,12 @@ include(`lustre_xml.m4')dnl
 						<path>ost</path>
 					</subpath>
 					<mode>directory</mode>
-					<entry>
-						<subpath>
-							<subpath_type>constant</subpath_type>
-							<path>threads_max</path>
-						</subpath>
-						<mode>file</mode>
-						<item>
-							<name>ost_threads_max</name>
-							<pattern>(.+)</pattern>
-							FIELD(7, 1, threads_max, number, ost, 
-								normal_data, NA, derive, threads_max, 1)
-						</item>
-					</entry>
-					<entry>
-						<subpath>
-							<subpath_type>constant</subpath_type>
-							<path>threads_min</path>
-						</subpath>
-						<mode>file</mode>
-						<item>
-							<name>ost_threads_min</name>
-							<pattern>(.+)</pattern>
-							FIELD(7, 1, threads_min, number, ost, 
-								normal_data, NA, derive, threads_min, 1)
-						</item>
-					</entry>
-					<entry>
-						<subpath>
-							<subpath_type>constant</subpath_type>
-							<path>threads_started</path>
-						</subpath>
-						<mode>file</mode>
-						<item>
-							<name>ost_threads_started</name>
-							<pattern>(.+)</pattern>
-							FIELD(7, 1, threads_started, number, ost, 
-								normal_data, NA, derive, threads_started, 1)
-						</item>
-					</entry>
+					CONSTANT_FILE_ENTRY(5, threads_max, ost_threads_max, (.+), 
+						number, ost, normal_data, , derive, threads_max, 1)
+					CONSTANT_FILE_ENTRY(5, threads_min, ost_threads_min, (.+), 
+						number, ost, normal_data, , derive, threads_min, 1)
+					CONSTANT_FILE_ENTRY(5, threads_started, ost_threads_started, (.+), 
+						number, ost, normal_data, , derive, threads_started, 1)
 				</entry>
 				<entry>
 					<subpath>
@@ -385,45 +237,12 @@ include(`lustre_xml.m4')dnl
 						<path>ost_io</path>
 					</subpath>
 					<mode>directory</mode>
-					<entry>
-						<subpath>
-							<subpath_type>constant</subpath_type>
-							<path>threads_max</path>
-						</subpath>
-						<mode>file</mode>
-						<item>
-							<name>ost_io_threads_max</name>
-							<pattern>(.+)</pattern>
-							FIELD(7, 1, threads_max, number, ost, 
-								bulk_data_IO, NA, derive, threads_max, 1)
-						</item>
-					</entry>
-					<entry>
-						<subpath>
-							<subpath_type>constant</subpath_type>
-							<path>threads_min</path>
-						</subpath>
-						<mode>file</mode>
-						<item>
-							<name>ost_io_threads_min</name>
-							<pattern>(.+)</pattern>
-							FIELD(7, 1, threads_min, number, ost, 
-								bulk_data_IO, NA, derive, threads_min, 1)
-						</item>
-					</entry>
-					<entry>
-						<subpath>
-							<subpath_type>constant</subpath_type>
-							<path>threads_started</path>
-						</subpath>
-						<mode>file</mode>
-						<item>
-							<name>ost_io_threads_started</name>
-							<pattern>(.+)</pattern>
-							FIELD(7, 1, threads_started, number, ost, 
-								bulk_data_IO, NA, derive, threads_started, 1)
-						</item>
-					</entry>
+					CONSTANT_FILE_ENTRY(5, threads_max, ost_io_threads_max, (.+), 
+						number, ost, bulk_data_IO, , derive, threads_max, 1)
+					CONSTANT_FILE_ENTRY(5, threads_min, ost_io_threads_min, (.+), 
+						number, ost, bulk_data_IO, , derive, threads_min, 1)
+					CONSTANT_FILE_ENTRY(5, threads_started, ost_io_threads_started, (.+), 
+						number, ost, bulk_data_IO, , derive, threads_started, 1)
 				</entry>
 				<entry>
 					<subpath>
@@ -431,45 +250,12 @@ include(`lustre_xml.m4')dnl
 						<path>ost_create</path>
 					</subpath>
 					<mode>directory</mode>
-					<entry>
-						<subpath>
-							<subpath_type>constant</subpath_type>
-							<path>threads_max</path>
-						</subpath>
-						<mode>file</mode>
-						<item>
-							<name>ost_create_threads_max</name>
-							<pattern>(.+)</pattern>
-							FIELD(7, 1, threads_max, number, ost, 
-								obj_pre-creation_service, NA, derive, threads_max, 1)
-						</item>
-					</entry>
-					<entry>
-						<subpath>
-							<subpath_type>constant</subpath_type>
-							<path>threads_min</path>
-						</subpath>
-						<mode>file</mode>
-						<item>
-							<name>ost_create_threads_min</name>
-							<pattern>(.+)</pattern>
-							FIELD(7, 1, threads_min, number, ost, 
-								obj_pre-creation_service, NA, derive, threads_min, 1)
-						</item>
-					</entry>
-					<entry>
-						<subpath>
-							<subpath_type>constant</subpath_type>
-							<path>threads_started</path>
-						</subpath>
-						<mode>file</mode>
-						<item>
-							<name>ost_create_threads_started</name>
-							<pattern>(.+)</pattern>
-							FIELD(7, 1, threads_started, number, ost, 
-								obj_pre-creation_service, NA, derive, threads_started, 1)
-						</item>
-					</entry>
+					CONSTANT_FILE_ENTRY(5, threads_max, ost_create_threads_max, (.+), 
+						number, ost, obj_pre-creation_service, , derive, threads_max, 1)
+					CONSTANT_FILE_ENTRY(5, threads_min, ost_create_threads_min, (.+), 
+						number, ost, obj_pre-creation_service, , derive, threads_min, 1)
+					CONSTANT_FILE_ENTRY(5, threads_started, ost_create_threads_started, (.+), 
+						number, ost, obj_pre-creation_service, , derive, threads_started, 1)
 				</entry>
 			</entry>
 		</entry>
@@ -491,45 +277,12 @@ include(`lustre_xml.m4')dnl
 						<path>ldlm_canceld</path>
 					</subpath>
 					<mode>directory</mode>
-					<entry>
-						<subpath>
-							<subpath_type>constant</subpath_type>
-							<path>threads_max</path>
-						</subpath>
-						<mode>file</mode>
-						<item>
-							<name>ldlm_cancel_threads_max</name>
-							<pattern>(.+)</pattern>
-							FIELD(7, 1, threads_max, number, ldlm_service, 
-								lock_cancel, NA, derive, threads_max, 1)
-						</item>
-					</entry>
-					<entry>
-						<subpath>
-							<subpath_type>constant</subpath_type>
-							<path>threads_min</path>
-						</subpath>
-						<mode>file</mode>
-						<item>
-							<name>ldlm_cancel_threads_min</name>
-							<pattern>(.+)</pattern>
-							FIELD(7, 1, threads_min, number, ldlm_service, 
-								lock_cancel, NA, derive, threads_min, 1)
-						</item>
-					</entry>
-					<entry>
-						<subpath>
-							<subpath_type>constant</subpath_type>
-							<path>threads_started</path>
-						</subpath>
-						<mode>file</mode>
-						<item>
-							<name>ldlm_cancel_threads_started</name>
-							<pattern>(.+)</pattern>
-							FIELD(7, 1, threads_started, number, ldlm_service, 
-								lock_cancel, NA, derive, threads_started, 1)
-						</item>
-					</entry>
+					CONSTANT_FILE_ENTRY(5, threads_max, ldlm_cancel_threads_max, (.+), 
+						number, ldlm_service, lock_cancel, , derive, threads_max, 1)
+					CONSTANT_FILE_ENTRY(5, threads_min, ldlm_cancel_threads_min, (.+), 
+						number, ldlm_service, lock_cancel, , derive, threads_min, 1)
+					CONSTANT_FILE_ENTRY(5, threads_started, ldlm_cancel_threads_started, (.+), 
+						number, ldlm_service, lock_cancel, , derive, threads_started, 1)
 				</entry>
 				<entry>
 					<subpath>
@@ -537,45 +290,12 @@ include(`lustre_xml.m4')dnl
 						<path>ldlm_cbd</path>
 					</subpath>
 					<mode>directory</mode>
-					<entry>
-						<subpath>
-							<subpath_type>constant</subpath_type>
-							<path>threads_max</path>
-						</subpath>
-						<mode>file</mode>
-						<item>
-							<name>ldlm_cbd_threads_max</name>
-							<pattern>(.+)</pattern>
-							FIELD(7, 1, threads_max, number, ldlm_service, 
-								lock_grant, NA, derive, threads_max, 1)
-						</item>
-					</entry>
-					<entry>
-						<subpath>
-							<subpath_type>constant</subpath_type>
-							<path>threads_min</path>
-						</subpath>
-						<mode>file</mode>
-						<item>
-							<name>ldlm_cbd_threads_min</name>
-							<pattern>(.+)</pattern>
-							FIELD(7, 1, threads_min, number, ldlm_service, 
-								lock_grant, NA, derive, threads_min, 1)
-						</item>
-					</entry>
-					<entry>
-						<subpath>
-							<subpath_type>constant</subpath_type>
-							<path>threads_started</path>
-						</subpath>
-						<mode>file</mode>
-						<item>
-							<name>ldlm_cbd_threads_started</name>
-							<pattern>(.+)</pattern>
-							FIELD(7, 1, threads_started, number, ldlm_service, 
-								lock_grant, NA, derive, threads_started, 1)
-						</item>
-					</entry>
+					CONSTANT_FILE_ENTRY(5, threads_max, ldlm_cbd_threads_max, (.+), 
+						number, ldlm_service, lock_grant, , derive, threads_max, 1)
+					CONSTANT_FILE_ENTRY(5, threads_min, ldlm_cbd_threads_min, (.+), 
+						number, ldlm_service, lock_grant, , derive, threads_min, 1)
+					CONSTANT_FILE_ENTRY(5, threads_started, ldlm_cbd_threads_started, (.+), 
+						number, ldlm_service, lock_grant, , derive, threads_started, 1)
 				</entry>
 			</entry>
 		</entry>
