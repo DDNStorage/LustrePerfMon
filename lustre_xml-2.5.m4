@@ -127,25 +127,25 @@ include(`lustre_xml.m4')dnl
 					<mode>file</mode>
 					OST_BRW_STATS_ITEM(5, rpc_bulk, ^pages per bulk .+
 (.+
-)*$, [[:digit:]]+[KM]?, pages, derive, 1)
+)*$, [[:digit:]]+[KM]?, pages, 1)
 					OST_BRW_STATS_ITEM(5, page_discontiguous_rpc, ^discontiguous pages .+
 (.+
-)*$, [[:digit:]]+[KM]?, pages, derive, 1)
+)*$, [[:digit:]]+[KM]?, pages, 1)
 					OST_BRW_STATS_ITEM(5, block_discontiguous_rpc, ^discontiguous blocks .+
 (.+
-)*$, [[:digit:]]+[KM]?, blocks, derive, 1)
+)*$, [[:digit:]]+[KM]?, blocks, 1)
 					OST_BRW_STATS_ITEM(5, fragmented_io, ^disk fragmented .+
 (.+
-)*$, [[:digit:]]+[KM]?, fragments, derive, 1)
+)*$, [[:digit:]]+[KM]?, fragments, 1)
 					OST_BRW_STATS_ITEM(5, io_in_flight, ^disk I/Os .+
 (.+
-)*$, [[:digit:]]+[KM]?, ios, derive, 1)
+)*$, [[:digit:]]+[KM]?, ios, 1)
 					OST_BRW_STATS_ITEM(5, io_time, ^I/O time .+
 (.+
-)*$, [[:digit:]]+[KM]?, milliseconds, derive, 1)
+)*$, [[:digit:]]+[KM]?, milliseconds, 1)
 					OST_BRW_STATS_ITEM(5, io_size, ^disk I/O size .+
 (.+
-)*$, [[:digit:]]+[KM]?, Bytes, derive, 1)
+)*$, [[:digit:]]+[KM]?, Bytes, 1)
 				</entry>
 			</entry>
 		</entry>
@@ -188,11 +188,11 @@ include(`lustre_xml.m4')dnl
 					</subpath>
 					<mode>directory</mode>
 					CONSTANT_FILE_ENTRY(5, threads_max, mds_threads_max, (.+), 
-						number, mds, normal_metadata_ops, , derive, threads_max, 1)
+						number, mds, normal_metadata_ops, , gauge, threads_max, 1)
 					CONSTANT_FILE_ENTRY(5, threads_min, mds_threads_min, (.+), 
-						number, mds, normal_metadata_ops, , derive, threads_min, 1)
+						number, mds, normal_metadata_ops, , gauge, threads_min, 1)
 					CONSTANT_FILE_ENTRY(5, threads_started, mds_threads_started, (.+), 
-						number, mds, normal_metadata_ops, , derive, threads_started, 1)
+						number, mds, normal_metadata_ops, , gauge, threads_started, 1)
 				</entry>
 			</entry>
 		</entry>
@@ -215,11 +215,11 @@ include(`lustre_xml.m4')dnl
 					</subpath>
 					<mode>directory</mode>
 					CONSTANT_FILE_ENTRY(5, threads_max, ost_threads_max, (.+), 
-						number, ost, normal_data, , derive, threads_max, 1)
+						number, ost, normal_data, , gauge, threads_max, 1)
 					CONSTANT_FILE_ENTRY(5, threads_min, ost_threads_min, (.+), 
-						number, ost, normal_data, , derive, threads_min, 1)
+						number, ost, normal_data, , gauge, threads_min, 1)
 					CONSTANT_FILE_ENTRY(5, threads_started, ost_threads_started, (.+), 
-						number, ost, normal_data, , derive, threads_started, 1)
+						number, ost, normal_data, , gauge, threads_started, 1)
 				</entry>
 				<entry>
 					<subpath>
@@ -228,11 +228,11 @@ include(`lustre_xml.m4')dnl
 					</subpath>
 					<mode>directory</mode>
 					CONSTANT_FILE_ENTRY(5, threads_max, ost_io_threads_max, (.+), 
-						number, ost, bulk_data_IO, , derive, threads_max, 1)
+						number, ost, bulk_data_IO, , gauge, threads_max, 1)
 					CONSTANT_FILE_ENTRY(5, threads_min, ost_io_threads_min, (.+), 
-						number, ost, bulk_data_IO, , derive, threads_min, 1)
+						number, ost, bulk_data_IO, , gauge, threads_min, 1)
 					CONSTANT_FILE_ENTRY(5, threads_started, ost_io_threads_started, (.+), 
-						number, ost, bulk_data_IO, , derive, threads_started, 1)
+						number, ost, bulk_data_IO, , gauge, threads_started, 1)
 				</entry>
 				<entry>
 					<subpath>
@@ -241,11 +241,11 @@ include(`lustre_xml.m4')dnl
 					</subpath>
 					<mode>directory</mode>
 					CONSTANT_FILE_ENTRY(5, threads_max, ost_create_threads_max, (.+), 
-						number, ost, obj_pre-creation_service, , derive, threads_max, 1)
+						number, ost, obj_pre-creation_service, , gauge, threads_max, 1)
 					CONSTANT_FILE_ENTRY(5, threads_min, ost_create_threads_min, (.+), 
-						number, ost, obj_pre-creation_service, , derive, threads_min, 1)
+						number, ost, obj_pre-creation_service, , gauge, threads_min, 1)
 					CONSTANT_FILE_ENTRY(5, threads_started, ost_create_threads_started, (.+), 
-						number, ost, obj_pre-creation_service, , derive, threads_started, 1)
+						number, ost, obj_pre-creation_service, , gauge, threads_started, 1)
 				</entry>
 			</entry>
 		</entry>
@@ -268,11 +268,11 @@ include(`lustre_xml.m4')dnl
 					</subpath>
 					<mode>directory</mode>
 					CONSTANT_FILE_ENTRY(5, threads_max, ldlm_cancel_threads_max, (.+), 
-						number, ldlm_service, lock_cancel, , derive, threads_max, 1)
+						number, ldlm_service, lock_cancel, , gauge, threads_max, 1)
 					CONSTANT_FILE_ENTRY(5, threads_min, ldlm_cancel_threads_min, (.+), 
-						number, ldlm_service, lock_cancel, , derive, threads_min, 1)
+						number, ldlm_service, lock_cancel, , gauge, threads_min, 1)
 					CONSTANT_FILE_ENTRY(5, threads_started, ldlm_cancel_threads_started, (.+), 
-						number, ldlm_service, lock_cancel, , derive, threads_started, 1)
+						number, ldlm_service, lock_cancel, , gauge, threads_started, 1)
 				</entry>
 				<entry>
 					<subpath>
@@ -281,11 +281,11 @@ include(`lustre_xml.m4')dnl
 					</subpath>
 					<mode>directory</mode>
 					CONSTANT_FILE_ENTRY(5, threads_max, ldlm_cbd_threads_max, (.+), 
-						number, ldlm_service, lock_grant, , derive, threads_max, 1)
+						number, ldlm_service, lock_grant, , gauge, threads_max, 1)
 					CONSTANT_FILE_ENTRY(5, threads_min, ldlm_cbd_threads_min, (.+), 
-						number, ldlm_service, lock_grant, , derive, threads_min, 1)
+						number, ldlm_service, lock_grant, , gauge, threads_min, 1)
 					CONSTANT_FILE_ENTRY(5, threads_started, ldlm_cbd_threads_started, (.+), 
-						number, ldlm_service, lock_grant, , derive, threads_started, 1)
+						number, ldlm_service, lock_grant, , gauge, threads_started, 1)
 				</entry>
 			</entry>
 		</entry>

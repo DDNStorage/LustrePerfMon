@@ -178,21 +178,20 @@ dnl $2: name of OST_BRW_STATS_ITEM
 dnl $3: context regular expression
 dnl $4: start pattern of item
 dnl $5: first field name 
-dnl $6: field instance type 
-dnl $7: is first child of parent ELEMENT
+dnl $6: is first child of parent ELEMENT
 define(`OST_BRW_STATS_ITEM',
         `ELEMENT($1, item,
         `NAME($1 + 1, ost_brw_stats_$2, 1)
 CONTEXT($1 + 1, $3, 0)
 PATTERN($1 + 1, `^($4):[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+)[[:blank:]]+\|[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+).*', 0)
-FIELD($1 + 1, 1, $5, string, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, $6, $5, 0)
-FIELD($1 + 1, 2, read_sample, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, $6, read_sample, 0)
-FIELD($1 + 1, 3, read_percentage, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, $6, read_percentage, 0)
-FIELD($1 + 1, 4, read_cum, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, $6, read_cum, 0)
-FIELD($1 + 1, 5, write_sample, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, $6, write_sample, 0)
-FIELD($1 + 1, 6, write_percentage, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, $6, write_percentage, 0)
-FIELD($1 + 1, 7, write_cum, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, $6, write_cum, 0)
-', $7)')dnl
+FIELD($1 + 1, 1, $5, string, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, , $5, 0)
+FIELD($1 + 1, 2, read_sample, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, derive, read_sample, 0)
+FIELD($1 + 1, 3, read_percentage, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, gauge, read_percentage, 0)
+FIELD($1 + 1, 4, read_cum, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, gauge, read_cum, 0)
+FIELD($1 + 1, 5, write_sample, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, derive, write_sample, 0)
+FIELD($1 + 1, 6, write_percentage, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, gauge, write_percentage, 0)
+FIELD($1 + 1, 7, write_cum, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, gauge, write_cum, 0)
+', $6)')dnl
 dnl ', $6)')dnl
 dnl
 `<?xml version="1.0"?>
