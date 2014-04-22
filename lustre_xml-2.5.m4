@@ -22,7 +22,7 @@ include(`lustre_xml.m4')dnl
 		<entry>
 			<subpath>
 				<subpath_type>constant</subpath_type>
-				<path>mds</path>
+				<path>mdt</path>
 			</subpath>
 			<mode>directory</mode>
 			<entry>
@@ -39,7 +39,7 @@ include(`lustre_xml.m4')dnl
 					<!-- mds_stats_counter_init() -->
 					<subpath>
 						<subpath_type>constant</subpath_type>
-						<path>stats</path>
+						<path>md_stats</path>
 					</subpath>
 					<mode>file</mode>
 					MD_STATS_ITEM(5, open, 1)
