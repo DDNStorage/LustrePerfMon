@@ -190,9 +190,7 @@ FIELD($1 + 1, 3, read_percentage, number, ${subpath:ost_name}, brw_stats, $2_${c
 FIELD($1 + 1, 4, read_cum, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, gauge, read_cum, 0)
 FIELD($1 + 1, 5, write_sample, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, derive, write_sample, 0)
 FIELD($1 + 1, 6, write_percentage, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, gauge, write_percentage, 0)
-FIELD($1 + 1, 7, write_cum, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, gauge, write_cum, 0)
-', $6)')dnl
-dnl ', $6)')dnl
+FIELD($1 + 1, 7, write_cum, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, gauge, write_cum, 0)', $6)')dnl
 dnl
 `<?xml version="1.0"?>
 
@@ -216,7 +214,8 @@ dnl
 	<!ELEMENT index          (#PCDATA)>
 	<!ELEMENT name           (#PCDATA)>
 
-	<!ELEMENT item           (name,pattern,field+)>
+	<!ELEMENT item           (name,context?,pattern,field+)>
+	<!ELEMENT context        (#PCDATA)>
 	<!ELEMENT pattern        (#PCDATA)>
 
 	<!ELEMENT field          (index,name,type,option+)>

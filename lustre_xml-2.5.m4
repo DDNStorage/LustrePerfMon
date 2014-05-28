@@ -1,6 +1,6 @@
 include(`lustre_xml.m4')dnl
 <definition>
-	<version>1.8.9</version>
+	<version>2.5</version>
 	<entry>
 		<subpath>
 			<subpath_type>constant</subpath_type>
