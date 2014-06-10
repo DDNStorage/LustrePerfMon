@@ -160,12 +160,13 @@ FIELD($1 + 1, 1, $2, number, ${subpath:mdt_name}, md_stats, , derive, $2, 0)', $
 dnl
 dnl $1: number of INDENT
 dnl $2: name of OST_STATS_ITEM
-dnl $3: is first child of parent ELEMENT
+dnl $3: type of item 
+dnl $4: is first child of parent ELEMENT
 define(`OST_STATS_ITEM',
         `ELEMENT($1, item,
         `NAME($1 + 1, ost_stats_$2, 1)
-PATTERN($1 + 1, `$2 +([[:digit:]]+) samples \[reqs\]', 0)
-FIELD($1 + 1, 1, $2, number, ${subpath:ost_name}, stats, , derive, $2, 0)', $3)')dnl
+PATTERN($1 + 1, `$2 +([[:digit:]]+) samples \[$3\]', 0)
+FIELD($1 + 1, 1, $2, number, ${subpath:ost_name}, stats, , derive, $2, 0)', $4)')dnl
 dnl
 dnl $1: number of INDENT
 dnl $2: value of CONTEXT
@@ -190,7 +191,9 @@ FIELD($1 + 1, 3, read_percentage, number, ${subpath:ost_name}, brw_stats, $2_${c
 FIELD($1 + 1, 4, read_cum, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, gauge, read_cum, 0)
 FIELD($1 + 1, 5, write_sample, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, derive, write_sample, 0)
 FIELD($1 + 1, 6, write_percentage, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, gauge, write_percentage, 0)
-FIELD($1 + 1, 7, write_cum, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, gauge, write_cum, 0)', $6)')dnl
+FIELD($1 + 1, 7, write_cum, number, ${subpath:ost_name}, brw_stats, $2_${content:$5}_$5, gauge, write_cum, 0)
+', $6)')dnl
+dnl ', $6)')dnl
 dnl
 `<?xml version="1.0"?>
 
@@ -214,8 +217,7 @@ dnl
 	<!ELEMENT index          (#PCDATA)>
 	<!ELEMENT name           (#PCDATA)>
 
-	<!ELEMENT item           (name,context?,pattern,field+)>
-	<!ELEMENT context        (#PCDATA)>
+	<!ELEMENT item           (name,pattern,field+)>
 	<!ELEMENT pattern        (#PCDATA)>
 
 	<!ELEMENT field          (index,name,type,option+)>

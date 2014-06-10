@@ -549,28 +549,28 @@ include(`lustre_xml.m4')dnl
 						FIELD(6, 1, write_samples, number, ${subpath:ost_name}, stats, , derive, write_samples, 1)
 						FIELD(6, 2, write_bytes, number, ${subpath:ost_name}, stats, , derive, write_bytes, 1)
 					</item>
-					OST_STATS_ITEM(5, get_page, 1)
+					OST_STATS_ITEM(5, get_page, usec, 1)
 					<item>
 						<name>ost_stats_get_page_failures</name>
 						<pattern>get_page failures +([[:digit:]]+) samples \[num\]</pattern>
 						FIELD(6, 1, get_page_failures, number, ${subpath:ost_name}, stats, , derive, get_page_failures, 1)
 					</item>
-					OST_STATS_ITEM(5, cache_access, 1)
-					OST_STATS_ITEM(5, cache_hit, 1)
-					OST_STATS_ITEM(5, cache_miss, 1)
+					OST_STATS_ITEM(5, cache_access, pages, 1)
+					OST_STATS_ITEM(5, cache_hit, pages, 1)
+					OST_STATS_ITEM(5, cache_miss, pages, 1)
 					<!-- Following comes from filter_setup()/lprocfs_alloc_obd_stats()/lprocfs_init_ops_stats()
 					     Not necessarily available.
 					-->
-					OST_STATS_ITEM(5, getattr, 1)
-					OST_STATS_ITEM(5, setattr, 1)
-					OST_STATS_ITEM(5, punch, 1)
-					OST_STATS_ITEM(5, sync, 1)
-					OST_STATS_ITEM(5, destroy, 1)
-					OST_STATS_ITEM(5, create, 1)
-					OST_STATS_ITEM(5, statfs, 1)
-					OST_STATS_ITEM(5, get_info, 1)
-					OST_STATS_ITEM(5, set_info_async, 1)
-					OST_STATS_ITEM(5, quotactl, 1)
+					OST_STATS_ITEM(5, getattr, reqs, 1)
+					OST_STATS_ITEM(5, setattr, reqs, 1)
+					OST_STATS_ITEM(5, punch, reqs, 1)
+					OST_STATS_ITEM(5, sync, reqs, 1)
+					OST_STATS_ITEM(5, destroy, reqs, 1)
+					OST_STATS_ITEM(5, create, reqs, 1)
+					OST_STATS_ITEM(5, statfs, reqs, 1)
+					OST_STATS_ITEM(5, get_info, reqs, 1)
+					OST_STATS_ITEM(5, set_info_async, reqs, 1)
+					OST_STATS_ITEM(5, quotactl, reqs, 1)
 				</entry>
 				<entry>
 					<subpath>

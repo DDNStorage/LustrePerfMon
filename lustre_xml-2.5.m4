@@ -1,6 +1,6 @@
 include(`lustre_xml.m4')dnl
 <definition>
-	<version>2.5</version>
+	<version>2.5.52</version>
 	<entry>
 		<subpath>
 			<subpath_type>constant</subpath_type>
@@ -56,6 +56,53 @@ include(`lustre_xml.m4')dnl
 					MD_STATS_ITEM(5, setxattr, 1)
 					MD_STATS_ITEM(5, statfs, 1)
 					MD_STATS_ITEM(5, sync, 1)
+					MD_STATS_ITEM(5, samedir_rename, 1)
+					MD_STATS_ITEM(5, crossdir_rename, 1)
+				</entry>
+				<entry>
+					<subpath>
+						<subpath_type>constant</subpath_type>
+						<path>job_stats</path>
+					</subpath>
+					<mode>file</mode>
+					<item>
+						<name>mdt_jobstats</name>
+						<pattern>- +job_id: +(.+)
+ +snapshot_time: +.+
+  open: +\{ samples: +([[:digit:]]+).+
+  close: +\{ samples: +([[:digit:]]+).+
+  mknod: +\{ samples: +([[:digit:]]+).+
+  link: +\{ samples: +([[:digit:]]+).+
+  unlink: +\{ samples: +([[:digit:]]+).+
+  mkdir: +\{ samples: +([[:digit:]]+).+
+  rmdir: +\{ samples: +([[:digit:]]+).+
+  rename: +\{ samples: +([[:digit:]]+).+
+  getattr: +\{ samples: +([[:digit:]]+).+
+  setattr: +\{ samples: +([[:digit:]]+).+
+  getxattr: +\{ samples: +([[:digit:]]+).+
+  setxattr: +\{ samples: +([[:digit:]]+).+
+  statfs: +\{ samples: +([[:digit:]]+).+
+  sync: +\{ samples: +([[:digit:]]+).+
+  samedir_rename: +\{ samples: +([[:digit:]]+).+
+  crossdir_rename: +\{ samples: +([[:digit:]]+).+</pattern>
+						FIELD(6, 1, job_id, string, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, job_id, 1)
+						FIELD(6, 2, open, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, open, 1)
+						FIELD(6, 3, close, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, close, 1)
+						FIELD(6, 4, mknod, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, mknod, 1)
+						FIELD(6, 5, link, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, link, 1)
+						FIELD(6, 6, unlink, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, unlink, 1)
+						FIELD(6, 7, mkdir, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, mkdir, 1)
+						FIELD(6, 8, rmdir, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, rmdir, 1)
+						FIELD(6, 9, rename, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, rename, 1)
+						FIELD(6, 10, getattr, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, getattr, 1)
+						FIELD(6, 11, setattr, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, setattr, 1)
+						FIELD(6, 12, getxattr, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, getxattr, 1)
+						FIELD(6, 13, setxattr, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, setxattr, 1)
+						FIELD(6, 14, statfs, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, statfs, 1)
+						FIELD(6, 15, sync, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, sync, 1)
+						FIELD(6, 16, samedir_rename, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, samedir_rename, 1)
+						FIELD(6, 17, crossdir_rename, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, crossdir_rename, 1)
+					</item>
 				</entry>
 			</entry>
 		</entry>
@@ -96,28 +143,55 @@ include(`lustre_xml.m4')dnl
 						FIELD(6, 1, write_samples, number, ${subpath:ost_name}, stats, , derive, write_samples, 1)
 						FIELD(6, 2, write_bytes, number, ${subpath:ost_name}, stats, , derive, write_bytes, 1)
 					</item>
-					OST_STATS_ITEM(5, get_page, 1)
+					OST_STATS_ITEM(5, getattr, reqs, 1)
+					OST_STATS_ITEM(5, setattr, reqs, 1)
+					OST_STATS_ITEM(5, punch, reqs, 1)
+					OST_STATS_ITEM(5, sync, reqs, 1)
+					OST_STATS_ITEM(5, destroy, reqs, 1)
+					OST_STATS_ITEM(5, create, reqs, 1)
+					OST_STATS_ITEM(5, statfs, reqs, 1)
+					OST_STATS_ITEM(5, get_info, reqs, 1)
+					OST_STATS_ITEM(5, set_info_async, reqs, 1)
+					OST_STATS_ITEM(5, quotactl, reqs, 1)
+				</entry>
+				<entry>
+					<subpath>
+						<subpath_type>constant</subpath_type>
+						<path>job_stats</path>
+					</subpath>
+					<mode>file</mode>
 					<item>
-						<name>ost_stats_get_page_failures</name>
-						<pattern>get_page failures +([[:digit:]]+) samples \[num\]</pattern>
-						FIELD(6, 1, get_page_failures, number, ${subpath:ost_name}, stats, , derive, get_page_failures, 1)
+						<name>ost_jobstats</name>
+						<pattern>- +job_id: +(.+)
+ +snapshot_time: +.+
+  read_bytes: +\{ samples: +([[:digit:]]+).+, sum: +([[:digit:]]+).+
+  write_bytes: +\{ samples: +([[:digit:]]+).+, sum: +([[:digit:]]+).+
+  getattr: +\{ samples: +([[:digit:]]+).+
+  setattr: +\{ samples: +([[:digit:]]+).+
+  punch: +\{ samples: +([[:digit:]]+).+
+  sync: +\{ samples: +([[:digit:]]+).+
+  destroy: +\{ samples: +([[:digit:]]+).+
+  create: +\{ samples: +([[:digit:]]+).+
+  statfs: +\{ samples: +([[:digit:]]+).+
+  get_info: +\{ samples: +([[:digit:]]+).+
+  set_info: +\{ samples: +([[:digit:]]+).+
+  quotactl: +\{ samples: +([[:digit:]]+).+</pattern>
+						FIELD(6, 1, job_id, string, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, job_id, 1)
+						FIELD(6, 2, read_samples, number, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, read_samples, 1)
+						FIELD(6, 3, read_bytes, number, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, read_bytes, 1)
+						FIELD(6, 4, write_samples, number, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, write_samples, 1)
+						FIELD(6, 5, write_bytes, number, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, write_bytes, 1)
+						FIELD(6, 6, getattr, number, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, getattr, 1)
+						FIELD(6, 7, setattr, number, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, setattr, 1)
+						FIELD(6, 8, punch, number, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, pubch, 1)
+						FIELD(6, 9, sync, number, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, sync, 1)
+						FIELD(6, 10, destroy, number, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, destroy, 1)
+						FIELD(6, 11, create, number, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, create, 1)
+						FIELD(6, 12, statfs, number, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, statfs, 1)
+						FIELD(6, 13, get_info, number, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, get_info, 1)
+						FIELD(6, 14, set_info, number, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, set_info, 1)
+						FIELD(6, 15, quotactl, number, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, quotactl, 1)
 					</item>
-					OST_STATS_ITEM(5, cache_access, 1)
-					OST_STATS_ITEM(5, cache_hit, 1)
-					OST_STATS_ITEM(5, cache_miss, 1)
-					<!-- Following comes from filter_setup()/lprocfs_alloc_obd_stats()/lprocfs_init_ops_stats()
-					     Not necessarily available.
-					-->
-					OST_STATS_ITEM(5, getattr, 1)
-					OST_STATS_ITEM(5, setattr, 1)
-					OST_STATS_ITEM(5, punch, 1)
-					OST_STATS_ITEM(5, sync, 1)
-					OST_STATS_ITEM(5, destroy, 1)
-					OST_STATS_ITEM(5, create, 1)
-					OST_STATS_ITEM(5, statfs, 1)
-					OST_STATS_ITEM(5, get_info, 1)
-					OST_STATS_ITEM(5, set_info_async, 1)
-					OST_STATS_ITEM(5, quotactl, 1)
 				</entry>
 				<entry>
 					<subpath>
