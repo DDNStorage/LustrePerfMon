@@ -217,8 +217,9 @@ dnl
 	<!ELEMENT index          (#PCDATA)>
 	<!ELEMENT name           (#PCDATA)>
 
-	<!ELEMENT item           (name,pattern,field+)>
+	<!ELEMENT item           (name,context?,pattern,field+)>
 	<!ELEMENT pattern        (#PCDATA)>
+	<!ELEMENT context        (#PCDATA)>
 
 	<!ELEMENT field          (index,name,type,option+)>
 	<!ELEMENT type           (#PCDATA)>
