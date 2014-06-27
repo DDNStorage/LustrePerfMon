@@ -18,6 +18,7 @@ check_xml: check_xml.c
 test:	lustre-1.8.9.xml check_xml
 	./check_xml lustre-1.8.9.xml > /tmp/check.log
 	./check_xml lustre-2.5.xml > /tmp/check.log
+	./check_xml lustre-ieel-2.5.xml > /tmp/check.log
 	./check_xml lustre-2.4.2.xml > /tmp/check.log
 
 WORKSPACE=$(shell pwd)

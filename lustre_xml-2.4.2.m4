@@ -817,6 +817,16 @@ include(`lustre_xml.m4')dnl
 (.+
 )*$, [[:digit:]]+[KM]?, Bytes, 1)
 				</entry>
+				CONSTANT_FILE_ENTRY(4, filestotal, ost_filestotal, (.+), 
+					number, ${subpath:ost_name}, filesinfo, , gauge, filestotal, 1)
+				CONSTANT_FILE_ENTRY(4, filesfree, ost_filesfree, (.+), 
+					number, ${subpath:ost_name}, filesinfo, , gauge, filesfree, 1)
+				CONSTANT_FILE_ENTRY(4, kbytestotal, ost_kbytestotal, (.+), 
+					number, ${subpath:ost_name}, kbytesinfo, , gauge, kbytestotal, 1)
+				CONSTANT_FILE_ENTRY(4, kbytesfree, ost_kbytesfree, (.+), 
+					number, ${subpath:ost_name}, kbytesinfo, , gauge, kbytesfree, 1)
+				CONSTANT_FILE_ENTRY(4, kbytesavail, ost_kbytesavail, (.+), 
+					number, ${subpath:ost_name}, kbytesinfo, , gauge, kbytesavail, 1)
 			</entry>
 		</entry>
 		<entry>
@@ -957,6 +967,34 @@ include(`lustre_xml.m4')dnl
 					CONSTANT_FILE_ENTRY(5, threads_started, ldlm_cbd_threads_started, (.+), 
 						number, ldlm_service, lock_grant, , gauge, threads_started, 1)
 				</entry>
+			</entry>
+		</entry>
+		<entry>
+			<subpath>
+				<subpath_type>constant</subpath_type>
+				<path>lod</path>
+			</subpath>
+			<mode>directory</mode>
+			<entry>
+				<subpath>
+					<subpath_type>regular_expression</subpath_type>
+					<path>(^.+-MDT[0-9a-fA-F]+-mdtlov)</path>
+					<subpath_field>
+						<index>1</index>
+						<name>lod_mdt_name</name>
+					</subpath_field>
+				</subpath>
+				<mode>directory</mode>
+				CONSTANT_FILE_ENTRY(4, filestotal, mdt_filestotal, (.+), 
+					number, ${subpath:lod_mdt_name}, filesinfo, , gauge, filestotal, 1)
+				CONSTANT_FILE_ENTRY(4, filesfree, mdt_filesfree, (.+), 
+					number, ${subpath:lod_mdt_name}, filesinfo, , gauge, filesfree, 1)
+				CONSTANT_FILE_ENTRY(4, kbytestotal, mdt_kbytestotal, (.+), 
+					number, ${subpath:lod_mdt_name}, kbytesinfo, , gauge, kbytestotal, 1)
+				CONSTANT_FILE_ENTRY(4, kbytesfree, mdt_kbytesfree, (.+), 
+					number, ${subpath:lod_mdt_name}, kbytesinfo, , gauge, kbytesfree, 1)
+				CONSTANT_FILE_ENTRY(4, kbytesavail, mdt_kbytesavail, (.+), 
+					number, ${subpath:lod_mdt_name}, kbytesinfo, , gauge, kbytesavail, 1)
 			</entry>
 		</entry>
 	</entry>

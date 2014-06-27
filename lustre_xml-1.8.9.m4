@@ -57,6 +57,16 @@ include(`lustre_xml.m4')dnl
 					MD_STATS_ITEM(5, statfs, 1)
 					MD_STATS_ITEM(5, sync, 1)
 				</entry>
+				CONSTANT_FILE_ENTRY(4, filestotal, mdt_filestotal, (.+), 
+					number, ${subpath:mdt_name}, filesinfo, , gauge, filestotal, 1)
+				CONSTANT_FILE_ENTRY(4, filesfree, mdt_filesfree, (.+), 
+					number, ${subpath:mdt_name}, filesinfo, , gauge, filesfree, 1)
+				CONSTANT_FILE_ENTRY(4, kbytestotal, mdt_kbytestotal, (.+), 
+					number, ${subpath:mdt_name}, kbytesinfo, , gauge, kbytestotal, 1)
+				CONSTANT_FILE_ENTRY(4, kbytesfree, mdt_kbytesfree, (.+), 
+					number, ${subpath:mdt_name}, kbytesinfo, , gauge, kbytesfree, 1)
+				CONSTANT_FILE_ENTRY(4, kbytesavail, mdt_kbytesavail, (.+), 
+					number, ${subpath:mdt_name}, kbytesinfo, , gauge, kbytesavail, 1)
 			</entry>
 		</entry>
 		<entry>
