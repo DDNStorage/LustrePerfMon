@@ -25,7 +25,7 @@ WORKSPACE=$(shell pwd)
 rpm:
 	git clean -d -x -f
 	make all
-	tar czvf lustre_xml_definition.tar.gz *.xml
+	tar czvf lustre_xml_definition.tar.gz *.xml collectd.conf.all
 	mkdir {BUILD,RPMS,SOURCES,SRPMS}
 	mv lustre_xml_definition.tar.gz ./SOURCES/
 	rpmbuild -ba --define="_topdir $(WORKSPACE)" lustre_xml_definition.spec

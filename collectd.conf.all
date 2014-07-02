@@ -1,0 +1,239 @@
+Interval     2
+LoadPlugin syslog
+<Plugin syslog>
+	LogLevel info
+</Plugin>
+#LoadPlugin network
+#<Plugin "network">
+#Server "192.168.2.107" "25827"
+#</Plugin>
+LoadPlugin lustre
+<Plugin "lustre">
+  <Common>
+    Debug false
+    #DefinitionFile "/etc/lustre-1.8_definition.xml"
+    #DefinitionFile "/etc/lustre-2.4_definition.xml"
+    #DefinitionFile "/etc/lustre-ieel-2.5.xml"
+    #DefinitionFile "/etc/lustre-2.5_definition.xml"
+  </Common>
+  <Item>
+    Type "lustre_version"
+  </Item>
+  <Item>
+    Type "md_stats_open"
+  </Item>
+  <Item>
+    Type "md_stats_close"
+  </Item>
+  <Item>
+    Type "md_stats_mknod"
+  </Item>
+  <Item>
+    Type "md_stats_link"
+  </Item>
+  <Item>
+    Type "md_stats_unlink"
+  </Item>
+  <Item>
+    Type "md_stats_mkdir"
+  </Item>
+  <Item>
+    Type "md_stats_rmdir"
+  </Item>
+  <Item>
+    Type "md_stats_rename"
+  </Item>
+  <Item>
+    Type "md_stats_getattr"
+  </Item>
+  <Item>
+    Type "md_stats_setattr"
+  </Item>
+  <Item>
+    Type "md_stats_statfs"
+  </Item>
+  <Item>
+    Type "md_stats_sync"
+  </Item>
+  <Item>
+    Type "md_stats_samedir_rename"
+  </Item>
+  <Item>
+    Type "md_stats_crossdir_rename"
+  </Item>
+  <Item>
+    Type "ost_stats_read"
+  </Item>
+  <Item>
+    Type "ost_stats_write"
+  </Item>
+  <Item>
+    Type "ost_stats_getattr"
+  </Item>
+  <Item>
+    Type "ost_stats_setattr"
+  </Item>
+  <Item>
+    Type "ost_stats_punch"
+  </Item>
+  <Item>
+    Type "ost_stats_sync"
+  </Item>
+  <Item>
+    Type "ost_stats_destroy"
+  </Item>
+  <Item>
+    Type "ost_stats_create"
+  </Item>
+  <Item>
+    Type "ost_stats_statfs"
+  </Item>
+  <Item>
+    Type "ost_stats_get_info"
+  </Item>
+  <Item>
+    Type "ost_stats_set_info_async"
+  </Item>
+  <Item>
+    Type "ost_stats_quotactl"
+  </Item>
+  <Item>
+    Type "ost_brw_stats_rpc_bulk"
+  </Item>
+  <Item>
+    Type "ost_brw_stats_page_discontiguous_rpc"
+  </Item>
+  <Item>
+    Type "ost_brw_stats_block_discontiguous_rpc"
+  </Item>
+  <Item>
+    Type "ost_brw_stats_fragmented_io"
+  </Item>
+  <Item>
+    Type "ost_brw_stats_io_in_flight"
+  </Item>
+  <Item>
+    Type "ost_brw_stats_io_time"
+  </Item>
+  <Item>
+    Type "ost_brw_stats_io_size"
+  </Item>
+  <Item>
+    Type "ost_filestotal"
+  </Item>
+  <Item>
+    Type "ost_filesfree"
+  </Item>
+  <Item>
+    Type "ost_kbytestotal"
+  </Item>
+  <Item>
+    Type "ost_kbytesfree"
+  </Item>
+  <Item>
+    Type "ost_kbytesavail"
+  </Item>
+  <Item>
+    Type "mdt_filestotal"
+  </Item>
+  <Item>
+    Type "mdt_filesfree"
+  </Item>
+  <Item>
+    Type "mdt_kbytestotal"
+  </Item>
+  <Item>
+    Type "mdt_kbytesfree"
+  </Item>
+  <Item>
+    Type "mdt_kbytesavail"
+  </Item>
+#  <Item>
+#    Type "max_rpcs_in_flight"
+#  </Item>
+#  <Item>
+#    Type "mds_threads_max"
+#  </Item>
+#  <Item>
+#    Type "mds_threads_min"
+#  </Item>
+#  <Item>
+#    Type "mds_threads_started"
+#  </Item>
+#  <Item>
+#    Type "ost_threads_max"
+#  </Item>
+#  <Item>
+#    Type "ost_threads_min"
+#  </Item>
+#  <Item>
+#    Type "ost_threads_started"
+#  </Item>
+#  <Item>
+#    Type "ost_io_threads_max"
+#  </Item>
+#  <Item>
+#    Type "ost_io_threads_min"
+#  </Item>
+#  <Item>
+#    Type "ost_io_threads_started"
+#  </Item>
+#  <Item>
+#    Type "ost_create_threads_max"
+#  </Item>
+#  <Item>
+#    Type "ost_create_threads_min"
+#  </Item>
+#  <Item>
+#    Type "ost_create_threads_started"
+#  </Item>
+#  <Item>
+#    Type "ldlm_cancel_threads_max"
+#  </Item>
+#  <Item>
+#    Type "ldlm_cancel_threads_min"
+#  </Item>
+#  <Item>
+#    Type "ldlm_cancel_threads_started"
+#  </Item>
+#  <Item>
+#    Type "ldlm_cbd_threads_max"
+#  </Item>
+#  <Item>
+#    Type "ldlm_cbd_threads_min"
+#  </Item>
+#  <Item>
+#    Type "ldlm_cbd_threads_started"
+#  </Item>
+  #<Item>
+  #  Type "ost_jobstats"
+  #  # Match all dd jobstat
+  #  <Rule>
+  #    Field "job_id"
+  #    Match "dd[.][[:digit:]]+"
+  #  </Rule>
+  #</Item>
+  #<Item>
+  #  Type "mdt_jobstats"
+  #  # Match all df jobstat
+  #  <Rule>
+  #    Field "job_id"
+  #    Match "df[.][[:digit:]]+"
+  #  </Rule>
+  #</Item>
+</Plugin>
+
+loadPlugin "write_graphite"
+<Plugin "write_graphite">
+ <Carbon>
+   #Host vm05 
+   #Port "2003"
+   Prefix "collectd."
+   #Postfix ""
+   Protocol "tcp"
+#   EscapeCharacter "_"
+ #  SeparateInstances true
+ #  StoreRates false
+ #  AlwaysAppendDS false
+ </Carbon>
+</Plugin>
