@@ -978,7 +978,7 @@ include(`lustre_xml.m4')dnl
 			<entry>
 				<subpath>
 					<subpath_type>regular_expression</subpath_type>
-					<path>(^.+-MDT[0-9a-fA-F]+-mdtlov)</path>
+					<path>(^.+-MDT[0-9a-fA-F]+)-mdtlov</path>
 					<subpath_field>
 						<index>1</index>
 						<name>lod_mdt_name</name>
