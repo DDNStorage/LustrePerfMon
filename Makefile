@@ -1,4 +1,4 @@
-all: lustre-1.8.9.xml lustre-2.5.xml lustre-ieel-2.5.xml lustre-2.4.2.xml check_xml test
+all: lustre-1.8.9.xml lustre-2.5.xml lustre-ieel-2.5.xml lustre-2.4.2.xml lustre-2.1.6.xml check_xml test
 
 lustre-1.8.9.xml: lustre_xml-1.8.9.m4 lustre_xml.m4
 	m4 lustre_xml-1.8.9.m4 > lustre-1.8.9.xml
@@ -12,6 +12,9 @@ lustre-ieel-2.5.xml: lustre_xml-ieel-2.5.m4 lustre_xml.m4
 lustre-2.4.2.xml: lustre_xml-2.4.2.m4 lustre_xml.m4
 	m4 lustre_xml-2.4.2.m4 > lustre-2.4.2.xml
 
+lustre-2.1.6.xml: lustre_xml-2.1.6.m4 lustre_xml.m4
+	m4 lustre_xml-2.1.6.m4 > lustre-2.1.6.xml
+
 check_xml: check_xml.c
 	gcc -Wall -Werror -I/usr/include/libxml2 -lxml2 check_xml.c -o check_xml
 
@@ -20,6 +23,7 @@ test:	lustre-1.8.9.xml check_xml
 	./check_xml lustre-2.5.xml > /tmp/check.log
 	./check_xml lustre-ieel-2.5.xml > /tmp/check.log
 	./check_xml lustre-2.4.2.xml > /tmp/check.log
+	./check_xml lustre-2.1.6.xml > /tmp/check.log
 
 WORKSPACE=$(shell pwd)
 rpm:

@@ -21,6 +21,7 @@ XML definition files of lustre of DDN
 %install
 %{__install} -Dp -m0644 lustre-1.8.9.xml %{buildroot}%{_sysconfdir}/lustre-1.8_definition.xml
 %{__install} -Dp -m0644 lustre-2.4.2.xml %{buildroot}%{_sysconfdir}/lustre-2.4_definition.xml
+%{__install} -Dp -m0644 lustre-2.1.6.xml %{buildroot}%{_sysconfdir}/lustre-2.1_definition.xml
 %{__install} -Dp -m0644 lustre-2.5.xml %{buildroot}%{_sysconfdir}/lustre-2.5_definition.xml
 %{__install} -Dp -m0644 lustre-ieel-2.5.xml %{buildroot}%{_sysconfdir}/lustre-ieel-2.5_definition.xml
 %{__install} -Dp -m0644 collectd.conf.all %{buildroot}%{_sysconfdir}/collectd.conf.all
@@ -36,12 +37,15 @@ XML definition files of lustre of DDN
 %files
 %defattr(-,root,root,-)
 %{_sysconfdir}/lustre-1.8_definition.xml
+%{_sysconfdir}/lustre-2.1_definition.xml
 %{_sysconfdir}/lustre-2.4_definition.xml
 %{_sysconfdir}/lustre-2.5_definition.xml
 %{_sysconfdir}/lustre-ieel-2.5_definition.xml
 %{_sysconfdir}/collectd.conf.all
 
 %changelog
+* Sat Jul 26 2014 Wu Libin <lwu@ddn.com> 1.0
+- Add XML definition file for lustre 2.1
 * Fri Jul 5 2014 Wu Libin <lwu@ddn.com> 1.0
 - Add collectd.conf.all to this package.
 * Fri Jun 20 2014 Wu Libin <lwu@ddn.com> 1.0
