@@ -84,23 +84,23 @@ HEAD(Lustre-ieel-2.5)
   sync: +\{ samples: +([[:digit:]]+).+
   samedir_rename: +\{ samples: +([[:digit:]]+).+
   crossdir_rename: +\{ samples: +([[:digit:]]+).+</pattern>
-						FIELD(6, 1, job_id, string, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, job_id, 1)
-						FIELD(6, 2, open, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, open, 1)
-						FIELD(6, 3, close, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, close, 1)
-						FIELD(6, 4, mknod, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, mknod, 1)
-						FIELD(6, 5, link, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, link, 1)
-						FIELD(6, 6, unlink, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, unlink, 1)
-						FIELD(6, 7, mkdir, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, mkdir, 1)
-						FIELD(6, 8, rmdir, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, rmdir, 1)
-						FIELD(6, 9, rename, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, rename, 1)
-						FIELD(6, 10, getattr, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, getattr, 1)
-						FIELD(6, 11, setattr, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, setattr, 1)
-						FIELD(6, 12, getxattr, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, getxattr, 1)
-						FIELD(6, 13, setxattr, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, setxattr, 1)
-						FIELD(6, 14, statfs, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, statfs, 1)
-						FIELD(6, 15, sync, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, sync, 1)
-						FIELD(6, 16, samedir_rename, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, samedir_rename, 1)
-						FIELD(6, 17, crossdir_rename, number, ${subpath:mdt_name}, jobstat, ${content:job_id}, derive, crossdir_rename, 1)
+						FIELD(6, 1, job_id, string, ${key:hostname}, ${subpath:mdt_name}, jobstat_${content:job_id}, derive, job_id, 1)
+						FIELD(6, 2, open, number, ${key:hostname}, ${subpath:mdt_name}, jobstat_${content:job_id}, derive, open, 1)
+						FIELD(6, 3, close, number, ${key:hostname}, ${subpath:mdt_name}, jobstat_${content:job_id}, derive, close, 1)
+						FIELD(6, 4, mknod, number, ${key:hostname}, ${subpath:mdt_name}, jobstat_${content:job_id}, derive, mknod, 1)
+						FIELD(6, 5, link, number, ${key:hostname}, ${subpath:mdt_name}, jobstat_${content:job_id}, derive, link, 1)
+						FIELD(6, 6, unlink, number, ${key:hostname}, ${subpath:mdt_name}, jobstat_${content:job_id}, derive, unlink, 1)
+						FIELD(6, 7, mkdir, number, ${key:hostname}, ${subpath:mdt_name}, jobstat_${content:job_id}, derive, mkdir, 1)
+						FIELD(6, 8, rmdir, number, ${key:hostname}, ${subpath:mdt_name}, jobstat_${content:job_id}, derive, rmdir, 1)
+						FIELD(6, 9, rename, number, ${key:hostname}, ${subpath:mdt_name}, jobstat_${content:job_id}, derive, rename, 1)
+						FIELD(6, 10, getattr, number, ${key:hostname}, ${subpath:mdt_name}, jobstat_${content:job_id}, derive, getattr, 1)
+						FIELD(6, 11, setattr, number, ${key:hostname}, ${subpath:mdt_name}, jobstat_${content:job_id}, derive, setattr, 1)
+						FIELD(6, 12, getxattr, number, ${key:hostname}, ${subpath:mdt_name}, jobstat_${content:job_id}, derive, getxattr, 1)
+						FIELD(6, 13, setxattr, number, ${key:hostname}, ${subpath:mdt_name}, jobstat_${content:job_id}, derive, setxattr, 1)
+						FIELD(6, 14, statfs, number, ${key:hostname}, ${subpath:mdt_name}, jobstat_${content:job_id}, derive, statfs, 1)
+						FIELD(6, 15, sync, number, ${key:hostname}, ${subpath:mdt_name}, jobstat_${content:job_id}, derive, sync, 1)
+						FIELD(6, 16, samedir_rename, number, ${key:hostname}, ${subpath:mdt_name}, jobstat_${content:job_id}, derive, samedir_rename, 1)
+						FIELD(6, 17, crossdir_rename, number, ${key:hostname}, ${subpath:mdt_name}, jobstat_${content:job_id}, derive, crossdir_rename, 1)
 					</item>
 				</entry>
 			</entry>
@@ -133,14 +133,14 @@ HEAD(Lustre-ieel-2.5)
 					<item>
 						<name>ost_stats_read</name>
 						<pattern>read_bytes +([[:digit:]]+) samples \[bytes\] [[:digit:]]+ [[:digit:]]+ ([[:digit:]]+)</pattern>
-						FIELD(6, 1, read_samples, number, ${subpath:ost_name}, stats, , derive, read_samples, 1)
-						FIELD(6, 2, read_bytes, number, ${subpath:ost_name}, stats, , derive, read_bytes, 1)
+						FIELD(6, 1, read_samples, number, ${key:hostname}, ${subpath:ost_name}, stats, derive, read_samples, 1)
+						FIELD(6, 2, read_bytes, number, ${key:hostname}, ${subpath:ost_name}, stats, derive, read_bytes, 1)
 					</item>
 					<item>
 						<name>ost_stats_write</name>
 						<pattern>write_bytes +([[:digit:]]+) samples \[bytes\] [[:digit:]]+ [[:digit:]]+ ([[:digit:]]+)</pattern>
-						FIELD(6, 1, write_samples, number, ${subpath:ost_name}, stats, , derive, write_samples, 1)
-						FIELD(6, 2, write_bytes, number, ${subpath:ost_name}, stats, , derive, write_bytes, 1)
+						FIELD(6, 1, write_samples, number, ${key:hostname}, ${subpath:ost_name}, stats, derive, write_samples, 1)
+						FIELD(6, 2, write_bytes, number, ${key:hostname}, ${subpath:ost_name}, stats, derive, write_bytes, 1)
 					</item>
 					OST_STATS_ITEM(5, getattr, reqs, 1)
 					OST_STATS_ITEM(5, setattr, reqs, 1)
@@ -196,26 +196,17 @@ HEAD(Lustre-ieel-2.5)
   setattr: +\{ samples: +([[:digit:]]+).+
   punch: +\{ samples: +([[:digit:]]+).+
   sync: +\{ samples: +([[:digit:]]+).+</pattern>
-						FIELD(6, 1, job_id, string, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, job_id, 1)
-						FIELD(6, 2, read_samples, number, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, read_samples, 1)
-						FIELD(6, 3, read_bytes, number, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, read_bytes, 1)
-						FIELD(6, 4, write_samples, number, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, write_samples, 1)
-						FIELD(6, 5, write_bytes, number, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, write_bytes, 1)
-						FIELD(6, 6, setattr, number, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, setattr, 1)
-						FIELD(6, 7, punch, number, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, pubch, 1)
-						FIELD(6, 8, sync, number, ${subpath:ost_name}, jobstat, ${content:job_id}, derive, sync, 1)
+						FIELD(6, 1, job_id, string, ${key:hostname}, ${subpath:ost_name}, jobstat_${content:job_id}, derive, job_id, 1)
+						FIELD(6, 2, read_samples, number, ${key:hostname}, ${subpath:ost_name}, jobstat_${content:job_id}, derive, read_samples, 1)
+						FIELD(6, 3, read_bytes, number, ${key:hostname}, ${subpath:ost_name}, jobstat_${content:job_id}, derive, read_bytes, 1)
+						FIELD(6, 4, write_samples, number, ${key:hostname}, ${subpath:ost_name}, jobstat_${content:job_id}, derive, write_samples, 1)
+						FIELD(6, 5, write_bytes, number, ${key:hostname}, ${subpath:ost_name}, jobstat_${content:job_id}, derive, write_bytes, 1)
+						FIELD(6, 6, setattr, number, ${key:hostname}, ${subpath:ost_name}, jobstat_${content:job_id}, derive, setattr, 1)
+						FIELD(6, 7, punch, number, ${key:hostname}, ${subpath:ost_name}, jobstat_${content:job_id}, derive, pubch, 1)
+						FIELD(6, 8, sync, number, ${key:hostname}, ${subpath:ost_name}, jobstat_${content:job_id}, derive, sync, 1)
 					</item>
 				</entry>
-				CONSTANT_FILE_ENTRY(4, filestotal, ost_filestotal, (.+),
-					number, ${subpath:ost_name}, filesinfo, , gauge, filestotal, 1)
-				CONSTANT_FILE_ENTRY(4, filesfree, ost_filesfree, (.+),
-					number, ${subpath:ost_name}, filesinfo, , gauge, filesfree, 1)
-				CONSTANT_FILE_ENTRY(4, kbytestotal, ost_kbytestotal, (.+),
-					number, ${subpath:ost_name}, kbytesinfo, , gauge, kbytestotal, 1)
-				CONSTANT_FILE_ENTRY(4, kbytesfree, ost_kbytesfree, (.+),
-					number, ${subpath:ost_name}, kbytesinfo, , gauge, kbytesfree, 1)
-				CONSTANT_FILE_ENTRY(4, kbytesavail, ost_kbytesavail, (.+),
-					number, ${subpath:ost_name}, kbytesinfo, , gauge, kbytesavail, 1)
+				FILES_KBYTES_INFO_ENTRIES(4, ost, ${subpath:ost_name}, 1)
 			</entry>
 		</entry>
 		<entry>
@@ -234,8 +225,8 @@ HEAD(Lustre-ieel-2.5)
 					</subpath_field>
 				</subpath>
 				<mode>directory</mode>
-				CONSTANT_FILE_ENTRY(4, max_rpcs_in_flight, max_rpcs_in_flight, (.+),
-					number, ${subpath:mdc_mdt_name}, mdc_rpcs, , gauge, max_rpcs_in_flight, 1)
+				CONSTANT_FILE_ENTRY(4, max_rpcs_in_flight, max_rpcs_in_flight, (.+), number,
+					${key:hostname}, ${subpath:mdc_mdt_name}, mdc_rpcs, gauge, max_rpcs_in_flight, 1)
 			</entry>
 		</entry>
 		<entry>
@@ -256,12 +247,7 @@ HEAD(Lustre-ieel-2.5)
 						<path>mdt</path>
 					</subpath>
 					<mode>directory</mode>
-					CONSTANT_FILE_ENTRY(5, threads_max, mds_threads_max, (.+),
-						number, mds, normal_metadata_ops, , gauge, threads_max, 1)
-					CONSTANT_FILE_ENTRY(5, threads_min, mds_threads_min, (.+),
-						number, mds, normal_metadata_ops, , gauge, threads_min, 1)
-					CONSTANT_FILE_ENTRY(5, threads_started, mds_threads_started, (.+),
-						number, mds, normal_metadata_ops, , gauge, threads_started, 1)
+					THREAD_INFO_ENTRIES(5, mds, mds, normal_metadata_ops, gauge, 1)
 				</entry>
 			</entry>
 		</entry>
@@ -283,12 +269,7 @@ HEAD(Lustre-ieel-2.5)
 						<path>ost</path>
 					</subpath>
 					<mode>directory</mode>
-					CONSTANT_FILE_ENTRY(5, threads_max, ost_threads_max, (.+),
-						number, ost, normal_data, , gauge, threads_max, 1)
-					CONSTANT_FILE_ENTRY(5, threads_min, ost_threads_min, (.+),
-						number, ost, normal_data, , gauge, threads_min, 1)
-					CONSTANT_FILE_ENTRY(5, threads_started, ost_threads_started, (.+),
-						number, ost, normal_data, , gauge, threads_started, 1)
+					THREAD_INFO_ENTRIES(5, ost, ost, normal_data, gauge, 1)
 				</entry>
 				<entry>
 					<subpath>
@@ -311,12 +292,7 @@ HEAD(Lustre-ieel-2.5)
 						OST_IO_STATS_ITEM(6, ost_write, usec, 1)
 						OST_IO_STATS_ITEM(6, ost_punch, usec, 1)
 					</entry>
-					CONSTANT_FILE_ENTRY(5, threads_max, ost_io_threads_max, (.+),
-						number, ost, bulk_data_IO, , gauge, threads_max, 1)
-					CONSTANT_FILE_ENTRY(5, threads_min, ost_io_threads_min, (.+),
-						number, ost, bulk_data_IO, , gauge, threads_min, 1)
-					CONSTANT_FILE_ENTRY(5, threads_started, ost_io_threads_started, (.+),
-						number, ost, bulk_data_IO, , gauge, threads_started, 1)
+					THREAD_INFO_ENTRIES(5, ost_io, ost, bulk_data_IO, gauge, 1)
 				</entry>
 				<entry>
 					<subpath>
@@ -324,12 +300,7 @@ HEAD(Lustre-ieel-2.5)
 						<path>ost_create</path>
 					</subpath>
 					<mode>directory</mode>
-					CONSTANT_FILE_ENTRY(5, threads_max, ost_create_threads_max, (.+),
-						number, ost, obj_pre-creation_service, , gauge, threads_max, 1)
-					CONSTANT_FILE_ENTRY(5, threads_min, ost_create_threads_min, (.+),
-						number, ost, obj_pre-creation_service, , gauge, threads_min, 1)
-					CONSTANT_FILE_ENTRY(5, threads_started, ost_create_threads_started, (.+),
-						number, ost, obj_pre-creation_service, , gauge, threads_started, 1)
+					THREAD_INFO_ENTRIES(5, ost_create, ost, obj_pre-creation_service, gauge, 1)
 				</entry>
 			</entry>
 		</entry>
@@ -351,12 +322,7 @@ HEAD(Lustre-ieel-2.5)
 						<path>ldlm_canceld</path>
 					</subpath>
 					<mode>directory</mode>
-					CONSTANT_FILE_ENTRY(5, threads_max, ldlm_cancel_threads_max, (.+),
-						number, ldlm_service, lock_cancel, , gauge, threads_max, 1)
-					CONSTANT_FILE_ENTRY(5, threads_min, ldlm_cancel_threads_min, (.+),
-						number, ldlm_service, lock_cancel, , gauge, threads_min, 1)
-					CONSTANT_FILE_ENTRY(5, threads_started, ldlm_cancel_threads_started, (.+),
-						number, ldlm_service, lock_cancel, , gauge, threads_started, 1)
+					THREAD_INFO_ENTRIES(5, ldlm_cancel, ldlm_service, lock_cancel, gauge, 1)
 				</entry>
 				<entry>
 					<subpath>
@@ -364,12 +330,7 @@ HEAD(Lustre-ieel-2.5)
 						<path>ldlm_cbd</path>
 					</subpath>
 					<mode>directory</mode>
-					CONSTANT_FILE_ENTRY(5, threads_max, ldlm_cbd_threads_max, (.+),
-						number, ldlm_service, lock_grant, , gauge, threads_max, 1)
-					CONSTANT_FILE_ENTRY(5, threads_min, ldlm_cbd_threads_min, (.+),
-						number, ldlm_service, lock_grant, , gauge, threads_min, 1)
-					CONSTANT_FILE_ENTRY(5, threads_started, ldlm_cbd_threads_started, (.+),
-						number, ldlm_service, lock_grant, , gauge, threads_started, 1)
+					THREAD_INFO_ENTRIES(5, ldlm_cbd, ldlm_service, lock_grant, gauge, 1)
 				</entry>
 			</entry>
 		</entry>
@@ -389,16 +350,7 @@ HEAD(Lustre-ieel-2.5)
 					</subpath_field>
 				</subpath>
 				<mode>directory</mode>
-				CONSTANT_FILE_ENTRY(4, filestotal, mdt_filestotal, (.+),
-					number, ${subpath:lod_mdt_name}, filesinfo, , gauge, filestotal, 1)
-				CONSTANT_FILE_ENTRY(4, filesfree, mdt_filesfree, (.+),
-					number, ${subpath:lod_mdt_name}, filesinfo, , gauge, filesfree, 1)
-				CONSTANT_FILE_ENTRY(4, kbytestotal, mdt_kbytestotal, (.+),
-					number, ${subpath:lod_mdt_name}, kbytesinfo, , gauge, kbytestotal, 1)
-				CONSTANT_FILE_ENTRY(4, kbytesfree, mdt_kbytesfree, (.+),
-					number, ${subpath:lod_mdt_name}, kbytesinfo, , gauge, kbytesfree, 1)
-				CONSTANT_FILE_ENTRY(4, kbytesavail, mdt_kbytesavail, (.+),
-					number, ${subpath:lod_mdt_name}, kbytesinfo, , gauge, kbytesavail, 1)
+				FILES_KBYTES_INFO_ENTRIES(4, mdt, ${subpath:lod_mdt_name}, 1)
 			</entry>
 		</entry>
 	</entry>

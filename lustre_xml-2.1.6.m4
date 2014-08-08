@@ -88,20 +88,20 @@ HEAD(Lustre-2.1.6)
 					<item>
 						<name>ost_stats_read</name>
 						<pattern>read_bytes +([[:digit:]]+) samples \[bytes\] [[:digit:]]+ [[:digit:]]+ ([[:digit:]]+)</pattern>
-						FIELD(6, 1, read_samples, number, ${subpath:ost_name}, stats, , derive, read_samples, 1)
-						FIELD(6, 2, read_bytes, number, ${subpath:ost_name}, stats, , derive, read_bytes, 1)
+						FIELD(6, 1, read_samples, number, ${key:hostname}, ${subpath:ost_name}, stats, derive, read_samples, 1)
+						FIELD(6, 2, read_bytes, number, ${key:hostname}, ${subpath:ost_name}, stats, derive, read_bytes, 1)
 					</item>
 					<item>
 						<name>ost_stats_write</name>
 						<pattern>write_bytes +([[:digit:]]+) samples \[bytes\] [[:digit:]]+ [[:digit:]]+ ([[:digit:]]+)</pattern>
-						FIELD(6, 1, write_samples, number, ${subpath:ost_name}, stats, , derive, write_samples, 1)
-						FIELD(6, 2, write_bytes, number, ${subpath:ost_name}, stats, , derive, write_bytes, 1)
+						FIELD(6, 1, write_samples, number, ${key:hostname}, ${subpath:ost_name}, stats, derive, write_samples, 1)
+						FIELD(6, 2, write_bytes, number, ${key:hostname}, ${subpath:ost_name}, stats, derive, write_bytes, 1)
 					</item>
 					OST_STATS_ITEM(5, get_page, usec, 1)
 					<item>
 						<name>ost_stats_get_page_failures</name>
 						<pattern>get_page failures +([[:digit:]]+) samples \[num\]</pattern>
-						FIELD(6, 1, get_page_failures, number, ${subpath:ost_name}, stats, , derive, get_page_failures, 1)
+						FIELD(6, 1, get_page_failures, number, ${key:hostname}, ${subpath:ost_name}, stats, derive, get_page_failures, 1)
 					</item>
 					OST_STATS_ITEM(5, cache_access, pages, 1)
 					OST_STATS_ITEM(5, cache_hit, pages, 1)
@@ -148,16 +148,7 @@ HEAD(Lustre-2.1.6)
 (.+
 )*$, [[:digit:]]+[KM]?, Bytes, 1)
 				</entry>
-				CONSTANT_FILE_ENTRY(4, filestotal, ost_filestotal, (.+),
-					number, ${subpath:ost_name}, filesinfo, , gauge, filestotal, 1)
-				CONSTANT_FILE_ENTRY(4, filesfree, ost_filesfree, (.+),
-					number, ${subpath:ost_name}, filesinfo, , gauge, filesfree, 1)
-				CONSTANT_FILE_ENTRY(4, kbytestotal, ost_kbytestotal, (.+),
-					number, ${subpath:ost_name}, kbytesinfo, , gauge, kbytestotal, 1)
-				CONSTANT_FILE_ENTRY(4, kbytesfree, ost_kbytesfree, (.+),
-					number, ${subpath:ost_name}, kbytesinfo, , gauge, kbytesfree, 1)
-				CONSTANT_FILE_ENTRY(4, kbytesavail, ost_kbytesavail, (.+),
-					number, ${subpath:ost_name}, kbytesinfo, , gauge, kbytesavail, 1)
+				FILES_KBYTES_INFO_ENTRIES(4, ost, ${subpath:ost_name}, 1)
 			</entry>
 		</entry>
 		<entry>
@@ -176,8 +167,9 @@ HEAD(Lustre-2.1.6)
 					</subpath_field>
 				</subpath>
 				<mode>directory</mode>
-				CONSTANT_FILE_ENTRY(4, max_rpcs_in_flight, max_rpcs_in_flight, (.+),
-					number, ${subpath:mdc_mdt_name}, mdc_rpcs, , gauge, max_rpcs_in_flight, 1)
+				CONSTANT_FILE_ENTRY(4, max_rpcs_in_flight, max_rpcs_in_flight,
+						    (.+), number, ${key:hostname}, ${subpath:mdc_mdt_name},
+						    mdc_rpcs, gauge, max_rpcs_in_flight, 1)
 			</entry>
 		</entry>
 		<entry>
@@ -198,12 +190,7 @@ HEAD(Lustre-2.1.6)
 						<path>mdt</path>
 					</subpath>
 					<mode>directory</mode>
-					CONSTANT_FILE_ENTRY(5, threads_max, mds_threads_max, (.+),
-						number, mds, normal_metadata_ops, , gauge, threads_max, 1)
-					CONSTANT_FILE_ENTRY(5, threads_min, mds_threads_min, (.+),
-						number, mds, normal_metadata_ops, , gauge, threads_min, 1)
-					CONSTANT_FILE_ENTRY(5, threads_started, mds_threads_started, (.+),
-						number, mds, normal_metadata_ops, , gauge, threads_started, 1)
+					THREAD_INFO_ENTRIES(5, mds, mds, normal_metadata_ops, gauge, 1)
 				</entry>
 			</entry>
 		</entry>
@@ -225,12 +212,7 @@ HEAD(Lustre-2.1.6)
 						<path>ost</path>
 					</subpath>
 					<mode>directory</mode>
-					CONSTANT_FILE_ENTRY(5, threads_max, ost_threads_max, (.+),
-						number, ost, normal_data, , gauge, threads_max, 1)
-					CONSTANT_FILE_ENTRY(5, threads_min, ost_threads_min, (.+),
-						number, ost, normal_data, , gauge, threads_min, 1)
-					CONSTANT_FILE_ENTRY(5, threads_started, ost_threads_started, (.+),
-						number, ost, normal_data, , gauge, threads_started, 1)
+					THREAD_INFO_ENTRIES(5, ost, ost, normal_data, gauge, 1)
 				</entry>
 				<entry>
 					<subpath>
@@ -253,12 +235,7 @@ HEAD(Lustre-2.1.6)
 						OST_IO_STATS_ITEM(6, ost_write, usec, 1)
 						OST_IO_STATS_ITEM(6, ost_punch, usec, 1)
 					</entry>
-					CONSTANT_FILE_ENTRY(5, threads_max, ost_io_threads_max, (.+),
-						number, ost, bulk_data_IO, , gauge, threads_max, 1)
-					CONSTANT_FILE_ENTRY(5, threads_min, ost_io_threads_min, (.+),
-						number, ost, bulk_data_IO, , gauge, threads_min, 1)
-					CONSTANT_FILE_ENTRY(5, threads_started, ost_io_threads_started, (.+),
-						number, ost, bulk_data_IO, , gauge, threads_started, 1)
+					THREAD_INFO_ENTRIES(5, ost_io, ost, bulk_data_IO, gauge, 1)
 				</entry>
 				<entry>
 					<subpath>
@@ -266,12 +243,7 @@ HEAD(Lustre-2.1.6)
 						<path>ost_create</path>
 					</subpath>
 					<mode>directory</mode>
-					CONSTANT_FILE_ENTRY(5, threads_max, ost_create_threads_max, (.+),
-						number, ost, obj_pre-creation_service, , gauge, threads_max, 1)
-					CONSTANT_FILE_ENTRY(5, threads_min, ost_create_threads_min, (.+),
-						number, ost, obj_pre-creation_service, , gauge, threads_min, 1)
-					CONSTANT_FILE_ENTRY(5, threads_started, ost_create_threads_started, (.+),
-						number, ost, obj_pre-creation_service, , gauge, threads_started, 1)
+					THREAD_INFO_ENTRIES(5, ost_create, ost, obj_pre-creation_service, gauge, 1)
 				</entry>
 			</entry>
 		</entry>
@@ -293,12 +265,7 @@ HEAD(Lustre-2.1.6)
 						<path>ldlm_canceld</path>
 					</subpath>
 					<mode>directory</mode>
-					CONSTANT_FILE_ENTRY(5, threads_max, ldlm_cancel_threads_max, (.+),
-						number, ldlm_service, lock_cancel, , gauge, threads_max, 1)
-					CONSTANT_FILE_ENTRY(5, threads_min, ldlm_cancel_threads_min, (.+),
-						number, ldlm_service, lock_cancel, , gauge, threads_min, 1)
-					CONSTANT_FILE_ENTRY(5, threads_started, ldlm_cancel_threads_started, (.+),
-						number, ldlm_service, lock_cancel, , gauge, threads_started, 1)
+					THREAD_INFO_ENTRIES(5, ldlm_cancel, ldlm_service, lock_cancel, gauge, 1)
 				</entry>
 				<entry>
 					<subpath>
@@ -306,12 +273,7 @@ HEAD(Lustre-2.1.6)
 						<path>ldlm_cbd</path>
 					</subpath>
 					<mode>directory</mode>
-					CONSTANT_FILE_ENTRY(5, threads_max, ldlm_cbd_threads_max, (.+),
-						number, ldlm_service, lock_grant, , gauge, threads_max, 1)
-					CONSTANT_FILE_ENTRY(5, threads_min, ldlm_cbd_threads_min, (.+),
-						number, ldlm_service, lock_grant, , gauge, threads_min, 1)
-					CONSTANT_FILE_ENTRY(5, threads_started, ldlm_cbd_threads_started, (.+),
-						number, ldlm_service, lock_grant, , gauge, threads_started, 1)
+					THREAD_INFO_ENTRIES(5, ldlm_cbd, ldlm_service, lock_grant, gauge, 1)
 				</entry>
 			</entry>
 		</entry>
@@ -331,16 +293,7 @@ HEAD(Lustre-2.1.6)
 					</subpath_field>
 				</subpath>
 				<mode>directory</mode>
-				CONSTANT_FILE_ENTRY(4, filestotal, mdt_filestotal, (.+),
-					number, ${subpath:lod_mdt_name}, filesinfo, , gauge, filestotal, 1)
-				CONSTANT_FILE_ENTRY(4, filesfree, mdt_filesfree, (.+),
-					number, ${subpath:lod_mdt_name}, filesinfo, , gauge, filesfree, 1)
-				CONSTANT_FILE_ENTRY(4, kbytestotal, mdt_kbytestotal, (.+),
-					number, ${subpath:lod_mdt_name}, kbytesinfo, , gauge, kbytestotal, 1)
-				CONSTANT_FILE_ENTRY(4, kbytesfree, mdt_kbytesfree, (.+),
-					number, ${subpath:lod_mdt_name}, kbytesinfo, , gauge, kbytesfree, 1)
-				CONSTANT_FILE_ENTRY(4, kbytesavail, mdt_kbytesavail, (.+),
-					number, ${subpath:lod_mdt_name}, kbytesinfo, , gauge, kbytesavail, 1)
+				FILES_KBYTES_INFO_ENTRIES(4, mdt, ${subpath:lod_mdt_name}, 1)
 			</entry>
 		</entry>
 	</entry>
