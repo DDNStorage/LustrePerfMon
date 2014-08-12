@@ -1,4 +1,5 @@
 include(`lustre_xml.m4')dnl
+HEAD(Lustre-ieel-2.5)
 <definition>
 	<version>2.5.52</version>
 	<entry>

@@ -1,4 +1,5 @@
 include(`lustre_xml.m4')dnl
+HEAD(Lustre-1.8.9)
 <definition>
 	<version>1.8.9</version>
 	<entry>
