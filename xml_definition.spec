@@ -1,13 +1,13 @@
-Name:		lustre_xml_definition	
-Version:	1.0.ddn1
-Release:	1.el6
+Name:		xml_definition
+Version:	1.0.g%{?rev}.ddn1
+Release:	1%{?dist}
 Summary:	XML definition files and configure examples
 Group:		Applications/DDN
 License:	Share
 Packager:	Wu Libin <lwu@ddn.com>
 Vendor:		DataDirect Networks
 URL:		http://www.ddn.com/
-Source0:	lustre_xml_definition.tar.gz
+Source0:	xml_definition.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
 
 %description
@@ -46,6 +46,8 @@ This package includes XML definition files and configure examples for monitor sy
 %{_sysconfdir}/collectd.conf.all
 
 %changelog
+* Sun Aug 17 2014 Li Xi <lixi@ddn.com> 1.0
+- Add version support for building RPMs
 * Wed Aug 13 2014 Li Xi <lixi@ddn.com> 1.0
 - Add XML definition file for GPFS 3.5
 * Sat Jul 26 2014 Wu Libin <lwu@ddn.com> 1.0

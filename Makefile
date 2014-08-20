@@ -31,14 +31,17 @@ test:	lustre-1.8.9.xml lustre-2.5.xml lustre-ieel-2.5.xml lustre-2.4.2.xml \
 	./check_xml lustre-2.1.6.xml > /tmp/check.log
 	./check_xml gpfs-3.5.xml > /tmp/check.log
 
-WORKSPACE=$(shell pwd)
 rpm:
 	git clean -d -x -f
 	make all
-	tar czvf lustre_xml_definition.tar.gz *.xml collectd.conf.all
-	mkdir {BUILD,RPMS,SOURCES,SRPMS}
-	mv lustre_xml_definition.tar.gz ./SOURCES/
-	rpmbuild -ba --define="_topdir $(WORKSPACE)" xml_definition.spec
+	tar czvf xml_definition.tar.gz *.xml collectd.conf.all
+	mkdir {BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+	mv xml_definition.tar.gz ./SOURCES/
+	rpmbuild -ba --define="rev $(shell git rev-parse --short HEAD)" \
+		--define="_topdir $(shell pwd)" \
+		xml_definition.spec
 
 clean:
 	rm *.xml check_xml -f
+	rm -fr {BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+	rm xml_definition.tar.gz -f
