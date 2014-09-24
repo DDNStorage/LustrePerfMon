@@ -1,6 +1,0 @@
-[monsystem-ddn]
-name=Monitor system of DDN
-baseurl=file:///media/monsystem-ddn
-failovermethod=priority
-enabled=1
-gpgcheck=0
