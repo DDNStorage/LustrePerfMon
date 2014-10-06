@@ -107,13 +107,33 @@ define(`PATTERN',
         `ELEMENT_ONELINE($1, pattern, $2, $3)')dnl
 dnl
 dnl $1: number of INDENT
+dnl $2: index of field
+dnl $3: name of field
+dnl $4: is first child of parent ELEMENT
+define(`SUBPATH_FIELD',
+	`ELEMENT($1, subpath_field,
+INDEX($1+1, $2, 1)
+NAME($1+1, $3, 0), $4)')dnl
+dnl
+dnl $1: number of INDENT
 dnl $2: type of subpath
 dnl $3: path value of entry
 dnl $4: is first child of parent ELEMENT
 define(`SUBPATH',
 	`ELEMENT($1, subpath,
 SUBPATH_TYPE($1+1, $2, 1)
-PATH($1+1, $3, 0), $4)')dnl;
+PATH($1+1, $3, 0), $4)')dnl
+dnl
+dnl $1: number of INDENT
+dnl $2: type of subpath
+dnl $3: path value of entry
+dnl $4: name of the field
+dnl $5: is first child of parent ELEMENT
+define(`ONE_FIELD_SUBPATH',
+	`ELEMENT($1, subpath,
+SUBPATH_TYPE($1+1, $2, 1)
+PATH($1+1, $3, 0)
+SUBPATH_FIELD($1+1, 1, $4, 0), $5)')dnl
 dnl
 dnl $1: number of INDENT
 dnl $2: name of field

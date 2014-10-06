@@ -61,6 +61,15 @@ HEAD(Lustre-2.5)
 					MD_STATS_ITEM(5, crossdir_rename, 1)
 				</entry>
 				<entry>
+					SUBPATH(5, constant, exports, 1)
+					MODE(5, directory, 1)
+					<entry>
+						ONE_FIELD_SUBPATH(6, regular_expression, (.+@.+), mdt_exp_name, 1)
+						MODE(6, directory, 1)
+						EXPORT_MD_STATS_ENTRY(6, , 1)
+					</entry>
+				</entry>
+				<entry>
 					<subpath>
 						<subpath_type>constant</subpath_type>
 						<path>job_stats</path>
@@ -132,18 +141,8 @@ HEAD(Lustre-2.5)
 						<path>stats</path>
 					</subpath>
 					<mode>file</mode>
-					<item>
-						<name>ost_stats_read</name>
-						<pattern>read_bytes +([[:digit:]]+) samples \[bytes\] [[:digit:]]+ [[:digit:]]+ ([[:digit:]]+)</pattern>
-						FIELD(6, 1, read_samples, number, ${key:hostname}, ${subpath:ost_name}, stats, derive, read_samples, 1)
-						FIELD(6, 2, read_bytes, number, ${key:hostname}, ${subpath:ost_name}, stats, derive, read_bytes, 1)
-					</item>
-					<item>
-						<name>ost_stats_write</name>
-						<pattern>write_bytes +([[:digit:]]+) samples \[bytes\] [[:digit:]]+ [[:digit:]]+ ([[:digit:]]+)</pattern>
-						FIELD(6, 1, write_samples, number, ${key:hostname}, ${subpath:ost_name}, stats, derive, write_samples, 1)
-						FIELD(6, 2, write_bytes, number, ${key:hostname}, ${subpath:ost_name}, stats, derive, write_bytes, 1)
-					</item>
+					OST_STATS_ITEM_RW(5, read, 1)
+					OST_STATS_ITEM_RW(5, write, 1)
 					OST_STATS_ITEM(5, getattr, reqs, 1)
 					OST_STATS_ITEM(5, setattr, reqs, 1)
 					OST_STATS_ITEM(5, punch, reqs, 1)
@@ -221,6 +220,15 @@ HEAD(Lustre-2.5)
 					OST_BRW_STATS_ITEM(5, io_size, ^disk I/O size .+
 (.+
 )*$, [[:digit:]]+[KM]?, Bytes, 1)
+				</entry>
+				<entry>
+					SUBPATH(5, constant, exports, 1)
+					MODE(5, directory, 1)
+					<entry>
+						ONE_FIELD_SUBPATH(6, regular_expression, (.+@.+), ost_exp_name, 1)
+						MODE(6, directory, 1)
+						EXPORT_OST_STATS_ENTRY(6, , 1)
+					</entry>
 				</entry>
 				FILES_KBYTES_INFO_ENTRIES(4, ost, ${subpath:ost_name}, 1)
 			</entry>
