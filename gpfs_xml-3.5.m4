@@ -11,18 +11,18 @@ HEAD(GPFS-3.5)
 		<item>
 			<name>fs_io_s</name>
 			<pattern>_fs_io_s_ _n_ (.+) _nn_ (.+) _rc_ .+ _t_ .+ _tu_ .+ _cl_ (.+) _fs_ (.+) _d_ .+ _br_ (.+) _bw_ (.+) _oc_ (.+) _cc_ (.+) _rdc_ (.+) _wc_ (.+) _dir_ (.+) _iu_ (.+)</pattern>
-			FIELD(4, 1, IP, string, ${content:cluster}, ${content:filesystem}, ${content:hostname}, derive, NA, 1)
-			FIELD(4, 2, hostname, string, ${content:cluster}, ${content:filesystem}, ${content:hostname}, derive, NA, 1)
-			FIELD(4, 3, cluster, string, ${content:cluster}, ${content:filesystem}, ${content:hostname}, derive, NA, 1)
-			FIELD(4, 4, filesystem, string, ${content:cluster}, ${content:filesystem}, ${content:hostname}, derive, NA, 1)
-			FIELD(4, 5, bytes_read, number, ${content:cluster}, ${content:filesystem}, ${content:hostname}, derive, bytes_read, 1)
-			FIELD(4, 6, bytes_write, number, ${content:cluster}, ${content:filesystem}, ${content:hostname}, derive, bytes_write, 1)
-			FIELD(4, 7, open_count, number, ${content:cluster}, ${content:filesystem}, ${content:hostname}, derive, open_count, 1)
-			FIELD(4, 8, close_count, number, ${content:cluster}, ${content:filesystem}, ${content:hostname}, derive, close_count, 1)
-			FIELD(4, 9, read_count, number, ${content:cluster}, ${content:filesystem}, ${content:hostname}, derive, read_count, 1)
-			FIELD(4, 10, write_count, number, ${content:cluster}, ${content:filesystem}, ${content:hostname}, derive, write_count, 1)
-			FIELD(4, 11, readdir_count, number, ${content:cluster}, ${content:filesystem}, ${content:hostname}, derive, readdir_count, 1)
-			FIELD(4, 12, inode_upate_count, number, ${content:cluster}, ${content:filesystem}, ${content:hostname}, derive, inode_upate_count, 1)
+			FIELD(4, 1, IP, string, ${key:hostname}, ${content:cluster}, ${content:filesystem}, derive, NA, 1)
+			FIELD(4, 2, hostname, string, ${key:hostname}, ${content:cluster}, ${content:filesystem}, derive, NA, 1)
+			FIELD(4, 3, cluster, string, ${key:hostname}, ${content:cluster}, ${content:filesystem}, derive, NA, 1)
+			FIELD(4, 4, filesystem, string, ${key:hostname}, ${content:cluster}, ${content:filesystem}, derive, NA, 1)
+			FIELD(4, 5, bytes_read, number, ${key:hostname}, ${content:cluster}, ${content:filesystem}, derive, bytes_read, 1)
+			FIELD(4, 6, bytes_write, number, ${key:hostname}, ${content:cluster}, ${content:filesystem}, derive, bytes_write, 1)
+			FIELD(4, 7, open_count, number, ${key:hostname}, ${content:cluster}, ${content:filesystem}, derive, open_count, 1)
+			FIELD(4, 8, close_count, number, ${key:hostname}, ${content:cluster}, ${content:filesystem}, derive, close_count, 1)
+			FIELD(4, 9, read_count, number, ${key:hostname}, ${content:cluster}, ${content:filesystem}, derive, read_count, 1)
+			FIELD(4, 10, write_count, number, ${key:hostname}, ${content:cluster}, ${content:filesystem}, derive, write_count, 1)
+			FIELD(4, 11, readdir_count, number, ${key:hostname}, ${content:cluster}, ${content:filesystem}, derive, readdir_count, 1)
+			FIELD(4, 12, inode_upate_count, number, ${key:hostname}, ${content:cluster}, ${content:filesystem}, derive, inode_upate_count, 1)
 		</item>
 	</entry>
 	<entry>
@@ -34,16 +34,16 @@ HEAD(GPFS-3.5)
 		<item>
 			<name>io_s</name>
 			<pattern>_io_s_ _n_ (.+) _nn_ (.+) _rc_ .+ _t_ .+ _tu_ .+ _br_ (.+) _bw_ (.+) _oc_ (.+) _cc_ (.+) _rdc_ (.+) _wc_ (.+) _dir_ (.+) _iu_ (.+)</pattern>
-			FIELD(4, 1, IP, string, ${content:hostname}, , , derive, NA, 1)
-			FIELD(4, 2, hostname, string, ${content:hostname}, , , derive, NA, 1)
-			FIELD(4, 3, bytes_read, number, ${content:hostname}, , , derive, bytes_read, 1)
-			FIELD(4, 4, bytes_write, number, ${content:hostname}, , , derive, bytes_write, 1)
-			FIELD(4, 5, open_count, number, ${content:hostname}, , , derive, open_count, 1)
-			FIELD(4, 6, close_count, number, ${content:hostname}, , , derive, close_count, 1)
-			FIELD(4, 7, read_count, number, ${content:hostname}, , , derive, read_count, 1)
-			FIELD(4, 8, write_count, number, ${content:hostname}, , , derive, write_count, 1)
-			FIELD(4, 9, readdir_count, number, ${content:hostname}, , , derive, readdir_count, 1)
-			FIELD(4, 10, inode_upate_count, number, ${content:hostname}, , , derive, inode_upate_count, 1)
+			FIELD(4, 1, IP, string, ${key:hostname}, , , derive, NA, 1)
+			FIELD(4, 2, hostname, string, ${key:hostname}, , , derive, NA, 1)
+			FIELD(4, 3, bytes_read, number, ${key:hostname}, , , derive, bytes_read, 1)
+			FIELD(4, 4, bytes_write, number, ${key:hostname}, , , derive, bytes_write, 1)
+			FIELD(4, 5, open_count, number, ${key:hostname}, , , derive, open_count, 1)
+			FIELD(4, 6, close_count, number, ${key:hostname}, , , derive, close_count, 1)
+			FIELD(4, 7, read_count, number, ${key:hostname}, , , derive, read_count, 1)
+			FIELD(4, 8, write_count, number, ${key:hostname}, , , derive, write_count, 1)
+			FIELD(4, 9, readdir_count, number, ${key:hostname}, , , derive, readdir_count, 1)
+			FIELD(4, 10, inode_upate_count, number, ${key:hostname}, , , derive, inode_upate_count, 1)
 		</item>
 	</entry>
 	<entry>
