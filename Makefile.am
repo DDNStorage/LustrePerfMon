@@ -1,6 +1,6 @@
 SUBDIRS = collectd dependency grafana xml_definition package .
 
-EXTRA_DIST = version-gen.sh autogen.sh
+EXTRA_DIST = version-gen.sh autogen.sh detect-distro.sh
 
 maintainer-clean-local:
 	-rm -f -r libltdl

@@ -11,7 +11,7 @@ collectd-$(COLLECTD_VERSION):
 	cp $(COLLECTD) collectd-$(COLLECTD_VERSION) -a
 
 $(LOCAL_COLLECTD_RPMS): collectd-$(COLLECTD_VERSION)
-	sh build.sh $(shell pwd) $(shell pwd)/collectd-$(COLLECTD_VERSION)
+	sh build.sh $(shell pwd) $(shell pwd)/collectd-$(COLLECTD_VERSION) $(DISTRO_RELEASE)
 
 $(BUILD_DIRS):
 	mkdir $@

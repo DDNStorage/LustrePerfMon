@@ -11,7 +11,7 @@ grafana-$(GRAFANA_VERSION):
 	cp $(GRAFANA) grafana-$(GRAFANA_VERSION) -a
 
 $(LOCAL_GRAFANA_RPMS): grafana-$(GRAFANA_VERSION)
-	sh build.sh $(shell pwd) $(shell pwd)/grafana-$(GRAFANA_VERSION)
+	sh build.sh $(shell pwd) $(shell pwd)/grafana-$(GRAFANA_VERSION) $(DISTRO_RELEASE)
 
 $(BUILD_DIRS):
 	mkdir $@

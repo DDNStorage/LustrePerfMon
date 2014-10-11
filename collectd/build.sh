@@ -1,8 +1,8 @@
 #!/bin/sh
 TOPDIR=$1
 SOURCEDIR=$2
-REV=$3
-DIST=$4
+DISTRO_RELEASE=$3
+REV=$4
 
 creat_dir()
 {
@@ -56,6 +56,18 @@ if [ "$REV" = "" ]; then
 	REV=$(git rev-parse --short HEAD)
 fi
 
+if [ "$DISTRO_RELEASE" = "5" ]; then
+	EXTRA_OPTION="--without curl_json --without perl --without curl --without curl_xml --without python --without ethstat --without ipvs --without dns --without iptables --without postgresql"
+	DIST=".el5"
+elif [ "$DISTRO_RELEASE" = "6" ]; then
+	EXTRA_OPTION=""
+	DIST=".el6"
+else
+	echo "$DISTRO_RELEASE is not supported"
+	exit 1
+fi
+
+mkdir -p libltdl/config
 sh ./build.sh
 if [ $? -ne 0 ]; then
 	echo "Failed to run build.sh"
@@ -82,9 +94,10 @@ fi
 
 rpmbuild -ba --without java --without amqp --without nut \
 	--without pinba --without ping --without varnish \
+	$EXTRA_OPTION \
 	--define="rev ${REV}" \
 	--define="dist ${DIST}" \
 	--define="_topdir ${TOPDIR}" \
-	$SOURCEDIR/contrib/redhat/collectd-rhel6.spec
+	$SOURCEDIR/contrib/redhat/collectd-rhel${DISTRO_RELEASE}.spec
 
 exit $?

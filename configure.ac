@@ -41,7 +41,7 @@ AS_IF([test -r "$1"],
 	[AS_VAR_SET(mb_file, [yes])],
 	[AS_VAR_SET(mb_file, [no])])
 ])
-AS_VAR_IF([mb_file], [yes], [$2], [$3])[]dnl
+AS_IF([test AS_VAR_GET(mb_file) = yes], [$2], [$3])[]dnl
 AS_VAR_POPDEF([mb_file])dnl
 ]) # MB_CHECK_FILE
 
@@ -85,6 +85,16 @@ AC_DEFUN([MB_ARG_CANON_PATH], [
 	__MB_ARG_CANON_PATH([$1], m4_translit([$1], [-.], [__]), [$2])
 ])
 
+# -------- check for distro version --------
+DISTRO=$(sh detect-distro.sh)
+DISTRO_NAME=$(echo $DISTRO | awk -F '-' '{print $1}')
+if [[[ "$DISTRO_NAME" != "rhel" ]]]; then
+	AC_MSG_ERROR([$DISTRO_NAME is not a supported distro.])
+fi
+DISTRO_RELEASE=$(echo $DISTRO | awk -F 'rhel-' '{print $2}' | awk -F '.' '{print $1}')
+AC_MSG_RESULT([$DISTRO_RELEASE])
+AC_SUBST(DISTRO_RELEASE)
+
 # -------- check for collectd sources --------
 AC_MSG_CHECKING([for collectd sources])
 AC_ARG_WITH([collectd],
@@ -119,7 +129,7 @@ AC_SUBST(COLLECTD_RELEASE)
 
 # -------- check for collectd RPMs --------
 AC_MSG_CHECKING([for collectd RPMs])
-COLLECTD_RPM_SUBFIX=${COLLECTD_VERSION}-${COLLECTD_RELEASE}.el6.x86_64.rpm
+COLLECTD_RPM_SUBFIX=${COLLECTD_VERSION}-${COLLECTD_RELEASE}.el${DISTRO_RELEASE}.x86_64.rpm
 bases="collectd libcollectdclient libcollectdclient-devel"
 for base in ${bases}; do
 	COLLECTD_RPMS="${COLLECTD_RPMS} ${base}-${COLLECTD_RPM_SUBFIX}"
@@ -168,7 +178,7 @@ AC_SUBST(XML_DEFINITION_RELEASE)
 
 # -------- check for xml_definition RPMs --------
 AC_MSG_CHECKING([for xml_definition RPMs])
-XML_DEFINITION_RPMS=xml_definition-${XML_DEFINITION_VERSION}-${XML_DEFINITION_RELEASE}.el6.x86_64.rpm
+XML_DEFINITION_RPMS=xml_definition-${XML_DEFINITION_VERSION}-${XML_DEFINITION_RELEASE}.el${DISTRO_RELEASE}.x86_64.rpm
 AC_MSG_RESULT([$XML_DEFINITION_RPMS])
 AC_SUBST(XML_DEFINITION_RPMS)
 
@@ -211,29 +221,32 @@ AC_SUBST(GRAFANA_RELEASE)
 
 # -------- check for grafana RPMs --------
 AC_MSG_CHECKING([for grafana RPMs])
-GRAFANA_RPMS=grafana-${GRAFANA_VERSION}-${GRAFANA_RELEASE}.el6.x86_64.rpm
+GRAFANA_RPMS=grafana-${GRAFANA_VERSION}-${GRAFANA_RELEASE}.el${DISTRO_RELEASE}.x86_64.rpm
 AC_MSG_RESULT([$GRAFANA_RPMS])
 AC_SUBST(GRAFANA_RPMS)
 
 # -------- add repository --------
-AC_MSG_CHECKING([add repository])
-repo_file="/etc/yum.repos.d/elasticsearch.repo"
-repository_content="[[elasticsearch-1.0]]
+if [[[ "$DISTRO_RELEASE" = "6" ]]]; then
+	# elasticsearch is not well supported for RHEL5
+	AC_MSG_CHECKING([add repository])
+	repo_file="/etc/yum.repos.d/elasticsearch.repo"
+	repository_content="[[elasticsearch-1.0]]
 name=Elasticsearch repository for 1.0.x packages
 baseurl=http://packages.elasticsearch.org/elasticsearch/1.0/centos
 gpgcheck=1
 gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch
 enabled=1"
-if [[[ -f $repo_file ]]]; then
-	content=$(cat $repo_file)
-	if [[[ "$content" != "$repository_content" ]]]; then
-		AC_MSG_ERROR([$repo_file exists but might not be correctly configured])
+	if [[[ -f $repo_file ]]]; then
+		content=$(cat $repo_file)
+		if [[[ "$content" != "$repository_content" ]]]; then
+			AC_MSG_ERROR([$repo_file exists but might not be correctly configured])
+		fi
+	else
+		rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
+		echo -e "${repository_content}\n" > /etc/yum.repos.d/elasticsearch.repo
 	fi
-else
-	rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
-	echo -e "${repository_content}\n" > /etc/yum.repos.d/elasticsearch.repo
+	AC_MSG_RESULT([OK])
 fi
-AC_MSG_RESULT([OK])
 
 # -------- check for dependency RPMS --------
 AC_MSG_CHECKING([for dependency RPMS])
@@ -264,16 +277,30 @@ DEPENDENCY_PACKAGES="ganglia \
 	elasticsearch"
 AC_SUBST(DEPENDENCY_PACKAGES)
 
-links=$(yumdownloader --resolve --urls --archlist=x86_64 \
-	$DEPENDENCY_PACKAGES | grep rpm)
+yumdownloader --resolve --urls --archlist=x86_64 \
+	$DEPENDENCY_PACKAGES > yumdownloader.output
+if [[[ $? -ne 0 ]]]; then
+	AC_MSG_ERROR([yumdownloader failure $OUTPUT])
+fi
 
-for link in $links; do
-	rpm=$(basename $link);
-	DEPENDENCY_RPMS="$DEPENDENCY_RPMS $rpm"
+LINKS=$(cat yumdownloader.output | grep http:// | grep rpm)
+for LINK in $LINKS; do
+	RPM=$(basename $LINK);
+	DEPENDENCY_RPMS="$DEPENDENCY_RPMS $RPM"
 done
 
 AC_MSG_RESULT([$DEPENDENCY_RPMS])
 AC_SUBST(DEPENDENCY_RPMS)
+
+PACKAGES=$(cat yumdownloader.output | \
+	grep "No Match for argument" | \
+	awk -F "No Match for argument" '{print $2}')
+if [[[ "$PACKAGES" != "" ]]]; then
+	for PACKAGE in $PACKAGES; do
+		MISSING_PACKAGES="$MISSING_PACKAGES $PACKAGE"
+	done
+	AC_MSG_WARN([Not able to download:$MISSING_PACKAGES])
+fi
 
 AC_CONFIG_FILES([Makefile collectd/Makefile xml_definition/Makefile
 	grafana/Makefile dependency/Makefile package/Makefile])

@@ -1,9 +1,9 @@
 #!/bin/sh
 TOPDIR=$1
 SOURCEDIR=$2
-BREV=$3
-REV=$4
-DIST=$5
+DISTRO_RELEASE=$3
+BREV=$4
+REV=$5
 
 creat_dir()
 {
@@ -60,6 +60,15 @@ fi
 if [ "$BREV" = "" ]; then
 	BREV=$(grep -e "\# [[:digit:]][[:digit:]]*[.][[:digit:]][[:digit:]]*[.][[:digit:]][[:digit:]]*" \
 CHANGELOG.md | awk '{print $2}' | head -n 1)
+fi
+
+if [ "$DISTRO_RELEASE" = "5" ]; then
+	DIST=".el5"
+elif [ "$DISTRO_RELEASE" = "6" ]; then
+	DIST=".el6"
+else
+	echo "$DISTRO_RELEASE is not supported"
+	exit
 fi
 
 tar czvf grafana.tar.gz *

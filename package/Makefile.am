@@ -33,7 +33,7 @@ monsystem-ddn.iso: RPMS monsystem-ddn.repo \
 		$(LOCAL_XML_DEFINITION_RPMS)
 	cp monsystem-ddn.repo RPMS
 	createrepo RPMS
-	mkisofs -joliet-long -R -o ./monsystem-ddn.iso RPMS
+	mkisofs -joliet-long -R -o ./monsystem-ddn.el$(DISTRO_RELEASE).x86_64.iso RPMS
 
 $(BUILD_DIRS):
 	mkdir $@
@@ -41,4 +41,4 @@ $(BUILD_DIRS):
 clean-local:
 	-rm -f $(DEPENDENCY_RPMS)
 	-rm -f -r $(BUILD_DIRS)
-	-rm -f monsystem-ddn.iso
+	-rm -f monsystem-ddn.el$(DISTRO_RELEASE).x86_64.iso

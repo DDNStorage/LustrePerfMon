@@ -1,8 +1,8 @@
 #!/bin/sh
 TOPDIR=$1
 SOURCEDIR=$2
-REV=$3
-DIST=$4
+DISTRO_RELEASE=$3
+REV=$4
 
 creat_dir()
 {
@@ -54,6 +54,15 @@ creat_dir $TOPDIR/SRPMS
 cd $SOURCEDIR
 if [ "$REV" = "" ]; then
 	REV=$(git rev-parse --short HEAD)
+fi
+
+if [ "$DISTRO_RELEASE" = "5" ]; then
+	DIST=".el5"
+elif [ "$DISTRO_RELEASE" = "6" ]; then
+	DIST=".el6"
+else
+	echo "$DISTRO_RELEASE is not supported"
+	exit 1
 fi
 
 make all

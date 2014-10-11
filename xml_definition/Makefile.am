@@ -11,7 +11,7 @@ xml_definition-$(XML_DEFINITION_VERSION):
 	cp $(XML_DEFINITION) xml_definition-$(XML_DEFINITION_VERSION) -a
 
 $(LOCAL_XML_DEFINITION_RPMS): xml_definition-$(XML_DEFINITION_VERSION)
-	sh build.sh $(shell pwd) $(shell pwd)/xml_definition-$(XML_DEFINITION_VERSION)
+	sh build.sh $(shell pwd) $(shell pwd)/xml_definition-$(XML_DEFINITION_VERSION) $(DISTRO_RELEASE)
 
 $(BUILD_DIRS):
 	mkdir $@
