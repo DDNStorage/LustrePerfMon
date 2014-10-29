@@ -86,6 +86,7 @@ AC_DEFUN([MB_ARG_CANON_PATH], [
 ])
 
 # -------- check for distro version --------
+AC_MSG_CHECKING([for distro version])
 DISTRO=$(sh detect-distro.sh)
 DISTRO_NAME=$(echo $DISTRO | awk -F '-' '{print $1}')
 if [[[ "$DISTRO_NAME" != "rhel" ]]]; then
@@ -94,6 +95,12 @@ fi
 DISTRO_RELEASE=$(echo $DISTRO | awk -F 'rhel-' '{print $2}' | awk -F '.' '{print $1}')
 AC_MSG_RESULT([$DISTRO_RELEASE])
 AC_SUBST(DISTRO_RELEASE)
+
+# -------- check for package version --------
+AC_MSG_CHECKING([for package version])
+MONSYSTEM_PKGVER=$(sh ./version-gen.sh)
+AC_MSG_RESULT([$MONSYSTEM_PKGVER])
+AC_SUBST(MONSYSTEM_PKGVER)
 
 # -------- check for collectd sources --------
 AC_MSG_CHECKING([for collectd sources])
