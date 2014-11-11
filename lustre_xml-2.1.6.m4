@@ -8,7 +8,7 @@ HEAD(Lustre-2.1.6)
 			<path>/proc/fs/lustre</path>
 		</subpath>
 		<mode>directory</mode>
-		CONSTANT_FILE_ENTRY(2, health_check, lustre_health, (.+), string, NA, NA, NA, NA, NA, 1)
+		CONSTANT_FILE_ENTRY(2, health_check, lustre_health, (.+), string, NA, NA, NA, NA, NA, NA, NA, 1)
 		<entry>
 			<subpath>
 				<subpath_type>constant</subpath_type>
@@ -16,9 +16,9 @@ HEAD(Lustre-2.1.6)
 			</subpath>
 			<mode>file</mode>
 			ONE_FIELD_ITEM(3, lustre_version, lustre_version,
-			lustre: ([[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+), string, NA, NA, NA, NA, NA, 1)
-			ONE_FIELD_ITEM(3, kernel_type, kernel_type, kernel: (patchless_client), string, NA, NA, NA, NA, NA, 1)
-			ONE_FIELD_ITEM(3, build_version, build_version, build:  (.+), string, NA, NA, NA, NA, NA, 1)
+			lustre: ([[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+), string, NA, NA, NA, NA, NA, NA, NA, 1)
+			ONE_FIELD_ITEM(3, kernel_type, kernel_type, kernel: (patchless_client), string, NA, NA, NA, NA, NA, NA, NA, 1)
+			ONE_FIELD_ITEM(3, build_version, build_version, build:  (.+), string, NA, NA, NA, NA, NA, NA, NA, 1)
 		</entry>
 		<entry>
 			<subpath>
@@ -29,10 +29,14 @@ HEAD(Lustre-2.1.6)
 			<entry>
 				<subpath>
 					<subpath_type>regular_expression</subpath_type>
-					<path>(^.+-MDT[0-9a-fA-F]+$)</path>
+					<path>(^.+)-(MDT[0-9a-fA-F]+$)</path>
 					<subpath_field>
 						<index>1</index>
-						<name>mdt_name</name>
+						<name>fs_name</name>
+					</subpath_field>
+					<subpath_field>
+						<index>2</index>
+						<name>mdt_index</name>
 					</subpath_field>
 				</subpath>
 				<mode>directory</mode>
@@ -62,7 +66,7 @@ HEAD(Lustre-2.1.6)
 					SUBPATH(5, constant, exports, 1)
 					MODE(5, directory, 1)
 					<entry>
-						ONE_FIELD_SUBPATH(6, regular_expression, (.+@.+), mdt_exp_name, 1)
+						TWO_FIELD_SUBPATH(6, regular_expression, (.+)@(.+), mdt_exp_client, mdt_exp_type, 1)
 						MODE(6, directory, 1)
 						EXPORT_MD_STATS_ENTRY(6, , 1)
 					</entry>
@@ -78,10 +82,14 @@ HEAD(Lustre-2.1.6)
 			<entry>
 				<subpath>
 					<subpath_type>regular_expression</subpath_type>
-					<path>(^.+-OST[0-9a-fA-F]+$)</path>
+					<path>(^.+)-(OST[0-9a-fA-F]+$)</path>
 					<subpath_field>
 						<index>1</index>
-						<name>ost_name</name>
+						<name>fs_name</name>
+					</subpath_field>
+					<subpath_field>
+						<index>2</index>
+						<name>ost_index</name>
 					</subpath_field>
 				</subpath>
 				<mode>directory</mode>
@@ -97,11 +105,7 @@ HEAD(Lustre-2.1.6)
 					OST_STATS_ITEM_RW(5, read, 1)
 					OST_STATS_ITEM_RW(5, write, 1)
 					OST_STATS_ITEM(5, get_page, usec, 1)
-					<item>
-						<name>ost_stats_get_page_failures</name>
-						<pattern>get_page failures +([[:digit:]]+) samples \[num\]</pattern>
-						FIELD(6, 1, get_page_failures, number, ${key:hostname}, ${subpath:ost_name}, stats, derive, get_page_failures, 1)
-					</item>
+					OST_STATS_ITEM_PREFIX(5, get_page_failures, get_page failures, num, 1)
 					OST_STATS_ITEM(5, cache_access, pages, 1)
 					OST_STATS_ITEM(5, cache_hit, pages, 1)
 					OST_STATS_ITEM(5, cache_miss, pages, 1)
@@ -151,12 +155,12 @@ HEAD(Lustre-2.1.6)
 					SUBPATH(5, constant, exports, 1)
 					MODE(5, directory, 1)
 					<entry>
-						ONE_FIELD_SUBPATH(6, regular_expression, (.+@.+), ost_exp_name, 1)
+						TWO_FIELD_SUBPATH(6, regular_expression, (.+)@(.+), ost_exp_client, ost_exp_type, 1)
 						MODE(6, directory, 1)
 						EXPORT_OST_STATS_ENTRY(6, , 1)
 					</entry>
 				</entry>
-				FILES_KBYTES_INFO_ENTRIES(4, ost, ${subpath:ost_name}, 1)
+				FILES_KBYTES_INFO_ENTRIES(4, ost, ${subpath:fs_name}-${subpath:ost_index}, 1)
 			</entry>
 		</entry>
 		<entry>
@@ -168,16 +172,22 @@ HEAD(Lustre-2.1.6)
 			<entry>
 				<subpath>
 					<subpath_type>regular_expression</subpath_type>
-					<path>(^.+-MDT.+-mdc).+$</path>
+					<path>(^.+)-(MDT.)+-(mdc.+)$</path>
 					<subpath_field>
 						<index>1</index>
-						<name>mdc_mdt_name</name>
+						<name>fs_name</name>
+					</subpath_field>
+					<subpath_field>
+						<index>2</index>
+						<name>mdt_index</name>
+					</subpath_field>
+					<subpath_field>
+						<index>3</index>
+						<name>mdc_tag</name>
 					</subpath_field>
 				</subpath>
 				<mode>directory</mode>
-				CONSTANT_FILE_ENTRY(4, max_rpcs_in_flight, max_rpcs_in_flight,
-						    (.+), number, ${key:hostname}, ${subpath:mdc_mdt_name},
-						    mdc_rpcs, gauge, max_rpcs_in_flight, 1)
+				MDC_MDT_CONSTANT_FILE_ENTRY(4, max_rpcs_in_flight, (.+), mdc_rpcs, gauge, max_rpcs_in_flight, max_rpcs_in_flight, 1)
 			</entry>
 		</entry>
 		<entry>
@@ -294,14 +304,18 @@ HEAD(Lustre-2.1.6)
 			<entry>
 				<subpath>
 					<subpath_type>regular_expression</subpath_type>
-					<path>(^.+-MDT[0-9a-fA-F]+)-mdtlov</path>
+					<path>(^.+)-(MDT[0-9a-fA-F]+)-mdtlov</path>
 					<subpath_field>
 						<index>1</index>
-						<name>lod_mdt_name</name>
+						<name>fs_name</name>
+					</subpath_field>
+					<subpath_field>
+						<index>2</index>
+						<name>mdt_index</name>
 					</subpath_field>
 				</subpath>
 				<mode>directory</mode>
-				FILES_KBYTES_INFO_ENTRIES(4, mdt, ${subpath:lod_mdt_name}, 1)
+				FILES_KBYTES_INFO_ENTRIES(4, mdt, ${subpath:fs_name}-${subpath:mdt_index}, 1)
 			</entry>
 		</entry>
 	</entry>

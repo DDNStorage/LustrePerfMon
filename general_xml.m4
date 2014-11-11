@@ -88,7 +88,9 @@ dnl $6: plugin OPTION
 dnl $7: plugin_instance OPTION
 dnl $8: type OPTION
 dnl $9: type_instance OPTION
-dnl $10: is first child of parent ELEMENT
+dnl $10: tsdb_name OPTION
+dnl $11: tsdb_tags OPTION
+dnl $12: is first child of parent ELEMENT
 define(`FIELD',
 	`ELEMENT($1, field,
 	`INDEX($1 + 1, $2, 1)
@@ -98,7 +100,9 @@ OPTION($1 + 1, host, $5, 0)
 OPTION($1 + 1, plugin, $6, 0)
 OPTION($1 + 1, plugin_instance, $7, 0)
 OPTION($1 + 1, type, $8, 0)
-OPTION($1 + 1, type_instance, $9, 0)', $10)')dnl
+OPTION($1 + 1, type_instance, $9, 0)
+OPTION($1 + 1, tsdb_name, $10, 0)
+OPTION($1 + 1, tsdb_tags, $11, 0)', $12)')dnl
 dnl
 dnl $1: number of INDENT
 dnl $2: value of PATTERN
@@ -136,6 +140,19 @@ PATH($1+1, $3, 0)
 SUBPATH_FIELD($1+1, 1, $4, 0), $5)')dnl
 dnl
 dnl $1: number of INDENT
+dnl $2: type of subpath
+dnl $3: path value of entry
+dnl $4: first name of the field
+dnl $5: second name of the field
+dnl $6: is first child of parent ELEMENT
+define(`TWO_FIELD_SUBPATH',
+	`ELEMENT($1, subpath,
+SUBPATH_TYPE($1+1, $2, 1)
+PATH($1+1, $3, 0)
+SUBPATH_FIELD($1+1, 1, $4, 0)
+SUBPATH_FIELD($1+1, 2, $5, 0), $6)')dnl
+dnl
+dnl $1: number of INDENT
 dnl $2: name of field
 dnl $3: name of item
 dnl $4: pattern of item
@@ -145,12 +162,14 @@ dnl $7: plugin OPTION
 dnl $8: plugin_instance OPTION
 dnl $9: type OPTION
 dnl $10: type_instance OPTION
-dnl $11: is first child of parent ELEMENT
+dnl $11: tsdb_name OPTION
+dnl $12: tsdb_tags OPTION
+dnl $13: is first child of parent ELEMENT
 define(`ONE_FIELD_ITEM',
 	`ELEMENT($1, item,
 NAME($1+1, $3, 1)
 PATTERN($1+1, $4, 0)
-FIELD($1+1, 1, $2, $5, $6, $7, $8, $9, $10, 0), $11)')dnl
+FIELD($1+1, 1, $2, $5, $6, $7, $8, $9, $10, $11, $12, 0), $13)')dnl
 dnl
 dnl $1: number of INDENT
 dnl $2: path of entry, name of field use this value
