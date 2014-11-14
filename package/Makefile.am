@@ -12,7 +12,8 @@ LOCAL_GRAFANA_RPMS = $(addprefix RPMS/, $(GRAFANA_RPMS))
 LOCAL_XML_DEFINITION_RPMS = $(addprefix RPMS/, $(XML_DEFINITION_RPMS))
 
 noinst_DATA = $(BUILD_DIRS) $(LOCAL_DEPENDENCY_RPMS) \
-		monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso
+		monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso \
+		monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.md5
 
 # Taking $(addprefix ../dependency/, $@) as dependency won't work.
 $(LOCAL_COLLECTD_RPMS): $(ORIGIN_COLLECTD_RPMS)
@@ -35,6 +36,11 @@ monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso: RPMS monsystem
 	cp monsystem-ddn.repo RPMS
 	createrepo RPMS
 	mkisofs -joliet-long -R -o monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso RPMS
+
+monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.md5: \
+		monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso
+	md5sum monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso \
+		> monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.md5
 
 $(BUILD_DIRS):
 	mkdir $@
