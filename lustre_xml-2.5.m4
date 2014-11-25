@@ -8,18 +8,6 @@ HEAD(Lustre-2.5)
 			<path>/proc/fs/lustre</path>
 		</subpath>
 		<mode>directory</mode>
-		CONSTANT_FILE_ENTRY(2, health_check, lustre_health, (.+), string, NA, NA, NA, NA, NA, NA, NA, 1)
-		<entry>
-			<subpath>
-				<subpath_type>constant</subpath_type>
-				<path>version</path>
-			</subpath>
-			<mode>file</mode>
-			ONE_FIELD_ITEM(3, lustre_version, lustre_version,
-			lustre: ([[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+), string, NA, NA, NA, NA, NA, NA, NA, 1)
-			ONE_FIELD_ITEM(3, kernel_type, kernel_type, kernel: (patchless_client), string, NA, NA, NA, NA, NA, NA, NA, 1)
-			ONE_FIELD_ITEM(3, build_version, build_version, build:  (.+), string, NA, NA, NA, NA, NA, NA, NA, 1)
-		</entry>
 		<entry>
 			<subpath>
 				<subpath_type>constant</subpath_type>

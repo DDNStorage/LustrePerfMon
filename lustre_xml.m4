@@ -33,7 +33,7 @@ dnl $6: type_instance OPTION
 dnl $7: tsdb_name OPTION
 dnl $8: is first child of parent ELEMENT
 define(`MDC_MDT_CONSTANT_FILE_ENTRY',
-`CONSTANT_FILE_ENTRY($1, $2, $2, $3, number, ${key:hostname}, ${subpath:fs_name}-${subpath:mdt_index}-${subpath:mdc_tag}, $4, $5, $6, $7, 
+`CONSTANT_FILE_ENTRY($1, $2, $2, $3, number, ${key:hostname}, ${subpath:fs_name}-${subpath:mdt_index}-${subpath:mdc_tag}, $4, $5, $6, $7,
 fs_name=${subpath:fs_name} mdt_index=${subpath:mdt_index} mdc_tag=${subpath:mdc_tag}, $8)')dnl
 dnl
 dnl $1: number of INDENT
@@ -43,9 +43,9 @@ dnl $4: plugin_instance OPTION
 dnl $5: type OPTION
 dnl $6: is first child of parent ELEMENT
 define(`THREAD_INFO_ENTRIES',
-`CONSTANT_FILE_ENTRY($1, threads_max, $2_threads_max, (.+), number, ${key:hostname}, $3, $4, $5, threads_max, $2_thread_max, NA, 1)
-CONSTANT_FILE_ENTRY($1, threads_min, $2_threads_min, (.+), number, ${key:hostname}, $3, $4, $5, threads_min, $2_thread_min, NA, 0)
-CONSTANT_FILE_ENTRY($1, threads_started, $2_threads_started, (.+), number, ${key:hostname}, $3, $4, $5, threads_started, $2_thread_started, NA, 0)')dnl
+`CONSTANT_FILE_ENTRY($1, threads_max, $2_threads_max, (.+), number, ${key:hostname}, $3, $4, $5, threads_max, $2_thread_max, , 1)
+CONSTANT_FILE_ENTRY($1, threads_min, $2_threads_min, (.+), number, ${key:hostname}, $3, $4, $5, threads_min, $2_thread_min, , 0)
+CONSTANT_FILE_ENTRY($1, threads_started, $2_threads_started, (.+), number, ${key:hostname}, $3, $4, $5, threads_started, $2_thread_started, , 0)')dnl
 dnl
 dnl $1: number of INDENT
 dnl $2: "mdt" or "ost"
@@ -79,7 +79,7 @@ dnl
 dnl $1: number of INDENT
 dnl $2: name of OST_STATS_ITEM_PREFIX
 dnl $3: prefix of the regular expression
-dnl $4: type of item 
+dnl $4: type of item
 dnl $5: is first child of parent ELEMENT
 define(`OST_STATS_ITEM_PREFIX',
         `ELEMENT($1, item,

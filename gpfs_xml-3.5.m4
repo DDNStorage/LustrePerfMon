@@ -34,8 +34,8 @@ HEAD(GPFS-3.5)
 		<item>
 			<name>io_s</name>
 			<pattern>_io_s_ _n_ (.+) _nn_ (.+) _rc_ .+ _t_ .+ _tu_ .+ _br_ (.+) _bw_ (.+) _oc_ (.+) _cc_ (.+) _rdc_ (.+) _wc_ (.+) _dir_ (.+) _iu_ (.+)</pattern>
-			FIELD(4, 1, IP, string, ${key:hostname}, , , derive, NA, host_ip, NA, 1)
-			FIELD(4, 2, hostname, string, ${key:hostname}, , , derive, NA, hostname, NA, 1)
+			FIELD(4, 1, IP, string, ${key:hostname}, , , derive, NA, host_ip, , 1)
+			FIELD(4, 2, hostname, string, ${key:hostname}, , , derive, NA, hostname, , 1)
 			FIELD(4, 3, bytes_read, number, ${key:hostname}, , , derive, bytes_read, io_bytes, optype=read, 1)
 			FIELD(4, 4, bytes_write, number, ${key:hostname}, , , derive, bytes_write, io_bytes, optype=write, 1)
 			FIELD(4, 5, open_count, number, ${key:hostname}, , , derive, open_count, io_count, optype=open, 1)
