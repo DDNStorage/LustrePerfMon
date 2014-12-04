@@ -186,25 +186,38 @@ dnl $1: number of INDENT
 dnl $2: index of FIELD
 dnl $3: name of FIELD
 dnl $4: type of FIELD
-dnl $5: plugin_instance OPTION
-dnl $6: type OPTION
-dnl $7: type_instance OPTION
-dnl $8: name of OST_BRW_STATS_ITEM
-dnl $9: size of the field
-dnl $10: "samples" or "percentage" or "cum"
-dnl $11: is first child of parent ELEMENT
+dnl $5: plugin OPTION
+dnl $6: plugin_instance OPTION
+dnl $7: type OPTION
+dnl $8: type_instance OPTION
+dnl $9: tsdb_name OPTION
+dnl $10: tsdb_index OPTION
+dnl $11: size of the field
+dnl $12: is first child of parent ELEMENT
 define(`OST_BRW_STATS_FIELD',
 	`ELEMENT($1, field,
 	`INDEX($1 + 1, $2, 1)
 NAME($1 + 1, $3, 0)
 TYPE($1 + 1, $4, 0)
 OPTION($1 + 1, host, ${key:hostname}, 0)
-OPTION($1 + 1, plugin, ${subpath:fs_name}-${subpath:ost_index}, 0)
-OPTION($1 + 1, plugin_instance, $5, 0)
-OPTION($1 + 1, type, $6, 0)
-OPTION($1 + 1, type_instance, $7, 0)
-OPTION($1 + 1, tsdb_name, ost_brw_stats_$8_$10, 0)
-OPTION($1 + 1, tsdb_tags, field=$3 fs_name=${subpath:fs_name} ost_index=${subpath:ost_index} size=$9, 0)', $11)')dnl
+OPTION($1 + 1, plugin, $5, 0)
+OPTION($1 + 1, plugin_instance, $6, 0)
+OPTION($1 + 1, type, $7, 0)
+OPTION($1 + 1, type_instance, $8, 0)
+OPTION($1 + 1, tsdb_name, $9, 0)
+OPTION($1 + 1, tsdb_tags, field=$3 $10 size=$11, 0)', $12)')dnl
+dnl
+define(`OST_COMMON_INDEX',
+`fs_name=${subpath:fs_name} ost_index=${subpath:ost_index}')dnl
+dnl
+define(`OST_COMMON_PLUGIN',
+`${subpath:fs_name}-${subpath:ost_index}')dnl
+dnl
+define(`EXP_COMMON_INDEX',
+`exp_client=${subpath:ost_exp_client} exp_type=${subpath:ost_exp_type}')dnl
+dnl
+define(`EXP_COMMON_PLUGIN',
+`${subpath:ost_exp_client}-${subpath:ost_exp_type}')dnl
 dnl
 dnl $1: number of INDENT
 dnl $2: name of OST_BRW_STATS_ITEM
@@ -217,13 +230,32 @@ define(`OST_BRW_STATS_ITEM',
         `NAME($1 + 1, ost_brw_stats_$2, 1)
 CONTEXT($1 + 1, $3, 0)
 PATTERN($1 + 1, `^($4):[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+)[[:blank:]]+\|[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+).*', 0)
-OST_BRW_STATS_FIELD($1 + 1, 1, $5, string, brw_stats_$2_${content:$5}_$5, , $5, $2, ${content:$5}_$5, string, 0)
-OST_BRW_STATS_FIELD($1 + 1, 2, read_sample, number, brw_stats_$2_${content:$5}_$5, derive, read_sample, $2, ${content:$5}_$5, samples, 0)
-OST_BRW_STATS_FIELD($1 + 1, 3, read_percentage, number, brw_stats_$2_${content:$5}_$5, gauge, read_percentage, $2, ${content:$5}_$5, percentage, 0)
-OST_BRW_STATS_FIELD($1 + 1, 4, read_cum, number, brw_stats_$2_${content:$5}_$5, gauge, read_cum, $2, ${content:$5}_$5, cum, 0)
-OST_BRW_STATS_FIELD($1 + 1, 5, write_sample, number, brw_stats_$2_${content:$5}_$5, derive, write_sample, $2, ${content:$5}_$5, samples, 0)
-OST_BRW_STATS_FIELD($1 + 1, 6, write_percentage, number, brw_stats_$2_${content:$5}_$5, gauge, write_percentage, $2, ${content:$5}_$5, percentage, 0)
-OST_BRW_STATS_FIELD($1 + 1, 7, write_cum, number, brw_stats_$2_${content:$5}_$5, gauge, write_cum, $2, ${content:$5}_$5, cum, 0)', $6)')dnl
+OST_BRW_STATS_FIELD($1 + 1, 1, $5, string, OST_COMMON_PLUGIN, brw_stats_$2_${content:$5}_$5, , $5, ost_brw_stats_$2_string, OST_COMMON_INDEX, ${content:$5}_$5, 0)
+OST_BRW_STATS_FIELD($1 + 1, 2, read_sample, number, OST_COMMON_PLUGIN, brw_stats_$2_${content:$5}_$5, derive, read_sample, ost_brw_stats_$2_samples, OST_COMMON_INDEX, ${content:$5}_$5, 0)
+OST_BRW_STATS_FIELD($1 + 1, 3, read_percentage, number, OST_COMMON_PLUGIN, brw_stats_$2_${content:$5}_$5, gauge, read_percentage, ost_brw_stats_$2_percentage, OST_COMMON_INDEX, ${content:$5}_$5, 0)
+OST_BRW_STATS_FIELD($1 + 1, 4, read_cum, number, OST_COMMON_PLUGIN, brw_stats_$2_${content:$5}_$5, gauge, read_cum, ost_brw_stats_$2_cum, OST_COMMON_INDEX, ${content:$5}_$5, 0)
+OST_BRW_STATS_FIELD($1 + 1, 5, write_sample, number, OST_COMMON_PLUGIN, brw_stats_$2_${content:$5}_$5, derive, write_sample, ost_brw_stats_$2_samples, OST_COMMON_INDEX, ${content:$5}_$5, 0)
+OST_BRW_STATS_FIELD($1 + 1, 6, write_percentage, number, OST_COMMON_PLUGIN, brw_stats_$2_${content:$5}_$5, gauge, write_percentage, ost_brw_stats_$2_percentage, OST_COMMON_INDEX, ${content:$5}_$5, 0)
+OST_BRW_STATS_FIELD($1 + 1, 7, write_cum, number, OST_COMMON_PLUGIN, brw_stats_$2_${content:$5}_$5, gauge, write_cum, ost_brw_stats_$2_cum, OST_COMMON_INDEX, ${content:$5}_$5, 0)', $6)')dnl
+dnl
+dnl $1: number of INDENT
+dnl $2: name of EXP_OST_BRW_STATS_ITEM
+dnl $3: context regular expression
+dnl $4: start pattern of item
+dnl $5: first field name
+dnl $6: is first child of parent ELEMENT
+define(`EXP_OST_BRW_STATS_ITEM',
+        `ELEMENT($1, item,
+        `NAME($1 + 1, exp_ost_brw_stats_$2, 1)
+CONTEXT($1 + 1, $3, 0)
+PATTERN($1 + 1, `^($4):[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+)[[:blank:]]+\|[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+).*', 0)
+OST_BRW_STATS_FIELD($1 + 1, 1, $5, string, EXP_COMMON_PLUGIN()-OST_COMMON_PLUGIN(), brw_stats_$2_${content:$5}_$5, , $5, exp_ost_brw_stats_$2_string, EXP_COMMON_INDEX() OST_COMMON_INDEX(), ${content:$5}_$5, 0)
+OST_BRW_STATS_FIELD($1 + 1, 2, read_sample, number, EXP_COMMON_PLUGIN()-OST_COMMON_PLUGIN(), brw_stats_$2_${content:$5}_$5, derive, read_sample, exp_ost_brw_stats_$2_samples, EXP_COMMON_INDEX() OST_COMMON_INDEX(), ${content:$5}_$5, 0)
+OST_BRW_STATS_FIELD($1 + 1, 3, read_percentage, number, EXP_COMMON_PLUGIN()-OST_COMMON_PLUGIN(), brw_stats_$2_${content:$5}_$5, gauge, read_percentage, exp_ost_brw_stats_$2_percentage, EXP_COMMON_INDEX() OST_COMMON_INDEX(), ${content:$5}_$5, 0)
+OST_BRW_STATS_FIELD($1 + 1, 4, read_cum, number, EXP_COMMON_PLUGIN()-OST_COMMON_PLUGIN(), brw_stats_$2_${content:$5}_$5, gauge, read_cum, exp_ost_brw_stats_$2_cum, EXP_COMMON_INDEX() OST_COMMON_INDEX(), ${content:$5}_$5, 0)
+OST_BRW_STATS_FIELD($1 + 1, 5, write_sample, number, EXP_COMMON_PLUGIN()-OST_COMMON_PLUGIN(), brw_stats_$2_${content:$5}_$5, derive, write_sample, exp_ost_brw_stats_$2_samples, EXP_COMMON_INDEX() OST_COMMON_INDEX(), ${content:$5}_$5, 0)
+OST_BRW_STATS_FIELD($1 + 1, 6, write_percentage, number, EXP_COMMON_PLUGIN()-OST_COMMON_PLUGIN(), brw_stats_$2_${content:$5}_$5, gauge, write_percentage, exp_ost_brw_stats_$2_percentage, EXP_COMMON_INDEX() OST_COMMON_INDEX(), ${content:$5}_$5, 0)
+OST_BRW_STATS_FIELD($1 + 1, 7, write_cum, number, EXP_COMMON_PLUGIN()-OST_COMMON_PLUGIN(), brw_stats_$2_${content:$5}_$5, gauge, write_cum, exp_ost_brw_stats_$2_cum, EXP_COMMON_INDEX() OST_COMMON_INDEX(), ${content:$5}_$5, 0)', $6)')dnl
 dnl
 dnl $1: number of INDENT
 dnl $2: index of FIELD

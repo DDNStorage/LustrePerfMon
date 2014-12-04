@@ -146,6 +146,34 @@ HEAD(Lustre-2.1.6)
 						TWO_FIELD_SUBPATH(6, regular_expression, (.+)@(.+), ost_exp_client, ost_exp_type, 1)
 						MODE(6, directory, 1)
 						EXPORT_OST_STATS_ENTRY(6, , 1)
+						<entry>
+							<subpath>
+								<subpath_type>constant</subpath_type>
+								<path>brw_stats</path>
+							</subpath>
+							<mode>file</mode>
+							EXP_OST_BRW_STATS_ITEM(7, rpc_bulk, ^pages per bulk .+
+(.+
+)*$, [[:digit:]]+[KM]?, pages, 1)
+							EXP_OST_BRW_STATS_ITEM(7, page_discontiguous_rpc, ^discontiguous pages .+
+(.+
+)*$, [[:digit:]]+[KM]?, pages, 1)
+							EXP_OST_BRW_STATS_ITEM(7, block_discontiguous_rpc, ^discontiguous blocks .+
+(.+
+)*$, [[:digit:]]+[KM]?, blocks, 1)
+							EXP_OST_BRW_STATS_ITEM(7, fragmented_io, ^disk fragmented .+
+(.+
+)*$, [[:digit:]]+[KM]?, fragments, 1)
+							EXP_OST_BRW_STATS_ITEM(7, io_in_flight, ^disk I/Os .+
+(.+
+)*$, [[:digit:]]+[KM]?, ios, 1)
+							EXP_OST_BRW_STATS_ITEM(7, io_time, ^I/O time .+
+(.+
+)*$, [[:digit:]]+[KM]?, milliseconds, 1)
+							EXP_OST_BRW_STATS_ITEM(7, io_size, ^disk I/O size .+
+(.+
+)*$, [[:digit:]]+[KM]?, Bytes, 1)
+						</entry>
 					</entry>
 				</entry>
 				FILES_KBYTES_INFO_ENTRIES(4, ost, ${subpath:fs_name}-${subpath:ost_index}, 1)
