@@ -237,16 +237,18 @@ if [[[ "$DISTRO_RELEASE" = "6" ]]]; then
 	# elasticsearch is not well supported for RHEL5
 	AC_MSG_CHECKING([add repository])
 	repo_file="/etc/yum.repos.d/elasticsearch.repo"
-	repository_content="[[elasticsearch-1.0]]
-name=Elasticsearch repository for 1.0.x packages
-baseurl=http://packages.elasticsearch.org/elasticsearch/1.0/centos
+	repository_content="[[elasticsearch-1.4]]
+name=Elasticsearch repository for 1.4.x packages
+baseurl=http://packages.elasticsearch.org/elasticsearch/1.4/centos
 gpgcheck=1
 gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch
 enabled=1"
 	if [[[ -f $repo_file ]]]; then
 		content=$(cat $repo_file)
 		if [[[ "$content" != "$repository_content" ]]]; then
-			AC_MSG_ERROR([$repo_file exists but might not be correctly configured])
+			AC_MSG_WARN([$repo_file exists but might not be correctly configured, update it])
+			rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
+			echo -e "${repository_content}\n" > /etc/yum.repos.d/elasticsearch.repo
 		fi
 	else
 		rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
