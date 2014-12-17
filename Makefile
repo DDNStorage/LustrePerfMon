@@ -30,6 +30,12 @@ test:	lustre-1.8.9.xml lustre-2.5.xml lustre-ieel-2.5.xml lustre-2.4.2.xml \
 	./check_xml lustre-2.4.2.xml > /tmp/check.log
 	./check_xml lustre-2.1.6.xml > /tmp/check.log
 	./check_xml gpfs-3.5.xml > /tmp/check.log
+	python test_driver.py --xml_path lustre-1.8.9.xml --exit_on_error
+	python test_driver.py --xml_path lustre-2.5.xml --exit_on_error
+	python test_driver.py --xml_path lustre-ieel-2.5.xml --exit_on_error
+	python test_driver.py --xml_path lustre-2.4.2.xml --exit_on_error
+	python test_driver.py --xml_path lustre-2.1.6.xml --exit_on_error
+	python test_driver.py --xml_path gpfs-3.5.xml --exit_on_error
 
 rpm:
 	git clean -d -x -f
