@@ -64,7 +64,7 @@ dnl $3: is first child of parent ELEMENT
 define(`MD_STATS_ITEM',
 	`ELEMENT($1, item, 
 	`NAME($1 + 1, md_stats_$2, 1)
-PATTERN($1 + 1, `$2 +([[:digit:]]+) samples .+', 0)
+PATTERN($1 + 1, `^$2 +([[:digit:]]+) samples .+', 0)
 FIELD($1 + 1, 1, $2, number, ${key:hostname}, ${subpath:fs_name}-${subpath:mdt_index}, md_stats, derive, $2, md_stats, optype=$2 fs_name=${subpath:fs_name} mdt_index=${subpath:mdt_index}, 0)', $3)')dnl
 dnl
 dnl $1: number of INDENT
