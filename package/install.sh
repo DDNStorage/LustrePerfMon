@@ -11,7 +11,7 @@ read isopath
 if [ ! -z $isopath ];then
 	mkdir -p /media/CentOS
 	mount -o loop $isopath /media/CentOS
-	rc = $?
+	rc=$?
 	if [ $rc -ne 0 ];then
 		echo "mount $isopath on /media/CentOS failed, exit"
 		exit $rc
