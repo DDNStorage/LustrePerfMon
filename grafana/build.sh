@@ -66,9 +66,11 @@ if [ "$DISTRO_RELEASE" = "5" ]; then
 	DIST=".el5"
 elif [ "$DISTRO_RELEASE" = "6" ]; then
 	DIST=".el6"
+elif [ "$DISTRO_RELEASE" = "7" ]; then
+	DIST=".el7"
 else
 	echo "$DISTRO_RELEASE is not supported"
-	exit
+	exit 1
 fi
 
 tar czvf grafana.tar.gz *

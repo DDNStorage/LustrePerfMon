@@ -1,5 +1,17 @@
 #!/bin/bash
 
+STDOUT=2
+
+error() {
+	local msg="$1"
+	[ -n "$msg" ] && echo -e "\n${0##*/}: $msg" >&$STDOUT
+}
+
+fatal() {
+	error "$2"
+	exit $1
+}
+
 if which lsb_release >/dev/null 2>&1; then
 	name="$(lsb_release -s -i)"
 	version="$(lsb_release -s -r)"
