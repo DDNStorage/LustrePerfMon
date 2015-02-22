@@ -33,13 +33,13 @@ $(LOCAL_XML_DEFINITION_RPMS): $(ORIGIN_XML_DEFINITION_RPMS)
 $(LOCAL_MONTOOLS_RPMS): $(ORIGIN_MONTOOLS_RPMS)
 	cp $(addprefix ../montools/RPMS/x86_64/, $(notdir $@)) RPMS
 
-monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso: RPMS install.sh \
+monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso: RPMS install.py \
 		$(LOCAL_COLLECTD_RPMS) \
 		$(LOCAL_DEPENDENCY_RPMS) \
 		$(LOCAL_GRAFANA_RPMS) \
 		$(LOCAL_XML_DEFINITION_RPMS) \
 		$(LOCAL_MONTOOLS_RPMS)
-	cp install.sh RPMS
+	cp install.py RPMS
 	createrepo RPMS
 	mkisofs -joliet-long -R -o monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso RPMS
 
