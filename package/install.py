@@ -10,9 +10,14 @@ import subprocess
 import re
 import time
 import inspect
+import urllib2
+import stat
+import datetime
 
 tmp_dir = "/tmp"
 log_filename = tmp_dir + "/" + "install_DDN_monitor.log"
+# Whether to cleanup yum cache before trying to install RPMs
+cleanup_yum_cache = False
 
 def log_setup():
 	global logger
@@ -67,18 +72,14 @@ def yum_repolist(repo):
 		return None
 	return matched.group(1)
 
-def cleanup_and_exit(rc, failure = "some unexpected failure"):
+def cleanup_and_exit(rc, failure = "some unexpected failure", advices = []):
 	logger.error("Aborting because of %s" % failure)
 	logger.error("Please check log '%s' for more information" % log_filename)
-	logger.error("Before trying again, please make sure:")
-	logger.error("\t* Current user has enough authority;")
-	logger.error("\t* Yum environment is is properly configured;")
-	logger.error("\t* Yum repository of CentOS/Redhat base is properly "
-		     "configured;")
-	logger.error("\t* DDN Monitoring System is unbroken.")
+	if (advices):
+		logger.error("Before trying again, please make sure:")
+		for advice in advices:
+			logger.error("\t* %s", advice)
 	sys.exit(rc)
-
-log_setup()
 
 def signal_hander(signum, stack):
 	if (signum == signal.SIGINT):
@@ -96,11 +97,17 @@ class step():
 		self.func = func
 
 def create_repo():
+	advices = ["Current user has enough authority",
+		   "Yum environment is is properly configured",
+		   "Yum repository of CentOS/Redhat base is properly configured",
+		   "DDN Monitoring System ISO is unbroken"]
+
 	ddn_monsystem_repo_path = "/etc/yum.repos.d/monsystem-ddn.repo"
 	repo_file = "[monsystem-ddn]\n" \
 		    "name=Monitor system of DDN\n" \
 		    "baseurl=file://"
-	repo_file += os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+	repo_file += "/mnt/dvd" #!!!!!!!!!!!!!!!
+	#repo_file += os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 	repo_file += "\n" \
 		     "failovermethod=priority\n" \
 		     "enabled=1\n" \
@@ -111,29 +118,309 @@ def create_repo():
 	repo_fd.close()
 
 	# Cleanup possible wrong cache of repository data
-	command = "yum clean all"
-	rc, stdout, stderr = run_command(command)
-	if rc != 0:
-		logger.error("Failed to run '%s', stdout = '%s', rc = %d" %
-			     (command, stdout, rc))
-		cleanup_and_exit(rc, "yum failure")
+	if (cleanup_yum_cache):
+		command = "yum clean all"
+		rc, stdout, stderr = run_command(command)
+		if rc != 0:
+			logger.error("Failed to run '%s', stdout = '%s', "
+				     "rc = %d" % (command, stdout, rc))
+			cleanup_and_exit(rc, "yum failure", advices)
 
 	repo = "monsystem-ddn"
 	repolist = yum_repolist(repo)
 	if not repolist:
 		logger.error("Failed to get repolist for '%s'" % (repo))
-		cleanup_and_exit(-1, "yum failure")
+		cleanup_and_exit(-1, "yum failure", advices)
 	if repolist == "0":
 		logger.error("Repository '%s' is missing " % (repo))
-		cleanup_and_exit(-1, "missing monsystem-ddn repositoy")
+		cleanup_and_exit(-1, "missing monsystem-ddn repositoy", advices)
 
 def install_rpms():
+	advices = ["Current user has enough authority",
+		   "Yum environment is is properly configured",
+		   "Yum repository of CentOS/Redhat base is properly configured",
+		   "DDN Monitoring System ISO is unbroken"]
+
 	command = "yum install montools grafana elasticsearch -y"
 	rc, stdout, stderr = run_command(command)
 	if rc != 0:
 		logger.error("Failed to run '%s', stdout = '%s', rc = %d" %
 			     (command, stdout, rc))
-		cleanup_and_exit(-1, "yum failure")
+		cleanup_and_exit(-1, "yum failure", advices)
+
+def check_graphite(url):
+	logging.debug("Access '%s' to check Graphite website" % (url))
+	try:
+		pagehandle = urllib2.urlopen(url)
+	except Exception,e:
+		logger.error("Failed to open website '%s' because of '%s'" %
+			     (url, e))
+		return -1
+	htmlSource = pagehandle.read()
+	pagehandle.close()
+	return 0
+
+class watched_log():
+	def __init__(self, log_name):
+		self.log_name = log_name
+		self.start_size = os.stat(log_name)[stat.ST_SIZE]
+	def get_new(self):
+		end_size = os.stat(self.log_name)[stat.ST_SIZE]
+		if (end_size < self.start_size):
+			self.start_size = end_size
+			logger.debug("Log '%s' has been truncated" %
+				     (self.log_name))
+		elif (end_size == self.start_size):
+			logger.debug("Log '%s' has not updated" %
+				     (self.log_name))
+			return None
+		file = open(self.log_name, 'r')
+		file.seek(self.start_size)
+		messages = ""
+		for line in file.readlines():
+			messages += line
+		file.close()
+		return messages
+
+def start_service(name):
+	command = ("service %s status" % (name))
+	rc, stdout, stderr = run_command(command)
+	if rc == 0:
+		return 0
+
+	command = ("service %s start" % (name))
+	rc, stdout, stderr = run_command(command)
+	if rc != 0:
+		logger.error("Failed to run '%s', stdout = '%s', "
+			     "rc = %d" % (command, stdout, rc))
+		return rc
+
+	command = ("service %s status" % (name))
+	rc, stdout, stderr = run_command(command)
+	if rc != 0:
+		logger.error("Failed to run '%s', stdout = '%s', "
+			     "rc = %d" % (command, stdout, rc))
+		return rc
+	return rc
+
+def backup_file(src):
+	dst = src
+	dst += datetime.datetime.now().strftime("_%Y-%m-%d_%H:%M:%S.%f")
+	shutil.copy2(src, dst)
+	logger.error("File '%s' has been backuped as '%s'" % (src, dst))
+
+class replace_pattern():
+	def __init__(self, pattern, replace_strings):
+		self.pattern = pattern
+		self.replace_strings = replace_strings
+
+def replace_string(origin_string, replace_patterns):
+	new_string = origin_string
+	for replace_pattern in replace_patterns:
+		matched = re.search(replace_pattern.pattern, new_string)
+		if not matched:
+			continue
+		logger.debug("String '%s' matched pattern '%s'" %
+			     (new_string, replace_pattern.pattern))
+		groups = matched.groups()
+		group_num = len(groups)
+		if (group_num !=
+		    len(replace_pattern.replace_strings)):
+			logger.error("Pattern '%s' conflicts with "
+				     "replace strings '%s', ignored" %
+				     (replace_pattern.pattern,
+				      replace_pattern.replace_strings))
+			continue
+		tmp_string = ""
+		start = 0
+		for i in range(1, group_num + 1):
+			logger.debug("Replace [%d, %d] of '%s' with '%s'" %
+				     (matched.start(i), matched.end(i),
+				      new_string,
+				      replace_pattern.replace_strings[i - 1]))
+			tmp_string += new_string[start:matched.start(i)]
+			tmp_string += replace_pattern.replace_strings[i - 1]
+			start = matched.end(i)
+		tmp_string += new_string[matched.end(i):]
+		new_string = tmp_string
+	logger.debug("String '%s' has been replace to '%s'" %
+		     (origin_string, new_string))
+	return new_string
+
+# TODO: Replace block start/end with regular expression too
+# TODO: Do not need to split into lines before matching block
+# Replace a regular expression in a block
+def replace_block(data, block_start, block_end, replace_patterns = []):
+	new_data = ""
+	started = False
+	for line in data.splitlines(True):
+		if line == block_start:
+			started = True
+			new_data += replace_string(line, replace_patterns)
+		elif (started):
+			new_data += replace_string(line, replace_patterns)
+			if line == block_end:
+				started = False
+		else:
+			new_data += line
+	if (started):
+		logger.error("Block '%s ... %s' starts but never end', "
+			     "error ignored" % (block_start, block_end))
+
+	return new_data
+
+# TODO: Replace block start/end with regular expression too
+# TODO: Do not need to split into lines before matching block
+# Find a regular expression in a block
+# Returns a re.MatchObject
+def match_block(data, block_start, block_end, pattern):
+	started = False
+	for line in data.splitlines(True):
+		if (line == block_start):
+			started = True
+			matched = re.search(pattern, line)
+			if matched:
+				return matched
+		elif (started):
+			matched = re.search(pattern, line)
+			if matched:
+				return matched
+			if (line == block_end):
+				started = False
+	if (started):
+		logger.error("Block '%s ... %s' starts but never end', "
+			     "error ignored" % (block_start, block_end))
+
+	return None
+
+def edit_graphite_config(file_name, graphite_db, only_check = False):
+	file = open(file_name, "r")
+	data = file.read()
+	file.close()
+
+	# First of all check whether config file has been edited correctly
+	block_start = "DATABASES = {\n"
+	block_end = "}\n"
+	matched = match_block(data, block_start, block_end,
+			      "'NAME': '(.+)',")
+	if (not matched):
+		logger.info("File '%s' has not been updated" %
+			    (file_name))
+		if (only_check):
+			return -1
+		backup_file(file_name)
+		logger.info("Trying to update file '%s'" % (file_name))
+		block_start = "#DATABASES = {\n"
+		block_end = "#}\n"
+		replace_patterns = []
+		replace_patterns.append(replace_pattern("^(#)", [""]))
+		replace_patterns.append(replace_pattern("'NAME': '(.+)',",
+					[graphite_db]))
+		new_data = replace_block(data, block_start, block_end,
+					 replace_patterns)
+		file = open(file_name, "w")
+		file.write(new_data)
+		file.close()
+		rc = edit_graphite_config(file_name, graphite_db, True)
+		if (rc):
+			logger.error("Failed to update file '%s' correctly" %
+				     (file_name))
+			return -1
+	elif (matched.group(1) != graphite_db):
+		logger.info("File '%s' has been updated, "
+			    "but Graphite DB is '%s' not '%s' " %
+			    (file_name, matched.group(1), graphite_db))
+		if (only_check):
+			return -1
+		backup_file(file_name)
+		logger.info("Trying to correct file '%s'" % (file_name))
+		rc = edit_graphite_config(file_name, graphite_db, True)
+		if (rc):
+			logger.error("Failed to update file '%s' correctly" %
+				     (file_name))
+			return -1
+	# Do not print verbose message when check finds no error
+	if (not only_check):
+		logger.info("File '%s' has been configured correctly" %
+			    (file_name))
+	return 0
+
+def rpm_file_list(rpm_name):
+	command = ("rpm -ql %s" % rpm_name)
+	rc, stdout, stderr = run_command(command)
+	if rc != 0:
+		logger.error("Failed to get file list of RPM '%s'" %
+			     (rpm_name))
+		return rc, None
+	return rc, stdout.splitlines(False)
+
+def create_graphite_database():
+	rpm_name = "graphite-web"
+	rc, file_list = rpm_file_list(rpm_name)
+	if (rc):
+		return rc
+	desired_fname = "graphite/manage.py"
+	manage_fname = ""
+	for filename in file_list:
+		if filename[-len(desired_fname):] == desired_fname:
+			manage_fname = filename
+	if manage_fname == "":
+		logger.error("Failed to find file '%s' in RPM '%s'" %
+			     (desired_fname, rpm_name))
+		return -1
+
+	command = ("python %s syncdb" % (manage_fname))
+	rc, stdout, stderr = run_command(command)
+	if rc != 0:
+		logger.error("Failed to run '%s', stdout = '%s', "
+			     "stderr = '%s', rc = %d" %
+			     (command, stdout, stderr, rc))
+		return rc
+	return 0
+
+def config_graphite():
+	advices = ["Httpd is properly configured"]
+
+	graphite_db = "/var/lib/graphite-web/graphite.db"
+	graphite_conf = "/etc/graphite-web/local_settings.py"
+	rc = edit_graphite_config(graphite_conf, graphite_db)
+	if (rc):
+		logger.error("Failed to edit Graphite settings")
+		cleanup_and_exit(-1, "Graphite setting failure", advices)
+
+	rc = create_graphite_database()
+	if (rc):
+		logger.error("Failed to create Graphite database")
+		cleanup_and_exit(-1, "Graphite database failure", advices)
+
+	service_name = "httpd"
+	rc = start_service(service_name)
+	if (rc):
+		logger.error("Failed to start service '%s'" %
+			     (service_name))
+		cleanup_and_exit(-1, "httpd failure", advices)
+
+	httpd_graphite_access_log = "/var/log/httpd/graphite-web-access.log"
+	httpd_graphite_error_log = "/var/log/httpd/graphite-web-error.log"
+	graphite_exception_log = "/var/log/graphite-web/exception.log"
+	graphite_info_log = "/var/log/graphite-web/info.log"
+	logs = []
+	logs.append(watched_log(httpd_graphite_access_log))
+	logs.append(watched_log(httpd_graphite_error_log))
+	logs.append(watched_log(graphite_exception_log))
+	logs.append(watched_log(graphite_info_log))
+
+	rc = check_graphite("http://localhost")
+	if rc != 0:
+		logger.error("Graphite is not running correctly")
+		for log in logs:
+			messages = log.get_new()
+			if (messages):
+				logger.debug("Log '%s': '%s'" %
+					     (log.log_name, messages))
+		cleanup_and_exit(-1, "httpd failure", advices)
+
+log_setup()
 
 signal.signal(signal.SIGINT, signal_hander)
 signal.signal(signal.SIGTERM, signal_hander)
@@ -143,11 +430,11 @@ logger.info("Installing DDN Monsystem")
 steps = []
 steps.append(step("Create DDN Monsystem repository", create_repo))
 steps.append(step("Install DDN Monsystem RPM", install_rpms))
+steps.append(step("Configure Graphite", config_graphite))
 current_step = 0
 for tmp_step in steps:
 	current_step += 1
 	logger.info("====== Step %d/%d started: %s ======" % (current_step, len(steps), tmp_step.name))
 	tmp_step.func()
 	logger.info("====== Step %d/%d finished: %s ======" % (current_step, len(steps), tmp_step.name))
-
 logger.info("Installation finished")
