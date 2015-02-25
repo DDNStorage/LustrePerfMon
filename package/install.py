@@ -35,7 +35,7 @@ def log_setup():
 	log_stream.setLevel(logging.INFO)
 	logger.addHandler(log_stream)
 
-def run_command(command):
+def run_command(command, dump_debug = True):
 	p = subprocess.Popen(command,
 			     shell = True,
 			     stdout = subprocess.PIPE,
@@ -47,8 +47,10 @@ def run_command(command):
 	stderr=""
 	for line in p.stderr.readlines():
 		stderr = stderr + line;
-	logger.debug("Run command '%s', stdout = '%s', stderr = '%s', rc = %d" %
-		     (command, stdout, stderr, rc))
+	if (dump_debug):
+		logger.debug("Run command '%s', stdout = '%s', "
+			     "stderr = '%s', rc = %d" %
+			     (command, stdout, stderr, rc))
 	return rc, stdout, stderr
 
 def yum_repolist(repo):
@@ -106,8 +108,7 @@ def create_repo():
 	repo_file = "[monsystem-ddn]\n" \
 		    "name=Monitor system of DDN\n" \
 		    "baseurl=file://"
-	repo_file += "/mnt/dvd" #!!!!!!!!!!!!!!!
-	#repo_file += os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+	repo_file += os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 	repo_file += "\n" \
 		     "failovermethod=priority\n" \
 		     "enabled=1\n" \
@@ -135,18 +136,100 @@ def create_repo():
 		logger.error("Repository '%s' is missing " % (repo))
 		cleanup_and_exit(-1, "missing monsystem-ddn repositoy", advices)
 
+def rpm_erase(rpm_name, prompt_depend = True):
+	command = ("rpm -e %s" % rpm_name)
+	rc, stdout, stderr = run_command(command)
+	if (rc == 0):
+		return 0
+
+	uninstalled = ("error: package %s is not installed" % rpm_name)
+	if (stderr[:len(uninstalled)] == uninstalled):
+		logger.debug("RPM '%s' is not installed, skipping" %
+			     (rpm_name))
+		return 0
+
+	dependency_error = "error: Failed dependencies:\n"
+	if (stderr[:len(dependency_error)] != dependency_error):
+		logger.error("Command '%s' failed because of unknown error, "
+			     "stdout = '%s', stderr = '%s', rc = %d" %
+			     (command, stdout, stderr, rc))
+		return -1
+
+	depend_rpms = []
+	for line in stderr[len(dependency_error):].splitlines(True):
+		pattern = r".+ is needed by \(installed\) (.+)\n$"
+		matched = re.match(pattern, line)
+		if not matched:
+			logger.error("Do not understand dependency '%s', ignoring", (line))
+			continue
+		depend_rpms.append(matched.group(1))
+
+	logger.info("Can't uninstall RPM '%s' directly "
+		    "because it is needed by following RPM(s):" %
+		    (rpm_name))
+	for depend_rpm in depend_rpms:
+		logger.info("	%s", depend_rpm)
+	if (prompt_depend):
+		prompt_message = ("Uninstall these RPMs to "
+				  "solve dependency? [Y/n]:")
+		uninstall = raw_input(prompt_message)
+		if (uninstall != "" and
+		    (uninstall[0] == "N" or
+		     uninstall[0] == "n")):
+		    	logger.info("Abort uninstallation of RPM '%s' "
+		    		    "because of user's command" %
+				    (rpm_name))
+			return -1
+
+	# Got permission to erase depend RPMs
+	for depend_rpm in depend_rpms:
+		rc = rpm_erase(depend_rpm, prompt_depend)
+		if (rc):
+			logger.error("Failed to uninstall RPM '%s'" %
+				     (depend_rpm))
+			return rc
+
+	# All depend RPMs should have been uninstalled, try uninstall again
+	command = ("rpm -e %s" % rpm_name)
+	rc, stdout, stderr = run_command(command)
+	if (rc):
+		logger.error("Command '%s' failed, "
+			     "stdout = '%s', stderr = '%s', rc = %d" %
+			     (command, stdout, stderr, rc))
+	return rc
+
 def install_rpms():
 	advices = ["Current user has enough authority",
 		   "Yum environment is is properly configured",
 		   "Yum repository of CentOS/Redhat base is properly configured",
 		   "DDN Monitoring System ISO is unbroken"]
 
-	command = "yum install montools grafana elasticsearch -y"
-	rc, stdout, stderr = run_command(command)
-	if rc != 0:
-		logger.error("Failed to run '%s', stdout = '%s', rc = %d" %
-			     (command, stdout, rc))
-		cleanup_and_exit(-1, "yum failure", advices)
+	# Erase existing collectd RPMs so as to update them
+	erase_rpms = ["collectd", "libcollectdclient", "xml_definition"]
+	for rpm_name in erase_rpms:
+		rc = rpm_erase(rpm_name, True)
+		if rc != 0:
+			logger.error("Failed to uninstall RPM '%s'" %
+				     (rpm_name))
+			cleanup_and_exit(-1, "RPM failure", advices)
+
+	install_rpms = ["collectd-lustre",
+			"collectd-gpfs",
+			"collectd-stress",
+			"collectd-ganglia",
+			"collectd-zabbix",
+			"collectd-rrdtool",
+			"xml_definition",
+			"grafana",
+			"montools",
+			"elasticsearch"]
+	for rpm_name in install_rpms:
+		command = ("yum install %s -y" % rpm_name)
+		rc, stdout, stderr = run_command(command)
+		if rc != 0:
+			logger.error("Failed to run '%s', stdout = '%s', rc = %d" %
+				     (command, stdout, rc))
+			cleanup_and_exit(-1, "yum failure", advices)
 
 def check_graphite(url):
 	logging.debug("Access '%s' to check Graphite website" % (url))
@@ -347,7 +430,7 @@ def edit_graphite_config(file_name, graphite_db, only_check = False):
 
 def rpm_file_list(rpm_name):
 	command = ("rpm -ql %s" % rpm_name)
-	rc, stdout, stderr = run_command(command)
+	rc, stdout, stderr = run_command(command, False)
 	if rc != 0:
 		logger.error("Failed to get file list of RPM '%s'" %
 			     (rpm_name))
@@ -429,7 +512,7 @@ logger.info("Installing DDN Monsystem")
 
 steps = []
 steps.append(step("Create DDN Monsystem repository", create_repo))
-steps.append(step("Install DDN Monsystem RPM", install_rpms))
+steps.append(step("Install DDN Monsystem RPMs", install_rpms))
 steps.append(step("Configure Graphite", config_graphite))
 current_step = 0
 for tmp_step in steps:
