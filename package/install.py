@@ -18,6 +18,7 @@ tmp_dir = "/tmp"
 log_filename = tmp_dir + "/" + "install_DDN_monitor.log"
 # Whether to cleanup yum cache before trying to install RPMs
 cleanup_yum_cache = False
+update_rpms_anyway = False
 
 def log_setup():
 	global logger
@@ -206,12 +207,13 @@ def install_rpms():
 
 	# Erase existing collectd RPMs so as to update them
 	erase_rpms = ["collectd", "libcollectdclient", "xml_definition"]
-	for rpm_name in erase_rpms:
-		rc = rpm_erase(rpm_name, True)
-		if rc != 0:
-			logger.error("Failed to uninstall RPM '%s'" %
-				     (rpm_name))
-			cleanup_and_exit(-1, "RPM failure", advices)
+	if (update_rpms_anyway):
+		for rpm_name in erase_rpms:
+			rc = rpm_erase(rpm_name, True)
+			if rc != 0:
+				logger.error("Failed to uninstall RPM '%s'" %
+					     (rpm_name))
+				cleanup_and_exit(-1, "RPM failure", advices)
 
 	install_rpms = ["collectd-lustre",
 			"collectd-gpfs",
@@ -292,63 +294,59 @@ def backup_file(src):
 	shutil.copy2(src, dst)
 	logger.error("File '%s' has been backuped as '%s'" % (src, dst))
 
-class replace_pattern():
+class replacer_class():
 	def __init__(self, pattern, replace_strings):
 		self.pattern = pattern
 		self.replace_strings = replace_strings
 
-def replace_string(origin_string, replace_patterns):
-	new_string = origin_string
-	for replace_pattern in replace_patterns:
-		matched = re.search(replace_pattern.pattern, new_string)
-		if not matched:
-			continue
-		logger.debug("String '%s' matched pattern '%s'" %
-			     (new_string, replace_pattern.pattern))
+def replace_pattern(data, replacer):
+	new_data = ""
+	last_end = 0
+	# re.s: Makes a period (dot) match any character, including a newline.
+	# re.M: Makes $ match the end of a line (not just the end of the
+	#       string) and makes ^ match the start of any line (not just the
+	#       start of the string).
+	for matched in re.finditer(replacer.pattern, data, re.S|re.M):
 		groups = matched.groups()
 		group_num = len(groups)
 		if (group_num !=
-		    len(replace_pattern.replace_strings)):
+		    len(replacer.replace_strings)):
 			logger.error("Pattern '%s' conflicts with "
 				     "replace strings '%s', ignored" %
-				     (replace_pattern.pattern,
-				      replace_pattern.replace_strings))
+				     (replacer.pattern,
+				      replacer.replace_strings))
 			continue
-		tmp_string = ""
-		start = 0
+
+		new_data += data[last_end:matched.start(0)]
+		last_end = matched.start(0)
 		for i in range(1, group_num + 1):
 			logger.debug("Replace [%d, %d] of '%s' with '%s'" %
 				     (matched.start(i), matched.end(i),
-				      new_string,
-				      replace_pattern.replace_strings[i - 1]))
-			tmp_string += new_string[start:matched.start(i)]
-			tmp_string += replace_pattern.replace_strings[i - 1]
-			start = matched.end(i)
-		tmp_string += new_string[matched.end(i):]
-		new_string = tmp_string
-	logger.debug("String '%s' has been replace to '%s'" %
-		     (origin_string, new_string))
-	return new_string
+				      data,
+				      replacer.replace_strings[i - 1]))
+			new_data += data[last_end:matched.start(i)]
+			new_data += replacer.replace_strings[i - 1]
+			last_end = matched.end(i)
+	new_data += data[last_end:]
+	return new_data
 
-# TODO: Replace block start/end with regular expression too
-# TODO: Do not need to split into lines before matching block
+def replace_patterns(data, replacers):
+	new_data = data
+	for replacer in replacers:
+		new_data = replace_pattern(new_data, replacer)
+	logger.debug("String '%s' has been replace to '%s'" %
+		     (data, new_data))
+	return new_data
+
 # Replace a regular expression in a block
-def replace_block(data, block_start, block_end, replace_patterns = []):
+def replace_block(data, block_pattern, replacers = []):
 	new_data = ""
-	started = False
-	for line in data.splitlines(True):
-		if line == block_start:
-			started = True
-			new_data += replace_string(line, replace_patterns)
-		elif (started):
-			new_data += replace_string(line, replace_patterns)
-			if line == block_end:
-				started = False
-		else:
-			new_data += line
-	if (started):
-		logger.error("Block '%s ... %s' starts but never end', "
-			     "error ignored" % (block_start, block_end))
+	last_end = 0
+	for matched in re.finditer(block_pattern, data, re.S|re.M):
+		new_data += data[last_end:matched.start(0)]
+		new_data += replace_patterns(matched.group(0), replacers)
+		last_end = matched.end(0)
+	new_data += data[last_end:]
 
 	return new_data
 
@@ -387,20 +385,21 @@ def edit_graphite_config(file_name, graphite_db, only_check = False):
 	matched = match_block(data, block_start, block_end,
 			      "'NAME': '(.+)',")
 	if (not matched):
-		logger.info("File '%s' has not been updated" %
-			    (file_name))
+		logger.info("File '%s' has not been updated for database "
+			    "configure before" % (file_name))
 		if (only_check):
 			return -1
 		backup_file(file_name)
 		logger.info("Trying to update file '%s'" % (file_name))
-		block_start = "#DATABASES = {\n"
-		block_end = "#}\n"
-		replace_patterns = []
-		replace_patterns.append(replace_pattern("^(#)", [""]))
-		replace_patterns.append(replace_pattern("'NAME': '(.+)',",
-					[graphite_db]))
-		new_data = replace_block(data, block_start, block_end,
-					 replace_patterns)
+		# The block of database should be lines started with #
+		# This is strict so as to avoid other blocks ended with #}
+		block_pattern = "#DATABASES = {\n(#[^\n]+\n)+#}\n"
+		replacers = []
+		replacers.append(replacer_class("^(#)", [""]))
+		replacers.append(replacer_class("'NAME': '([^\n]+)',\n",
+						[graphite_db]))
+		new_data = replace_block(data, block_pattern,
+					 replacers)
 		file = open(file_name, "w")
 		file.write(new_data)
 		file.close()
@@ -410,22 +409,23 @@ def edit_graphite_config(file_name, graphite_db, only_check = False):
 				     (file_name))
 			return -1
 	elif (matched.group(1) != graphite_db):
-		logger.info("File '%s' has been updated, "
+		logger.info("File '%s' has been updated before, "
 			    "but Graphite DB is '%s' not '%s' " %
 			    (file_name, matched.group(1), graphite_db))
 		if (only_check):
 			return -1
 		backup_file(file_name)
-		logger.info("Trying to correct file '%s'" % (file_name))
+		logger.info("Trying to correct database configure of '%s'" %
+			    (file_name))
 		rc = edit_graphite_config(file_name, graphite_db, True)
 		if (rc):
-			logger.error("Failed to update file '%s' correctly" %
-				     (file_name))
+			logger.error("Failed to correct database configure "
+				     "of '%s'" % (file_name))
 			return -1
 	# Do not print verbose message when check finds no error
 	if (not only_check):
-		logger.info("File '%s' has been configured correctly" %
-			    (file_name))
+		logger.info("File '%s' has been updated for database "
+			    "configure" % (file_name))
 	return 0
 
 def rpm_file_list(rpm_name):
