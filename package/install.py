@@ -560,7 +560,7 @@ def comment_collectd_config(file_name, only_check = False):
 		return -1
 
 	logger.info("File '%s' has some uncommented lines, commenting them" %
-			    (file_name))
+		    (file_name))
 
 	backup_file(file_name)
 	replacers = []
@@ -573,6 +573,31 @@ def comment_collectd_config(file_name, only_check = False):
 
 	return comment_collectd_config(file_name, True)
 
+def check_update(condition_data):
+	filename = condition_data[0]
+	fomer_mtime = condition_data[1]
+	if (not os.path.exists(filename)):
+		logger.debug("File '%s' does not exist" % (filename))
+		return False
+
+	current_mtime = os.stat(filename)[stat.ST_MTIME]
+	if (fomer_mtime == current_mtime):
+		logger.debug("File '%s' is not updated, mtime '%s/%s'" %
+			     (filename, fomer_mtime, current_mtime))
+		return False
+
+	logger.debug("File '%s' is updated, mtime '%s/%s'" %
+		     (filename, fomer_mtime, current_mtime))
+	return True
+
+def wait_condition(timeout, condition_fn, condition_data):
+	wait_time = 0
+	while (not condition_fn(condition_data)):
+		wait_time += 1
+		if (wait_time > timeout):
+			return -1
+		time.sleep(1)
+	return 0
 
 def config_collectd():
 	advices = []
@@ -587,21 +612,21 @@ LoadPlugin write_graphite
 LoadPlugin cpu
 
 <Plugin logfile>
-       LogLevel err
+  LogLevel err
 """
 
-	collectd_append += ('File "%s"\n' % collectd_log_file)
-	collectd_append += """Timestamp true
-       PrintSeverity true
+	collectd_append += ('  File "%s"\n' % collectd_log_file)
+	collectd_append += """  Timestamp true
+  PrintSeverity true
 </Plugin>
 
 <Plugin write_graphite>
- <Carbon>
-   Host "localhost"
-   Port "2003"
-   Prefix "collectd."
-   Protocol "tcp"
- </Carbon>
+  <Carbon>
+    Host "localhost"
+    Port "2003"
+    Prefix "collectd."
+    Protocol "tcp"
+  </Carbon>
 </Plugin>
 """
 
@@ -646,6 +671,15 @@ LoadPlugin cpu
 			     (service_name))
 		cleanup_and_exit(-1, "Collectd failure", advices)
 
+	hostname = os.uname()[1]
+	cabon_directory = "/var/lib/carbon/whisper/collectd"
+	cpu_idle_file = (cabon_directory + "/" + hostname + "/" +
+			 "cpu-0/cpu-idle.wsp")
+	if (os.path.exists(cpu_idle_file)):
+		fomer_mtime = os.stat(cpu_idle_file)[stat.ST_MTIME]
+	else:
+		fomer_mtime = "0"
+
 	service_name = "collectd"
 	rc = restart_service(service_name)
 	if (rc):
@@ -658,22 +692,26 @@ LoadPlugin cpu
 					     (log.log_name, messages))
 		cleanup_and_exit(-1, "Collectd failure", advices)
 
-	# When Collectd has problem when collecting data, it will increase
-	# its interval by multiple of 2
-	time.sleep(3 * interval)
+	arguments = [cpu_idle_file, fomer_mtime]
+	timeout = 10
+	rc = wait_condition(timeout, check_update, arguments)
+	if (rc):
+		logger.error("File '%s' is not updated for %d seconds" %
+			     (cpu_idle_file, timeout))
+		cleanup_and_exit(-1, "Collectd failure", advices)
 
+	# Check whether there is any error messages in Collectd log
 	pattern = "error"
-	matched = re.search(pattern, data)
-	if matched:
-		logger.info("The collectd log file '%s' has some error "
-			    "messages, please check whether there is any "
-			    "problem" % (collectd_log_file))
-
-		for log in logs:
-			messages = log.get_new()
-			if (messages):
-				logger.debug("Log '%s': '%s'" %
-					     (log.log_name, messages))
+	messages = collectd_log.get_new()
+	if (messages):
+		matched = re.search(pattern, messages)
+		if (matched):
+			logger.info("The collectd log file '%s' has some "
+				    "error messages, please check whether "
+				    "there is any  problem" %
+				    (collectd_log_file))
+			logger.debug("Log '%s': '%s'" %
+				     (collectd_log.log_name, messages))
 
 log_setup()
 
