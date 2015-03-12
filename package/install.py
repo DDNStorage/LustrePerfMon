@@ -224,7 +224,8 @@ def install_rpms():
 			"xml_definition",
 			"grafana",
 			"montools",
-			"elasticsearch"]
+			"elasticsearch",
+			"python-carbon"]
 	for rpm_name in install_rpms:
 		command = ("yum install %s -y" % rpm_name)
 		rc, stdout, stderr = run_command(command)
@@ -288,6 +289,22 @@ def start_service(name):
 		return rc
 	return rc
 
+def restart_service(name):
+	command = ("service %s restart" % (name))
+	rc, stdout, stderr = run_command(command)
+	if rc != 0:
+		logger.error("Failed to run '%s', stdout = '%s', "
+			     "rc = %d" % (command, stdout, rc))
+		return rc
+
+	command = ("service %s status" % (name))
+	rc, stdout, stderr = run_command(command)
+	if rc != 0:
+		logger.error("Failed to run '%s', stdout = '%s', "
+			     "rc = %d" % (command, stdout, rc))
+		return rc
+	return rc
+
 def backup_file(src):
 	dst = src
 	dst += datetime.datetime.now().strftime("_%Y-%m-%d_%H:%M:%S.%f")
@@ -298,6 +315,25 @@ class replacer_class():
 	def __init__(self, pattern, replace_strings):
 		self.pattern = pattern
 		self.replace_strings = replace_strings
+
+# Replace origin string with dest
+# dest could be a string which includes '${origin}'
+# All '${origin}' will be replace by origin data
+# TODO: add escape way for ${XXX}
+def replace_string(origin, dest):
+	new_data = ""
+	last_end = 0
+	pattern = "\${([^}]+)}"
+	const_origin = "origin"
+	for matched in re.finditer(pattern, dest, re.S|re.M):
+		new_data += dest[last_end:matched.start(0)]
+		if (matched.group(1) == const_origin):
+			new_data += origin
+		else:
+			new_data += matched.group(0)
+		last_end = matched.end(0)
+	new_data += dest[last_end:]
+	return new_data
 
 def replace_pattern(data, replacer):
 	new_data = ""
@@ -325,7 +361,8 @@ def replace_pattern(data, replacer):
 				      data,
 				      replacer.replace_strings[i - 1]))
 			new_data += data[last_end:matched.start(i)]
-			new_data += replacer.replace_strings[i - 1]
+			new_data += replace_string(matched.group(i),
+				replacer.replace_strings[i - 1])
 			last_end = matched.end(i)
 	new_data += data[last_end:]
 	return new_data
@@ -342,6 +379,10 @@ def replace_patterns(data, replacers):
 def replace_block(data, block_pattern, replacers = []):
 	new_data = ""
 	last_end = 0
+	# re.s: Makes a period (dot) match any character, including a newline.
+	# re.M: Makes $ match the end of a line (not just the end of the
+	#       string) and makes ^ match the start of any line (not just the
+	#       start of the string).
 	for matched in re.finditer(block_pattern, data, re.S|re.M):
 		new_data += data[last_end:matched.start(0)]
 		new_data += replace_patterns(matched.group(0), replacers)
@@ -477,7 +518,7 @@ def config_graphite():
 		cleanup_and_exit(-1, "Graphite database failure", advices)
 
 	service_name = "httpd"
-	rc = start_service(service_name)
+	rc = restart_service(service_name)
 	if (rc):
 		logger.error("Failed to start service '%s'" %
 			     (service_name))
@@ -503,6 +544,137 @@ def config_graphite():
 					     (log.log_name, messages))
 		cleanup_and_exit(-1, "httpd failure", advices)
 
+def comment_collectd_config(file_name, only_check = False):
+	file = open(file_name, "r")
+	data = file.read()
+	file.close()
+
+	block_pattern = "^[^#|\n][^\n]*\n"
+	matched = re.search(block_pattern, data, re.S|re.M)
+	if not matched:
+		logger.debug("File '%s' has already been commented" %
+			     (file_name))
+		return 0
+
+	if (only_check):
+		return -1
+
+	logger.info("File '%s' has some uncommented lines, commenting them" %
+			    (file_name))
+
+	backup_file(file_name)
+	replacers = []
+	replacers.append(replacer_class("^([^\n]+)\n", ["#${origin}"]))
+	new_data = replace_block(data, block_pattern,
+				 replacers)
+	file = open(file_name, "w")
+	file.write(new_data)
+	file.close()
+
+	return comment_collectd_config(file_name, True)
+
+
+def config_collectd():
+	advices = []
+	collectd_conf = "/etc/collectd.conf"
+	collectd_log_file = "/var/log/collectd.log"
+	edit_signature = "\n## Added by script of DDN Monitoring System\n"
+	collectd_append = edit_signature
+	interval = 1
+	collectd_append += ("Interval     %d\n" % interval)
+	collectd_append += """LoadPlugin logfile
+LoadPlugin write_graphite
+LoadPlugin cpu
+
+<Plugin logfile>
+       LogLevel err
+"""
+
+	collectd_append += ('File "%s"\n' % collectd_log_file)
+	collectd_append += """Timestamp true
+       PrintSeverity true
+</Plugin>
+
+<Plugin write_graphite>
+ <Carbon>
+   Host "localhost"
+   Port "2003"
+   Prefix "collectd."
+   Protocol "tcp"
+ </Carbon>
+</Plugin>
+"""
+
+	file = open(collectd_conf, "r")
+	data = file.read()
+	file.close()
+
+	matched = re.search(edit_signature, data)
+	if not matched:
+		logger.info("File '%s' has not been edited by DDN Monsystem "
+			    "before, updating it")
+		rc = comment_collectd_config(collectd_conf)
+		if (rc):
+			logger.error("Failed to edit Collectd settings")
+			cleanup_and_exit(-1, "Collectd setting failure", advices)
+
+		config_file = open(collectd_conf,'a')
+		config_file.write(collectd_append)
+		config_file.close()
+	else:
+		logger.info("File '%s' has already been edited by DDN "
+			    "Monsystem before")
+
+	system_log_file = "/var/log/messages"
+	system_log = watched_log(system_log_file)
+	collectd_log = watched_log(collectd_log_file)
+	logs = []
+	logs.append(system_log)
+	logs.append(collectd_log)
+
+	service_name = "carbon-aggregator"
+	rc = restart_service(service_name)
+	if (rc):
+		logger.error("Failed to start service '%s'" %
+			     (service_name))
+		cleanup_and_exit(-1, "Collectd failure", advices)
+
+	service_name = "carbon-cache"
+	rc = restart_service(service_name)
+	if (rc):
+		logger.error("Failed to start service '%s'" %
+			     (service_name))
+		cleanup_and_exit(-1, "Collectd failure", advices)
+
+	service_name = "collectd"
+	rc = restart_service(service_name)
+	if (rc):
+		logger.error("Failed to start service '%s'" %
+			     (service_name))
+		for log in logs:
+			messages = log.get_new()
+			if (messages):
+				logger.debug("Log '%s': '%s'" %
+					     (log.log_name, messages))
+		cleanup_and_exit(-1, "Collectd failure", advices)
+
+	# When Collectd has problem when collecting data, it will increase
+	# its interval by multiple of 2
+	time.sleep(3 * interval)
+
+	pattern = "error"
+	matched = re.search(pattern, data)
+	if matched:
+		logger.info("The collectd log file '%s' has some error "
+			    "messages, please check whether there is any "
+			    "problem" % (collectd_log_file))
+
+		for log in logs:
+			messages = log.get_new()
+			if (messages):
+				logger.debug("Log '%s': '%s'" %
+					     (log.log_name, messages))
+
 log_setup()
 
 signal.signal(signal.SIGINT, signal_hander)
@@ -514,6 +686,7 @@ steps = []
 steps.append(step("Create DDN Monsystem repository", create_repo))
 steps.append(step("Install DDN Monsystem RPMs", install_rpms))
 steps.append(step("Configure Graphite", config_graphite))
+steps.append(step("Configure Collectd", config_collectd))
 current_step = 0
 for tmp_step in steps:
 	current_step += 1
