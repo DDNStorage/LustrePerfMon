@@ -1,4 +1,4 @@
-SUBDIRS = collectd dependency grafana xml_definition montools package .
+SUBDIRS = collectd grafana xml_definition montools package .
 
 EXTRA_DIST = version-gen.sh autogen.sh detect-distro.sh
 

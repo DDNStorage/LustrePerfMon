@@ -236,85 +236,6 @@ GRAFANA_RPMS=grafana-${GRAFANA_VERSION}-${GRAFANA_RELEASE}.el${DISTRO_RELEASE}.x
 AC_MSG_RESULT([$GRAFANA_RPMS])
 AC_SUBST(GRAFANA_RPMS)
 
-# -------- add repository --------
-if [[[ "$DISTRO_RELEASE" = "6" ]]]; then
-	# elasticsearch is not well supported for RHEL5
-	AC_MSG_CHECKING([add repository])
-	repo_file="/etc/yum.repos.d/elasticsearch.repo"
-	repository_content="[[elasticsearch-1.4]]
-name=Elasticsearch repository for 1.4.x packages
-baseurl=http://packages.elasticsearch.org/elasticsearch/1.4/centos
-gpgcheck=1
-gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch
-enabled=1"
-	if [[[ -f $repo_file ]]]; then
-		content=$(cat $repo_file)
-		if [[[ "$content" != "$repository_content" ]]]; then
-			AC_MSG_WARN([$repo_file exists but might not be correctly configured, update it])
-			rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
-			echo -e "${repository_content}\n" > /etc/yum.repos.d/elasticsearch.repo
-		fi
-	else
-		rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
-		echo -e "${repository_content}\n" > /etc/yum.repos.d/elasticsearch.repo
-	fi
-	AC_MSG_RESULT([OK])
-fi
-
-# -------- check for dependency RPMS --------
-AC_MSG_CHECKING([for dependency RPMS])
-DEPENDENCY_PACKAGES="ganglia \
-	ganglia-devel \
-	bitmap \
-	django-tagging \
-	python-sqlite2 \
-	python-gunicorn \
-	libconfuse \
-	bitmap-miscfixed-fonts \
-	bitmap-console-fonts \
-	bitmap-fonts-compat \
-	bitmap-fangsongti-fonts \
-	xorg-x11-xbitmaps \
-	python-whisper \
-	python-carbon \
-	graphite-web \
-	graphite-web-selinux \
-	mysql \
-	mysql-server \
-	MySQL-python \
-	dejavu-sans-fonts \
-	dejavu-serif-fonts \
-	pyparsing \
-	pytz \
-	Django14 \
-	elasticsearch"
-AC_SUBST(DEPENDENCY_PACKAGES)
-
-yumdownloader --resolve --urls --archlist=x86_64 \
-	$DEPENDENCY_PACKAGES > yumdownloader.output
-if [[[ $? -ne 0 ]]]; then
-	AC_MSG_ERROR([yumdownloader failure $OUTPUT])
-fi
-
-LINKS=$(cat yumdownloader.output | grep http:// | grep rpm)
-for LINK in $LINKS; do
-	RPM=$(basename $LINK);
-	DEPENDENCY_RPMS="$DEPENDENCY_RPMS $RPM"
-done
-
-AC_MSG_RESULT([$DEPENDENCY_RPMS])
-AC_SUBST(DEPENDENCY_RPMS)
-
-PACKAGES=$(cat yumdownloader.output | \
-	grep "No Match for argument" | \
-	awk -F "No Match for argument" '{print $2}')
-if [[[ "$PACKAGES" != "" ]]]; then
-	for PACKAGE in $PACKAGES; do
-		MISSING_PACKAGES="$MISSING_PACKAGES $PACKAGE"
-	done
-	AC_MSG_WARN([Not able to download:$MISSING_PACKAGES])
-fi
-
 # -------- check for montools version --------
 git_version=$(git rev-parse --short HEAD)
 if [[[ $? -ne 0 ]]]; then
@@ -341,5 +262,5 @@ AC_MSG_RESULT([$MONTOOLS_RPMS])
 AC_SUBST(MONTOOLS_RPMS)
 
 AC_CONFIG_FILES([Makefile collectd/Makefile xml_definition/Makefile
-	grafana/Makefile dependency/Makefile montools/Makefile package/Makefile])
+	grafana/Makefile montools/Makefile package/Makefile])
 AC_OUTPUT
