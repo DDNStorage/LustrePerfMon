@@ -19,6 +19,7 @@ log_filename = tmp_dir + "/" + "install_DDN_monitor.log"
 # Whether to cleanup yum cache before trying to install RPMs
 cleanup_yum_cache = False
 update_rpms_anyway = False
+graphite_url = ""
 
 def log_setup():
 	global logger
@@ -172,7 +173,7 @@ def rpm_erase(rpm_name, prompt_depend = True):
 		logger.info("	%s", depend_rpm)
 	if (prompt_depend):
 		prompt_message = ("Uninstall these RPMs to "
-				  "solve dependency? [Y/n]:")
+				  "solve dependency? [Y/n]: ")
 		uninstall = raw_input(prompt_message)
 		if (uninstall != "" and
 		    (uninstall[0] == "N" or
@@ -534,7 +535,20 @@ def config_graphite():
 	logs.append(watched_log(graphite_exception_log))
 	logs.append(watched_log(graphite_info_log))
 
-	rc = check_graphite("http://localhost")
+	url_start = "http://"
+	default_graphite_url = "http://localhost"
+	prompt_message = ("Please input Graphite URL"
+			  "('%s' by default): " % default_graphite_url)
+	global graphite_url
+	graphite_url = raw_input(prompt_message)
+	if (graphite_url == ""):
+		graphite_url = default_graphite_url
+	elif ((len(graphite_url) < len(url_start)) or
+	      (graphite_url[0:len(url_start)] != url_start)):
+	      	graphite_url = url_start + graphite_url
+
+	logger.info("Checking Graphite URL '%s'" % (graphite_url))
+	rc = check_graphite(graphite_url)
 	if rc != 0:
 		logger.error("Graphite is not running correctly")
 		for log in logs:
