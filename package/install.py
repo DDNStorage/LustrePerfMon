@@ -235,12 +235,12 @@ def install_rpms():
 				     (command, stdout, rc))
 			cleanup_and_exit(-1, "yum failure", advices)
 
-def check_graphite(url):
-	logging.debug("Access '%s' to check Graphite website" % (url))
+def check_url(url):
+	logging.debug("Access '%s' to check URL" % (url))
 	try:
 		pagehandle = urllib2.urlopen(url)
 	except Exception,e:
-		logger.error("Failed to open website '%s' because of '%s'" %
+		logger.error("Failed to open URL '%s' because of '%s'" %
 			     (url, e))
 		return -1
 	htmlSource = pagehandle.read()
@@ -548,7 +548,7 @@ def config_graphite():
 	      	graphite_url = url_start + graphite_url
 
 	logger.info("Checking Graphite URL '%s'" % (graphite_url))
-	rc = check_graphite(graphite_url)
+	rc = check_url(graphite_url)
 	if rc != 0:
 		logger.error("Graphite is not running correctly")
 		for log in logs:
@@ -651,7 +651,7 @@ LoadPlugin cpu
 	matched = re.search(edit_signature, data)
 	if not matched:
 		logger.info("File '%s' has not been edited by DDN Monsystem "
-			    "before, updating it")
+			    "before, updating it", (collectd_conf))
 		rc = comment_collectd_config(collectd_conf)
 		if (rc):
 			logger.error("Failed to edit Collectd settings")
@@ -662,7 +662,7 @@ LoadPlugin cpu
 		config_file.close()
 	else:
 		logger.info("File '%s' has already been edited by DDN "
-			    "Monsystem before")
+			    "Monsystem before", (collectd_conf))
 
 	system_log_file = "/var/log/messages"
 	system_log = watched_log(system_log_file)
@@ -727,6 +727,143 @@ LoadPlugin cpu
 			logger.debug("Log '%s': '%s'" %
 				     (collectd_log.log_name, messages))
 
+def config_grafana():
+	advices = []
+	grafana_httpd_conf_filename = "/etc/httpd/conf.d/grafana.conf"
+	edit_signature = "\n## Added by script of DDN Monitoring System\n"
+	grafana_document_root = "/usr/local/grafana/src"
+	grafana_js_conf_filename = grafana_document_root + "/config.js"
+	grafana_js_conf_sample_filename = grafana_document_root + "/config.sample.js"
+	global graphite_url
+	elasticsearch_url = "http://localhost:9200"
+	grafana_js_edit_signature = "\n    // Added by script of DDN Monitoring System\n"
+	grafana_js_conf = grafana_js_edit_signature
+	grafana_js_conf += "    datasources: {\n"
+	grafana_js_conf += "      graphite: {\n"
+	grafana_js_conf += "        type: 'graphite',\n"
+	grafana_js_conf += "        url: \"" + graphite_url + "\",\n"
+	grafana_js_conf += "      },\n"
+	grafana_js_conf += "      elasticsearch: {\n"
+	grafana_js_conf += "        type: 'elasticsearch',\n"
+	grafana_js_conf += "        url: \"" + elasticsearch_url + "\",\n"
+	grafana_js_conf += "        index: 'grafana-dash',\n"
+	grafana_js_conf += "        grafanaDB: true,\n"
+	grafana_js_conf += "      }\n"
+	grafana_js_conf += "    },"
+	grafana_port = "8000"
+	grafana_httpd_conf = edit_signature
+	grafana_httpd_conf += ("<VirtualHost *:%s>\n" % grafana_port)
+	grafana_httpd_conf += ("DocumentRoot %s\n" % grafana_document_root)
+	grafana_httpd_conf += ("</VirtualHost>\n")
+	grafana_httpd_conf += ("Listen %s\n" % grafana_port)
+
+	need_write = True
+	if (os.path.exists(grafana_httpd_conf_filename)):
+		config_file = open(grafana_httpd_conf_filename, "r")
+		data = config_file.read()
+		config_file.close()
+
+		matched = re.search(edit_signature, data)
+		if not matched:
+			logger.info("File '%s' has not been edited by DDN "
+				    "Monsystem before",
+				    (grafana_httpd_conf_filename))
+			backup_file(grafana_httpd_conf_filename)
+		else:
+			logger.info("File '%s' has already been edited by DDN "
+				    "Monsystem before",
+				    (grafana_httpd_conf_filename))
+			need_write = False
+	if (need_write):
+		logger.info("Writing file '%s'", (grafana_httpd_conf_filename))
+		config_file = open(grafana_httpd_conf_filename, 'w')
+		config_file.write(grafana_httpd_conf)
+		config_file.close()
+
+	need_write = True
+	if (os.path.exists(grafana_js_conf_filename)):
+		config_file = open(grafana_js_conf_filename, "r")
+		data = config_file.read()
+		config_file.close()
+
+		matched = re.search(grafana_js_edit_signature, data)
+		if not matched:
+			logger.info("File '%s' has not been edited by DDN "
+				    "Monsystem before",
+				    (grafana_js_conf_filename))
+			backup_file(grafana_js_conf_filename)
+		else:
+			logger.info("File '%s' has already been edited by DDN "
+				    "Monsystem before",
+				    (grafana_js_conf_filename))
+			need_write = False
+
+	if (need_write):
+		shutil.copy2(grafana_js_conf_sample_filename,
+			     grafana_js_conf_filename)
+
+		config_file = open(grafana_js_conf_filename, "r")
+		data = config_file.read()
+		config_file.close()
+
+		block_pattern = "  return new Settings\({\n.+  }\);\n"
+		replacers = []
+		replacers.append(replacer_class("(return new Settings\({)",
+						["${origin}\n" +
+						 grafana_js_conf]))
+		new_data = replace_block(data, block_pattern,
+					 replacers)
+		config_file = open(grafana_js_conf_filename, "w")
+		config_file.write(new_data)
+		config_file.close()
+
+	service_name = "httpd"
+	rc = restart_service(service_name)
+	if (rc):
+		logger.error("Failed to start service '%s'" %
+			     (service_name))
+		cleanup_and_exit(-1, "httpd failure", advices)
+
+	service_name = "elasticsearch"
+	rc = restart_service(service_name)
+	if (rc):
+		logger.error("Failed to start service '%s'" %
+			     (service_name))
+		cleanup_and_exit(-1, "httpd failure", advices)
+
+	httpd_error_log = "/var/log/httpd/error_log"
+	logs = []
+	logs.append(watched_log(httpd_error_log))
+
+	url_start = "http://"
+	default_grafana_url = "http://localhost:8000"
+	prompt_message = ("Please input grafana URL"
+			  "('%s' by default): " % default_grafana_url)
+	global grafana_url
+	grafana_url = raw_input(prompt_message)
+	if (grafana_url == ""):
+		grafana_url = default_grafana_url
+	elif ((len(grafana_url) < len(url_start)) or
+	      (grafana_url[0:len(url_start)] != url_start)):
+	      	grafana_url = url_start + grafana_url
+
+	logger.info("Checking Grafana URL '%s'" % (grafana_url))
+	rc = check_url(grafana_url)
+	if rc != 0:
+		logger.error("Grafana is not running correctly")
+		for log in logs:
+			messages = log.get_new()
+			if (messages):
+				logger.debug("Log '%s': '%s'" %
+					     (log.log_name, messages))
+		cleanup_and_exit(-1, "httpd failure", advices)
+
+	for log in logs:
+		messages = log.get_new()
+		if (messages):
+			logger.error("Log '%s': '%s'" %
+				     (log.log_name, messages))
+
 log_setup()
 
 signal.signal(signal.SIGINT, signal_hander)
@@ -739,6 +876,7 @@ steps.append(step("Create DDN Monsystem repository", create_repo))
 steps.append(step("Install DDN Monsystem RPMs", install_rpms))
 steps.append(step("Configure Graphite", config_graphite))
 steps.append(step("Configure Collectd", config_collectd))
+steps.append(step("Configure Grafana", config_grafana))
 current_step = 0
 for tmp_step in steps:
 	current_step += 1
