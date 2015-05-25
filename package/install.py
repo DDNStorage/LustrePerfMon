@@ -100,13 +100,29 @@ class step():
 		self.name = name
 		self.func = func
 
-def create_repo():
+def create_repo(repo_name, repo_file):
+	repo_path = "/etc/yum.repos.d/" + repo_name + ".repo"
+	logger.debug("Repository file: '%s'" % (repo_file))
+	repo_fd = open(repo_path, "w")
+	line = repo_fd.write(repo_file)
+	repo_fd.close()
+
+	repolist = yum_repolist(repo_name)
+	if not repolist:
+		logger.error("Failed to get repolist for '%s'" % (repo_name))
+		return -1
+	if repolist == "0":
+		logger.error("Repository '%s' is missing " % (repo_name))
+		return -1
+	return 0
+
+def create_repos():
 	advices = ["Current user has enough authority",
 		   "Yum environment is is properly configured",
 		   "Yum repository of CentOS/Redhat base is properly configured",
 		   "DDN Monitoring System ISO is unbroken"]
 
-	ddn_monsystem_repo_path = "/etc/yum.repos.d/monsystem-ddn.repo"
+	repo_name = "monsystem-ddn"
 	repo_file = "[monsystem-ddn]\n" \
 		    "name=Monitor system of DDN\n" \
 		    "baseurl=file://"
@@ -115,10 +131,22 @@ def create_repo():
 		     "failovermethod=priority\n" \
 		     "enabled=1\n" \
 		     "gpgcheck=0\n"
-	logger.debug("Repository file: '%s'" % (repo_file))
-	repo_fd = open(ddn_monsystem_repo_path, "w")
-	line = repo_fd.write(repo_file)
-	repo_fd.close()
+	rc = create_repo(repo_name, repo_file)
+	if (rc):
+		logger.error("Failed to create repo '%s'" % (repo_name))
+		cleanup_and_exit(rc, "yum failure", advices)
+
+	repo_name = "elasticsearch-1.5"
+	repo_file = "[elasticsearch-1.5]\n" \
+		    "name=Elasticsearch repository for 1.5.x packages\n" \
+		    "baseurl=http://packages.elastic.co/elasticsearch/1.5/centos\n" \
+		    "gpgcheck=1\n" \
+		    "gpgkey=http://packages.elastic.co/GPG-KEY-elasticsearch\n" \
+		    "enabled=1"
+	rc = create_repo(repo_name, repo_file)
+	if (rc):
+		logger.error("Failed to create repo '%s'" % (repo_name))
+		cleanup_and_exit(rc, "yum failure", advices)
 
 	# Cleanup possible wrong cache of repository data
 	if (cleanup_yum_cache):
@@ -128,15 +156,6 @@ def create_repo():
 			logger.error("Failed to run '%s', stdout = '%s', "
 				     "rc = %d" % (command, stdout, rc))
 			cleanup_and_exit(rc, "yum failure", advices)
-
-	repo = "monsystem-ddn"
-	repolist = yum_repolist(repo)
-	if not repolist:
-		logger.error("Failed to get repolist for '%s'" % (repo))
-		cleanup_and_exit(-1, "yum failure", advices)
-	if repolist == "0":
-		logger.error("Repository '%s' is missing " % (repo))
-		cleanup_and_exit(-1, "missing monsystem-ddn repositoy", advices)
 
 def rpm_erase(rpm_name, prompt_depend = True):
 	command = ("rpm -e %s" % rpm_name)
@@ -223,16 +242,18 @@ def install_rpms():
 			"collectd-zabbix",
 			"collectd-rrdtool",
 			"xml_definition",
+			"elasticsearch",
 			"grafana",
 			"montools",
-			"elasticsearch",
-			"python-carbon"]
+			"python-carbon",
+			"java-1.7.0"]
 	for rpm_name in install_rpms:
 		command = ("yum install %s -y" % rpm_name)
 		rc, stdout, stderr = run_command(command)
 		if rc != 0:
-			logger.error("Failed to run '%s', stdout = '%s', rc = %d" %
-				     (command, stdout, rc))
+			logger.error("Failed to run '%s', stdout = '%s', "
+				     "stderr = '%s', rc = %d" %
+				     (command, stdout, stderr, rc))
 			cleanup_and_exit(-1, "yum failure", advices)
 
 def check_url(url):
@@ -250,9 +271,15 @@ def check_url(url):
 class watched_log():
 	def __init__(self, log_name):
 		self.log_name = log_name
-		self.start_size = os.stat(log_name)[stat.ST_SIZE]
+		try:
+			self.start_size = os.stat(log_name)[stat.ST_SIZE]
+		except OSError:
+			self.start_size = 0
 	def get_new(self):
-		end_size = os.stat(self.log_name)[stat.ST_SIZE]
+		try:
+			end_size = os.stat(self.log_name)[stat.ST_SIZE]
+		except OSError:
+			end_size = 0
 		if (end_size < self.start_size):
 			self.start_size = end_size
 			logger.debug("Log '%s' has been truncated" %
@@ -269,6 +296,26 @@ class watched_log():
 		file.close()
 		return messages
 
+def check_service_status(name):
+	command = ("service %s status" % (name))
+	rc, stdout, stderr = run_command(command)
+	if rc != 0:
+		logger.debug("Failed to run '%s', stdout = '%s', "
+			     "stderr = '%s', rc = %d" %
+			     (command, stdout, stderr, rc))
+	return rc == 0
+
+def stop_service(name):
+	command = ("service %s stop" % (name))
+	rc, stdout, stderr = run_command(command)
+	if rc != 0:
+		logger.debug("Failed to run '%s', stdout = '%s', "
+			     "stderr = '%s', rc = %d" %
+			     (command, stdout, stderr, rc))
+		return rc
+
+	return rc
+
 def start_service(name):
 	command = ("service %s status" % (name))
 	rc, stdout, stderr = run_command(command)
@@ -278,33 +325,30 @@ def start_service(name):
 	command = ("service %s start" % (name))
 	rc, stdout, stderr = run_command(command)
 	if rc != 0:
-		logger.error("Failed to run '%s', stdout = '%s', "
-			     "rc = %d" % (command, stdout, rc))
+		logger.debug("Failed to run '%s', stdout = '%s', "
+			     "stderr = '%s', rc = %d" %
+			     (command, stdout, stderr, rc))
 		return rc
 
-	command = ("service %s status" % (name))
-	rc, stdout, stderr = run_command(command)
+	rc = wait_condition(timeout, check_service_status, name)
 	if rc != 0:
-		logger.error("Failed to run '%s', stdout = '%s', "
-			     "rc = %d" % (command, stdout, rc))
-		return rc
+		logger.error("Status of service '%s' is not OK" % (name))
 	return rc
 
-def restart_service(name):
+def restart_service(name, timeout = 3):
 	command = ("service %s restart" % (name))
 	rc, stdout, stderr = run_command(command)
 	if rc != 0:
 		logger.error("Failed to run '%s', stdout = '%s', "
-			     "rc = %d" % (command, stdout, rc))
+			     "stderr = '%s', rc = %d" %
+			     (command, stdout, stderr, rc))
 		return rc
 
-	command = ("service %s status" % (name))
-	rc, stdout, stderr = run_command(command)
+	rc = wait_condition(timeout, check_service_status, name)
 	if rc != 0:
-		logger.error("Failed to run '%s', stdout = '%s', "
-			     "rc = %d" % (command, stdout, rc))
-		return rc
+		logger.error("Status of service '%s' is not OK" % (name))
 	return rc
+
 
 def backup_file(src):
 	dst = src
@@ -427,12 +471,12 @@ def edit_graphite_config(file_name, graphite_db, only_check = False):
 	matched = match_block(data, block_start, block_end,
 			      "'NAME': '(.+)',")
 	if (not matched):
-		logger.info("File '%s' has not been updated for database "
-			    "configure before" % (file_name))
+		logger.debug("File '%s' has not been updated for database "
+			     "configure before" % (file_name))
 		if (only_check):
 			return -1
 		backup_file(file_name)
-		logger.info("Trying to update file '%s'" % (file_name))
+		logger.debug("Trying to update file '%s'" % (file_name))
 		# The block of database should be lines started with #
 		# This is strict so as to avoid other blocks ended with #}
 		block_pattern = "#DATABASES = {\n(#[^\n]+\n)+#}\n"
@@ -440,6 +484,8 @@ def edit_graphite_config(file_name, graphite_db, only_check = False):
 		replacers.append(replacer_class("^(#)", [""]))
 		replacers.append(replacer_class("'NAME': '([^\n]+)',\n",
 						[graphite_db]))
+		replacers.append(replacer_class("('PORT': '')",
+						["'PORT': '',\n        'TIMEOUT': 20"]))
 		new_data = replace_block(data, block_pattern,
 					 replacers)
 		file = open(file_name, "w")
@@ -466,8 +512,8 @@ def edit_graphite_config(file_name, graphite_db, only_check = False):
 			return -1
 	# Do not print verbose message when check finds no error
 	if (not only_check):
-		logger.info("File '%s' has been updated for database "
-			    "configure" % (file_name))
+		logger.debug("File '%s' has been updated for database "
+			     "configure" % (file_name))
 	return 0
 
 def rpm_file_list(rpm_name):
@@ -480,6 +526,7 @@ def rpm_file_list(rpm_name):
 	return rc, stdout.splitlines(False)
 
 def create_graphite_database():
+	logger.debug("Creating Graphite database")
 	rpm_name = "graphite-web"
 	rc, file_list = rpm_file_list(rpm_name)
 	if (rc):
@@ -494,6 +541,7 @@ def create_graphite_database():
 			     (desired_fname, rpm_name))
 		return -1
 
+	logger.debug("Synd db")
 	command = ("python %s syncdb" % (manage_fname))
 	rc, stdout, stderr = run_command(command)
 	if rc != 0:
@@ -501,6 +549,7 @@ def create_graphite_database():
 			     "stderr = '%s', rc = %d" %
 			     (command, stdout, stderr, rc))
 		return rc
+	logger.debug("Created Graphite database")
 	return 0
 
 def config_graphite():
@@ -508,6 +557,7 @@ def config_graphite():
 
 	graphite_db = "/var/lib/graphite-web/graphite.db"
 	graphite_conf = "/etc/graphite-web/local_settings.py"
+	
 	rc = edit_graphite_config(graphite_conf, graphite_db)
 	if (rc):
 		logger.error("Failed to edit Graphite settings")
@@ -518,6 +568,9 @@ def config_graphite():
 		logger.error("Failed to create Graphite database")
 		cleanup_and_exit(-1, "Graphite database failure", advices)
 
+	st = os.stat(graphite_db)
+	os.chmod(graphite_db, st.st_mode | stat.S_IWGRP | stat.S_IWOTH)
+
 	service_name = "httpd"
 	rc = restart_service(service_name)
 	if (rc):
@@ -525,11 +578,13 @@ def config_graphite():
 			     (service_name))
 		cleanup_and_exit(-1, "httpd failure", advices)
 
+	httpd_error_log = "/var/log/httpd/error_log"
 	httpd_graphite_access_log = "/var/log/httpd/graphite-web-access.log"
 	httpd_graphite_error_log = "/var/log/httpd/graphite-web-error.log"
 	graphite_exception_log = "/var/log/graphite-web/exception.log"
 	graphite_info_log = "/var/log/graphite-web/info.log"
 	logs = []
+	logs.append(watched_log(httpd_error_log))
 	logs.append(watched_log(httpd_graphite_access_log))
 	logs.append(watched_log(httpd_graphite_error_log))
 	logs.append(watched_log(graphite_exception_log))
@@ -707,10 +762,10 @@ LoadPlugin cpu
 		cleanup_and_exit(-1, "Collectd failure", advices)
 
 	arguments = [cpu_idle_file, fomer_mtime]
-	timeout = 10
+	timeout = 20
 	rc = wait_condition(timeout, check_update, arguments)
 	if (rc):
-		logger.error("File '%s' is not updated for %d seconds" %
+		logger.error("File '%s' has not been updated for %d seconds" %
 			     (cpu_idle_file, timeout))
 		cleanup_and_exit(-1, "Collectd failure", advices)
 
@@ -866,13 +921,24 @@ def config_grafana():
 
 log_setup()
 
+try:
+	opts, args = getopt.getopt(sys.argv[1:], "u",["update"])
+except getopt.GetoptError:
+	logger.error("Wrong arguments, should be: sys.argv[0] [-u]")
+	print 'sys.argv[0] [-u]'
+	sys.exit(2)
+for opt, arg in opts:
+	if opt == '-u':
+		update_rpms_anyway = True
+		logger.debug("Upadate RPMs anyway")
+
 signal.signal(signal.SIGINT, signal_hander)
 signal.signal(signal.SIGTERM, signal_hander)
 
 logger.info("Installing DDN Monsystem")
 
 steps = []
-steps.append(step("Create DDN Monsystem repository", create_repo))
+steps.append(step("Create DDN Monsystem repositories", create_repos))
 steps.append(step("Install DDN Monsystem RPMs", install_rpms))
 steps.append(step("Configure Graphite", config_graphite))
 steps.append(step("Configure Collectd", config_collectd))
