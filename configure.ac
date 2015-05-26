@@ -141,7 +141,7 @@ bases="collectd libcollectdclient libcollectdclient-devel"
 for base in ${bases}; do
 	COLLECTD_RPMS="${COLLECTD_RPMS} ${base}-${COLLECTD_RPM_SUBFIX}"
 done
-ddn_plugins="gpfs lustre stress zabbix"
+ddn_plugins="gpfs lustre stress zabbix ssh"
 # REHL7 does not hace ganglia support yet.
 if [[[ "$DISTRO_RELEASE" != "7" ]]]; then
 	ddn_plugins="ganglia ${ddn_plugins}"
