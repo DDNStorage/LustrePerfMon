@@ -296,7 +296,7 @@ class watched_log():
 		file.close()
 		return messages
 
-def check_service_status(name):
+def service_check_status(name):
 	command = ("service %s status" % (name))
 	rc, stdout, stderr = run_command(command)
 	if rc != 0:
@@ -305,7 +305,7 @@ def check_service_status(name):
 			     (command, stdout, stderr, rc))
 	return rc == 0
 
-def stop_service(name):
+def service_stop(name):
 	command = ("service %s stop" % (name))
 	rc, stdout, stderr = run_command(command)
 	if rc != 0:
@@ -316,7 +316,7 @@ def stop_service(name):
 
 	return rc
 
-def start_service(name):
+def service_start(name):
 	command = ("service %s status" % (name))
 	rc, stdout, stderr = run_command(command)
 	if rc == 0:
@@ -330,12 +330,12 @@ def start_service(name):
 			     (command, stdout, stderr, rc))
 		return rc
 
-	rc = wait_condition(timeout, check_service_status, name)
+	rc = wait_condition(timeout, service_check_status, name)
 	if rc != 0:
 		logger.error("Status of service '%s' is not OK" % (name))
 	return rc
 
-def restart_service(name, timeout = 3):
+def service_restart(name, timeout = 3):
 	command = ("service %s restart" % (name))
 	rc, stdout, stderr = run_command(command)
 	if rc != 0:
@@ -344,11 +344,20 @@ def restart_service(name, timeout = 3):
 			     (command, stdout, stderr, rc))
 		return rc
 
-	rc = wait_condition(timeout, check_service_status, name)
+	rc = wait_condition(timeout, service_check_status, name)
 	if rc != 0:
 		logger.error("Status of service '%s' is not OK" % (name))
 	return rc
 
+def service_startup_on(name):
+	command = ("chkconfig %s on" % (name))
+	rc, stdout, stderr = run_command(command)
+	if rc != 0:
+		logger.error("Failed to run '%s', stdout = '%s', "
+			     "stderr = '%s', rc = %d" %
+			     (command, stdout, stderr, rc))
+		return rc
+	return rc
 
 def backup_file(src):
 	dst = src
@@ -572,7 +581,7 @@ def config_graphite():
 	os.chmod(graphite_db, st.st_mode | stat.S_IWGRP | stat.S_IWOTH)
 
 	service_name = "httpd"
-	rc = restart_service(service_name)
+	rc = service_restart(service_name)
 	if (rc):
 		logger.error("Failed to start service '%s'" %
 			     (service_name))
@@ -727,14 +736,14 @@ LoadPlugin cpu
 	logs.append(collectd_log)
 
 	service_name = "carbon-aggregator"
-	rc = restart_service(service_name)
+	rc = service_restart(service_name)
 	if (rc):
 		logger.error("Failed to start service '%s'" %
 			     (service_name))
 		cleanup_and_exit(-1, "Collectd failure", advices)
 
 	service_name = "carbon-cache"
-	rc = restart_service(service_name)
+	rc = service_restart(service_name)
 	if (rc):
 		logger.error("Failed to start service '%s'" %
 			     (service_name))
@@ -750,7 +759,7 @@ LoadPlugin cpu
 		fomer_mtime = "0"
 
 	service_name = "collectd"
-	rc = restart_service(service_name)
+	rc = service_restart(service_name)
 	if (rc):
 		logger.error("Failed to start service '%s'" %
 			     (service_name))
@@ -873,14 +882,14 @@ def config_grafana():
 		config_file.close()
 
 	service_name = "httpd"
-	rc = restart_service(service_name)
+	rc = service_restart(service_name)
 	if (rc):
 		logger.error("Failed to start service '%s'" %
 			     (service_name))
 		cleanup_and_exit(-1, "httpd failure", advices)
 
 	service_name = "elasticsearch"
-	rc = restart_service(service_name)
+	rc = service_restart(service_name)
 	if (rc):
 		logger.error("Failed to start service '%s'" %
 			     (service_name))
@@ -919,6 +928,18 @@ def config_grafana():
 			logger.error("Log '%s': '%s'" %
 				     (log.log_name, messages))
 
+def config_startup():
+	advices = []
+	services = ["httpd", "collectd", "carbon-aggregator", "carbon-cache",
+		    "elasticsearch"]
+	for service in services:
+		rc = service_startup_on(service)
+		if (rc):
+			logger.error("Failed to set service '%s' startup on" %
+				     (service))
+			cleanup_and_exit(-1, "Service startup failure",
+					 advices)
+
 log_setup()
 
 try:
@@ -943,6 +964,7 @@ steps.append(step("Install DDN Monsystem RPMs", install_rpms))
 steps.append(step("Configure Graphite", config_graphite))
 steps.append(step("Configure Collectd", config_collectd))
 steps.append(step("Configure Grafana", config_grafana))
+steps.append(step("Configure service startup", config_startup))
 current_step = 0
 for tmp_step in steps:
 	current_step += 1
