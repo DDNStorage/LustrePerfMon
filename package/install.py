@@ -235,12 +235,13 @@ def install_rpms():
 					     (rpm_name))
 				cleanup_and_exit(-1, "RPM failure", advices)
 
-	install_rpms = ["collectd-lustre",
+	install_rpms = ["collectd-ganglia",
 			"collectd-gpfs",
-			"collectd-stress",
-			"collectd-ganglia",
-			"collectd-zabbix",
+			"collectd-lustre",
 			"collectd-rrdtool",
+			"collectd-ssh",
+			"collectd-stress",
+			"collectd-zabbix",
 			"xml_definition",
 			"elasticsearch",
 			"grafana",
