@@ -26,6 +26,8 @@ monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso: RPMS install.p
 		$(LOCAL_COLLECTD_RPMS) \
 		$(LOCAL_GRAFANA_RPMS) \
 		$(LOCAL_XML_DEFINITION_RPMS)
+	rm -f monsystem-ddn.*.iso
+	rm -f monsystem-ddn.*.md5
 	cp install.py RPMS
 	createrepo RPMS
 	mkisofs -joliet-long -R -o monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso RPMS
@@ -40,4 +42,5 @@ $(BUILD_DIRS):
 
 clean-local:
 	-rm -f -r $(BUILD_DIRS)
-	-rm -f monsystem-ddn.el$(DISTRO_RELEASE).x86_64.iso
+	-rm -f monsystem-ddn.*.iso
+	-rm -f monsystem-ddn.*.md5
