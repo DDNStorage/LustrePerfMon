@@ -244,7 +244,6 @@ def install_rpms():
 			"xml_definition",
 			"elasticsearch",
 			"grafana",
-			"montools",
 			"python-carbon",
 			"java-1.7.0"]
 	for rpm_name in install_rpms:

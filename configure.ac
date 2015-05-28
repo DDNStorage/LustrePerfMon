@@ -236,31 +236,6 @@ GRAFANA_RPMS=grafana-${GRAFANA_VERSION}-${GRAFANA_RELEASE}.el${DISTRO_RELEASE}.x
 AC_MSG_RESULT([$GRAFANA_RPMS])
 AC_SUBST(GRAFANA_RPMS)
 
-# -------- check for montools version --------
-git_version=$(git rev-parse --short HEAD)
-if [[[ $? -ne 0 ]]]; then
-	AC_MSG_ERROR([monsystem_package is not a git repository.])
-fi
-
-AC_MSG_CHECKING([for montools version])
-MONTOOLS_VERSION=$(grep Version montools/montools.spec | \
-	awk '{print $2}' | sed -e "s/%{?rev}/$git_version/g")
-AC_MSG_RESULT([$MONTOOLS_VERSION])
-AC_SUBST(MONTOOLS_VERSION)
-
-# -------- check for montools release --------
-AC_MSG_CHECKING([for montools release])
-MONTOOLS_RELEASE=$(grep Release montools/montools.spec | \
-	awk '{print $2}' | sed -e "s/%{?dist}//g")
-AC_MSG_RESULT([$MONTOOLS_RELEASE])
-AC_SUBST(MONTOOLS_RELEASE)
-
-# -------- check for montools RPMS --------
-AC_MSG_CHECKING([for montools RPMS])
-MONTOOLS_RPMS=montools-${MONTOOLS_VERSION}-${MONTOOLS_RELEASE}.el${DISTRO_RELEASE}.x86_64.rpm
-AC_MSG_RESULT([$MONTOOLS_RPMS])
-AC_SUBST(MONTOOLS_RPMS)
-
 AC_CONFIG_FILES([Makefile collectd/Makefile xml_definition/Makefile
-	grafana/Makefile montools/Makefile package/Makefile])
+	grafana/Makefile package/Makefile])
 AC_OUTPUT
