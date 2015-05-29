@@ -17,9 +17,11 @@ import datetime
 tmp_dir = "/tmp"
 log_filename = tmp_dir + "/" + "install_DDN_monitor.log"
 # Whether to cleanup yum cache before trying to install RPMs
-cleanup_yum_cache = False
 update_rpms_anyway = False
 graphite_url = ""
+base_repository = ""
+epel_repository = ""
+elasticsearch_rpm = ""
 
 def log_setup():
 	global logger
@@ -96,12 +98,11 @@ class step():
 		self.name = name
 		self.func = func
 
-def create_repo(repo_name, repo_file):
-	repo_path = "/etc/yum.repos.d/" + repo_name + ".repo"
-	logger.debug("Repository file: '%s'" % (repo_file))
-	repo_fd = open(repo_path, "w")
-	line = repo_fd.write(repo_file)
-	repo_fd.close()
+def write_file(path, content):
+	logger.debug("Writing file '%s': '%s'" % (path, content))
+	fd = open(path, "w")
+	line = fd.write(content)
+	fd.close()
 
 	return 0
 
@@ -112,8 +113,12 @@ def create_repos():
 		   "DDN Monitoring System ISO is unbroken"]
 
 	repo_list = yum_repository()
+	if repo_list == None:
+		logger.error("Failed to check repolist")
+		cleanup_and_exit(rc, "yum failure", advices)
 
 	repo_name = "monsystem-ddn"
+	repo_path = "/etc/yum.repos.d/monsystem-ddn.repo"
 	found = False
 	for repo in repo_list:
 		if cmp(repo[0:len(repo_name)], repo_name) == 0:
@@ -123,50 +128,103 @@ def create_repos():
 		logger.debug("Found repository '%s' skiping creation of it" %
 			     (repo_name))
 	else:
-		repo_file = "[monsystem-ddn]\n" \
+		repo_content = "[monsystem-ddn]\n" \
 			    "name=Monitor system of DDN\n" \
 			    "baseurl=file://"
-		repo_file += os.path.dirname(os.path.abspath
+		repo_content += os.path.dirname(os.path.abspath
 					     (inspect.getfile
 					      (inspect.currentframe())))
-		repo_file += "\n" \
+		repo_content += "\n" \
 			     "failovermethod=priority\n" \
 			     "enabled=1\n" \
 			     "gpgcheck=0\n"
-		rc = create_repo(repo_name, repo_file)
+		rc = write_file(repo_path, repo_content)
 		if (rc):
 			logger.error("Failed to create repo '%s'" % (repo_name))
 			cleanup_and_exit(rc, "yum failure", advices)
 
-	repo_name = "elasticsearch-1.5"
-	found = False
-	for repo in repo_list:
-		if cmp(repo[0:len(repo_name)], repo_name) == 0:
-			found = True
-			break
-	if found == True:
-		logger.debug("Found repository '%s' skiping creation of it" %
-			     (repo_name))
-	else:
-		repo_file = "[elasticsearch-1.5]\n" \
-			    "name=Elasticsearch repository for 1.5.x packages\n" \
-			    "baseurl=http://packages.elastic.co/elasticsearch/1.5/centos\n" \
-			    "gpgcheck=1\n" \
-			    "gpgkey=http://packages.elastic.co/GPG-KEY-elasticsearch\n" \
-			    "enabled=1"
-		rc = create_repo(repo_name, repo_file)
-		if (rc):
-			logger.error("Failed to create repo '%s'" % (repo_name))
-			cleanup_and_exit(rc, "yum failure", advices)
+	if elasticsearch_rpm == "":
+		repo_name = "elasticsearch-1.5"
+		repo_path = "/etc/yum.repos.d/elasticsearch-1.5-ddn.repo"
+		found = False
+		for repo in repo_list:
+			if cmp(repo[0:len(repo_name)], repo_name) == 0:
+				found = True
+				break
+		if found == True:
+			logger.debug("Found repository '%s' skiping creation of it" %
+				     (repo_name))
+		else:
+			repo_content = "[elasticsearch-1.5]\n" \
+				    "name=Elasticsearch repository for 1.5.x packages\n" \
+				    "baseurl=http://packages.elastic.co/elasticsearch/1.5/centos\n" \
+				    "gpgcheck=1\n" \
+				    "gpgkey=http://packages.elastic.co/GPG-KEY-elasticsearch\n" \
+				    "enabled=1"
+			rc = write_file(repo_path, repo_content)
+			if (rc):
+				logger.error("Failed to create repo '%s'" % (repo_name))
+				cleanup_and_exit(rc, "yum failure", advices)
+
+	if base_repository != "":
+		repo_name = "base"
+		found = False
+		for repo in repo_list:
+			if cmp(repo[0:len(repo_name)], repo_name) == 0:
+				found = True
+				break
+		repo_path = "/etc/yum.repos.d/CentOS-base-ddn.repo"
+		if found == True and not os.path.exists(repo_path):
+			advices = ["Current CentOS base repository is removed"]
+			logger.error("Found repository '%s', please remove it "
+				     "to use local repository" % (repo_name))
+			cleanup_and_exit(-1, "yum failure", advices)
+		else:
+			repo_content = ("[base]\n" \
+				     "name=CentOS-$releasever - Base\n" \
+				     "baseurl=file://%s\n" \
+				     "gpgcheck=1\n" \
+				     "enabled=1\n" \
+				     "gpgkey=file://%s/RPM-GPG-KEY-CentOS-6" %
+				     (base_repository, base_repository))
+			rc = write_file(repo_path, repo_content)
+			if (rc):
+				logger.error("Failed to create repo '%s'" % (repo_name))
+				cleanup_and_exit(rc, "yum failure", advices)
+
+	if epel_repository != "":
+		repo_name = "epel"
+		
+		found = False
+		for repo in repo_list:
+			if cmp(repo[0:len(repo_name)], repo_name) == 0:
+				found = True
+				break
+		repo_path = "/etc/yum.repos.d/epel-ddn.repo"
+		if found == True and not os.path.exists(repo_path):
+			advices = ["Current EPEL repository is removed"]
+			logger.error("Found repository '%s', please remove it "
+				     "to use local repository" % (repo_name))
+			cleanup_and_exit(-1, "yum failure", advices)
+		else:
+			repo_content = ("[epel]\n" \
+				     "name=Extra Packages for Enterprise Linux 6 - $basearch\n" \
+				     "baseurl=file://%s\n" \
+				     "gpgcheck=0\n" \
+				     "enabled=1\n" %
+				     (epel_repository))
+			rc = write_file(repo_path, repo_content)
+			if (rc):
+				logger.error("Failed to create repo '%s'" % (repo_name))
+				cleanup_and_exit(rc, "yum failure", advices)
 
 	# Cleanup possible wrong cache of repository data
-	if (cleanup_yum_cache):
-		command = "yum clean all"
-		rc, stdout, stderr = run_command(command)
-		if rc != 0:
-			logger.error("Failed to run '%s', stdout = '%s', "
-				     "rc = %d" % (command, stdout, rc))
-			cleanup_and_exit(rc, "yum failure", advices)
+	command = "yum clean all"
+	rc, stdout, stderr = run_command(command)
+	if rc != 0:
+		logger.error("Failed to run '%s', stdout = '%s', "
+			     "rc = %d" % (command, stdout, rc))
+		cleanup_and_exit(rc, "yum failure", advices)
 
 def rpm_erase(rpm_name, prompt_depend = True):
 	command = ("rpm -e %s" % rpm_name)
@@ -246,7 +304,8 @@ def install_rpms():
 					     (rpm_name))
 				cleanup_and_exit(-1, "RPM failure", advices)
 
-	install_rpms = ["collectd-ganglia",
+	install_rpms = ["ganglia",
+			"collectd-ganglia",
 			"collectd-gpfs",
 			"collectd-lustre",
 			"collectd-rrdtool",
@@ -254,10 +313,25 @@ def install_rpms():
 			"collectd-stress",
 			"collectd-zabbix",
 			"xml_definition",
-			"elasticsearch",
 			"grafana",
 			"python-carbon",
 			"java-1.7.0"]
+	if elasticsearch_rpm == "" :
+		install_rpms.append("elasticsearch")
+	else:
+		command = ("rpm -qi elasticsearch")
+		rc, stdout, stderr = run_command(command)
+		if rc != 0:
+			logger.debug("elasticsearch RPM is not installed, "
+				     "installing")
+			command = ("rpm -ivh %s" % (elasticsearch_rpm))
+			rc, stdout, stderr = run_command(command)
+			if rc != 0:
+				logger.error("Failed to run '%s', "
+					     "stdout = '%s', "
+					     "stderr = '%s', rc = %d" %
+					     (command, stdout, stderr, rc))
+				cleanup_and_exit(rc, "rpm failure", advices)
 	for rpm_name in install_rpms:
 		command = ("yum install %s -y" % rpm_name)
 		rc, stdout, stderr = run_command(command)
@@ -346,7 +420,7 @@ def service_start(name):
 		logger.error("Status of service '%s' is not OK" % (name))
 	return rc
 
-def service_restart(name, timeout = 3):
+def service_restart(name, timeout = 10):
 	command = ("service %s restart" % (name))
 	rc, stdout, stderr = run_command(command)
 	if rc != 0:
@@ -953,16 +1027,42 @@ def config_startup():
 
 log_setup()
 
+def usage(command):
+	logger.error("Usage: %s [-u|update] [-h|help]\n"
+		     "	--base_repo=BASE_REPO\n"
+		     "	--epel_repo=EPEL_REPO\n"
+		     "	--elasticsearch_rpm=RPM" % (command))
+
 try:
-	opts, args = getopt.getopt(sys.argv[1:], "u",["update"])
+	opts, args = getopt.getopt(sys.argv[1:], "uh",
+				   ["update",
+				    "help",
+				    "base_repo=",
+				    "epel_repo=",
+				    "elasticsearch_rpm="])
 except getopt.GetoptError:
-	logger.error("Wrong arguments, should be: sys.argv[0] [-u]")
-	print 'sys.argv[0] [-u]'
+	usage(sys.argv[0])
 	sys.exit(2)
 for opt, arg in opts:
-	if opt == '-u':
+	if opt in ("-u", "--update"):
 		update_rpms_anyway = True
 		logger.debug("Upadate RPMs anyway")
+	elif opt in ("-h", "--help"):
+		usage(sys.argv[0])
+		sys.exit(0)
+	elif opt == "--base_repo":
+		base_repository = arg
+		logger.debug("Use local base repository '%s'", base_repository)
+	elif opt == "--epel_repo":
+		epel_repository = arg
+		logger.debug("Use local epel repository '%s'", epel_repository)
+	elif opt == "--elasticsearch_rpm":
+		elasticsearch_rpm = arg
+		logger.debug("Use local elasticsearch rpm '%s'", elasticsearch_rpm)
+	else:
+		logger.error("Unkown option '%s'" %
+			     (opt))
+		sys.exit(2)
 
 signal.signal(signal.SIGINT, signal_hander)
 signal.signal(signal.SIGTERM, signal_hander)
