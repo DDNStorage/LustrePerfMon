@@ -55,26 +55,22 @@ def run_command(command, dump_debug = True):
 			     (command, stdout, stderr, rc))
 	return rc, stdout, stderr
 
-def yum_repolist(repo):
-	command = "yum repolist " + repo
+def yum_repository():
+	command = "yum repolist"
 	rc, stdout, stderr = run_command(command)
 	if rc != 0:
 		logger.error("Failed to run '%s', stdout = '%s', rc = %d" %
 			     (command, stdout, rc))
 		return None
-	lines = stdout.split("\n")
-	if (len(lines) < 2):
-		logger.error("Output '%s' of command '%s' is unexpected" %
-			     (stdout, command))
-		return None
-	last_line = lines[-2]
-	pattern = r"repolist: (\d+)"
-	matched = re.match(pattern, last_line)
+
+	pattern = r"repo id +repo name +status\n(.+)\nrepolist: .+\n"
+	matched = re.search(pattern, stdout, re.S|re.M)
 	if not matched:
 		logger.error("Output '%s' does not match pattern '%s'" %
-			     (last_line, pattern))
+			     (stdout, pattern))
 		return None
-	return matched.group(1)
+	lines = matched.group(1).split("\n")
+	return lines
 
 def cleanup_and_exit(rc, failure = "some unexpected failure", advices = []):
 	logger.error("Aborting because of %s" % failure)
@@ -107,13 +103,6 @@ def create_repo(repo_name, repo_file):
 	line = repo_fd.write(repo_file)
 	repo_fd.close()
 
-	repolist = yum_repolist(repo_name)
-	if not repolist:
-		logger.error("Failed to get repolist for '%s'" % (repo_name))
-		return -1
-	if repolist == "0":
-		logger.error("Repository '%s' is missing " % (repo_name))
-		return -1
 	return 0
 
 def create_repos():
@@ -122,31 +111,53 @@ def create_repos():
 		   "Yum repository of CentOS/Redhat base is properly configured",
 		   "DDN Monitoring System ISO is unbroken"]
 
+	repo_list = yum_repository()
+
 	repo_name = "monsystem-ddn"
-	repo_file = "[monsystem-ddn]\n" \
-		    "name=Monitor system of DDN\n" \
-		    "baseurl=file://"
-	repo_file += os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-	repo_file += "\n" \
-		     "failovermethod=priority\n" \
-		     "enabled=1\n" \
-		     "gpgcheck=0\n"
-	rc = create_repo(repo_name, repo_file)
-	if (rc):
-		logger.error("Failed to create repo '%s'" % (repo_name))
-		cleanup_and_exit(rc, "yum failure", advices)
+	found = False
+	for repo in repo_list:
+		if cmp(repo[0:len(repo_name)], repo_name) == 0:
+			found = True
+			break
+	if found == True:
+		logger.debug("Found repository '%s' skiping creation of it" %
+			     (repo_name))
+	else:
+		repo_file = "[monsystem-ddn]\n" \
+			    "name=Monitor system of DDN\n" \
+			    "baseurl=file://"
+		repo_file += os.path.dirname(os.path.abspath
+					     (inspect.getfile
+					      (inspect.currentframe())))
+		repo_file += "\n" \
+			     "failovermethod=priority\n" \
+			     "enabled=1\n" \
+			     "gpgcheck=0\n"
+		rc = create_repo(repo_name, repo_file)
+		if (rc):
+			logger.error("Failed to create repo '%s'" % (repo_name))
+			cleanup_and_exit(rc, "yum failure", advices)
 
 	repo_name = "elasticsearch-1.5"
-	repo_file = "[elasticsearch-1.5]\n" \
-		    "name=Elasticsearch repository for 1.5.x packages\n" \
-		    "baseurl=http://packages.elastic.co/elasticsearch/1.5/centos\n" \
-		    "gpgcheck=1\n" \
-		    "gpgkey=http://packages.elastic.co/GPG-KEY-elasticsearch\n" \
-		    "enabled=1"
-	rc = create_repo(repo_name, repo_file)
-	if (rc):
-		logger.error("Failed to create repo '%s'" % (repo_name))
-		cleanup_and_exit(rc, "yum failure", advices)
+	found = False
+	for repo in repo_list:
+		if cmp(repo[0:len(repo_name)], repo_name) == 0:
+			found = True
+			break
+	if found == True:
+		logger.debug("Found repository '%s' skiping creation of it" %
+			     (repo_name))
+	else:
+		repo_file = "[elasticsearch-1.5]\n" \
+			    "name=Elasticsearch repository for 1.5.x packages\n" \
+			    "baseurl=http://packages.elastic.co/elasticsearch/1.5/centos\n" \
+			    "gpgcheck=1\n" \
+			    "gpgkey=http://packages.elastic.co/GPG-KEY-elasticsearch\n" \
+			    "enabled=1"
+		rc = create_repo(repo_name, repo_file)
+		if (rc):
+			logger.error("Failed to create repo '%s'" % (repo_name))
+			cleanup_and_exit(rc, "yum failure", advices)
 
 	# Cleanup possible wrong cache of repository data
 	if (cleanup_yum_cache):
