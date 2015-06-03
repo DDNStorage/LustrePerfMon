@@ -236,6 +236,18 @@ GRAFANA_RPMS=grafana-${GRAFANA_VERSION}-${GRAFANA_RELEASE}.el${DISTRO_RELEASE}.x
 AC_MSG_RESULT([$GRAFANA_RPMS])
 AC_SUBST(GRAFANA_RPMS)
 
+# ------- check for pep8 --------
+AC_CHECK_PROGS([PEP8], [pep8], [])
+if test "x$PEP8" = "x"; then
+	AC_MSG_ERROR([pep8 is needed to check python coding style. Install pep8.])
+fi
+
+# ------- check for pylint --------
+AC_CHECK_PROGS([PYLINT], [pylint], [])
+if test "x$PYLINT" = "x"; then
+	AC_MSG_ERROR([pylint is needed to check python coding style. Install pylint.])
+fi
+
 AC_CONFIG_FILES([Makefile collectd/Makefile xml_definition/Makefile
 	grafana/Makefile package/Makefile])
 AC_OUTPUT
