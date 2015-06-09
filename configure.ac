@@ -155,34 +155,22 @@ done
 AC_MSG_RESULT([$COLLECTD_RPMS])
 AC_SUBST(COLLECTD_RPMS)
 
-# -------- check for xml_definition sources --------
-AC_MSG_CHECKING([for xml_definition sources])
-AC_ARG_WITH([xml_definition],
-	AC_HELP_STRING([--with-xml_definition=path],
-		       [set path to xml_definition source]),
-	[MB_ARG_CANON_PATH([xml_definition], [XML_DEFINITION])],
-	[])
-AC_MSG_RESULT([$XML_DEFINITION])
-AC_SUBST(XML_DEFINITION)
-
-# -------- check for xml_definition --------
-MB_CHECK_FILE([$XML_DEFINITION], [],
-	[AC_MSG_ERROR([xml_definition source $XML_DEFINITION could not be found.])])
-
 # -------- check for xml_definition version --------
 AC_MSG_CHECKING([for xml_definition version])
-git_version=$(git --git-dir=$XML_DEFINITION/.git rev-parse --short HEAD)
+XML_DEFINITION_REV=$(git rev-parse --short HEAD)
 if [[[ $? -ne 0 ]]]; then
-	AC_MSG_ERROR([$XML_DEFINITION is not a git repository.])
+	AC_MSG_ERROR([monsystem_package is not a git repository.])
 fi
-XML_DEFINITION_VERSION=$(grep Version $XML_DEFINITION/xml_definition.spec | \
-	awk '{print $2}' | sed -e "s/%{?rev}/$git_version/g")
+AC_SUBST(XML_DEFINITION_REV)
+
+XML_DEFINITION_VERSION=$(grep Version xml_definition/xml_definition.spec | \
+	awk '{print $2}' | sed -e "s/%{?rev}/${XML_DEFINITION_REV}/g")
 AC_MSG_RESULT([$XML_DEFINITION_VERSION])
 AC_SUBST(XML_DEFINITION_VERSION)
 
 # -------- check for xml_definition release --------
 AC_MSG_CHECKING([for xml_definition release])
-XML_DEFINITION_RELEASE=$(grep Release $XML_DEFINITION/xml_definition.spec | \
+XML_DEFINITION_RELEASE=$(grep Release xml_definition/xml_definition.spec | \
 	awk '{print $2}' | sed -e "s/%{?dist}//g")
 AC_MSG_RESULT([$XML_DEFINITION_RELEASE])
 AC_SUBST(XML_DEFINITION_RELEASE)

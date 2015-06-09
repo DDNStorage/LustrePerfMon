@@ -1,0 +1,931 @@
+Interval     2
+LoadPlugin syslog
+<Plugin syslog>
+	## Log level could be changed to 'info' or other levels for
+	## debuging, e.g. checking whether desired metrics is collected
+	## successfully.
+	LogLevel err
+</Plugin>
+## The Network plugin can send values to other instances and
+## receive values from from other instances. Which action is
+## taken depends on the configuration.For detail information,
+## please view the webpage:
+##	https://collectd.org/wiki/index.php/Plugin:Network
+#LoadPlugin network
+#<Plugin "network">
+#Server "192.168.2.107" "25827"
+#</Plugin>
+
+## Lustre is a distribute file system which is widely used in
+## high-performance computing (HPC), with tens of thousands of
+## client systems, petabytes (PB) of storage and hundreds of
+## gigabytes per second (GB/sec) of I/O throughput.Many HPC
+## sites use a Lustre file system as a site-wide global file
+## system, serving dozens of clusters.
+##
+## Lustre plugin is used to collect data from run-time Lustre
+## file system.
+LoadPlugin lustre
+<Plugin "lustre">
+	<Common>
+#		DefinitionFile "/etc/lustre-1.8_definition.xml"
+#		DefinitionFile "/etc/lustre-2.4_definition.xml"
+#		DefinitionFile "/etc/lustre-ieel-2.5.xml"
+#		DefinitionFile "/etc/lustre-2.5_definition.xml"
+	</Common>
+	## All data Lustre plugin collected will be saved under the
+	## directory "${COLLECTD}/${HOSTNAME}/${PLUGIN}-${PLUGIN_INSTANCE}/
+	## ${TYPE}-${TYPE_INSTANCE}.${SUBFIX}". ${COLLECTD} is the default
+	## directory path where collectd saves metrics, which is
+	## '/var/lib/collectd/' by default for rrdtool plugin and
+	## '/var/lib/carbon/whisper/collectd' by default for graphite.
+	## And ${SUBFIX} is the subfix of the file, which is 'wsp' for
+	## graphite and 'rrd' for rrdtool.
+	##
+	## In Lustre plugin, ${HOSTNAME} is always the host name on which
+	## the metric is collected. And ${PLUGIN}-${PLUGIN_INSTANCE} is
+	## used to indicate which proc entry the metrics is collected from,
+	## and thus is called entry path. ${TYPE_INSTANCE} is used to
+	## indicate which field in the file the metrics is matching, so
+	## it is called field path. ${TYPE} is the type of data source,
+	## which is usually derive for Lustre plugin. Plaase check following
+	## link for more information:
+	##	https://collectd.org/wiki/index.php/Data_source.
+	##
+	## Following is the pattern of entry path:
+	## mdtmd_stats:		(^.+-MDT[0-9a-fA-F]+)-md_stats
+	## ost_stats:		(^.+-OST[0-9a-fA-F]+)-stats
+	## ost_brw_stats_${type}:	(^.+-OST[0-9a-fA-F]+)-brw_stats
+	## ost_io_stats:	ost_io-stats
+	## mdt_filesinfo:	(^.+-MDT[0-9a-fA-F]+)-filesinfo
+	## mdt_kbytesinfo:	(^.+-MDT[0-9a-fA-F]+)-kbytesinfo
+	## ost_filesinfo:	(^.+-OST[0-9a-fA-F]+)-filesinfo
+	## ost_kbytesinfo:	(^.+-OST[0-9a-fA-F]+)-kbytesinfo
+	## mdt_jobstats:	(^.+-MDT[0-9a-fA-F]+)-jobstats-{job_id}
+	## ost_jobstats:	(^.+-OST[0-9a-fA-F]+)-jobstats-{job_id}
+	<Item>
+		## Open samples on MDT
+		## Entry: md_stats
+		## Field: derive-open
+		##        Open times on the MDT
+		Type "md_stats_open"
+		##Add it if you don't want to collect the data every time,
+		##here means it will collect the data every 10 times
+		#Query_interval 10
+	</Item>
+	<Item>
+		## Close samples on MDT
+		## Entry: md_stats
+		## Field: derive-close
+		##        Close times on the MDT
+		Type "md_stats_close"
+	</Item>
+	<Item>
+		## "mknod" samples on MDT
+		## Entry: md_stats
+		## Field: derive-mknod
+		##        "mknod" times on the MDT
+		Type "md_stats_mknod"
+	</Item>
+	<Item>
+		## "link" samples on MDT
+		## Entry: md_stats
+		## Field: derive-link
+		##        "link" times on the MDT
+		Type "md_stats_link"
+	</Item>
+	<Item>
+		## "unlink" samples on MDT
+		## Entry: md_stats
+		## Field: derive-unlink
+		##        "unlink" times on the MDT
+		Type "md_stats_unlink"
+	</Item>
+	<Item>
+		## "mkdir" samples on MDT
+		## Entry: md_stats
+		## Field: derive-mkdir
+		##        "mkdir" times on the MDT
+		Type "md_stats_mkdir"
+	</Item>
+	<Item>
+		## "rmdir" samples on MDT
+		## Entry: md_stats
+		## Field: derive-rmdir
+		##        "rmdir" times on the MDT
+		Type "md_stats_rmdir"
+	</Item>
+	<Item>
+		## "rename" samples on MDT
+		## Field: derive-rename
+		##        "rename" times on the MDT
+		Type "md_stats_rename"
+	</Item>
+	<Item>
+		## "getattr" samples on MDT
+		## Entry: md_stats
+		## Field: derive-rename
+		##        "getattr" times on the MDT
+		Type "md_stats_getattr"
+	</Item>
+	<Item>
+		## "setattr" samples on MDT
+		## Entry: md_stats
+		## Field: derive-rename
+		##        "setattr" times on the MDT
+		Type "md_stats_setattr"
+	</Item>
+	<Item>
+		## "statfs" samples on MDT
+		## Entry: md_stats
+		## Field: derive-rename
+		##        "statfs" times on the MDT
+		Type "md_stats_statfs"
+	</Item>
+	<Item>
+		## "sync" samples on MDT
+		## Field: derive-rename
+		##        "sync" times on the MDT
+		Type "md_stats_sync"
+	</Item>
+	<Item>
+		## "samedir_rename" samples on MDT
+		## Entry: md_stats
+		## Field: derive-rename
+		##        "samedir_rename" times on the MDT
+		Type "md_stats_samedir_rename"
+	</Item>
+	<Item>
+		## "crossdir_rename" samples on MDT
+		## Entry: md_stats
+		## Field: derive-rename
+		##        "crossdir_rename" times on the MDT
+		Type "md_stats_crossdir_rename"
+	</Item>
+	<Item>
+		## "read" on OST
+		## Entry: ost_stats
+		## Field1: derive-read_samples
+		##         "read_samples" on the OST
+		## Field2: derive-read_bytes
+		##         "read_bytes" on the OST
+		Type "ost_stats_read"
+	</Item>
+	<Item>
+		## "write" on OST
+		## Entry: ost_stats
+		## Field1: derive-write_samples
+		##         "write_samples" on the OST
+		## Field2: derive-read_bytes
+		##         "write_bytes" on the OST
+		Type "ost_stats_write"
+	</Item>
+	<Item>
+		## "getattr" requests on OST
+		## Entry: ost_stats
+		## Field: derive-getattr
+		##        "getattr" requests on the OST
+		Type "ost_stats_getattr"
+	</Item>
+	<Item>
+		## "setattr" requests on OST
+		## Entry: ost_stats
+		## Field: derive-setattr
+		##        "setattr" requests on the OST
+		Type "ost_stats_setattr"
+	</Item>
+	<Item>
+		## "punch" requests on OST
+		## Entry: ost_stats
+		## Field: derive-punch
+		##        "punch" requests on the OST
+		Type "ost_stats_punch"
+	</Item>
+	<Item>
+		## "sync" requests on OST
+		## Entry: ost_stats
+		## Field: derive-sync
+		##        "sync" requests on the OST
+		Type "ost_stats_sync"
+	</Item>
+	<Item>
+		## "destroy" requests on OST
+		## Entry: ost_stats
+		## Field: derive-destroy
+		##        "destroy" requests on the OST
+		Type "ost_stats_destroy"
+	</Item>
+	<Item>
+		## "create" requests on OST
+		## Entry: ost_stats
+		## Field: derive-create
+		##        "create" requests on the OST
+		Type "ost_stats_create"
+	</Item>
+	<Item>
+		## "statfs" requests on OST
+		## Entry: ost_stats
+		## Field: derive-statfs
+		##        "statfs" requests on the OST
+		Type "ost_stats_statfs"
+	</Item>
+	<Item>
+		## "get_info" requests on OST
+		## Entry: ost_stats
+		## Field: derive-get_info
+		##        "get_info" requests on the OST
+		Type "ost_stats_get_info"
+	</Item>
+	<Item>
+		## "set_info_async" requests on OST
+		## Entry: ost_stats
+		## Field: derive-set_info_async
+		##        "set_info_async" requests on the OST
+		Type "ost_stats_set_info_async"
+	</Item>
+	<Item>
+		## "quotactl" requests on OST
+		## Entry: ost_stats
+		## Field: derive-quotactl
+		##        "quotactl" requests on the OST
+		Type "ost_stats_quotactl"
+	</Item>
+	<Item>
+		## Describe bulk rpc with different pages on the OST
+		## Entry: ost_brw_stats_${type}
+		## "${type}" is: rpc_bulk_${size}_pages, ${size} could be
+		##		 1, 2, 4, 8, 16, ...
+		## Field1: derive-read_samples
+		##         "read_sample" of ${size} pages requests on the OST
+		## Field2: gauge-read_percentage
+		##         "read_percentage" of ${size} pages requests on the OST
+		## Field3: gauge-read_cum
+		##         "read_cum" of ${size} pages requests on the OST
+		## Field4: derive-write_samples
+		##         "write_sample" of ${size} pages requests on the OST
+		## Field5: gauge-write_percentage
+		##         "write_percentage" of ${size} pages requests on the OST
+		## Field6: gauge-write_cum
+		##         "write_cum" of ${size} pages requests on the OST
+		Type "ost_brw_stats_rpc_bulk"
+	</Item>
+	<Item>
+		## Describe number of discontinuities in the logical file
+		## offset of each page in a single RPC
+		## Entry: ost_brw_stats_${type}
+		## "${type}" is: page_discontiguous_rpc_${size}_pages, ${size}
+		##		 could be 0, 1, 2, 3, ...
+		## Field1: derive-read_samples
+		##         "read_sample" of ${size} discontiguous pages requests
+		##         on the OST
+		## Field2: gauge-read_percentage
+		##         "read_percentage" of ${size} discontiguous pages
+		##         requests on the OST
+		## Field3: gauge-read_cum
+		##         "read_cum" of ${size} discontiguous pages requests
+		##         on the OST
+		## Field4: derive-write_samples
+		##         "write_sample" of ${size} discontiguous pages requests
+		##         on the OST
+		## Field5: gauge-write_percentage
+		##         "write_percentage" of ${size} discontiguous pages
+		##         requests on the OST
+		## Field6: gauge-write_cum
+		##         "write_cum" of ${size} discontiguous pages requests
+		##         on the OST
+		Type "ost_brw_stats_page_discontiguous_rpc"
+	</Item>
+	<Item>
+		## Describe number of discontinuities in the physical
+		## block allocation in the file system for a single RPC.
+		##
+		## It always has six fields with the same meaning as
+		## "bulk_rpc" above, the fields are:
+		## read_sample
+		## read_percentage
+		## read_cum
+		## write_sample
+		## write_percentage
+		## write_cum
+		Type "ost_brw_stats_block_discontiguous_rpc"
+	</Item>
+	<Item>
+		## Describe number of I/Os that were not written
+		## entirely sequentially.
+		##
+		## It always has six fields with the same meaning as
+		## "bulk_rpc" above, the fields are:
+		## read_sample
+		## read_percentage
+		## read_cum
+		## write_sample
+		## write_percentage
+		## write_cum
+		Type "ost_brw_stats_fragmented_io"
+	</Item>
+	<Item>
+		## Describe number of I/Os currently pending.
+		##
+		## It always has six fields with the same meaning as
+		## "bulk_rpc" above, the fields are:
+		## read_sample
+		## read_percentage
+		## read_cum
+		## write_sample
+		## write_percentage
+		## write_cum
+		Type "ost_brw_stats_io_in_flight"
+	</Item>
+	<Item>
+		## Describe amount of time for each I/O operation
+		## to complete.
+		##
+		## It always has six fields with the same meaning as
+		## "bulk_rpc" above, the fields are:
+		## read_sample
+		## read_percentage
+		## read_cum
+		## write_sample
+		## write_percentage
+		## write_cum
+		Type "ost_brw_stats_io_time"
+	</Item>
+	<Item>
+		## Describe size of each I/O operation
+		##
+		## It always has six fields with the same meaning as
+		## "bulk_rpc" above, the fields are:
+		## read_sample
+		## read_percentage
+		## read_cum
+		## write_sample
+		## write_percentage
+		## write_cum
+		Type "ost_brw_stats_io_size"
+	</Item>
+	<Item>
+		## Amount of time a request waited in the queue before
+		## being handled by an available server thread.
+		## Entry: ost_io_stats
+		## Field1: derive-req_waittime_samples
+		##         samples of requests
+		## Field2: gauge-req_waittime_min
+		##         min waittime of all the requests
+		## Field3: gauge-req_waittime_max
+		##         max waittime of all the requests
+		## Field4: gauge-req_waittime_sum
+		##         sum waittime of all the requests
+		## Field5: gauge-req_waittime_sum_square
+		##         sum square waittime of all the requests
+		Type "ost_io_stats_req_waittime"
+	</Item>
+	<Item>
+		## Number of requests waiting to be handled in the
+		## queue for this service.
+		## Entry: ost_io_stats
+		## Field1: derive-req_qdepth_samples
+		##         samples of requests
+		## Field2: gauge-req_qdepth_min
+		##         min of request queue depth
+		## Field3: gauge-req_qdepth_max
+		##         max of request queue depth
+		## Field4: gauge-req_qdepth_sum
+		##         sum of request queue depth
+		## Field5: gauge-req_qdepth_sum_square
+		##         sum square of request queue depth
+		Type "ost_io_stats_req_qdepth"
+	</Item>
+	<Item>
+		## Number of requests currently being handled.
+		## Entry: ost_io_stats
+		## Field1: derive-req_active_samples
+		##         samples of requests
+		## Field2: gauge-req_active_min
+		##         min of active requests
+		## Field3: gauge-req_active_max
+		##         max of active requests
+		## Field4: gauge-req_active_sum
+		##         sum of active requests
+		## Field5: gauge-req_active_sum_square
+		##         sum square of active requests
+		Type "ost_io_stats_req_active"
+	</Item>
+	<Item>
+		Type "ost_io_stats_req_timeout"
+	</Item>
+	<Item>
+		## Number of unsolicited lnet request buffers for this
+		## service.
+		## Entry: ost_io_stats
+		## Field1: derive-reqbuf_avail_samples
+		##         samples of request
+		## Field2: gauge-reqbuf_avail_min
+		##         min buffers of requests
+		## Field3: gauge-reqbuf_avail_max
+		##         max buffers of requests
+		## Field4: gauge-reqbuf_avail_sum
+		##         sum buffers of requests
+		## Field5: gauge-reqbuf_avail_sum_square
+		##	   sum square buffers of requests
+		Type "ost_io_stats_reqbuf_avail"
+	</Item>
+	<Item>
+		## Number of read request bytes for this service.
+		## Entry: ost_io_stats
+		## Field1: derive-ost_read_samples
+		##         samples of request
+		## Field2: gauge-reqbuf_avail_min
+		##         min bytes of read requests
+		## Field3: gauge-reqbuf_avail_max
+		##         max bytes of read requests
+		## Field4: gauge-reqbuf_avail_sum
+		##         sum bytes of read requests
+		## Field5: gauge-reqbuf_avail_sum_square
+		##	   sum square bytes of read requests
+		Type "ost_io_stats_ost_read"
+	</Item>
+	<Item>
+		## Number of write request bytes for this service.
+		## Entry: ost_io_stats
+		## Field1: derive-ost_write_samples
+		##         samples of request
+		## Field2: gauge-reqbuf_avail_min
+		##         min bytes of write requests
+		## Field3: gauge-reqbuf_avail_max
+		##         max bytes of write requests
+		## Field4: gauge-reqbuf_avail_sum
+		##         sum bytes of write requests
+		## Field5: gauge-reqbuf_avail_sum_square
+		##	   sum square bytes of write requests
+		Type "ost_io_stats_ost_write"
+	</Item>
+	<Item>
+		## Number of punch request bytes for this service.
+		## Entry: ost_io_stats
+		## Field1: derive-ost_write_samples
+		##         samples of request
+		## Field2: gauge-reqbuf_avail_min
+		##         min bytes of punch requests
+		## Field3: gauge-reqbuf_avail_max
+		##         max bytes of punch requests
+		## Field4: gauge-reqbuf_avail_sum
+		##         sum bytes of punch requests
+		## Field5: gauge-reqbuf_avail_sum_square
+		##	   sum square bytes of punch requests
+		Type "ost_io_stats_ost_punch"
+	</Item>
+	<Item>
+		## Total number of inodes for the OST
+		## Entry: ost_filesinfo
+		## Field1: gauge-filestotal
+		##         total number of inodes for the OST
+		Type "ost_filestotal"
+	</Item>
+	<Item>
+		## Free number of inodes for the OST
+		## Entry: ost_filesinfo
+		## Field1: gauge-filesfree
+		##         free number of inodes for the OST
+		Type "ost_filesfree"
+	</Item>
+	<Item>
+		## Total kbytes of the OST
+		## Entry: ost_kbytesinfo
+		## Field1: gauge-kbytestotal
+		##         total kbytes the OST
+		Type "ost_kbytestotal"
+	</Item>
+	<Item>
+		## Free kbytes of the OST
+		## Entry: ost_kbytesinfo
+		## Field1: gauge-kbytesfree
+		##         Free kbytes the OST
+		Type "ost_kbytesfree"
+	</Item>
+	<Item>
+		## Available kbytes of the OST, some block may be reserved, so
+		## kbytesavail could be smaller than kbytesfree.
+		## Entry: ost_kbytesinfo
+		## Field1: gauge-kbytesavail
+		##         available kbytes the OST
+		Type "ost_kbytesavail"
+	</Item>
+	<Item>
+		## Total number of inodes for the MDT
+		## Entry: mdt_filesinfo
+		## Field1: gauge-filestotal
+		##         total number of inodes for the MDT
+		Type "mdt_filestotal"
+	</Item>
+	<Item>
+		## Free number of inodes for the MDT
+		## Entry: mdt_filesinfo
+		## Field1: gauge-filesfree
+		##         free number of inodes for the MDT
+		Type "mdt_filesfree"
+	</Item>
+	<Item>
+		## Total kbytes of the MDT
+		## Entry: mdt_kbytesinfo
+		## Field1: gauge-kbytestotal
+		##         total kbytes the MDT
+		Type "mdt_kbytestotal"
+	</Item>
+	<Item>
+		## Free kbytes of the MDT
+		## Entry: mdt_kbytesinfo
+		## Field1: gauge-kbytesfree
+		##         Free kbytes the MDT
+		Type "mdt_kbytesfree"
+	</Item>
+	<Item>
+		## Available kbytes of the MDT, some block may be reserved, so
+		## kbytesavail could be smaller than kbytesfree.
+		## Entry: mdt_kbytesinfo
+		## Field1: gauge-kbytesavail
+		##         available kbytes the MDT
+		Type "mdt_kbytesavail"
+	</Item>
+#	<Item>
+		## Describe jobstats on OST
+		## Entry: ost_jobstats
+		## Field1: derive-read_samples
+		##         "read_samples" of the {job_id}
+		## Field2: read_bytes
+		##         "read_bytes" of the {job_id}
+		## Field3: write_samples
+		##         "write_samples" of the {job_id}
+		## Field4: derive-write_bytes
+		##         "write_bytes" of the {job_id}
+		## Field5: derive-getattr
+		##         "getattr" of the {job_id}
+		## Field6: derive-setattr
+		##         "setattr" of the {job_id}
+		## Field7: derive-punch
+		##         "punch" of the {job_id}
+		## Field8: derive-sync
+		##         "sync" of the {job_id}
+		## Field9: derive-destroy
+		##         "destroy" of the {job_id}
+		## Field10: derive-create
+		##          "create" of the {job_id}
+		## Field11: derive-statfs
+		##          "statfs" of the {job_id}
+		## Field12: derive-get_info
+		##          "get_info" of the {job_id}
+		## Field13: derive-set_info
+		##          "set_info" of the {job_id}
+		## Field14: derive-quotactl
+		##          "quotactl" of the {job_id}
+#		Type "ost_jobstats"
+#		<Rule>
+#			Field "job_id"
+#			Match "dd[.][[:digit:]]+"
+#		</Rule>
+		##Filter option can be used to discard some undesired fields.
+#		<Filter>
+#			Field "read_samples"
+#			Field "read_bytes"
+#			Field "write_samples"
+#			Field "write_bytes"
+#			Field "getattr"
+#			Field "setattr"
+#			Field "punch"
+#			Field "sync"
+#			Field "destroy"
+#			Field "create"
+#			Field "statfs"
+#			Field "get_info"
+#			Field "set_info"
+#			Field "quotactl"
+#		</Filter>
+#	</Item>
+#	<Item>
+		## Describe jobstats on MDT
+		## Entry: mdt_jobstats
+		## Field1: derive-open
+		##         "open" samples of the {job_id}
+		## Field2: derive-close
+		##         "close" samples of the {job_id}
+		## Field3: derive-mknod
+		##         "mknod" samples of the {job_id}
+		## Field4: derive-link
+		##         "link" samples of the {job_id}
+		## Field5: derive-unlink
+		##         "unlink" samples of the {job_id}
+		## Field6: derive-mkdir
+		##         "mkdir" samples of the {job_id}
+		## Field7: derive-rmdir
+		##         "rmdir" samples of the {job_id}
+		## Field8: derive-rename
+		##         "rename" samples of the {job_id}
+		## Field9: derive-getattr
+		##         "getattr" samples of the {job_id}
+		## Field10: derive-setattr
+		##          "setattr" samples of the {job_id}
+		## Field12: derive-getxattr
+		##          "getxattr" samples of the {job_id}
+		## Field13: derive-setxattr
+		##          "setxattr" samples of the {job_id}
+		## Field14: derive-statfs
+		##          "statfs" samples of the {job_id}
+		## Field15: derive-sync
+		##          "sync" samples of the {job_id}
+		## Field16: derive-samedir_rename
+		##          "samedir_rename" samples of the {job_id}
+		## Field17: derive-crossdir_rename
+		##          "crossdir_rename" samples of the {job_id}
+#		Type "mdt_jobstats"
+#		<Rule>
+#			Field "job_id"
+#		</Rule>
+#		<Filter>
+#			Field "open"
+#			Field "close"
+#			Field "mknod"
+#			Field "link"
+#			Field "unlink"
+#			Field "mkdir"
+#			Field "rmdir"
+#			Field "rename"
+#			Field "getattr"
+#			Field "setattr"
+#			Field "getxattr"
+#			Field "setxattr"
+#			Field "statfs"
+#			Field "sync"
+#			Field "samedir_rename"
+#			Field "crossdir_rename"
+#		</Filter>
+#	</Item>
+##
+## Multiple items have the same "Type" has a relationship of logical
+## disjunction, which means the data which matches any item will be collectd.
+##
+## Following configuration collects all jobs whose ID matches regular pattern
+## "dd[.][[:digit:]]+" or "iozone[.][[:digit:]]+", which means it will collect
+## all jobs which are running 'dd' or 'iozone' command, if the Lustre configure
+## of '$FSNAME.sys.jobid_var' is configured to 'procname_uid'.
+#	<Item>
+#		Type "ost_jobstats"
+#		<Rule>
+#			Field "job_id"
+#			Match "dd[.][[:digit:]]+"
+#		</Rule>
+#	</Item>
+#	<Item>
+#		Type "ost_jobstats"
+#		<Rule>
+#			Field "job_id"
+#			Match "iozone[.][[:digit:]]+"
+#		</Rule>
+#	</Item>
+##
+## Multiple rules in one item has a relationship of logical conjunction,
+## which means only the data which matches all rules will be collected.
+##
+## Following configuration collects the jobstats which has a pattern
+## that matches "dd[.][[:digit:]]+" and reads more than 1K bytes.
+#	<Item>
+#		Type "ost_jobstats"
+#		<Rule>
+#			Field "job_id"
+#			Match "dd[.][[:digit:]]+"
+#		</Rule>
+#		<Rule>
+#			Field "read_bytes"
+#			Match "^[1-9]\d{3,}"
+#		</Rule>
+#	</Item>
+#
+## Follow types are all about thread number for diffirent services,
+## we do not use them yet.
+#	<Item>
+#		Type "max_rpcs_in_flight"
+#	</Item>
+#	<Item>
+#		Type "mds_threads_max"
+#	</Item>
+#	<Item>
+#		Type "mds_threads_min"
+#	</Item>
+#	<Item>
+#		Type "mds_threads_started"
+#	</Item>
+#	<Item>
+#		Type "ost_threads_max"
+#	</Item>
+#	<Item>
+#		Type "ost_threads_min"
+#	</Item>
+#	<Item>
+#		Type "ost_threads_started"
+#	</Item>
+#	<Item>
+#		Type "ost_io_threads_max"
+#	</Item>
+#	<Item>
+#		Type "ost_io_threads_min"
+#	</Item>
+#	<Item>
+#		Type "ost_io_threads_started"
+#	</Item>
+#	<Item>
+#		Type "ost_create_threads_max"
+#	</Item>
+#	<Item>
+#		Type "ost_create_threads_min"
+#	</Item>
+#	<Item>
+#		Type "ost_create_threads_started"
+#	</Item>
+#	<Item>
+#		Type "ldlm_cancel_threads_max"
+#	</Item>
+#	<Item>
+#		Type "ldlm_cancel_threads_min"
+#	</Item>
+#	<Item>
+#		Type "ldlm_cancel_threads_started"
+#	</Item>
+#	<Item>
+#		Type "ldlm_cbd_threads_max"
+#	</Item>
+#	<Item>
+#		Type "ldlm_cbd_threads_min"
+#	</Item>
+#	<Item>
+#		Type "ldlm_cbd_threads_started"
+#	</Item>
+</Plugin>
+
+## Zabbix is an Enterprise-class Monitoring Solution for Everyone.
+## This plugin is used to send data from Collectd to Zabbix.
+##
+## The "ServerActive" has the same meaning in the Zabbix config,
+## i.e. the IP and listening port of Zabbix server. Hostname should
+## be the same with the value in the 'Host name' field of Zabbix
+## web frontend.
+#loadPlugin "zabbix"
+#<Plugin "zabbix">
+#	ServerActive "192.168.2.131:10051"
+#	HostName "zabbix02"
+#</Plugin>
+
+## It is encouraged to use Graphite as the frontend of the monitor
+## system. This plugin can be used to send data to the Carbon daemon
+## of Graphite.
+loadPlugin "write_graphite"
+<Plugin "write_graphite">
+	<Carbon>
+		## Hostname the carbon is running, can be ip here
+		Host "localhost"
+		## The listen port of carbon
+		Port "2003"
+		Prefix "collectd."
+		# Postfix ""
+		Protocol "tcp"
+#		EscapeCharacter "_"
+#		SeparateInstances true
+#		StoreRates false
+#		AlwaysAppendDS false
+	</Carbon>
+</Plugin>
+
+## The Aggregate plugin allows to aggregate multiple values into a
+## single value using one or several consolidation functions,
+## e.g. summation and average. This has a broad range of applications,
+## e.g. calculating the average CPU utilization over all cores of each host.
+##
+## Follow example configuration will aggragate the value of fields in
+## jobstats on multiple MDTs/OSTs.
+LoadPlugin aggregation
+<Plugin "aggregation">
+	## An aggregation must contain at least one wildcard. This is achieved
+	## by leaving at least one of the "Host", "Plugin", "PluginInstance"
+	## and "TypeInstance" options blank or using a regular expression and
+	## not grouping by that field.
+	<Aggregation>
+		## Plugin pattern need to be aggregate
+		Plugin "/^.+-MDT[0-9a-fA-F]+$/"
+		SetPlugin "MDS"
+		PluginInstance "/^jobstat.*/"
+		SetPluginInstance "jobstat-sum"
+		Type "derive"
+
+		## Only wildcard fields (fields for which a regular expression
+		## is configured or which are left blank) can be specified in
+		## the "GroupBy" option.
+		GroupBy "Host"
+		GroupBy "TypeInstance"
+
+		CalculateNum false
+		CalculateSum true
+		CalculateAverage true
+		CalculateMinimum false
+		CalculateMaximum false
+		CalculateStddev false
+	</Aggregation>
+	<Aggregation>
+		Plugin "/^.+-OST[0-9a-fA-F]+$/"
+		SetPlugin "OSS"
+		PluginInstance "/^jobstat.*/"
+		SetPluginInstance "jobstat-sum"
+		Type "derive"
+
+		GroupBy "Host"
+		GroupBy "TypeInstance"
+
+		CalculateNum false
+		CalculateSum true
+		CalculateAverage true
+		CalculateMinimum false
+		CalculateMaximum false
+		CalculateStddev false
+	</Aggregation>
+</Plugin>
+
+## This is a powerful value processing infrastructure called chains,
+## filter, or filter chain. This infrastructure makes it possible to
+## send values only to a specific write plugin (send some values over
+## the network but write other values to local files only, for example),
+## ignore specific values and so on.For detail introduction, please
+## view the official webpage:
+##	https://collectd.org/wiki/index.php/Chains
+##
+## "PostCache" means the chain is after the "global cache" in collectd,
+## data flow will be:
+## Read Plugin ====> "PreCache Chain" ====> "global cache"
+## ====> "PostCache" ====> Wrige Plugin
+##
+## Following chains can be used to write the aggregated metrics while
+## discard the orogin metrics. The un-matched metrics will be written
+## normally.
+#LoadPlugin "match_regex"
+#<Chain "PostCache">
+	## Send "ost_jobstat" values to the aggregation plugin.
+#	<Rule>
+		## Matches values by identifies, using regular expressions
+#		<Match regex>
+#			Plugin "^.+-OST[0-9a-fA-F]+$"
+#			PluginInstance "jobstat.*"
+#		</Match>
+#		<Target write>
+#			Plugin "aggregation"
+#		</Target>
+		## The metric has "^.+-OST[0-9a-fA-F]+$" Plugin and
+		## "jobstat.*" PluginInstance will stop at aggreagtion
+		## plugin, other metric will continue to go.
+#		Target stop
+#	</Rule>
+#	<Rule>
+#		<Match regex>
+#			Plugin "^.+-MDT[0-9a-fA-F]+$"
+#			PluginInstance "jobstat.*"
+#		</Match>
+#		<Target write>
+#			Plugin "aggregation"
+#		</Target>
+#		Target stop
+#	</Rule>
+	## Send everything else to all "writers"
+#	Target "write"
+#</Chain>
+##
+##
+##
+## Follow is an example to use "aggregation" and "match_regex" plugins
+## together.
+##
+## This configuration will send the aggregate stats of OST to graphite
+## and discard the original data.
+#LoadPlugin aggregation
+#<Plugin "aggregation">
+#	<Aggregation>
+#		Plugin "/^.+-OST[0-9a-fA-F]+$/"
+#		SetPlugin "OSS-sum"
+#		PluginInstance "stats"
+#		SetPluginInstance "stats"
+#		Type "derive"
+#
+#		GroupBy "Host"
+#		GroupBy "TypeInstance"
+#
+#		CalculateSum true
+#	</Aggregation>
+#</plugin>
+#LoadPlugin "match_regex"
+#<Chain "PostCache">
+#	<Rule>
+#		<Match regex>
+#			Plugin "^.+-OST[0-9a-fA-F]+$"
+#			PluginInstance "stats"
+#		</Match>
+#		<Target write>
+#			Plugin "aggregation"
+#		</Target>
+#		Target stop
+#	</Rule>
+	## Send everything else to all "writers"
+#	Target "write"
+#</Chain>

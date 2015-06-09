@@ -2,20 +2,29 @@ SUBDIRS = .
 
 BUILD_DIRS = BUILD BUILDROOT RPMS SOURCES SPECS SRPMS
 
-EXTRA_DIST = build.sh
-LOCAL_XML_DEFINITION_RPMS = $(addprefix RPMS/x86_64/, $(XML_DEFINITION_RPMS))
+M4_DESTINE_FILES = gpfs-3.5.m4 lustre-1.8.9.m4 lustre-2.1.6.m4 \
+	lustre-2.4.2.m4 lustre-2.5.m4 lustre-ieel-2.5.m4
 
-noinst_DATA = $(BUILD_DIRS) $(LOCAL_XML_DEFINITION_RPMS)
+M4_FILES = general.m4 lustre.m4 $(M4_DESTINE_FILES)
 
-xml_definition-$(XML_DEFINITION_VERSION):
-	cp $(XML_DEFINITION) xml_definition-$(XML_DEFINITION_VERSION) -a
+XML_DESTINE_FILES=$(M4_DESTINE_FILES:.m4=.xml)
 
-$(LOCAL_XML_DEFINITION_RPMS): xml_definition-$(XML_DEFINITION_VERSION)
-	sh build.sh $(shell pwd) $(shell pwd)/xml_definition-$(XML_DEFINITION_VERSION) $(DISTRO_RELEASE)
+noinst_DATA = $(BUILD_DIRS) $(XML_DEFINITION_RPMS) $(M4_FILES) test_driver.py \
+	xml_definition.spec tests/lustre-2.5.xml
+
+$(XML_DESTINE_FILES): $(M4_FILES)
+	m4 $(@:.xml=.m4) > $@
+	xmllint $@ > /dev/null
+
+$(XML_DEFINITION_RPMS): $(XML_DESTINE_FILES)
+	tar czvf xml_definition.tar.gz *.xml collectd.conf.all
+	mv xml_definition.tar.gz ./SOURCES
+	rpmbuild -ba --define="rev ${XML_DEFINITION_REV}" --define="dist .el${DISTRO_RELEASE}" --define="_topdir $(shell pwd)" xml_definition.spec
 
 $(BUILD_DIRS):
 	mkdir $@
 
 clean-local:
-	-rm -f -r xml_definition-$(XML_DEFINITION_VERSION)
+	-rm -f $(XML_DEFINITION_RPMS)
+	-rm -f $(XML_DESTINE_FILES)
 	-rm -f -r $(BUILD_DIRS)
