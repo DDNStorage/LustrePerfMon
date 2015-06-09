@@ -224,6 +224,12 @@ GRAFANA_RPMS=grafana-${GRAFANA_VERSION}-${GRAFANA_RELEASE}.el${DISTRO_RELEASE}.x
 AC_MSG_RESULT([$GRAFANA_RPMS])
 AC_SUBST(GRAFANA_RPMS)
 
+# ------- check for python --------
+AC_CHECK_PROGS([PYTHON], [python], [])
+if test "x$PYTHON" = "x"; then
+	AC_MSG_ERROR([Python is needed for test of xml_definition. Install python.])
+fi
+
 # ------- check for pep8 --------
 AC_CHECK_PROGS([PEP8], [pep8], [])
 if test "x$PEP8" = "x"; then
@@ -234,6 +240,19 @@ fi
 AC_CHECK_PROGS([PYLINT], [pylint], [])
 if test "x$PYLINT" = "x"; then
 	AC_MSG_ERROR([pylint is needed to check python coding style. Install pylint.])
+fi
+
+# ------- check for ElementTree of python --------
+AC_MSG_CHECKING([for ElementTree of python])
+if [[[ "${DISTRO_RELEASE}" != "5" ]]]; then
+	$PYTHON -c "import xml.etree.ElementTree";
+	if [[[ $? -ne 0 ]]]; then
+		AC_MSG_ERROR([ElementTree is need for test of xml files.])
+		AC_MSG_RESULT([no])
+	fi
+	AC_MSG_RESULT([yes])
+else
+	AC_MSG_RESULT([skipped])
 fi
 
 AC_CONFIG_FILES([Makefile collectd/Makefile xml_definition/Makefile

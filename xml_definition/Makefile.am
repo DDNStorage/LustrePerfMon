@@ -13,8 +13,14 @@ noinst_DATA = $(BUILD_DIRS) $(XML_DEFINITION_RPMS) $(M4_FILES) test_driver.py \
 	xml_definition.spec tests/lustre-2.5.xml
 
 $(XML_DESTINE_FILES): $(M4_FILES)
-	m4 $(@:.xml=.m4) > $@
-	xmllint $@ > /dev/null
+	m4 $(@:.xml=.m4) > $@.tmp
+	xmllint $@.tmp > /dev/null
+	if [ "${DISTRO_RELEASE}" != 5 ]; then \
+		@PYTHON@ test_driver.py --xml_path $@.tmp --test_name $@ --exit_on_error; \
+	else \
+		echo "Skip test of $@ because test is not supported by Centos5"; \
+	fi
+	mv $@.tmp $@
 
 $(XML_DEFINITION_RPMS): $(XML_DESTINE_FILES)
 	tar czvf xml_definition.tar.gz *.xml collectd.conf.all

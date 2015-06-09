@@ -28,6 +28,7 @@ xml_path = ""
 collectd_interval = 1
 exit_on_error = 0
 failure_number = 0
+TEST_NAME=""
 
 def log_setup():
 	global logger
@@ -76,6 +77,7 @@ usages = [
 	"	--debug print debug log",
 	"	--exit_on_error exit if error happens",
 	"	--xml_path specify lustre definition xml path",
+	"	--test_name specify lustre test name",
 ]
 def print_usages(ret):
 	for line in usages:
@@ -84,10 +86,13 @@ def print_usages(ret):
 
 def parse_args():
 	global xml_path
+	global TEST_NAME
 	try:
 		options, args = getopt.getopt(sys.argv[1:], "hp:i:",
-					      ["help", "xml_path=",
-					      "exit_on_error", "debug"])
+					      ["help",
+					       "xml_path=",
+					       "test_name=",
+					       "exit_on_error", "debug"])
 	except getopt.GetoptError:
 		print_usages(1)
 	for name, value in options:
@@ -101,10 +106,15 @@ def parse_args():
 				logger.error("Wrong XML argument '%s'" %
 					     (xml_path))
 				sys.exit(1)
+		if name in ("--test_name"):
+			TEST_NAME = value
 		if name in ("--debug"):
 			logger.setLevel(logging.DEBUG)
 	if xml_path == "" :
 		logger.error("Please specify xml_path argument")
+		sys.exit(1)
+	if TEST_NAME == "":
+		logger.error("Please specify test_name argument")
 		sys.exit(1)
 
 environment_setup()
@@ -263,7 +273,7 @@ def iterate_all_tests(rootdir):
 			check_collected_result(test_path)
 
 check_commands()
-iterate_all_tests(os.getcwd() + "/tests/" + os.path.basename(xml_path))
+iterate_all_tests(os.getcwd() + "/tests/" + TEST_NAME)
 if (failure_number):
 	logger.error("Failed %d test suit(s)" % (failure_number))
 	sys.exit(1)
