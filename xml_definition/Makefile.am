@@ -3,7 +3,7 @@ SUBDIRS = .
 BUILD_DIRS = BUILD BUILDROOT RPMS SOURCES SPECS SRPMS
 
 M4_DESTINE_FILES = gpfs-3.5.m4 lustre-1.8.9.m4 lustre-2.1.6.m4 \
-	lustre-2.4.2.m4 lustre-2.5.m4 lustre-ieel-2.5.m4
+	lustre-2.4.2.m4 lustre-2.5.m4 lustre-ieel-2.5.m4 sfa-0.1.m4
 
 M4_FILES = general.m4 lustre.m4 $(M4_DESTINE_FILES)
 
