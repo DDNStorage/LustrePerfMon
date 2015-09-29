@@ -25,7 +25,7 @@ $(LOCAL_XML_DEFINITION_RPMS): $(ORIGIN_XML_DEFINITION_RPMS)
 monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso: RPMS install.py \
 		$(LOCAL_COLLECTD_RPMS) \
 		$(LOCAL_GRAFANA_RPMS) \
-		$(LOCAL_XML_DEFINITION_RPMS)
+		$(LOCAL_XML_DEFINITION_RPMS) \
 		topn.py
 	rm -f monsystem-ddn.*.iso
 	rm -f monsystem-ddn.*.md5
