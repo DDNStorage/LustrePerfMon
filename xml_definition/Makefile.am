@@ -15,10 +15,10 @@ noinst_DATA = $(BUILD_DIRS) $(XML_DEFINITION_RPMS) $(M4_FILES) test_driver.py \
 $(XML_DESTINE_FILES): $(M4_FILES)
 	m4 $(@:.xml=.m4) > $@.tmp
 	xmllint $@.tmp > /dev/null
-	if [ "${DISTRO_RELEASE}" != 5 ]; then \
+	if [ "$enable_test" != yes "${DISTRO_RELEASE}" != 5 ]; then \
 		@PYTHON@ test_driver.py --xml_path $@.tmp --test_name $@ --exit_on_error; \
 	else \
-		echo "Skip test of $@ because test is not supported by Centos5"; \
+		echo "Skip test of $@"; \
 	fi
 	mv $@.tmp $@
 

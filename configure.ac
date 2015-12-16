@@ -102,6 +102,14 @@ MONSYSTEM_PKGVER=$(sh ./version-gen.sh)
 AC_MSG_RESULT([$MONSYSTEM_PKGVER])
 AC_SUBST(MONSYSTEM_PKGVER)
 
+# -------- check whether to enable XML test --------
+AC_MSG_CHECKING([whether to enable XML test])
+AC_ARG_ENABLE([test],
+	AC_HELP_STRING([--disable-test],
+		       [disable test]),
+	[], [enable_test="yes"])
+AC_MSG_RESULT([$enable_test])
+
 # -------- check for collectd sources --------
 AC_MSG_CHECKING([for collectd sources])
 AC_ARG_WITH([collectd],
