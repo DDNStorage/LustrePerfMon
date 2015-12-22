@@ -1,4 +1,4 @@
-SUBDIRS = collectd grafana xml_definition package .
+SUBDIRS = collectd xml_definition package .
 
 EXTRA_DIST = version-gen.sh autogen.sh detect-distro.sh
 

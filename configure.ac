@@ -130,15 +130,15 @@ git_version=$(git --git-dir=$COLLECTD/.git rev-parse --short HEAD)
 if [[[ $? -ne 0 ]]]; then
 	AC_MSG_ERROR([$COLLECTD is not a git repository.])
 fi
-COLLECTD_VERSION=$(grep Version $COLLECTD/contrib/redhat/collectd-rhel6.spec | \
-	awk '{print $2}' | sed -e "s/%{?rev}/$git_version/g")
+COLLECTD_VERSION=$(grep Version $COLLECTD/contrib/redhat/collectd.spec | \
+	grep -v \# | awk '{print $2}' | sed -e "s/%{?rev}/$git_version/g")
 AC_MSG_RESULT([$COLLECTD_VERSION])
 AC_SUBST(COLLECTD_VERSION)
 
 # -------- check for collectd release --------
 AC_MSG_CHECKING([for collectd release])
-COLLECTD_RELEASE=$(grep Release $COLLECTD/contrib/redhat/collectd-rhel6.spec | \
-	awk '{print $2}' | sed -e "s/%{?dist}//g")
+COLLECTD_RELEASE=$(grep Release $COLLECTD/contrib/redhat/collectd.spec | \
+	grep -v \# | awk '{print $2}' | sed -e "s/%{?dist}//g")
 AC_MSG_RESULT([$COLLECTD_RELEASE])
 AC_SUBST(COLLECTD_RELEASE)
 
@@ -153,8 +153,9 @@ ddn_plugins="gpfs lustre stress zabbix ssh"
 # REHL7 does not hace ganglia support yet.
 if [[[ "$DISTRO_RELEASE" != "7" ]]]; then
 	ddn_plugins="ganglia ${ddn_plugins}"
+	common_plugins="rrdtool"
 fi
-common_plugins="rrdtool"
+common_plugins=""
 plugins="${ddn_plugins} ${common_plugins}"
 for plugin in ${plugins}; do
 	COLLECTD_RPMS="${COLLECTD_RPMS} collectd-${plugin}-${COLLECTD_RPM_SUBFIX}"
@@ -189,48 +190,19 @@ XML_DEFINITION_RPMS=xml_definition-${XML_DEFINITION_VERSION}-${XML_DEFINITION_RE
 AC_MSG_RESULT([$XML_DEFINITION_RPMS])
 AC_SUBST(XML_DEFINITION_RPMS)
 
-# -------- check for grafana sources --------
-AC_MSG_CHECKING([for grafana sources])
+# -------- check for grafana RPM --------
+AC_MSG_CHECKING([for grafana RPM])
 AC_ARG_WITH([grafana],
 	AC_HELP_STRING([--with-grafana=path],
-		       [set path to grafana source]),
-	[MB_ARG_CANON_PATH([grafana], [GRAFANA])],
+		       [set path to grafana RPM]),
+	[MB_ARG_CANON_PATH([grafana], [GRAFANA_RPM_PATH])],
 	[])
-AC_MSG_RESULT([$GRAFANA])
-AC_SUBST(GRAFANA)
+AC_MSG_RESULT([$GRAFANA_RPM_PATH])
+AC_SUBST(GRAFANA_RPM_PATH)
 
 # -------- check for grafana --------
-MB_CHECK_FILE([$GRAFANA], [],
-	[AC_MSG_ERROR([grafana source $GRAFANA could not be found.])])
-
-# -------- check for grafana version --------
-AC_MSG_CHECKING([for grafana version])
-changelog_version=$(grep -e "\# [[:digit:]][[:digit:]]*[.][[:digit:]][[:digit:]]*[.][[:digit:]][[:digit:]]*" \
-$GRAFANA/CHANGELOG.md | awk '{print $2}' | head -n 1)
-
-git_version=$(git --git-dir=$GRAFANA/.git rev-parse --short HEAD)
-if [[[ $? -ne 0 ]]]; then
-	AC_MSG_ERROR([$GRAFANA is not a git repository.])
-fi
-GRAFANA_VERSION=$(grep Version grafana/grafana.spec | \
-	awk '{print $2}' | \
-	sed -e "s/%{?brev}/$changelog_version/g" | \
-	sed -e "s/%{?rev}/$git_version/g")
-AC_MSG_RESULT([$GRAFANA_VERSION])
-AC_SUBST(GRAFANA_VERSION)
-
-# -------- check for grafana release --------
-AC_MSG_CHECKING([for grafana release])
-GRAFANA_RELEASE=$(grep Release grafana/grafana.spec | \
-	awk '{print $2}' | sed -e "s/%{?dist}//g")
-AC_MSG_RESULT([$GRAFANA_RELEASE])
-AC_SUBST(GRAFANA_RELEASE)
-
-# -------- check for grafana RPMs --------
-AC_MSG_CHECKING([for grafana RPMs])
-GRAFANA_RPMS=grafana-${GRAFANA_VERSION}-${GRAFANA_RELEASE}.el${DISTRO_RELEASE}.x86_64.rpm
-AC_MSG_RESULT([$GRAFANA_RPMS])
-AC_SUBST(GRAFANA_RPMS)
+MB_CHECK_FILE([$GRAFANA_RPM_PATH], [],
+	[AC_MSG_ERROR([grafana RPM file $GRAFANA_RPM_PATH could not be found.])])
 
 # ------- check for python --------
 AC_CHECK_PROGS([PYTHON], [python], [])
@@ -264,5 +236,5 @@ else
 fi
 
 AC_CONFIG_FILES([Makefile collectd/Makefile xml_definition/Makefile
-	grafana/Makefile package/Makefile])
+	package/Makefile])
 AC_OUTPUT

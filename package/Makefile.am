@@ -3,10 +3,10 @@ SUBDIRS = .
 BUILD_DIRS = RPMS
 
 ORIGIN_COLLECTD_RPMS = $(addprefix ../collectd/RPMS/x86_64/, $(COLLECTD_RPMS))
-ORIGIN_GRAFANA_RPMS = $(addprefix ../grafana/RPMS/x86_64/, $(GRAFANA_RPMS))
+GRAFANA_RPM = $(notdir $(GRAFANA_RPM_PATH))
 ORIGIN_XML_DEFINITION_RPMS = $(addprefix ../xml_definition/RPMS/x86_64/, $(XML_DEFINITION_RPMS))
 LOCAL_COLLECTD_RPMS = $(addprefix RPMS/, $(COLLECTD_RPMS))
-LOCAL_GRAFANA_RPMS = $(addprefix RPMS/, $(GRAFANA_RPMS))
+LOCAL_GRAFANA_RPMS = $(addprefix RPMS/, $(GRAFANA_RPM))
 LOCAL_XML_DEFINITION_RPMS = $(addprefix RPMS/, $(XML_DEFINITION_RPMS))
 
 noinst_DATA = $(BUILD_DIRS) \
@@ -16,8 +16,8 @@ noinst_DATA = $(BUILD_DIRS) \
 $(LOCAL_COLLECTD_RPMS): $(ORIGIN_COLLECTD_RPMS)
 	cp $(addprefix ../collectd/RPMS/x86_64/, $(notdir $@)) RPMS
 
-$(LOCAL_GRAFANA_RPMS): $(ORIGIN_GRAFANA_RPMS)
-	cp $(addprefix ../grafana/RPMS/x86_64/, $(notdir $@)) RPMS
+$(LOCAL_GRAFANA_RPMS): $(GRAFANA_RPM_PATH)
+	cp $(GRAFANA_RPM_PATH) RPMS
 
 $(LOCAL_XML_DEFINITION_RPMS): $(ORIGIN_XML_DEFINITION_RPMS)
 	cp $(addprefix ../xml_definition/RPMS/x86_64/, $(notdir $@)) RPMS

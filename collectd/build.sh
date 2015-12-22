@@ -56,20 +56,12 @@ if [ "$REV" = "" ]; then
 	REV=$(git rev-parse --short HEAD)
 fi
 
-if [ "$DISTRO_RELEASE" = "5" ]; then
-	EXTRA_OPTION="--without curl_json --without perl --without curl --without curl_xml --without python --without ethstat --without ipvs --without dns --without iptables --without postgresql"
-	DIST=".el5"
-	SPEC_FILE=$SOURCEDIR/contrib/redhat/collectd-rhel5.spec
-elif [ "$DISTRO_RELEASE" = "6" ]; then
-	EXTRA_OPTION=""
-	DIST=".el6"
-	SPEC_FILE=$SOURCEDIR/contrib/redhat/collectd-rhel6.spec
+if [ "$DISTRO_RELEASE" = "6" ]; then
+	EXTRA_OPTION="--without turbostat"
 elif [ "$DISTRO_RELEASE" = "7" ]; then
 	# ganglia-devel is not available for RHEL7 yet.
 	# memcachec has dependency error
-	EXTRA_OPTION="--without ganglia --without gmond --without memcachec"
-	DIST=".el7"
-	SPEC_FILE=$SOURCEDIR/contrib/redhat/collectd-rhel6.spec
+	EXTRA_OPTION="--without ganglia --without gmond --without memcachec --without rrdcached --without rrdtool"
 else
 	echo "$DISTRO_RELEASE is not supported"
 	exit 1
@@ -104,8 +96,7 @@ rpmbuild -ba --without java --without amqp --without nut \
 	--without pinba --without ping --without varnish \
 	$EXTRA_OPTION \
 	--define="rev ${REV}" \
-	--define="dist ${DIST}" \
 	--define="_topdir ${TOPDIR}" \
-	$SPEC_FILE
+	$SOURCEDIR/contrib/redhat/collectd.spec
 
 exit $?
