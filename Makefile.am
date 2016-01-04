@@ -1,4 +1,4 @@
-SUBDIRS = collectd xml_definition package .
+SUBDIRS = collectd xml_definition opentsdb_web package .
 
 EXTRA_DIST = version-gen.sh autogen.sh detect-distro.sh
 

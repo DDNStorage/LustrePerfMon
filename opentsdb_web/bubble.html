@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<style>
+
+text {
+  font: 10px sans-serif;
+}
+
+</style>
+<body>
+<script src="angular.min.js"></script>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script src="opentsdb.js"></script>
+<script src="jobid.js"></script>
+<script>
+
+// Returns array of objects with attribute of jobid and size.
+function get_data_from_metrics(metrics)
+{
+  var array = [];
+
+  for (var i in metrics) {
+    var size = 0.0;
+    for (var j in metrics[i].dps) {
+      // This is actually a bug of collected data.
+      if (metrics[i].dps[j] > 0)
+        size += metrics[i].dps[j];
+    }
+
+    if (size < 0.1)
+      continue;
+    array.push({
+      packageName: metrics[i].metric,
+      className: metrics[i].tags.job_id + "(" + size.toFixed(1) + ")",
+      value: size,
+    });
+  }
+
+  return {children: array};
+}
+
+function show_bubble(metrics)
+{
+  var diameter = 960,
+      format = d3.format(",d"),
+      color = d3.scale.category20c();
+
+  var bubble = d3.layout.pack()
+      .sort(null)
+      .size([diameter, diameter])
+      .padding(1.5);
+
+  var svg = d3.select("body").append("svg")
+      .attr("width", diameter)
+      .attr("height", diameter)
+      .attr("class", "bubble");
+
+  var node = svg.selectAll(".node")
+      .data(bubble.nodes(get_data_from_metrics(metrics))
+      .filter(function(d) { return !d.children; }))
+      .enter().append("g")
+      .attr("class", "node")
+      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+  node.append("title")
+      .text(function(d) { return d.className + ": " + format(d.value); });
+  node.append("circle")
+      .attr("r", function(d) { return d.r; })
+      .style("fill", function(d) { return color(d.packageName); });
+
+  node.append("text")
+      .attr("dy", ".3em")
+      .style("text-anchor", "middle")
+      .text(function(d) { return d.className.substring(0, d.r / 3); });
+  d3.select(self.frameElement).style("height", diameter + "px");
+}
+
+show_func = show_bubble;
+var app = angular.module('myApp', []);
+app.controller('customersCtrl', jobid_control);
+</script>
+</body>

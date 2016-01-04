@@ -235,6 +235,32 @@ else
 	AC_MSG_RESULT([skipped])
 fi
 
+# -------- check for opentsdb_web version --------
+AC_MSG_CHECKING([for opentsdb_web version])
+OPENTSDB_WEB_REV=$(git rev-parse --short HEAD)
+if [[[ $? -ne 0 ]]]; then
+	AC_MSG_ERROR([monsystem_package is not a git repository.])
+fi
+AC_SUBST(OPENTSDB_WEB_REV)
+
+OPENTSDB_WEB_VERSION=$(grep Version opentsdb_web/opentsdb_web.spec | \
+	awk '{print $2}' | sed -e "s/%{?rev}/${OPENTSDB_WEB_REV}/g")
+AC_MSG_RESULT([$OPENTSDB_WEB_VERSION])
+AC_SUBST(OPENTSDB_WEB_VERSION)
+
+# -------- check for opentsdb_web release --------
+AC_MSG_CHECKING([for opentsdb_web release])
+OPENTSDB_WEB_RELEASE=$(grep Release opentsdb_web/opentsdb_web.spec | \
+	awk '{print $2}' | sed -e "s/%{?dist}//g")
+AC_MSG_RESULT([$OPENTSDB_WEB_RELEASE])
+AC_SUBST(OPENTSDB_WEB_RELEASE)
+
+# -------- check for opentsdb_web RPMs --------
+AC_MSG_CHECKING([for opentsdb_web RPMs])
+OPENTSDB_WEB_RPMS=opentsdb_web-${OPENTSDB_WEB_VERSION}-${OPENTSDB_WEB_RELEASE}.el${DISTRO_RELEASE}.x86_64.rpm
+AC_MSG_RESULT([$OPENTSDB_WEB_RPMS])
+AC_SUBST(OPENTSDB_WEB_RPMS)
+
 AC_CONFIG_FILES([Makefile collectd/Makefile xml_definition/Makefile
-	package/Makefile])
+	package/Makefile opentsdb_web/Makefile])
 AC_OUTPUT
