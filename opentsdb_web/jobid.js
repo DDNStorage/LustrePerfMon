@@ -14,6 +14,7 @@ var flush_interval = default_flush_interval;
 var show_func = function() {
   alert("No show function defined");
 };
+var flush_timer;
 
 function check_all() {
   var flush_obj = document.getElementById("flush");
@@ -71,9 +72,6 @@ function check_all() {
     flush_interval_obj.style.background = "yellow";
   } else {
     flush_interval_obj.style.background = "white";
-    var interval = parseInt(flush_interval);
-    if (interval > 0)
-      window.setInterval('submit_form();', interval * 1000);
   }
 
   if (all_passed)
@@ -96,7 +94,7 @@ function submit_form()
     document.input.submit();
 }
 
-function set_values()
+function set_form_values()
 {
   var flush_obj = document.getElementById("flush");
   var start_obj = document.getElementById("start");
@@ -112,10 +110,27 @@ function set_values()
   tags_obj.value = query_tags;
   opentsdb_url_obj.value = opentsdb_url;
   flush_interval_obj.value = flush_interval;
+  flush_obj.focus();
+}
+
+function flush_graph($scope, $http)
+{
+  var options = {
+    method: 'GET',
+    url: opentsdb_url + '/api/query/gexp' + '?start=' +
+         start + '&exp=highestCurrent(sum:rate:' + metric + '{' + query_tags +
+         ',job_id=*},' + topn + ')'
+  };
+
+  $http(options).success(function(response) {
+    show_func(response);
+  }).error(function(response) {
+    $scope.error = response.error;
+  });
+  window.clearInterval(flush_timer);
   var interval = parseInt(flush_interval);
   if (interval > 0)
-    window.setInterval('submit_form();', interval * 1000);
-  flush_obj.focus();
+    flush_timer = window.setInterval(flush_graph, flush_interval * 1000, $scope, $http);
 }
 
 function jobid_control($scope, $http)
@@ -154,20 +169,8 @@ function jobid_control($scope, $http)
       break;
     }
   }
-  set_values();
-
-  var options = {
-    method: 'GET',
-    url: opentsdb_url + '/api/query/gexp' + '?start=' +
-         start + '&exp=highestCurrent(sum:rate:' + metric + '{' + query_tags +
-         ',job_id=*},' + topn + ')'
-  };
-
-  $http(options).success(function(response) {
-    show_func(response);
-  }).error(function(response) {
-    $scope.error = response.error;
-  });
+  set_form_values();
+  flush_graph($scope, $http);
 }
 
 document.write("<form name='input' method='get'>");

@@ -35,7 +35,7 @@ function get_data_from_metrics(metrics)
   if (array.length == 0) {
     array.push({
       jobid: "Idle",
-      size: 0.1,
+      size: 0.01,
     });
   }
 
@@ -63,25 +63,48 @@ function show_pie(metrics)
       .sort(null)
       .value(function(d) { return d.size; });
 
-  var svg = d3.select("body").append("svg")
+  var tmp = document.getElementById("pie_svg");
+  if (tmp == null) {
+    var svg = d3.select("body").append("svg")
+      .attr("id", "pie_svg")
       .attr("width", width)
       .attr("height", height)
-      .append("g")
       .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+  } else {
+    var svg = d3.select("svg");
+  }
 
-  data = get_data_from_metrics(metrics);
-  var g = svg.selectAll(".arc")
-      .data(pie(data))
-      .enter().append("g")
-      .attr("class", "arc");
-  g.append("path")
-   .attr("d", arc)
-   .style("fill", function(d) { return color(d.data.jobid); });
-    
-  g.append("text")
-   .attr("transform", function(d) { return "translate(" + labelArc.centroid(d) + ")"; })
-   .attr("dy", ".35em")
-   .text(function(d) { return d.data.jobid; });
+  var nodes = pie(get_data_from_metrics(metrics));
+
+  var vis = svg.selectAll("g")
+    .data(nodes, function(d) { return d.data.jobid; });
+
+  /* Update the __data__ for all text and circle, anyway to avoid this? */
+  svg.selectAll("path")
+    .data(nodes, function(d) { return d.data.jobid; });
+
+  svg.selectAll("text")
+    .data(nodes, function(d) { return d.data.jobid; });
+
+  var new_data = vis.enter().append("g");
+
+  new_data.append('path')
+    .attr("d", arc)
+    .style("fill", function(d) { return color(d.data.jobid); });
+
+  new_data.append("text")
+    .attr("dy", ".35em")
+    .attr("transform", function(d) { return "translate(" + labelArc.centroid(d) + ")"; })
+    .text(function(d) { return d.data.jobid + " " + (Math.round(d.data.size * 10) / 10); });
+
+  update_data = vis.transition();
+  update_data.selectAll("text")
+    .attr("transform", function(d) { return "translate(" + labelArc.centroid(d) + ")"; })
+    .text(function(d) { return d.data.jobid + " " + (Math.round(d.data.size * 10) / 10); });
+
+  update_data.selectAll("path")
+    .attr("d", arc)
+    .style("fill", function(d) { return color(d.data.jobid); });
 }
 
 show_func = show_pie;
@@ -89,3 +112,4 @@ var app = angular.module('myApp', []);
 app.controller('customersCtrl', jobid_control);
 </script>
 </body>
+

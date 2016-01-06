@@ -20,6 +20,7 @@ function get_data_from_metrics(metrics)
 
   for (var i in metrics) {
     var size = 0.0;
+
     for (var j in metrics[i].dps) {
       // This is actually a bug of collected data.
       if (metrics[i].dps[j] > 0)
@@ -29,8 +30,8 @@ function get_data_from_metrics(metrics)
     if (size < 0.1)
       continue;
     array.push({
-      packageName: metrics[i].metric,
-      className: metrics[i].tags.job_id + "(" + size.toFixed(1) + ")",
+      packageName: metrics[i].tags.job_id,
+      className: metrics[i].tags.job_id,
       value: size,
     });
   }
@@ -38,7 +39,7 @@ function get_data_from_metrics(metrics)
     array.push({
       packageName: "Idle",
       className: "Idle",
-      value: 0.1,
+      value: 0.01,
     });
   }
 
@@ -47,6 +48,9 @@ function get_data_from_metrics(metrics)
 
 function show_bubble(metrics)
 {
+  var duration = 200;
+  var delay = 0;
+
   var diameter = 960,
       format = d3.format(",d"),
       color = d3.scale.category20c();
@@ -56,28 +60,66 @@ function show_bubble(metrics)
       .size([diameter, diameter])
       .padding(1.5);
 
-  var svg = d3.select("body").append("svg")
+  var tmp = document.getElementById("bubble_svg");
+  if (tmp == null) {
+    var svg = d3.select("body").append("svg")
+      .attr("id", "bubble_svg")
       .attr("width", diameter)
-      .attr("height", diameter)
-      .attr("class", "bubble");
+      .attr("height", diameter);
+  } else {
+    var svg = d3.select("svg");
+  }
 
-  var node = svg.selectAll(".node")
-      .data(bubble.nodes(get_data_from_metrics(metrics))
-      .filter(function(d) { return !d.children; }))
-      .enter().append("g")
-      .attr("class", "node")
-      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+  var nodes = bubble.nodes(get_data_from_metrics(metrics))
+      .filter(function(d) { return !d.children; });
 
-  node.append("title")
-      .text(function(d) { return d.className + ": " + format(d.value); });
-  node.append("circle")
-      .attr("r", function(d) { return d.r; })
-      .style("fill", function(d) { return color(d.packageName); });
+  var vis = svg.selectAll("g")
+    .data(nodes, function(d) { return d.className; });
 
-  node.append("text")
-      .attr("dy", ".3em")
-      .style("text-anchor", "middle")
-      .text(function(d) { return d.className.substring(0, d.r / 3); });
+  /* Update the __data__ for all text and circle, anyway to avoid this? */
+  svg.selectAll("text")
+    .data(nodes, function(d) { return d.className; });
+
+  svg.selectAll("circle")
+    .data(nodes, function(d) { return d.className; });
+
+  var new_data = vis.enter().append("g")
+    .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+  new_data.append('circle')
+    .attr("r", function(d) { return d.r; })
+    .style("fill", function(d) { return color(d.packageName); });
+
+  new_data.append("text")
+       .attr("dy", ".3em")
+       .style("text-anchor", "middle")
+       .text(function(d) { return d.className.substring(0, d.r / 3) + " " + (Math.round(d.value * 10) / 10)});
+
+  update_data = vis.transition();
+  update_data
+    .duration(duration)
+    .delay(function(d, i) {delay = i * 7; return delay;})
+    .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+  update_data.selectAll("circle")
+    .duration(duration)
+    .delay(function(d, i) {delay = i * 7; return delay;})
+    .attr("r", function(d) { return d.r; });
+
+  update_data.selectAll("text")
+    .text(function(d) { return d.className.substring(0, d.r / 3) + " " + (Math.round(d.value * 10) / 10)});
+
+  vis.exit()
+      .transition()
+      .duration(duration + delay)
+      .style('opacity', 0)
+      .remove();
+
+  new_data
+    .style('opacity', 0)
+    .transition()
+    .duration(duration)
+    .style('opacity', 1);
+
   d3.select(self.frameElement).style("height", diameter + "px");
 }
 
