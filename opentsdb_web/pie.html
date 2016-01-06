@@ -32,6 +32,12 @@ function get_data_from_metrics(metrics)
       size: size,
     });
   }
+  if (array.length == 0) {
+    array.push({
+      jobid: "Idle",
+      size: 0.1,
+    });
+  }
 
   return array;
 }

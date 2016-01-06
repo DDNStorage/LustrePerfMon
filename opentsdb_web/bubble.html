@@ -34,6 +34,13 @@ function get_data_from_metrics(metrics)
       value: size,
     });
   }
+  if (array.length == 0) {
+    array.push({
+      packageName: "Idle",
+      className: "Idle",
+      value: 0.1,
+    });
+  }
 
   return {children: array};
 }
@@ -79,3 +86,4 @@ var app = angular.module('myApp', []);
 app.controller('customersCtrl', jobid_control);
 </script>
 </body>
+
