@@ -27,6 +27,7 @@ Web interface for openTSDB
 %{__install} -Dp -m0644 pie.html %{buildroot}%{webdir}/pie.html
 %{__install} -Dp -m0644 bubble.html %{buildroot}%{webdir}/bubble.html
 %{__install} -Dp -m0644 index.html %{buildroot}%{webdir}/index.html
+%{__install} -Dp -m0644 bar.html %{buildroot}%{webdir}/bar.html
 
 %clean
 
@@ -44,3 +45,4 @@ Web interface for openTSDB
 %{webdir}/pie.html
 %{webdir}/bubble.html
 %{webdir}/index.html
+%{webdir}/bar.html

@@ -120,12 +120,6 @@ function show_bubble(metrics)
       .style('opacity', 0)
       .remove();
 
-  new_data
-    .style('opacity', 0)
-    .transition()
-    .duration(duration)
-    .style('opacity', 1);
-
   d3.select(self.frameElement).style("height", diameter + "px");
 }
 

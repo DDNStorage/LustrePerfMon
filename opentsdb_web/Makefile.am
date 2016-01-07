@@ -3,7 +3,7 @@ SUBDIRS = .
 BUILD_DIRS = BUILD BUILDROOT RPMS SOURCES SPECS SRPMS
 
 OPENTSDB_WEB_FILES=angular.min.js bubble.html \
-	index.html jobid.js opentsdb.js pie.html
+	index.html jobid.js opentsdb.js pie.html bar.html
 
 noinst_DATA = $(BUILD_DIRS) $(OPENTSDB_WEB_RPMS) $(OPENTSDB_WEB_FILES) \
 	opentsdb_web.spec
