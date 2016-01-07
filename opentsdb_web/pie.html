@@ -39,6 +39,12 @@ function get_data_from_metrics(metrics)
     });
   }
 
+  array.sort(function(a, b){
+    if(a.jobid < b.jobid) return -1;
+    if(a.jobid > b.jobid) return 1;
+    return 0;
+  });
+
   return array;
 }
 
@@ -48,8 +54,7 @@ function show_pie(metrics)
       height = 500,
       radius = Math.min(width, height) / 2;
 
-  var color = d3.scale.ordinal()
-      .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+  var color = d3.scale.category20c();
 
   var arc = d3.svg.arc()
       .outerRadius(radius - 10)
@@ -79,7 +84,7 @@ function show_pie(metrics)
   var vis = svg.selectAll("g")
     .data(nodes, function(d) { return d.data.jobid; });
 
-  /* Update the __data__ for all text and circle, anyway to avoid this? */
+  /* Update the __data__ for all path and text, anyway to avoid this? */
   svg.selectAll("path")
     .data(nodes, function(d) { return d.data.jobid; });
 
@@ -105,6 +110,8 @@ function show_pie(metrics)
   update_data.selectAll("path")
     .attr("d", arc)
     .style("fill", function(d) { return color(d.data.jobid); });
+
+  vis.exit().remove();
 }
 
 show_func = show_pie;
