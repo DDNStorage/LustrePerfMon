@@ -99,6 +99,7 @@ function show_pie(metrics)
 
   new_data.append("text")
     .attr("dy", ".35em")
+    .style("text-anchor", "middle")
     .attr("transform", function(d) { return "translate(" + labelArc.centroid(d) + ")"; })
     .text(function(d) { return d.data.jobid + " " + (Math.round(d.data.size * 10) / 10); });
 

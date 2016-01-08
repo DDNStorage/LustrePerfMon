@@ -97,9 +97,9 @@ function show_bubble(metrics)
     .style("fill", function(d) { return color(d.packageName); });
 
   new_data.append("text")
-       .attr("dy", ".3em")
-       .style("text-anchor", "middle")
-       .text(function(d) { return d.className.substring(0, d.r / 3) + " " + (Math.round(d.value * 10) / 10)});
+    .attr("dy", ".3em")
+    .style("text-anchor", "middle")
+    .text(function(d) { return d.className.substring(0, d.r / 3) + " " + (Math.round(d.value * 10) / 10)});
 
   update_data = vis.transition();
   update_data

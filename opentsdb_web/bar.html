@@ -128,6 +128,7 @@ function show_bubble(metrics)
 
   new_data.append("text")
     .attr("dy", ".35em")
+    .style("text-anchor", "middle")
     .attr("transform", function(d) { return "translate(" + x.rangeBand() / 2 + "," + 10 + ")"; })
     .text(function(d) { return d.jobid + " " + (Math.round(d.size * 10) / 10); });
 
