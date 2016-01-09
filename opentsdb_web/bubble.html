@@ -109,6 +109,7 @@ function show_bubble(metrics)
   update_data.selectAll("circle")
     .duration(duration)
     .delay(function(d, i) {delay = i * 7; return delay;})
+    .style("fill", function(d) { return color(d.packageName); })
     .attr("r", function(d) { return d.r; });
 
   update_data.selectAll("text")
