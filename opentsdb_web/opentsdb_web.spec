@@ -28,6 +28,7 @@ Web interface for openTSDB
 %{__install} -Dp -m0644 bubble.html %{buildroot}%{webdir}/bubble.html
 %{__install} -Dp -m0644 index.html %{buildroot}%{webdir}/index.html
 %{__install} -Dp -m0644 bar.html %{buildroot}%{webdir}/bar.html
+%{__install} -Dp -m0644 table.html %{buildroot}%{webdir}/table.html
 
 %clean
 
@@ -46,3 +47,4 @@ Web interface for openTSDB
 %{webdir}/bubble.html
 %{webdir}/index.html
 %{webdir}/bar.html
+%{webdir}/table.html

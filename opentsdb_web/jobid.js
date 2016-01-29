@@ -123,7 +123,7 @@ function flush_graph($scope, $http)
   };
 
   $http(options).success(function(response) {
-    show_func(response);
+    $scope.metrics = show_func(response);
   }).error(function(response) {
     $scope.error = response.error;
   });
