@@ -58,10 +58,12 @@ fi
 
 if [ "$DISTRO_RELEASE" = "6" ]; then
 	EXTRA_OPTION="--without turbostat"
+	DIST=".el6"
 elif [ "$DISTRO_RELEASE" = "7" ]; then
 	# ganglia-devel is not available for RHEL7 yet.
 	# memcachec has dependency error
 	EXTRA_OPTION="--without ganglia --without gmond --without memcachec --without rrdcached --without rrdtool"
+	DIST=".el7"
 else
 	echo "$DISTRO_RELEASE is not supported"
 	exit 1
@@ -97,6 +99,7 @@ rpmbuild -ba --without java --without amqp --without nut \
 	$EXTRA_OPTION \
 	--define="rev ${REV}" \
 	--define="_topdir ${TOPDIR}" \
+	--define="dist ${DIST}" \
 	$SOURCEDIR/contrib/redhat/collectd.spec
 
 exit $?
