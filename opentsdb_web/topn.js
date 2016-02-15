@@ -196,7 +196,7 @@ document.write("Topn Number:<input type='text' name='topn' id='topn' oninput='ch
 document.write("Metric Name:<input type='text' name='metric' id='metric' oninput='check_all();'/>");
 document.write("Tags Expression:<input type='text' name='tags' id='tags' oninput='check_all();'/>");
 document.write("Flush Interval:<input type='text' name='flush_interval' id='flush_interval' oninput='check_all();'/>");
-document.write("Flush Interval:<input type='text' name='sort_field' id='sort_field' oninput='check_all();'/>");
+document.write("Sort Tag:<input type='text' name='sort_field' id='sort_field' oninput='check_all();'/>");
 document.write("<input type='submit' value='Flush' id = 'flush'/>");
 document.write("</form>");
 document.write("<div ng-app='myApp' ng-controller='customersCtrl'/>");
