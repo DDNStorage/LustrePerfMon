@@ -10,12 +10,13 @@ text {
 <script src="angular.min.js"></script>
 <script src="//d3js.org/d3.v3.min.js"></script>
 <script src="opentsdb.js"></script>
-<script src="jobid.js"></script>
+<script src="topn.js"></script>
 <script>
-// Returns array of objects with attribute of jobid and size.
+// Returns array of objects with attribute of field and size.
 function get_data_from_metrics(metrics)
 {
   var array = [];
+  var total_size = 0.0
 
   for (var i in metrics) {
     var size = 0.0;
@@ -24,24 +25,24 @@ function get_data_from_metrics(metrics)
       if (metrics[i].dps[j] > 0)
         size += metrics[i].dps[j];
     }
+    total_size += size
 
-    if (size < 0.1)
-      continue;
     array.push({
-      jobid: metrics[i].tags.job_id,
+      field: metrics[i].tags[sort_field],
       size: size,
     });
   }
-  if (array.length == 0) {
+
+  if (total_size < 0.01) {
     array.push({
-      jobid: "Idle",
+      field: "Idle",
       size: 0.01,
     });
   }
 
   array.sort(function(a, b){
-    if(a.jobid < b.jobid) return -1;
-    if(a.jobid > b.jobid) return 1;
+    if(a.field < b.field) return -1;
+    if(a.field > b.field) return 1;
     return 0;
   });
 
@@ -82,42 +83,42 @@ function show_pie(metrics)
   var nodes = pie(get_data_from_metrics(metrics));
 
   var vis = svg.selectAll("g")
-    .data(nodes, function(d) { return d.data.jobid; });
+    .data(nodes, function(d) { return d.data.field; });
 
   /* Update the __data__ for all path and text, anyway to avoid this? */
   svg.selectAll("path")
-    .data(nodes, function(d) { return d.data.jobid; });
+    .data(nodes, function(d) { return d.data.field; });
 
   svg.selectAll("text")
-    .data(nodes, function(d) { return d.data.jobid; });
+    .data(nodes, function(d) { return d.data.field; });
 
   var new_data = vis.enter().append("g");
 
   new_data.append('path')
     .attr("d", arc)
-    .style("fill", function(d) { return color(d.data.jobid); });
+    .style("fill", function(d) { return color(d.data.field); });
 
   new_data.append("text")
     .attr("dy", ".35em")
     .style("text-anchor", "middle")
     .attr("transform", function(d) { return "translate(" + labelArc.centroid(d) + ")"; })
-    .text(function(d) { return d.data.jobid + " " + (Math.round(d.data.size * 10) / 10); });
+    .text(function(d) { return d.data.field + " " + (Math.round(d.data.size * 10) / 10); });
 
   update_data = vis.transition();
   update_data.selectAll("text")
     .attr("transform", function(d) { return "translate(" + labelArc.centroid(d) + ")"; })
-    .text(function(d) { return d.data.jobid + " " + (Math.round(d.data.size * 10) / 10); });
+    .text(function(d) { return d.data.field + " " + (Math.round(d.data.size * 10) / 10); });
 
   update_data.selectAll("path")
     .attr("d", arc)
-    .style("fill", function(d) { return color(d.data.jobid); });
+    .style("fill", function(d) { return color(d.data.field); });
 
   vis.exit().remove();
 }
 
 show_func = show_pie;
 var app = angular.module('myApp', []);
-app.controller('customersCtrl', jobid_control);
+app.controller('customersCtrl', topn_control);
 </script>
 </body>
 

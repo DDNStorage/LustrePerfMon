@@ -11,6 +11,7 @@ var metric = default_metric;
 var query_tags = default_tags;
 var opentsdb_url = "http://ddnlab.imwork.net:4242";
 var flush_interval = default_flush_interval;
+var sort_field = default_sort_field;
 var show_func = function() {
   alert("No show function defined");
 };
@@ -24,6 +25,7 @@ function check_all() {
   var tags_obj = document.getElementById("tags");
   var opentsdb_url_obj = document.getElementById("opentsdb_url");
   var flush_interval_obj = document.getElementById("flush_interval");
+  var sort_field_obj = document.getElementById("sort_field");
   var all_passed = true;
 
   start = start_obj.value;
@@ -73,6 +75,14 @@ function check_all() {
   } else {
     flush_interval_obj.style.background = "white";
   }
+  
+  sort_field = sort_field_obj.value;
+  if (!sort_field_valid(sort_field)) {
+    all_passed = false;
+    sort_field_obj.style.background = "yellow";
+  } else {
+    sort_field_obj.style.background = "white";
+  }
 
   if (all_passed)
     flush_obj.disabled = false;
@@ -90,6 +100,7 @@ function submit_form()
       focusedElement.id != "metric" &&
       focusedElement.id != "tags" &&
       focusedElement.id != "flush_interval" &&
+      focusedElement.id != "sort_field" &&
       check_all())
     document.input.submit();
 }
@@ -103,6 +114,7 @@ function set_form_values()
   var tags_obj = document.getElementById("tags");
   var opentsdb_url_obj = document.getElementById("opentsdb_url");
   var flush_interval_obj = document.getElementById("flush_interval");
+  var sort_field_obj = document.getElementById("sort_field");
 
   start_obj.value = start;
   topn_obj.value = topn;
@@ -110,6 +122,7 @@ function set_form_values()
   tags_obj.value = query_tags;
   opentsdb_url_obj.value = opentsdb_url;
   flush_interval_obj.value = flush_interval;
+  sort_field_obj.value = sort_field;
   flush_obj.focus();
 }
 
@@ -119,7 +132,7 @@ function flush_graph($scope, $http)
     method: 'GET',
     url: opentsdb_url + '/api/query/gexp' + '?start=' +
          start + '&exp=highestCurrent(sum:rate:' + metric + '{' + query_tags +
-         ',job_id=*},' + topn + ')'
+         ',' + sort_field +'=*},' + topn + ')'
   };
 
   $http(options).success(function(response) {
@@ -133,7 +146,7 @@ function flush_graph($scope, $http)
     flush_timer = window.setInterval(flush_graph, flush_interval * 1000, $scope, $http);
 }
 
-function jobid_control($scope, $http)
+function topn_control($scope, $http)
 {
   var url = top.window.location.href;
   var arg_hash = [];
@@ -164,6 +177,9 @@ function jobid_control($scope, $http)
     case "flush_interval":
       flush_interval = get_valid_flush_interval(arg[1]);
       break;
+    case "sort_field":
+      sort_field = get_valid_sort_field(arg[1]);
+      break;
     default:
       alert("Unknown option: \"" + arg[0] + "=\"" + arg[1]);
       break;
@@ -180,6 +196,7 @@ document.write("Topn Number:<input type='text' name='topn' id='topn' oninput='ch
 document.write("Metric Name:<input type='text' name='metric' id='metric' oninput='check_all();'/>");
 document.write("Tags Expression:<input type='text' name='tags' id='tags' oninput='check_all();'/>");
 document.write("Flush Interval:<input type='text' name='flush_interval' id='flush_interval' oninput='check_all();'/>");
+document.write("Flush Interval:<input type='text' name='sort_field' id='sort_field' oninput='check_all();'/>");
 document.write("<input type='submit' value='Flush' id = 'flush'/>");
 document.write("</form>");
 document.write("<div ng-app='myApp' ng-controller='customersCtrl'/>");

@@ -10,13 +10,14 @@ text {
 <script src="angular.min.js"></script>
 <script src="//d3js.org/d3.v3.min.js"></script>
 <script src="opentsdb.js"></script>
-<script src="jobid.js"></script>
+<script src="topn.js"></script>
 <script>
 
-// Returns array of objects with attribute of jobid and size.
+// Returns array of objects with attribute of field and size.
 function get_data_from_metrics(metrics)
 {
   var array = [];
+  var total_size = 0.0
 
   for (var i in metrics) {
     var size = 0.0;
@@ -26,16 +27,16 @@ function get_data_from_metrics(metrics)
       if (metrics[i].dps[j] > 0)
         size += metrics[i].dps[j];
     }
+    total_size += size
 
-    if (size < 0.1)
-      continue;
     array.push({
-      packageName: metrics[i].tags.job_id,
-      className: metrics[i].tags.job_id,
+      packageName: metrics[i].tags[sort_field],
+      className: metrics[i].tags[sort_field],
       value: size,
     });
   }
-  if (array.length == 0) {
+
+  if (total_size < 0.01) {
     array.push({
       packageName: "Idle",
       className: "Idle",
@@ -126,7 +127,7 @@ function show_bubble(metrics)
 
 show_func = show_bubble;
 var app = angular.module('myApp', []);
-app.controller('customersCtrl', jobid_control);
+app.controller('customersCtrl', topn_control);
 </script>
 </body>
 

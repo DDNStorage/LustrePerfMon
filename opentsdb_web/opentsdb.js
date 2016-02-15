@@ -225,11 +225,18 @@ function flush_interval_valid(flush_interval_string) {
   return nonnegative_interger_valid(flush_interval_string);
 }
 
+function sort_field_valid(sort_field_string) {
+  if (sort_field_string == "")
+    return false;
+  return true;
+}
+
 var default_start = "1m-ago"
 var default_topn = "10";
 var default_metric = "ost_jobstats_samples";
 var default_tags = "optype=write_samples";
 var default_flush_interval = "3";
+var default_sort_field = "job_id";
 
 function get_valid_start(start_string) {
   start = start_string;
@@ -300,4 +307,14 @@ function get_valid_flush_interval(flush_interval_string) {
     flush_interval = default_flush_interval;
   }
   return flush_interval;
+}
+
+function get_valid_sort_field(sort_field_string) {
+  sort_field = sort_field_string;
+  if (!sort_field_valid(sort_field)) {
+    alert("Invalid sort field \"" + sort_field + "\" use \"" +
+          default_sort_field + "\" instead");
+    sort_field = default_sort_field;
+  }
+  return sort_field;
 }
