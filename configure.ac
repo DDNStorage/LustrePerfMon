@@ -155,7 +155,6 @@ if [[[ "$DISTRO_RELEASE" != "7" ]]]; then
 	ddn_plugins="ganglia ${ddn_plugins}"
 	common_plugins="rrdtool"
 fi
-common_plugins=""
 plugins="${ddn_plugins} ${common_plugins}"
 for plugin in ${plugins}; do
 	COLLECTD_RPMS="${COLLECTD_RPMS} collectd-${plugin}-${COLLECTD_RPM_SUBFIX}"
