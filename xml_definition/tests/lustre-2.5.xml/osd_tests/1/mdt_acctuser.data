@@ -1,0 +1,5 @@
+usr_accounting:
+- id:      0
+  usage:   { inodes:                  238, kbytes:                 1388 }
+- id:      500
+  usage:   { inodes:                    2, kbytes:                    0 }

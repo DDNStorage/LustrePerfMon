@@ -11,6 +11,78 @@ HEAD(Lustre-2.5)
 		<entry>
 			<subpath>
 				<subpath_type>constant</subpath_type>
+				<path>osd-ldiskfs</path>
+			</subpath>
+			<mode>directory</mode>
+			<entry>
+				<subpath>
+					<subpath_type>regular_expression</subpath_type>
+					<path>(^.+)-(MDT[0-9a-fA-F]+$)</path>
+					<subpath_field>
+						<index>1</index>
+						<name>fs_name</name>
+					</subpath_field>
+					<subpath_field>
+						<index>2</index>
+						<name>mdt_index</name>
+					</subpath_field>
+				</subpath>
+				<mode>directory</mode>
+				<entry>
+					<subpath>
+						<subpath_type>constant</subpath_type>
+						<path>quota_slave</path>
+					</subpath>
+					<mode>directory</mode>
+					<entry>
+						SUBPATH(6, constant, acct_user, 1)
+						MODE(6, file, 1)
+						<item>
+							<name>mdt_acctuser</name>
+							<pattern>- +id: +(.+)
+  usage: +\{ inodes: +([[:digit:]]+), kbytes: +([[:digit:]]+).+</pattern>
+							MDT_ACCTUSER_FIELD(7, 1, user_id, string, derive, 1)
+							MDT_ACCTUSER_FIELD(7, 2, usage_inodes, number, derive, 1)
+							MDT_ACCTUSER_FIELD(7, 3, usage_kbytes, number, derive, 1)
+						</item>
+					</entry>
+				</entry>
+			</entry>
+			<entry>
+				<subpath>
+					<subpath_type>regular_expression</subpath_type>
+					<path>(^.+)-(OST[0-9a-fA-F]+$)</path>
+					<subpath_field>
+						<index>1</index>
+						<name>fs_name</name>
+					</subpath_field>
+					<subpath_field>
+						<index>2</index>
+						<name>ost_index</name>
+					</subpath_field>
+				</subpath>
+				<mode>directory</mode>
+				<entry>
+					SUBPATH(5, constant, quota_slave, 1)
+					MODE(5, directory, 1)
+                                        <entry>
+                                                SUBPATH(6, constant, acct_user, 1)
+                                                MODE(6, file, 1)
+						<item>
+							<name>ost_acctuser</name>
+							<pattern>- +id: +(.+)
+  usage: +\{ inodes: +([[:digit:]]+), kbytes: +([[:digit:]]+).+</pattern>
+							OST_ACCTUSER_FIELD(7, 1, user_id, string, derive, 1)
+							OST_ACCTUSER_FIELD(7, 2, usage_inodes, number, derive, 1)
+							OST_ACCTUSER_FIELD(7, 3, usage_kbytes, number, derive, 1)
+						</item>
+					</entry>
+				</entry>
+			</entry>
+		</entry>
+		<entry>
+			<subpath>
+				<subpath_type>constant</subpath_type>
 				<path>mdt</path>
 			</subpath>
 			<mode>directory</mode>
