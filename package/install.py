@@ -83,7 +83,7 @@ def cleanup_and_exit(ret, failure="some unexpected failure", advices=None):
     """ Print out some messages and exit. """
     LOGGER.error("Aborting because of %s", failure)
     LOGGER.error("Please check log '%s' for more information", LOG_FILENAME)
-    if not advices is None:
+    if advices is not None:
         LOGGER.error("Before trying again, please make sure:")
         for advice in advices:
             LOGGER.error("\t* %s", advice)
