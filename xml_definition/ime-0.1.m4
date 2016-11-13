@@ -5,7 +5,7 @@ HEAD(IME-3.5)
 	<entry>
 		<subpath>
 			<subpath_type>constant</subpath_type>
-			<path>ime-monitor -s P0 --nvm-stat</path>
+			<path>--nvm-stat</path>
 		</subpath>
 		<mode>file</mode>
 		<item>
