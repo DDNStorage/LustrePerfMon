@@ -1,4 +1,8 @@
+if XMLONLY
+SUBDIRS = xml_definition
+else
 SUBDIRS = collectd xml_definition opentsdb_web package .
+endif
 
 EXTRA_DIST = version-gen.sh autogen.sh detect-distro.sh
 
