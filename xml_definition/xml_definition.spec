@@ -1,6 +1,6 @@
 Name:		xml_definition
 Version:	1.0.g%{?rev}.ddn1
-Release:	1%{?dist}
+Release:	1
 Summary:	XML definition files and configure examples
 Group:		Applications/DDN
 License:	Share
@@ -8,6 +8,7 @@ Packager:	Wu Libin <lwu@ddn.com>
 Vendor:		DataDirect Networks
 URL:		http://www.ddn.com/
 Source0:	xml_definition.tar.gz
+BuildArch:	noarch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
 
 %description
