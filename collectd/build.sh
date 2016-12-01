@@ -96,7 +96,7 @@ fi
 
 rpmbuild -ba --without java --without amqp --without nut \
 	--without pinba --without ping --without varnish \
-	--without gps --without ganglia --without dpdkstat \
+	--without gps --without dpdkstat \
 	$EXTRA_OPTION \
 	--define="rev ${REV}" \
 	--define="_topdir ${TOPDIR}" \
