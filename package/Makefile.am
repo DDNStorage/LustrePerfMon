@@ -4,7 +4,7 @@ BUILD_DIRS = RPMS
 
 ORIGIN_COLLECTD_RPMS = $(addprefix ../collectd/RPMS/x86_64/, $(COLLECTD_RPMS))
 GRAFANA_RPM = $(notdir $(GRAFANA_RPM_PATH))
-ORIGIN_XML_DEFINITION_RPMS = $(addprefix ../xml_definition/RPMS/x86_64/, $(XML_DEFINITION_RPMS))
+ORIGIN_XML_DEFINITION_RPMS = $(addprefix ../xml_definition/RPMS/noarch/, $(XML_DEFINITION_RPMS))
 ORIGIN_OPENTSDB_WEB_RPMS = $(addprefix ../opentsdb_web/RPMS/x86_64/, $(OPENTSDB_WEB_RPMS))
 LOCAL_COLLECTD_RPMS = $(addprefix RPMS/, $(COLLECTD_RPMS))
 LOCAL_GRAFANA_RPMS = $(addprefix RPMS/, $(GRAFANA_RPM))
@@ -22,7 +22,7 @@ $(LOCAL_GRAFANA_RPMS): $(GRAFANA_RPM_PATH)
 	cp $(GRAFANA_RPM_PATH) RPMS
 
 $(LOCAL_XML_DEFINITION_RPMS): $(ORIGIN_XML_DEFINITION_RPMS)
-	cp $(addprefix ../xml_definition/RPMS/x86_64/, $(notdir $@)) RPMS
+	cp $(addprefix ../xml_definition/RPMS/noarch/, $(notdir $@)) RPMS
 
 $(LOCAL_OPENTSDB_WEB_RPMS): $(ORIGIN_OPENTSDB_WEB_RPMS)
 	cp $(addprefix ../opentsdb_web/RPMS/x86_64/, $(notdir $@)) RPMS
