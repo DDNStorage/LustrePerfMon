@@ -489,6 +489,13 @@ LoadPlugin lustre
 		Type "ost_filesfree"
 	</Item>
 	<Item>
+		## Used number of inodes for the OST
+		## Entry: ost_filesinfo
+		## Field1: gauge-filesused
+		##         used number of inodes for the OST
+		Type "ost_filesused"
+	</Item>
+	<Item>
 		## Total kbytes of the OST
 		## Entry: ost_kbytesinfo
 		## Field1: gauge-kbytestotal
@@ -501,6 +508,13 @@ LoadPlugin lustre
 		## Field1: gauge-kbytesfree
 		##         Free kbytes the OST
 		Type "ost_kbytesfree"
+	</Item>
+	<Item>
+		## Used kbytes of the OST
+		## Entry: ost_kbytesinfo
+		## Field1: gauge-kbytesused
+		##         used kbytes the OST
+		Type "ost_kbytesused"
 	</Item>
 	<Item>
 		## Available kbytes of the OST, some block may be reserved, so
@@ -525,6 +539,13 @@ LoadPlugin lustre
 		Type "mdt_filesfree"
 	</Item>
 	<Item>
+		## Used number of inodes for the MDT
+		## Entry: mdt_filesinfo
+		## Field1: gauge-filesused
+		##         used number of inodes for the MDT
+		Type "mdt_filesused"
+	</Item>
+	<Item>
 		## Total kbytes of the MDT
 		## Entry: mdt_kbytesinfo
 		## Field1: gauge-kbytestotal
@@ -537,6 +558,13 @@ LoadPlugin lustre
 		## Field1: gauge-kbytesfree
 		##         Free kbytes the MDT
 		Type "mdt_kbytesfree"
+	</Item>
+	<Item>
+		## Used kbytes of the MDT
+		## Entry: mdt_kbytesinfo
+		## Field1: gauge-kbytesused
+		##         used kbytes the MDT
+		Type "mdt_kbytesused"
 	</Item>
 	<Item>
 		## Available kbytes of the MDT, some block may be reserved, so

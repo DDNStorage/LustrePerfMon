@@ -54,8 +54,10 @@ dnl $4: is first child of parent ELEMENT
 define(`FILES_KBYTES_INFO_ENTRIES',
 `CONSTANT_FILE_ENTRY($1, filestotal, $2_filestotal, (.+), number, ${key:hostname}, $3, filesinfo, gauge, filestotal, $2_filesinfo_total, fs_name=${subpath:fs_name} $2_index=${subpath:$2_index}, 1)
 CONSTANT_FILE_ENTRY($1, filesfree, $2_filesfree, (.+), number, ${key:hostname}, $3, filesinfo, gauge, filesfree, $2_filesinfo_free, fs_name=${subpath:fs_name} $2_index=${subpath:$2_index}, 0)
+CONSTANT_FILE_ENTRY($1, filesused, $2_filesused, (.+), number, ${key:hostname}, $3, filesinfo, gauge, filesused, $2_filesinfo_used, fs_name=${subpath:fs_name} $2_index=${subpath:$2_index}, 0)
 CONSTANT_FILE_ENTRY($1, kbytestotal, $2_kbytestotal, (.+), number, ${key:hostname}, $3, kbytesinfo, gauge, kbytestotal, $2_kbytesinfo_total, fs_name=${subpath:fs_name} $2_index=${subpath:$2_index}, 0)
 CONSTANT_FILE_ENTRY($1, kbytesfree, $2_kbytesfree, (.+), number, ${key:hostname}, $3, kbytesinfo, gauge, kbytesfree, $2_kbytesinfo_free, fs_name=${subpath:fs_name} $2_index=${subpath:$2_index}, 0)
+CONSTANT_FILE_ENTRY($1, kbytesused, $2_kbytesused, (.+), number, ${key:hostname}, $3, kbytesinfo, gauge, kbytesused, $2_kbytesinfo_used, fs_name=${subpath:fs_name} $2_index=${subpath:$2_index}, 0)
 CONSTANT_FILE_ENTRY($1, kbytesavail, $2_kbytesavail, (.+), number, ${key:hostname}, $3, kbytesinfo, gauge, kbytesavail, $2_kbytesinfo_avail, fs_name=${subpath:fs_name} $2_index=${subpath:$2_index}, 0)')dnl
 dnl
 dnl $1: number of INDENT
