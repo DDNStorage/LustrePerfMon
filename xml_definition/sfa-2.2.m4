@@ -34,7 +34,7 @@ define(`PD_LATENCY',
         `NAME($1 + 1, pd_$2_latency, 1)
 CONTEXT($1 + 1, `^Physical Disk $3 Latency.+
 (.+
-)*$', 0)
+)*', 0)
 PATTERN($1 + 1, `^ +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+)', 0)
 FIELD($1 + 1, 1, disk_index, string, pd_latency, ${content:disk_index}, $2, gauge, disk_index, pd_latency, type=$2 time=disk_index disk_index=${content:disk_index}, 0)
 FIELD($1 + 1, 2, avg, number, pd_latency, ${content:disk_index}, $2, gauge, avg, pd_latency, type=$2 time=avg disk_index=${content:disk_index}, 0)
@@ -63,7 +63,7 @@ define(`IOSIZE',
         `NAME($1 + 1, $2_$4_iosize, 1)
 CONTEXT($1 + 1, `^$3 Disk $5 IO Size.+
 (.+
-)*$', 0)
+)*', 0)
 PATTERN($1 + 1, `^ +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+)', 0)
 FIELD($1 + 1, 1, disk_index, string, $2_iosize, ${content:disk_index}, $4, gauge, disk_index, $2_iosize, type=$4 iosize=disk_index disk_index=${content:disk_index}, 0)
 FIELD($1 + 1, 2, le4KiB, number, $2_iosize, ${content:disk_index}, $4, gauge, le4KiB, $2_iosize, type=$4 iosize=le4KiB disk_index=${content:disk_index}, 0)
@@ -89,7 +89,7 @@ define(`VD_LATENCY',
         `NAME($1 + 1, vd_$2_latency, 1)
 CONTEXT($1 + 1, `^Virtual Disk $3 Latency.+
 (.+
-)*$', 0)
+)*', 0)
 PATTERN($1 + 1, `^ +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+)', 0)
 FIELD($1 + 1, 1, disk_index, string, vd_latency, ${content:disk_index}, $2, gauge, disk_index, vd_latency, type=$2 time=disk_index disk_index=${content:disk_index}, 0)
 FIELD($1 + 1, 2, avg, number, vd_latency, ${content:disk_index}, $2, gauge, avg, vd_latency, type=$2 time=avg disk_index=${content:disk_index}, 0)
