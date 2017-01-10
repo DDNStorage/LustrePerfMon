@@ -41,9 +41,9 @@ HEAD(Lustre-ieel-2.5)
 							<name>mdt_acctuser</name>
 							<pattern>- +id: +(.+)
   usage: +\{ inodes: +([[:digit:]]+), kbytes: +([[:digit:]]+).+</pattern>
-							MDT_ACCTUSER_FIELD(7, 1, user_id, string, derive, 1)
-							MDT_ACCTUSER_FIELD(7, 2, usage_inodes, number, derive, 1)
-							MDT_ACCTUSER_FIELD(7, 3, usage_kbytes, number, derive, 1)
+							MDT_ACCTUSER_FIELD(7, 1, user_id, string, gauge, 1)
+							MDT_ACCTUSER_FIELD(7, 2, usage_inodes, number, gauge, 1)
+							MDT_ACCTUSER_FIELD(7, 3, usage_kbytes, number, gauge, 1)
 						</item>
 					</entry>
 				</entry>
@@ -72,9 +72,9 @@ HEAD(Lustre-ieel-2.5)
 							<name>ost_acctuser</name>
 							<pattern>- +id: +(.+)
   usage: +\{ inodes: +([[:digit:]]+), kbytes: +([[:digit:]]+).+</pattern>
-							OST_ACCTUSER_FIELD(7, 1, user_id, string, derive, 1)
-							OST_ACCTUSER_FIELD(7, 2, usage_inodes, number, derive, 1)
-							OST_ACCTUSER_FIELD(7, 3, usage_kbytes, number, derive, 1)
+							OST_ACCTUSER_FIELD(7, 1, user_id, string, gauge, 1)
+							OST_ACCTUSER_FIELD(7, 2, usage_inodes, number, gauge, 1)
+							OST_ACCTUSER_FIELD(7, 3, usage_kbytes, number, gauge, 1)
 						</item>
 					</entry>
 				</entry>
