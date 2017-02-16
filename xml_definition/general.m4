@@ -172,6 +172,27 @@ PATTERN($1+1, $4, 0)
 FIELD($1+1, 1, $2, $5, $6, $7, $8, $9, $10, $11, $12, 0), $13)')dnl
 dnl
 dnl $1: number of INDENT
+dnl $2: value of start string
+dnl $3: is first child of parent ELEMENT
+define(`START_STRING',
+        `ELEMENT_ONELINE($1, start_string, $2, $3)')dnl
+dnl
+dnl $1: number of INDENT
+dnl $2: value of end string
+dnl $3: is first child of parent ELEMENT
+define(`END_STRING',
+        `ELEMENT_ONELINE($1, end_string, $2, $3)')dnl
+dnl
+dnl $1: number of INDENT
+dnl $2: value of start string
+dnl $3: value of end string
+dnl $4: is first child of parent ELEMENT
+define(`CONTEXT_SUBTYPE',
+	`ELEMENT($1, context,
+START_STRING($1+1, $2, 1)
+END_STRING($1+1, $3, 0), $4)')dnl
+dnl
+dnl $1: number of INDENT
 dnl $2: path of entry, name of field use this value
 dnl $3: item name
 dnl $4: item pattern

@@ -84,12 +84,11 @@ dnl $1: number of INDENT
 dnl $2: type of VD_LATENCY, read or write
 dnl $3: Type of VD_LATENCY, Read or Write
 dnl $4: is first child of parent ELEMENT
+dnl $5: context end string
 define(`VD_LATENCY',
         `ELEMENT($1, item,
         `NAME($1 + 1, vd_$2_latency, 1)
-CONTEXT($1 + 1, `^Virtual Disk $3 Latency.+
-(.+
-)*', 0)
+CONTEXT_SUBTYPE($1 + 1, `Virtual Disk $3 Latency', $5, 0)
 PATTERN($1 + 1, `^ +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+)', 0)
 FIELD($1 + 1, 1, disk_index, string, ${extra_tag:extrahost}, vd_latency_${content:disk_index}, $2, gauge, disk_index, vd_latency, type=$2 latency=disk_index disk_index=${content:disk_index}, 0)
 FIELD($1 + 1, 2, avg, number, ${extra_tag:extrahost}, vd_latency_${content:disk_index}, $2, gauge, avg, vd_latency, type=$2 latency=avg disk_index=${content:disk_index}, 0)
@@ -116,8 +115,8 @@ HEAD(SFA-0.1)
 		</subpath>
 		<mode>file</mode>
 		DISK_RATE(2, vd, 1)
-		VD_LATENCY(2, read, Read, 1)
-		VD_LATENCY(2, write, Write, 1)
+		VD_LATENCY(2, read, Read, 1, `Virtual Disk Write Latency')
+		VD_LATENCY(2, write, Write, 1, `Virtual Disk Read IO Size')
 		IOSIZE(2, vd, Virtual, read, Read, 1)
 		IOSIZE(2, vd, Virtual, write, Write, 1)
 	</entry>
