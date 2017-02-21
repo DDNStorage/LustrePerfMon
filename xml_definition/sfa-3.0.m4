@@ -4,9 +4,12 @@ dnl definition of DISK_RATE
 dnl $1: number of INDENT
 dnl $2: name of DISK_RATE
 dnl $3: is first child of parent ELEMENT
+dnl $4: name of DISK_RATE, Virtual or Physical
+dnl $5: context end string
 define(`DISK_RATE',
         `ELEMENT($1, item,
         `NAME($1 + 1, $2_c_rates, 1)
+CONTEXT_SUBTYPE($1 + 1, `$4 Disk Counters:', $5, 0)
 PATTERN($1 + 1, `^ +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+)\| +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+)\|', 0)
 FIELD($1 + 1, 1, disk_index, string, ${extra_tag:extrahost}, $2_rate_${content:disk_index}, controller0, gauge, disk_index, $2_rate, type=disk_index controller=0 disk_index=${content:disk_index}, 0)
 FIELD($1 + 1, 2, controller0_iops, number, ${extra_tag:extrahost}, $2_rate_${content:disk_index}, controller0, gauge, iops, $2_rate, type=iops controller=0 disk_index=${content:disk_index}, 0)
@@ -29,12 +32,11 @@ dnl $1: number of INDENT
 dnl $2: type of PD_LATENCY, read or write
 dnl $3: Type of PD_LATENCY, Read or Write
 dnl $4: is first child of parent ELEMENT
+dnl $5: context end string
 define(`PD_LATENCY',
         `ELEMENT($1, item,
         `NAME($1 + 1, pd_$2_latency, 1)
-CONTEXT($1 + 1, `^Physical Disk $3 Latency.+
-(.+
-)*', 0)
+CONTEXT_SUBTYPE($1 + 1, `Physical Disk $3 Latency', $5, 0)
 PATTERN($1 + 1, `^ +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+)', 0)
 FIELD($1 + 1, 1, disk_index, string, ${extra_tag:extrahost}, pd_latency_${content:disk_index}, $2, gauge, disk_index, pd_latency, type=$2 latency=disk_index disk_index=${content:disk_index}, 0)
 FIELD($1 + 1, 2, avg, number, ${extra_tag:extrahost}, pd_latency_${content:disk_index}, $2, gauge, avg, pd_latency, type=$2 latency=avg disk_index=${content:disk_index}, 0)
@@ -61,9 +63,7 @@ dnl $6: is first child of parent ELEMENT
 define(`IOSIZE',
         `ELEMENT($1, item,
         `NAME($1 + 1, $2_$4_iosize, 1)
-CONTEXT($1 + 1, `^$3 Disk $5 IO Size.+
-(.+
-)*', 0)
+CONTEXT_SUBTYPE($1 + 1, `$3 Disk $5 IO Size', $7, 0)
 PATTERN($1 + 1, `^ +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+)', 0)
 FIELD($1 + 1, 1, disk_index, string, ${extra_tag:extrahost}, $2_iosize_${content:disk_index}, $4, gauge, disk_index, $2_iosize, type=$4 iosize=disk_index disk_index=${content:disk_index}, 0)
 FIELD($1 + 1, 2, le4KiB, number, ${extra_tag:extrahost}, $2_iosize_${content:disk_index}, $4, gauge, le4KiB, $2_iosize, type=$4 iosize=le4KiB disk_index=${content:disk_index}, 0)
@@ -107,18 +107,18 @@ FIELD($1 + 1, 14, gt16s, number, ${extra_tag:extrahost}, vd_latency_${content:di
 dnl
 HEAD(SFA-0.1)
 <definition>
-	<version>0.1</version>
+	<version>3.0</version>
 	<entry>
 		<subpath>
 			<subpath_type>constant</subpath_type>
 			<path>show vd c all</path>
 		</subpath>
 		<mode>file</mode>
-		DISK_RATE(2, vd, 1)
+		DISK_RATE(2, vd, 1, `Virtual', `Virtual Disk Read Latency')
 		VD_LATENCY(2, read, Read, 1, `Virtual Disk Write Latency')
 		VD_LATENCY(2, write, Write, 1, `Virtual Disk Read IO Size')
-		IOSIZE(2, vd, Virtual, read, Read, 1)
-		IOSIZE(2, vd, Virtual, write, Write, 1)
+		IOSIZE(2, vd, Virtual, read, Read, 1, `Virtual Disk Write IO Size')
+		IOSIZE(2, vd, Virtual, write, Write, 1, `')
 	</entry>
 	<entry>
 		<subpath>
@@ -126,10 +126,10 @@ HEAD(SFA-0.1)
 			<path>show pd c all</path>
 		</subpath>
 		<mode>file</mode>
-		DISK_RATE(2, pd, 1)
-		PD_LATENCY(2, read, Read, 1)
-		PD_LATENCY(2, write, Write, 1)
-		IOSIZE(2, pd, Physical, read, Read, 1)
-		IOSIZE(2, pd, Physical, write, Write, 1)
+		DISK_RATE(2, pd, 1, `Physical', `Physical Disk Read Latency')
+		PD_LATENCY(2, read, Read, 1, `Physical Disk Write Latency')
+		PD_LATENCY(2, write, Write, 1, `Physical Disk Read IO Size')
+		IOSIZE(2, pd, Physical, read, Read, 1, `Physical Disk Write IO Size')
+		IOSIZE(2, pd, Physical, write, Write, 1, `')
 	</entry>
 </definition>

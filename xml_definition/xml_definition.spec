@@ -27,7 +27,7 @@ This package includes XML definition files and configure examples for monitor sy
 %{__install} -Dp -m0644 lustre-ieel-2.5.xml %{buildroot}%{_sysconfdir}/lustre-ieel-2.5_definition.xml
 %{__install} -Dp -m0644 lustre-ieel-2.7.xml %{buildroot}%{_sysconfdir}/lustre-ieel-2.7_definition.xml
 %{__install} -Dp -m0644 gpfs-3.5.xml %{buildroot}%{_sysconfdir}/gpfs-3.5_definition.xml
-%{__install} -Dp -m0644 sfa-2.2.xml %{buildroot}%{_sysconfdir}/sfa-2.2_definition.xml
+%{__install} -Dp -m0644 sfa-3.0.xml %{buildroot}%{_sysconfdir}/sfa-3.0_definition.xml
 %{__install} -Dp -m0644 collectd.conf.all %{buildroot}%{_sysconfdir}/collectd.conf.all
 %{__install} -Dp -m0644 ime-0.1.xml %{buildroot}%{_sysconfdir}/ime-0.1_definition.xml
 
@@ -48,11 +48,13 @@ This package includes XML definition files and configure examples for monitor sy
 %{_sysconfdir}/lustre-ieel-2.5_definition.xml
 %{_sysconfdir}/lustre-ieel-2.7_definition.xml
 %{_sysconfdir}/gpfs-3.5_definition.xml
-%{_sysconfdir}/sfa-2.2_definition.xml
+%{_sysconfdir}/sfa-3.0_definition.xml
 %{_sysconfdir}/collectd.conf.all
 %{_sysconfdir}/ime-0.1_definition.xml
 
 %changelog
+* Tue Feb 21 2017 Wang Shilong <wshilong@ddn.com> 3.0
+- Bump version of sfa XML.
 * Sun Aug 17 2014 Li Xi <lixi@ddn.com> 1.0
 - Add version support for building RPMs
 * Wed Aug 13 2014 Li Xi <lixi@ddn.com> 1.0
