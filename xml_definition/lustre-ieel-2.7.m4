@@ -462,24 +462,42 @@ HEAD(Lustre-ieel-2.5)
 			<entry>
 				<subpath>
 					<subpath_type>constant</subpath_type>
-					<path>services</path>
+					<path>namespaces</path>
 				</subpath>
 				<mode>directory</mode>
 				<entry>
 					<subpath>
-						<subpath_type>constant</subpath_type>
-						<path>ldlm_canceld</path>
+						<subpath_type>regular_expression</subpath_type>
+						<path>^filter-(.+)-(OST[0-9a-fA-F]+)_UUID/pool$</path>
+						<subpath_field>
+							<index>1</index>
+							<name>fs_name</name>
+						</subpath_field>
+						<subpath_field>
+							<index>2</index>
+							<name>ost_index</name>
+						</subpath_field>
 					</subpath>
 					<mode>directory</mode>
-					THREAD_INFO_ENTRIES(5, ldlm_cancel, ldlm_service, lock_cancel, gauge, 1)
-				</entry>
-				<entry>
-					<subpath>
-						<subpath_type>constant</subpath_type>
-						<path>ldlm_cbd</path>
-					</subpath>
-					<mode>directory</mode>
-					THREAD_INFO_ENTRIES(5, ldlm_cbd, ldlm_service, lock_grant, gauge, 1)
+                                </entry>
+                                <entry>
+                                        <!-- ldlm_stats_counter_init() -->
+                                        <subpath>
+                                                <subpath_type>constant</subpath_type>
+                                                <path>stats</path>
+                                        </subpath>
+                                        <mode>file</mode>
+                                        LDLM_STATS_ITEM(5, granted, 1)
+                                        LDLM_STATS_ITEM(5, grant, 1)
+                                        LDLM_STATS_ITEM(5, cancel, 1)
+                                        LDLM_STATS_ITEM(5, grant_rate, 1)
+                                        LDLM_STATS_ITEM(5, cancel_rate, 1)
+                                        LDLM_STATS_ITEM(5, grant_plan, 1)
+                                        LDLM_STATS_ITEM(5, slv, 1)
+                                        LDLM_STATS_ITEM(5, shrink_request, 1)
+                                        LDLM_STATS_ITEM(5, shrink_freed, 1)
+                                        LDLM_STATS_ITEM(5, recalc_freed, 1)
+                                        LDLM_STATS_ITEM(5, recalc_timing, 1)
 				</entry>
 			</entry>
 		</entry>
