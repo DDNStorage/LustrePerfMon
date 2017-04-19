@@ -382,3 +382,21 @@ dnl $5: type OPTION
 dnl $6: is first child of parent ELEMENT
 define(`OST_ACCTPROJECT_FIELD',
         `ACCTQUOTA_FIELD($1, $2, $3, $4, $5, ost, samples, project, $6)')dnl
+dnl
+dnl $1: number of INDENT
+dnl $2: index of FIELD
+dnl $3: name of FIELD
+dnl $4: type of FIELD
+dnl $5: type OPTION
+define(`LDLM_STATS_FIELD',
+	`ELEMENT($1, field,
+	`INDEX($1 + 1, $2, 1)
+NAME($1 + 1, $3, 0)
+TYPE($1 + 1, $4, 0)
+OPTION($1 + 1, host, ${key:hostname}, 0)
+OPTION($1 + 1, plugin, ${subpath:fs_name}-${subpath:ost_index}, 0)
+OPTION($1 + 1, plugin_instance, ldlm_stats_$3, 0)
+OPTION($1 + 1, type, $5, 0)
+OPTION($1 + 1, type_instance, $3, 0)
+OPTION($1 + 1, tsdb_name, ldlm_stats, 0)
+OPTION($1 + 1, tsdb_tags, optype=$3 fs_name=${subpath:fs_name} ost_index=${subpath:ost_index}, 0)', 1)')dnl

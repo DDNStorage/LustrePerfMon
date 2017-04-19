@@ -468,7 +468,7 @@ HEAD(Lustre-ieel-2.5)
 				<entry>
 					<subpath>
 						<subpath_type>regular_expression</subpath_type>
-						<path>^filter-(.+)-(OST[0-9a-fA-F]+)_UUID/pool$</path>
+						<path>^filter-(.+)-(OST[0-9a-fA-F]+)_UUID$</path>
 						<subpath_field>
 							<index>1</index>
 							<name>fs_name</name>
@@ -479,25 +479,44 @@ HEAD(Lustre-ieel-2.5)
 						</subpath_field>
 					</subpath>
 					<mode>directory</mode>
-                                </entry>
-                                <entry>
-                                        <!-- ldlm_stats_counter_init() -->
-                                        <subpath>
-                                                <subpath_type>constant</subpath_type>
-                                                <path>stats</path>
-                                        </subpath>
-                                        <mode>file</mode>
-                                        LDLM_STATS_ITEM(5, granted, 1)
-                                        LDLM_STATS_ITEM(5, grant, 1)
-                                        LDLM_STATS_ITEM(5, cancel, 1)
-                                        LDLM_STATS_ITEM(5, grant_rate, 1)
-                                        LDLM_STATS_ITEM(5, cancel_rate, 1)
-                                        LDLM_STATS_ITEM(5, grant_plan, 1)
-                                        LDLM_STATS_ITEM(5, slv, 1)
-                                        LDLM_STATS_ITEM(5, shrink_request, 1)
-                                        LDLM_STATS_ITEM(5, shrink_freed, 1)
-                                        LDLM_STATS_ITEM(5, recalc_freed, 1)
-                                        LDLM_STATS_ITEM(5, recalc_timing, 1)
+					<entry>
+						<subpath>
+							<subpath_type>constant</subpath_type>
+							<path>pool</path>
+						</subpath>
+						<mode>directory</mode>
+						<entry>
+							<!-- ldlm_stats_counter_init() -->
+							<subpath>
+								<subpath_type>constant</subpath_type>
+								<path>stats</path>
+							</subpath>
+							<mode>file</mode>
+							<item>
+								<name>ldlm_stats</name>
+								<pattern>snapshot_time             +([[:digit:]]+).+
+granted                   +[[:digit:]]+ samples \[locks\] +([[:digit:]]+).+
+grant                     +[[:digit:]]+ samples \[locks\] +([[:digit:]]+).+
+cancel                    +[[:digit:]]+ samples \[locks\] +([[:digit:]]+).+
+grant_rate                +[[:digit:]]+ samples \[locks\/s\] +([[:digit:]]+).+
+cancel_rate               +[[:digit:]]+ samples \[locks\/s\] +([[:digit:]]+).+
+grant_plan                +[[:digit:]]+ samples \[locks\/s\] +([[:digit:]]+).+
+slv                       +[[:digit:]]+ samples \[slv\] +([[:digit:]]+).+
+recalc_freed              +[[:digit:]]+ samples \[locks\] +([[:digit:]]+).+
+recalc_timing             +[[:digit:]]+ samples \[sec\] +([[:digit:]]+).+</pattern>
+								LDLM_STATS_FIELD(8, 1, snapshot_time, number, gauge)
+								LDLM_STATS_FIELD(8, 2, granted, number, gauge)
+								LDLM_STATS_FIELD(8, 3, grant, number, gauge)
+								LDLM_STATS_FIELD(8, 4, cancel, number, gauge)
+								LDLM_STATS_FIELD(8, 5, grant_rate, number, gauge)
+								LDLM_STATS_FIELD(8, 6, cancel_rate, number, gauge)
+								LDLM_STATS_FIELD(8, 7, grant_plan, number, gauge)
+								LDLM_STATS_FIELD(8, 8, slv, number, gauge)
+								LDLM_STATS_FIELD(8, 9, recalc_freed, number, gauge)
+								LDLM_STATS_FIELD(8, 10, recalc_timing, number, gauge)
+							</item>
+						</entry>
+					</entry>
 				</entry>
 			</entry>
 		</entry>
