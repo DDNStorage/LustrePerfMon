@@ -159,7 +159,7 @@ if [[[ $enable_xmlonly == 'no' ]]]; then
 	for base in ${bases}; do
 		COLLECTD_RPMS="${COLLECTD_RPMS} ${base}-${COLLECTD_RPM_SUBFIX}"
 	done
-	ddn_plugins="gpfs ime lustre stress zabbix ssh"
+	ddn_plugins="gpfs ime filedata stress zabbix ssh"
 	# REHL7 does not hace ganglia support yet.
 	if [[[ "$DISTRO_RELEASE" != "7" ]]]; then
 		ddn_plugins="ganglia ${ddn_plugins}"
