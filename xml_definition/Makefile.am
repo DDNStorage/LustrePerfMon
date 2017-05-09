@@ -17,7 +17,7 @@ $(XML_DESTINE_FILES): $(M4_FILES)
 	m4 $(@:.xml=.m4) > $@.tmp
 	xmllint $@.tmp > /dev/null
 	if [ "$enable_test" != yes "${DISTRO_RELEASE}" != 5 ]; then \
-		@PYTHON@ test_driver.py --xml_path $@.tmp --test_name $@ --exit_on_error; \
+		@PYTHON@ test_driver.py tests/$(basename $@)/preset.xml $@.tmp; \
 	else \
 		echo "Skip test of $@"; \
 	fi
