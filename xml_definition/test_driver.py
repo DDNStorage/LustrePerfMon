@@ -28,7 +28,7 @@ def parse_rrd(rrd):
 
 	return tree.find("ds").find("last_ds").text.strip().split('.')[0]
 
-def check_result(logger, dmission, host, tests):
+def check_result(logger, dmission, tests):
 	failures = 0
 	missings = 0
 	successes = 0
@@ -39,7 +39,7 @@ def check_result(logger, dmission, host, tests):
 		failed = False
 		succeeded = False
 
-		for rrd in glob.iglob(path.join(dmission, host, test_path)):
+		for rrd in glob.iglob(path.join(dmission, test_path)):
 			content = parse_rrd(rrd)
 			match = re.match(test_pattern, content)
 			if match == None or match.end(0) != len(content):
@@ -211,7 +211,7 @@ def run():
 	# Let's wait for collectd to get the desired metrics.
 	time.sleep(interval * 2 + 3)
 	collectd.stop()
-	failures, missings, successes = check_result(logger, dtemp, host, tests)
+	failures, missings, successes = check_result(logger, dtemp, tests)
 
 	logger.error("total %d, failed: %d, missing: %d, success: %d" %
 		     (failures + missings + successes,
