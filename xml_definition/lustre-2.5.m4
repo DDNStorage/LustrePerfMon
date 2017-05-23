@@ -257,7 +257,7 @@ HEAD(Lustre-2.5)
 						OST_JOBSTAT_FIELD(6, 11, create, number, derive, 1)
 						OST_JOBSTAT_FIELD(6, 12, statfs, number, derive, 1)
 						OST_JOBSTAT_FIELD(6, 13, get_info, number, derive, 1)
-						OST_JOBSTAT_FIELD(6, 14, punch, number, derive, 1)
+						OST_JOBSTAT_FIELD(6, 14, set_info, number, derive, 1)
 						OST_JOBSTAT_FIELD(6, 15, quotactl, number, derive, 1)
 					</item>
 				</entry>
