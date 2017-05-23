@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<preset>
+	<definition>../../sfa-3.0.xml</definition>
+	<content>content</content>
+	<tests>tests.xml</tests>
+</preset>

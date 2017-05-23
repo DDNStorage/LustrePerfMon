@@ -96,6 +96,7 @@ LoadPlugin filedata
 <Plugin filedata>
 	<Common>
 		DefinitionFile "%s"
+		Extra_tags "extrahost=collection"
 		Rootpath "%s"
 	</Common>
 """ % (interval, host, log, data, definition, root))
