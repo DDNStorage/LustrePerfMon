@@ -1,0 +1,19 @@
+job_stats:
+- job_id:          root
+  snapshot_time:   1496031338
+  open:            { samples:     2116165, unit:  reqs }
+  close:           { samples:     1553912, unit:  reqs }
+  mknod:           { samples:           0, unit:  reqs }
+  link:            { samples:      534822, unit:  reqs }
+  unlink:          { samples:      378793, unit:  reqs }
+  mkdir:           { samples:        2254, unit:  reqs }
+  rmdir:           { samples:           0, unit:  reqs }
+  rename:          { samples:           0, unit:  reqs }
+  getattr:         { samples:     3022061, unit:  reqs }
+  setattr:         { samples:     1116677, unit:  reqs }
+  getxattr:        { samples:      202863, unit:  reqs }
+  setxattr:        { samples:           0, unit:  reqs }
+  statfs:          { samples:    11814475, unit:  reqs }
+  sync:            { samples:           0, unit:  reqs }
+  samedir_rename:  { samples:           0, unit:  reqs }
+  crossdir_rename: { samples:           0, unit:  reqs }

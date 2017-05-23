@@ -1,0 +1,15 @@
+job_stats:
+- job_id:          root
+  snapshot_time:   1495525343
+  read_bytes:      { samples:       13666, unit: bytes, min: 1048576, max: 2097152, sum:     14330888192 }
+  write_bytes:     { samples:        4168, unit: bytes, min:     140, max:16777216, sum:     67455942796 }
+  getattr:         { samples:           0, unit:  reqs }
+  setattr:         { samples:           0, unit:  reqs }
+  punch:           { samples:           3, unit:  reqs }
+  sync:            { samples:           2, unit:  reqs }
+  destroy:         { samples:           0, unit:  reqs }
+  create:          { samples:           0, unit:  reqs }
+  statfs:          { samples:         233, unit:  reqs }
+  get_info:        { samples:           0, unit:  reqs }
+  set_info:        { samples:           0, unit:  reqs }
+  quotactl:        { samples:          31, unit:  reqs }
