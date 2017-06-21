@@ -11,7 +11,7 @@ M4_FILES = general.m4 lustre.m4 $(M4_DESTINE_FILES)
 XML_DESTINE_FILES=$(M4_DESTINE_FILES:.m4=.xml)
 
 noinst_DATA = $(BUILD_DIRS) $(XML_DEFINITION_RPMS) $(M4_FILES) test_driver.py \
-	xml_definition.spec tests/lustre-2.5.xml
+	xml_definition.spec tests/lustre-2.5
 
 $(XML_DESTINE_FILES): $(M4_FILES)
 	m4 $(@:.xml=.m4) > $@.tmp

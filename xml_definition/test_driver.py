@@ -46,18 +46,17 @@ def check_result(logger, dmission, host, tests):
 				logger.info("FAIL: rrdtool file: '%s', Got: '%s', Expected '%s'" %
 					    (rrd, content, test_pattern))
 				failed = True
-			else:
+			elif not failed:
 				succeeded = True
 
 		if succeeded:
 			successes += 1
+		elif failed:
+			failures += 1
 		else:
-			if failed:
-				failures += 1
-			else:
-				logger.info("MISSING: rrdtool file '%s' does not exist" %
-					    test_path)
-				missings += 1
+			logger.info("MISSING: rrdtool file '%s' does not exist" %
+				    test_path)
+			missings += 1
 
 	return failures, missings, successes
 
@@ -139,7 +138,7 @@ def parse_inputs():
 			elif root.tag == "definition":
 				definition = arg
 			elif root.tag == "tests":
-				tests = content
+				tests = root
 
 	if preset != None:
 		preset_definition, preset_content, preset_tests = \
@@ -217,7 +216,7 @@ def run():
 	logger.error("total %d, failed: %d, missing: %d, success: %d" %
 		     (failures + missings + successes,
                       failures, missings, successes))
-	if failures:
+	if failures or missings:
 		sys.exit(1)
 
 run()

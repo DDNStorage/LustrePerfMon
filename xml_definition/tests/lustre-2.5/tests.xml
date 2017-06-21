@@ -3,97 +3,97 @@
 	<!-- md -->
 	<test>
 		<name>md_stats_open</name>
-		<path>lustre-MDT0000-md_stats/derive-open.rrd</path>
+		<path>collection/lustre-MDT0000-md_stats/derive-open.rrd</path>
 		<type>derive</type>
 		<pattern>1303</pattern>
 	</test>
 	<test>
 		<name>md_stats_close</name>
-		<path>lustre-MDT0000-md_stats/derive-close.rrd</path>
+		<path>collection/lustre-MDT0000-md_stats/derive-close.rrd</path>
 		<type>derive</type>
 		<pattern>1108</pattern>
 	</test>
 	<test>
 		<name>md_stats_mknod</name>
-		<path>lustre-MDT0000-md_stats/derive-mknod.rrd</path>
+		<path>collection/lustre-MDT0000-md_stats/derive-mknod.rrd</path>
 		<type>derive</type>
 		<pattern>4</pattern>
 	</test>
 	<test>
 		<name>md_stats_link</name>
-		<path>lustre-MDT0000-md_stats/derive-link.rrd</path>
+		<path>collection/lustre-MDT0000-md_stats/derive-link.rrd</path>
 		<type>derive</type>
 		<pattern>2</pattern>
 	</test>
 	<test>
 		<name>md_stats_unlink</name>
-		<path>lustre-MDT0000-md_stats/derive-unlink.rrd</path>
+		<path>collection/lustre-MDT0000-md_stats/derive-unlink.rrd</path>
 		<type>derive</type>
 		<pattern>1111111</pattern>
 	</test>
 	<test>
 		<name>md_stats_mkdir</name>
-		<path>lustre-MDT0000-md_stats/derive-mkdir.rrd</path>
+		<path>collection/lustre-MDT0000-md_stats/derive-mkdir.rrd</path>
 		<type>derive</type>
 		<pattern>53</pattern>
 	</test>
 	<test>
 		<name>md_stats_rmdir</name>
-		<path>lustre-MDT0000-md_stats/derive-rmdir.rrd</path>
+		<path>collection/lustre-MDT0000-md_stats/derive-rmdir.rrd</path>
 		<type>derive</type>
 		<pattern>33</pattern>
 	</test>
 	<test>
 		<name>md_stats_rename</name>
-		<path>lustre-MDT0000-md_stats/derive-rename.rrd</path>
+		<path>collection/lustre-MDT0000-md_stats/derive-rename.rrd</path>
 		<type>derive</type>
 		<pattern>42</pattern>
 	</test>
 	<test>
 		<name>md_stats_getattr</name>
-		<path>lustre-MDT0000-md_stats/derive-getattr.rrd</path>
+		<path>collection/lustre-MDT0000-md_stats/derive-getattr.rrd</path>
 		<type>derive</type>
 		<pattern>1607</pattern>
 	</test>
 	<test>
 		<name>md_stats_setattr</name>
-		<path>lustre-MDT0000-md_stats/derive-setattr.rrd</path>
+		<path>collection/lustre-MDT0000-md_stats/derive-setattr.rrd</path>
 		<type>derive</type>
 		<pattern>61</pattern>
 	</test>
 	<test>
 		<name>md_stats_getxattr</name>
-		<path>lustre-MDT0000-md_stats/derive-getxattr.rrd</path>
+		<path>collection/lustre-MDT0000-md_stats/derive-getxattr.rrd</path>
 		<type>derive</type>
 		<pattern>33</pattern>
 	</test>
 	<test>
 		<name>md_stats_setxattr</name>
-		<path>lustre-MDT0000-md_stats/derive-setxattr.rrd</path>
+		<path>collection/lustre-MDT0000-md_stats/derive-setxattr.rrd</path>
 		<type>derive</type>
 		<pattern>1</pattern>
 	</test>
 	<test>
 		<name>md_stats_statfs</name>
-		<path>lustre-MDT0000-md_stats/derive-statfs.rrd</path>
+		<path>collection/lustre-MDT0000-md_stats/derive-statfs.rrd</path>
 		<type>derive</type>
 		<pattern>31</pattern>
 	</test>
 	<test>
 		<name>md_stats_sync</name>
-		<path>lustre-MDT0000-md_stats/derive-sync.rrd</path>
+		<path>collection/lustre-MDT0000-md_stats/derive-sync.rrd</path>
 		<type>derive</type>
 		<pattern>4</pattern>
 	</test>
 	<test>
 		<name>md_stats_samedir_rename</name>
-		<path>lustre-MDT0000-md_stats/derive-samedir_rename.rrd</path>
+		<path>collection/lustre-MDT0000-md_stats/derive-samedir_rename.rrd</path>
 		<type>derive</type>
 		<pattern>42</pattern>
 	</test>
 	<test>
 		<name>md_stats_crossdir_rename</name>
-		<path>lustre-MDT0000-md_stats/derive-crossdir_rename.rrd</path>
+		<path>collection/lustre-MDT0000-md_stats/derive-crossdir_rename.rrd</path>
 		<type>derive</type>
 		<pattern>11</pattern>
 	</test>
@@ -101,25 +101,25 @@
 	<!-- osd 0 -->
 	<test>
 		<name>mdt_acctuser</name>
-		<path>lustre-MDT0000-acctuser_0/gauge-usage_inodes.rrd</path>
+		<path>collection/lustre-MDT0000-acctuser_0/gauge-usage_inodes.rrd</path>
 		<type>derive</type>
 		<pattern>238</pattern>
 	</test>
 	<test>
 		<name>mdt_acctuser</name>
-		<path>lustre-MDT0000-acctuser_0/gauge-usage_kbytes.rrd</path>
+		<path>collection/lustre-MDT0000-acctuser_0/gauge-usage_kbytes.rrd</path>
 		<type>derive</type>
 		<pattern>1388</pattern>
 	</test>
 	<test>
 		<name>mdt_acctuser</name>
-		<path>lustre-MDT0000-acctuser_500/gauge-usage_inodes.rrd</path>
+		<path>collection/lustre-MDT0000-acctuser_500/gauge-usage_inodes.rrd</path>
 		<type>derive</type>
 		<pattern>2</pattern>
 	</test>
 	<test>
 		<name>mdt_acctuser</name>
-		<path>lustre-MDT0000-acctuser_500/gauge-usage_kbytes.rrd</path>
+		<path>collection/lustre-MDT0000-acctuser_500/gauge-usage_kbytes.rrd</path>
 		<type>derive</type>
 		<pattern>0</pattern>
 	</test>
@@ -127,7 +127,7 @@
 	<!-- osd 2 -->
 	<test>
 		<name>mdt_filesused</name>
-		<path>testfs-MDT0000-filesinfo/gauge-filesused.rrd</path>
+		<path>collection/testfs-MDT0000-filesinfo/gauge-filesused.rrd</path>
 		<type>derive</type>
 		<pattern>238</pattern>
 	</test>
