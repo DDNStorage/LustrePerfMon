@@ -314,19 +314,20 @@ dnl $4: type of FIELD
 dnl $5: type OPTION
 dnl $6: "mdt" or "ost"
 dnl $7: "samples" or "kbytes"
-dnl $8: is first child of parent ELEMENT
-define(`ACCTUSER_FIELD',
+dnl $8: "user", "group" or "project"
+dnl $9: is first child of parent ELEMENT
+define(`ACCTQUOTA_FIELD',
         `ELEMENT($1, field,
         `INDEX($1 + 1, $2, 1)
 NAME($1 + 1, $3, 0)
 TYPE($1 + 1, $4, 0)
 OPTION($1 + 1, host, ${key:hostname}, 0)
 OPTION($1 + 1, plugin, ${subpath:fs_name}-${subpath:$6_index}, 0)
-OPTION($1 + 1, plugin_instance, acctuser_${content:user_id}, 0)
+OPTION($1 + 1, plugin_instance, acct$8_${content:id}, 0)
 OPTION($1 + 1, type, $5, 0)
 OPTION($1 + 1, type_instance, $3, 0)
-OPTION($1 + 1, tsdb_name, $6_acctuser_$7, 0)
-OPTION($1 + 1, tsdb_tags, optype=$3 fs_name=${subpath:fs_name} $6_index=${subpath:$6_index} user_id=${content:user_id}, 0)', $8)')dnl
+OPTION($1 + 1, tsdb_name, $6_acct$8_$7, 0)
+OPTION($1 + 1, tsdb_tags, optype=$3 fs_name=${subpath:fs_name} $6_index=${subpath:$6_index} $8_id=${content:id}, 0)', $9)')dnl
 dnl
 dnl $1: number of INDENT
 dnl $2: index of FIELD
@@ -335,7 +336,7 @@ dnl $4: type of FIELD
 dnl $5: type OPTION
 dnl $6: is first child of parent ELEMENT
 define(`MDT_ACCTUSER_FIELD',
-	`ACCTUSER_FIELD($1, $2, $3, $4, $5, mdt, samples, $6)')dnl
+	`ACCTQUOTA_FIELD($1, $2, $3, $4, $5, mdt, samples, user, $6)')dnl
 dnl
 dnl $1: number of INDENT
 dnl $2: index of FIELD
@@ -344,4 +345,40 @@ dnl $4: type of FIELD
 dnl $5: type OPTION
 dnl $6: is first child of parent ELEMENT
 define(`OST_ACCTUSER_FIELD',
-        `ACCTUSER_FIELD($1, $2, $3, $4, $5, ost, samples, $6)')dnl
+	`ACCTQUOTA_FIELD($1, $2, $3, $4, $5, ost, samples, user, $6)')dnl
+dnl
+dnl $1: number of INDENT
+dnl $2: index of FIELD
+dnl $3: name of FIELD
+dnl $4: type of FIELD
+dnl $5: type OPTION
+dnl $6: is first child of parent ELEMENT
+define(`MDT_ACCTGROUP_FIELD',
+	`ACCTQUOTA_FIELD($1, $2, $3, $4, $5, mdt, samples, group, $6)')dnl
+dnl
+dnl $1: number of INDENT
+dnl $2: index of FIELD
+dnl $3: name of FIELD
+dnl $4: type of FIELD
+dnl $5: type OPTION
+dnl $6: is first child of parent ELEMENT
+define(`OST_ACCTGROUP_FIELD',
+	`ACCTQUOTA_FIELD($1, $2, $3, $4, $5, ost, samples, group, $6)')dnl
+dnl
+dnl $1: number of INDENT
+dnl $2: index of FIELD
+dnl $3: name of FIELD
+dnl $4: type of FIELD
+dnl $5: type OPTION
+dnl $6: is first child of parent ELEMENT
+define(`MDT_ACCTPROJECT_FIELD',
+	`ACCTQUOTA_FIELD($1, $2, $3, $4, $5, mdt, samples, project, $6)')dnl
+dnl
+dnl $1: number of INDENT
+dnl $2: index of FIELD
+dnl $3: name of FIELD
+dnl $4: type of FIELD
+dnl $5: type OPTION
+dnl $6: is first child of parent ELEMENT
+define(`OST_ACCTPROJECT_FIELD',
+        `ACCTQUOTA_FIELD($1, $2, $3, $4, $5, ost, samples, project, $6)')dnl

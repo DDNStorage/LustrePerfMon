@@ -41,9 +41,33 @@ HEAD(Lustre-ieel-2.5)
 							<name>mdt_acctuser</name>
 							<pattern>- +id: +(.+)
   usage: +\{ inodes: +([[:digit:]]+), kbytes: +([[:digit:]]+).+</pattern>
-							MDT_ACCTUSER_FIELD(7, 1, user_id, string, derive, 1)
-							MDT_ACCTUSER_FIELD(7, 2, usage_inodes, number, derive, 1)
-							MDT_ACCTUSER_FIELD(7, 3, usage_kbytes, number, derive, 1)
+							MDT_ACCTUSER_FIELD(7, 1, id, string, gauge, 1)
+							MDT_ACCTUSER_FIELD(7, 2, usage_inodes, number, gauge, 1)
+							MDT_ACCTUSER_FIELD(7, 3, usage_kbytes, number, gauge, 1)
+						</item>
+					</entry>
+					<entry>
+						SUBPATH(6, constant, acct_group, 1)
+						MODE(6, file, 1)
+						<item>
+							<name>mdt_acctgroup</name>
+							<pattern>- +id: +(.+)
+  usage: +\{ inodes: +([[:digit:]]+), kbytes: +([[:digit:]]+).+</pattern>
+							MDT_ACCTGROUP_FIELD(7, 1, id, string, gauge, 1)
+							MDT_ACCTGROUP_FIELD(7, 2, usage_inodes, number, gauge, 1)
+							MDT_ACCTGROUP_FIELD(7, 3, usage_kbytes, number, gauge, 1)
+						</item>
+					</entry>
+					<entry>
+						SUBPATH(6, constant, acct_project, 1)
+						MODE(6, file, 1)
+						<item>
+							<name>mdt_acctproject</name>
+							<pattern>- +id: +(.+)
+  usage: +\{ inodes: +([[:digit:]]+), kbytes: +([[:digit:]]+).+</pattern>
+							MDT_ACCTPROJECT_FIELD(7, 1, id, string, gauge, 1)
+							MDT_ACCTPROJECT_FIELD(7, 2, usage_inodes, number, gauge, 1)
+							MDT_ACCTPROJECT_FIELD(7, 3, usage_kbytes, number, gauge, 1)
 						</item>
 					</entry>
 				</entry>
@@ -72,9 +96,33 @@ HEAD(Lustre-ieel-2.5)
 							<name>ost_acctuser</name>
 							<pattern>- +id: +(.+)
   usage: +\{ inodes: +([[:digit:]]+), kbytes: +([[:digit:]]+).+</pattern>
-							OST_ACCTUSER_FIELD(7, 1, user_id, string, derive, 1)
-							OST_ACCTUSER_FIELD(7, 2, usage_inodes, number, derive, 1)
-							OST_ACCTUSER_FIELD(7, 3, usage_kbytes, number, derive, 1)
+							OST_ACCTUSER_FIELD(7, 1, id, string, gauge, 1)
+							OST_ACCTUSER_FIELD(7, 2, usage_inodes, number, gauge, 1)
+							OST_ACCTUSER_FIELD(7, 3, usage_kbytes, number, gauge, 1)
+						</item>
+					</entry>
+					<entry>
+						SUBPATH(6, constant, acct_group, 1)
+						MODE(6, file, 1)
+						<item>
+							<name>ost_acctgroup</name>
+							<pattern>- +id: +(.+)
+  usage: +\{ inodes: +([[:digit:]]+), kbytes: +([[:digit:]]+).+</pattern>
+							OST_ACCTGROUP_FIELD(7, 1, id, string, gauge, 1)
+							OST_ACCTGROUP_FIELD(7, 2, usage_inodes, number, gauge, 1)
+							OST_ACCTGROUP_FIELD(7, 3, usage_kbytes, number, gauge, 1)
+						</item>
+					</entry>
+					<entry>
+						SUBPATH(6, constant, acct_project, 1)
+						MODE(6, file, 1)
+						<item>
+							<name>ost_acctproject</name>
+							<pattern>- +id: +(.+)
+  usage: +\{ inodes: +([[:digit:]]+), kbytes: +([[:digit:]]+).+</pattern>
+							OST_ACCTPROJECT_FIELD(7, 1, id, string, gauge, 1)
+							OST_ACCTPROJECT_FIELD(7, 2, usage_inodes, number, gauge, 1)
+							OST_ACCTPROJECT_FIELD(7, 3, usage_kbytes, number, gauge, 1)
 						</item>
 					</entry>
 				</entry>
