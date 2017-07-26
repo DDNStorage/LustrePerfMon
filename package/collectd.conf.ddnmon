@@ -1,0 +1,252 @@
+#
+# collectd.conf for DDN LustreMon
+#
+
+Interval      60
+
+WriteQueueLimitHigh 1000000
+WriteQueueLimitLow   800000
+
+# CPU
+LoadPlugin aggregation
+LoadPlugin cpu
+LoadPlugin match_regex
+<Plugin "aggregation">
+  <Aggregation>
+    Plugin "cpu"
+    Type "cpu"
+    GroupBy "Host"
+    GroupBy "TypeInstance"
+    CalculateAverage true
+  </Aggregation>
+</Plugin>
+
+# Don't send 'cpu-X' stats
+<Chain "PostCache">
+  <Rule>
+    <Match regex>
+      Plugin "^cpu$"
+      PluginInstance "^[0-9]+$"
+    </Match>
+    <Target write>
+      Plugin "aggregation"
+    </Target>
+    Target stop
+  </Rule>
+  Target "write"
+</Chain>
+
+LoadPlugin memory
+
+LoadPlugin syslog
+<Plugin syslog>
+        #LogLevel info
+        LogLevel err
+</Plugin>
+
+LoadPlugin filedata
+<Plugin "filedata">
+  <Common>
+    DefinitionFile "/etc/lustre-ieel-2.7_definition.xml"
+  </Common>
+  <Item>
+    Type "mdt_acctuser"
+    Query_interval 10
+  </Item>
+  <Item>
+    Type "ost_acctuser"
+    Query_interval 10
+  </Item>
+# OST stats
+  <Item>
+    Type "ost_kbytestotal"
+    Query_interval 10
+  </Item>
+  <Item>
+    Type "ost_kbytesfree"
+    Query_interval 10
+  </Item>
+  <Item>
+    Type "ost_kbytesused"
+    Query_interval 10
+  </Item>
+  <Item>
+    Type "ost_filesused"
+    Query_interval 10
+  </Item>
+  <Item>
+    Type "ost_stats_write"
+  </Item>
+  <Item>
+    Type "ost_stats_read"
+  </Item>
+  <Item>
+    Type "ost_brw_stats_rpc_bulk"
+  </Item>
+# MDT stats
+  <Item>
+    Type "mdt_filestotal"
+    Query_interval 10
+  </Item>
+  <Item>
+    Type "mdt_filesfree"
+    Query_interval 10
+  </Item>
+  <Item>
+    Type "mdt_filesused"
+    Query_interval 10
+  </Item>
+  <Item>
+    Type "md_stats_open"
+  </Item>
+  <Item>
+    Type "md_stats_close"
+  </Item>
+  <Item>
+    Type "md_stats_mknod"
+  </Item>
+  <Item>
+    Type "md_stats_unlink"
+  </Item>
+  <Item>
+    Type "md_stats_mkdir"
+  </Item>
+  <Item>
+    Type "md_stats_rmdir"
+  </Item>
+  <Item>
+    Type "md_stats_rename"
+  </Item>
+  <Item>
+    Type "md_stats_getattr"
+  </Item>
+  <Item>
+    Type "md_stats_setattr"
+  </Item>
+  <Item>
+    Type "md_stats_getxattr"
+  </Item>
+  <Item>
+    Type "md_stats_setxattr"
+  </Item>
+  <Item>
+    Type "md_stats_statfs"
+  </Item>
+  <Item>
+    Type "md_stats_sync"
+  </Item>
+
+#  <Item>
+#    Type "ost_jobstats"
+#    <Rule>
+#      Field "job_id"
+#      Match "[[:digit:]]+"
+#    </Rule>
+#  </Item>
+#  <Item>
+#    Type "mdt_jobstats"
+#    <Rule>
+#      Field "job_id"
+#      Match "[[:digit:]]+"
+#    </Rule>
+#  </Item>
+
+  <Item>
+    Type "ost_jobstats"
+    <Rule>
+      Field "job_id"
+    </Rule>
+  </Item>
+  <Item>
+    Type "mdt_jobstats"
+    <Rule>
+      Field "job_id"
+    </Rule>
+  </Item>
+
+#<ItemType>
+#    Type "mdt_jobstats"
+#    <ExtendedParse>
+#        # Parse the field job_id
+#        Field "job_id"
+#        # Match the pattern
+#	Pattern "u([[:digit:]]+)[.]g([[:digit:]]+)[.]j([[:digit:]]+)"
+#        <ExtendedField>
+#            Index 1
+#            Name slurm_job_uid
+#        </ExtendedField>
+#        <ExtendedField>
+#            Index 2
+#            Name slurm_job_gid
+#        </ExtendedField>
+#        <ExtendedField>
+#            Index 3
+#            Name slurm_job_id
+#        </ExtendedField>
+#    </ExtendedParse>
+#    TsdbTags "slurm_job_uid=${extendfield:slurm_job_uid} slurm_job_gid=${extendfield:slurm_job_gid} slurm_job_id=${extendfield:slurm_job_id}"
+#</ItemType>
+#<ItemType>
+#    Type "ost_jobstats"
+#    <ExtendedParse>
+#        # Parse the field job_id
+#        Field "job_id"
+#        # Match the pattern
+#	Pattern "u([[:digit:]]+)[.]g([[:digit:]]+)[.]j([[:digit:]]+)"
+#        <ExtendedField>
+#            Index 1
+#            Name slurm_job_uid
+#        </ExtendedField>
+#        <ExtendedField>
+#            Index 2
+#            Name slurm_job_gid
+#        </ExtendedField>
+#        <ExtendedField>
+#            Index 3
+#            Name slurm_job_id
+#        </ExtendedField>
+#    </ExtendedParse>
+#    TsdbTags "slurm_job_uid=${extendfield:slurm_job_uid} slurm_job_gid=${extendfield:slurm_job_gid} slurm_job_id=${extendfield:slurm_job_id}"
+#</ItemType>
+</Plugin>
+
+loadPlugin "write_tsdb" 
+<Plugin "write_tsdb">
+	<Node>
+		Host "172.30.140.11" 
+		Port "4242" 
+		DeriveRate true
+	</Node>
+	#<Node>
+	#	Host "172.30.140.12" 
+	#	Port "4242" 
+	#	DeriveRate true
+	#</Node>
+</Plugin>
+
+#LoadPlugin "match_regex"
+#<Chain "PreCache">
+# <Rule>
+#   <Match "regex">
+#     Plugin ".*_jobstats"
+#   </Match>
+#   <Target "write">
+#     Plugin "write_tsdb/172.30.140.12/4242"
+#   </Target>
+#   <Target "stop">
+#   </Target>
+# </Rule>
+# <Target "write">
+#   Plugin "write_tsdb/172.30.140.11/4242"
+# </Target>
+# <Target "stop">
+# </Target>
+#</Chain>
+
+
+#LoadPlugin "logfile"
+#<Plugin "logfile">
+#  LogLevel "debug"
+#  File "/var/log/collectd.log"
+#  Timestamp true
+#</Plugin>

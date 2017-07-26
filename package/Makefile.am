@@ -38,12 +38,12 @@ monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso: RPMS install.p
 		$(LOCAL_INFLUXDB_RPMS) \
 		$(LOCAL_XML_DEFINITION_RPMS) \
 		$(LOCAL_OPENTSDB_WEB_RPMS) \
-		topn.py
+		topn.py collectd.conf.ddnmon influxdb.conf.ddnmon grafana-ddnmon.json
 	rm -f monsystem-ddn.*.iso
 	rm -f monsystem-ddn.*.md5
 	@PEP8@ install.py
 	cp install.py RPMS
-	cp topn.py RPMS
+	cp topn.py collectd.conf.ddnmon influxdb.conf.ddnmon grafana-ddnmon.json RPMS
 	createrepo RPMS
 	mkisofs -joliet-long -R -o monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso RPMS
 

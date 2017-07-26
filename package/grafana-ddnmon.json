@@ -1,0 +1,2824 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "hideControls": false,
+  "id": 1,
+  "links": [
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": true,
+      "title": "",
+      "type": "dashboards"
+    }
+  ],
+  "refresh": false,
+  "rows": [
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
+        {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "datasource": null,
+          "format": "short",
+          "gauge": {
+            "maxValue": 2327131066,
+            "minValue": 0,
+            "show": true,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "id": 13,
+          "interval": null,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [
+            {
+              "name": "value to text",
+              "value": 1
+            },
+            {
+              "name": "range to text",
+              "value": 2
+            }
+          ],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [
+            {
+              "from": "null",
+              "text": "N/A",
+              "to": "null"
+            }
+          ],
+          "span": 3,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "tableColumn": "mean",
+          "targets": [
+            {
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "mdt_filesinfo_used",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT last(\"value\") FROM \"mdt_filesinfo_used\" WHERE \"fs_name\" = 'scratch' AND $timeFilter GROUP BY time($__interval) fill(null)",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "scratch"
+                }
+              ]
+            }
+          ],
+          "thresholds": "",
+          "title": "Utilized inodes (scratch)",
+          "type": "singlestat",
+          "valueFontSize": "50%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "current"
+        },
+        {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "datasource": null,
+          "format": "deckbytes",
+          "gauge": {
+            "maxValue": 3714175220880,
+            "minValue": 0,
+            "show": true,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "id": 14,
+          "interval": null,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [
+            {
+              "name": "value to text",
+              "value": 1
+            },
+            {
+              "name": "range to text",
+              "value": 2
+            }
+          ],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [
+            {
+              "from": "null",
+              "text": "N/A",
+              "to": "null"
+            }
+          ],
+          "span": 3,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "tableColumn": "mean",
+          "targets": [
+            {
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "sum_ost_kbytesinfo_used",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "last"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "scratch"
+                }
+              ]
+            }
+          ],
+          "thresholds": "",
+          "title": "Available Capacity (scratch)",
+          "type": "singlestat",
+          "valueFontSize": "50%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "avg"
+        },
+        {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "datasource": null,
+          "format": "short",
+          "gauge": {
+            "maxValue": 871630130,
+            "minValue": 0,
+            "show": true,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "id": 15,
+          "interval": null,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [
+            {
+              "name": "value to text",
+              "value": 1
+            },
+            {
+              "name": "range to text",
+              "value": 2
+            }
+          ],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [
+            {
+              "from": "null",
+              "text": "N/A",
+              "to": "null"
+            }
+          ],
+          "span": 3,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "tableColumn": "mean",
+          "targets": [
+            {
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "mdt_filesinfo_used",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "home"
+                }
+              ]
+            }
+          ],
+          "thresholds": "",
+          "title": "Utilized inodes (home)",
+          "type": "singlestat",
+          "valueFontSize": "50%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "avg"
+        },
+        {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "datasource": null,
+          "format": "deckbytes",
+          "gauge": {
+            "maxValue": 247611681392,
+            "minValue": 0,
+            "show": true,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "id": 16,
+          "interval": null,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [
+            {
+              "name": "value to text",
+              "value": 1
+            },
+            {
+              "name": "range to text",
+              "value": 2
+            }
+          ],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [
+            {
+              "from": "null",
+              "text": "N/A",
+              "to": "null"
+            }
+          ],
+          "span": 3,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "tableColumn": "mean",
+          "targets": [
+            {
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "sum_ost_kbytesinfo_used",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "last"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "home"
+                }
+              ]
+            }
+          ],
+          "thresholds": "",
+          "title": "Available Capacity (home)",
+          "type": "singlestat",
+          "valueFontSize": "50%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "avg"
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Dashboard Row",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": true,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 17,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": false,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {}
+          ],
+          "spaceLength": 10,
+          "span": 6,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "$tag_fqdn",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "30s"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "fqdn"
+                  ],
+                  "type": "tag"
+                },
+                {
+                  "params": [
+                    "none"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "limit": "",
+              "measurement": "cpu.active.percent",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT sum(\"value\") FROM \"aggregation.cpu-average.cpu.system\" WHERE $timeFilter GROUP BY time(30s), \"fqdn\" fill(null)",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": []
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "CPU Usage of Lustre Server",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": true,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 18,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": false,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {}
+          ],
+          "spaceLength": 10,
+          "span": 6,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "$tag_fqdn",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "30s"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "fqdn"
+                  ],
+                  "type": "tag"
+                },
+                {
+                  "params": [
+                    "none"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "limit": "",
+              "measurement": "memory.used.memory",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT sum(\"value\") FROM \"aggregation.cpu-average.cpu.system\" WHERE $timeFilter GROUP BY time(30s), \"fqdn\" fill(null)",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": []
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Memory Usage of Lustre Server",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "decbytes",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Dashboard Row",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": true,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 1,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": false,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 12,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "$tag_optype",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "30s"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "optype"
+                  ],
+                  "type": "tag"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "md_stats",
+              "policy": "default",
+              "query": "SELECT non_negative_derivative(first(\"value\"), 1s) FROM \"md_stats\" WHERE $timeFilter GROUP BY time(30s), \"optype\" fill(none)",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "MetaData Operation - ($fsname)",
+          "tooltip": {
+            "msResolution": false,
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Dashboard Row",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 2,
+          "interval": "",
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 12,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "$tag_optype",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "30s"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "optype"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "ost_stats_bytes",
+              "policy": "default",
+              "query": "SELECT non_negative_derivative(first(\"value\"), 1m) FROM \"ost_stats_bytes\" WHERE $timeFilter GROUP BY time(30s), \"optype\" fill(null)",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Throughput - ($fsname)",
+          "tooltip": {
+            "msResolution": false,
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "Bps",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Dashboard Row",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": true,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 9,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": false,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "1_pages",
+              "fillBelowTo": "1_pages",
+              "lines": false
+            }
+          ],
+          "spaceLength": 10,
+          "span": 6,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "4k",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "30s"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "query": "SELECT sum(\"sum\") FROM \"ost_brw_stats_rpc_bulk_samples_bynode\" WHERE \"field\" = 'write_sample' AND \"size\" = '1_pages' AND $timeFilter GROUP BY time($interval)",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "1_pages"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            },
+            {
+              "alias": "8k",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "30s"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "refId": "B",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "2_pages"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            },
+            {
+              "alias": "16k",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "30s"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "refId": "C",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "4_pages"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            },
+            {
+              "alias": "32k",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "30s"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "refId": "D",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "8_pages"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            },
+            {
+              "alias": "64k",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "30s"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "refId": "E",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "16_pages"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            },
+            {
+              "alias": "128k",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "30s"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "refId": "F",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "32_pages"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            },
+            {
+              "alias": "256k",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "30s"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "refId": "G",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "64_pages"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            },
+            {
+              "alias": "512k",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "30s"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "refId": "H",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "128_pages"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            },
+            {
+              "alias": "1m",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "query": "SELECT sum(\"sum\") FROM \"ost_brw_stats_rpc_bulk_samples_bysize\" WHERE \"field\" = 'write_sample' AND \"size\" = '256_pages' AND \"fs_name\" =~ /^$fsname$/ AND $timeFilter GROUP BY time(30s)",
+              "rawQuery": true,
+              "refId": "I",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "256_pages"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            },
+            {
+              "alias": "2m",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "query": "SELECT sum(\"sum\") FROM \"ost_brw_stats_rpc_bulk_samples_bysize\" WHERE \"field\" = 'write_sample' AND \"size\" = '512_pages' AND \"fs_name\" =~ /^$fsname$/ AND $timeFilter GROUP BY time(30s)",
+              "rawQuery": true,
+              "refId": "J",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "512_pages"
+                }
+              ]
+            },
+            {
+              "alias": "4m",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "query": "SELECT sum(\"sum\") FROM \"ost_brw_stats_rpc_bulk_samples_bysize\" WHERE \"field\" = 'write_sample' AND \"size\" = '1K_pages' AND \"fs_name\" =~ /^$fsname$/ AND $timeFilter GROUP BY time(30s)",
+              "rawQuery": true,
+              "refId": "K",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "1K_pages"
+                }
+              ]
+            },
+            {
+              "alias": "8m",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "query": "SELECT sum(\"sum\") FROM \"ost_brw_stats_rpc_bulk_samples_bysize\" WHERE \"field\" = 'write_sample' AND \"size\" = '2K_pages' AND \"fs_name\" =~ /^$fsname$/ AND $timeFilter GROUP BY time(30s)",
+              "rawQuery": true,
+              "refId": "L",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "2K_pages"
+                }
+              ]
+            },
+            {
+              "alias": "16m",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "query": "SELECT sum(\"sum\") FROM \"ost_brw_stats_rpc_bulk_samples_bysize\" WHERE \"field\" = 'write_sample' AND \"size\" = '4K_pages' AND \"fs_name\" =~ /^$fsname$/ AND $timeFilter GROUP BY time(30s)",
+              "rawQuery": true,
+              "refId": "M",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "4K_pages"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Bulk RPC Size(Write) - ($fsname)",
+          "tooltip": {
+            "msResolution": false,
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": true,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 10,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": false,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "1_pages",
+              "fillBelowTo": "1_pages",
+              "lines": false
+            }
+          ],
+          "spaceLength": 10,
+          "span": 6,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "4k",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "30s"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "query": "SELECT \"sum\" FROM \"ost_brw_stats_rpc_bulk_samples_bynode\" WHERE \"field\" = 'read_sample' AND \"size\" = '1_pages' AND $timeFilter GROUP BY time(30s)",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "1_pages"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            },
+            {
+              "alias": "8k",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "30s"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "refId": "B",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "2_pages"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            },
+            {
+              "alias": "16k",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "30s"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "refId": "C",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "4_pages"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            },
+            {
+              "alias": "32k",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "30s"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "refId": "D",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "8_pages"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            },
+            {
+              "alias": "64k",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "30s"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "refId": "E",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "16_pages"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            },
+            {
+              "alias": "128k",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "30s"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "refId": "F",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "32_pages"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            },
+            {
+              "alias": "256k",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "30s"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "refId": "G",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "64_pages"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            },
+            {
+              "alias": "512k",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "30s"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "refId": "H",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "128_pages"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            },
+            {
+              "alias": "1m",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "query": "SELECT sum(\"sum\") FROM \"ost_brw_stats_rpc_bulk_samples_bysize\" WHERE \"field\" = 'read_sample' AND \"size\" = '256_pages' AND \"fs_name\" =~ /^$fsname$/ AND $timeFilter GROUP BY time(30s)",
+              "rawQuery": true,
+              "refId": "I",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "256_pages"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            },
+            {
+              "alias": "2m",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "query": "SELECT sum(\"sum\") FROM \"ost_brw_stats_rpc_bulk_samples_bysize\" WHERE \"field\" = 'read_sample' AND \"size\" = '512_pages' AND \"fs_name\" =~ /^$fsname$/ AND $timeFilter GROUP BY time(30s)",
+              "rawQuery": true,
+              "refId": "J",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "512_pages"
+                }
+              ]
+            },
+            {
+              "alias": "4m",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "query": "SELECT sum(\"sum\") FROM \"ost_brw_stats_rpc_bulk_samples_bysize\" WHERE \"field\" = 'read_sample' AND \"size\" = '1K_pages' AND \"fs_name\" =~ /^$fsname$/ AND $timeFilter GROUP BY time(30s)",
+              "rawQuery": true,
+              "refId": "K",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "1K_pages"
+                }
+              ]
+            },
+            {
+              "alias": "8m",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "query": "SELECT sum(\"sum\") FROM \"ost_brw_stats_rpc_bulk_samples_bysize\" WHERE \"field\" = 'read_sample' AND \"size\" = '2K_pages' AND \"fs_name\" =~ /^$fsname$/ AND $timeFilter GROUP BY time($interval)",
+              "rawQuery": true,
+              "refId": "L",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "2K_pages"
+                }
+              ]
+            },
+            {
+              "alias": "16m",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ost_brw_stats_rpc_bulk_samples_bysize",
+              "policy": "default",
+              "query": "SELECT sum(\"sum\") FROM \"ost_brw_stats_rpc_bulk_samples_bysize\" WHERE \"field\" = 'read_sample' AND \"size\" = '4K_pages' AND \"fs_name\" =~ /^$fsname$/ AND $timeFilter GROUP BY time(30s)",
+              "rawQuery": true,
+              "refId": "M",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "field",
+                  "operator": "=",
+                  "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "size",
+                  "operator": "=",
+                  "value": "4K_pages"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Bulk RPC Size(Read) - ($fsname)",
+          "tooltip": {
+            "msResolution": false,
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Dashboard Row",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
+        {
+          "columns": [
+            {
+              "text": "Avg",
+              "value": "avg"
+            },
+            {
+              "text": "Max",
+              "value": "max"
+            },
+            {
+              "text": "Current",
+              "value": "current"
+            }
+          ],
+          "fontSize": "100%",
+          "id": 11,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 3,
+            "desc": true
+          },
+          "span": 6,
+          "styles": [
+            {
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "decimals": 2,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "ops"
+            }
+          ],
+          "targets": [
+            {
+              "alias": "$tag_job_id",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "1m"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "job_id"
+                  ],
+                  "type": "tag"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "mdt_jobstats_samples_by_job_id",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            }
+          ],
+          "timeFrom": "3h",
+          "title": "Top Users - by IOPS ($fsname)",
+          "transform": "timeseries_aggregations",
+          "type": "table"
+        },
+        {
+          "columns": [
+            {
+              "text": "Avg",
+              "value": "avg"
+            },
+            {
+              "text": "Max",
+              "value": "max"
+            },
+            {
+              "text": "Current",
+              "value": "current"
+            }
+          ],
+          "fontSize": "100%",
+          "id": 12,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 3,
+            "desc": true
+          },
+          "span": 6,
+          "styles": [
+            {
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "decimals": 2,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "Bps"
+            }
+          ],
+          "targets": [
+            {
+              "alias": "$tag_job_id",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "1m"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "job_id"
+                  ],
+                  "type": "tag"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "ost_jobstats_samples_by_job_id",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "optype",
+                  "operator": "=~",
+                  "value": "/sum_.*_bytes/"
+                }
+              ]
+            }
+          ],
+          "timeFrom": "3h",
+          "title": "Top Users - by Throughput ($fsname)",
+          "transform": "timeseries_aggregations",
+          "type": "table"
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Dashboard Row",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
+        {
+          "columns": [
+            {
+              "text": "Current",
+              "value": "current"
+            }
+          ],
+          "fontSize": "100%",
+          "height": "300",
+          "id": 7,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 1,
+            "desc": true
+          },
+          "span": 6,
+          "styles": [
+            {
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "decimals": 0,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "none"
+            }
+          ],
+          "targets": [
+            {
+              "alias": "UID=$tag_user_id",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "user_id"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "mdt_acctuser_samples_5m_total",
+              "policy": "default",
+              "query": "SELECT mean(\"value\") FROM \"mdt_acctuser_samples_5m_total\" WHERE $timeFilter GROUP BY time($interval) fill(null)",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "mdt_acctuser_samples_5m"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "last"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            }
+          ],
+          "title": "Total number of file per UID ($fsname)",
+          "transform": "timeseries_aggregations",
+          "type": "table"
+        },
+        {
+          "columns": [
+            {
+              "text": "Current",
+              "value": "current"
+            }
+          ],
+          "fontSize": "100%",
+          "height": "300",
+          "id": 8,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 1,
+            "desc": true
+          },
+          "span": 6,
+          "styles": [
+            {
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "decimals": 1,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "kbytes"
+            }
+          ],
+          "targets": [
+            {
+              "alias": "UID=$tag_user_id",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "user_id"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "ost_acctuser_samples_5m_total",
+              "policy": "default",
+              "query": "SELECT last(\"ost_acctuser_samples_5m\") FROM \"ost_acctuser_samples_5m_total\" WHERE $timeFilter GROUP BY \"user_id\"",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "ost_acctuser_samples_5m"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "last"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=~",
+                  "value": "/^$fsname$/"
+                }
+              ]
+            }
+          ],
+          "title": "Total StorageUsage per UID ($fsname)",
+          "transform": "timeseries_aggregations",
+          "type": "table"
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Dashboard Row",
+      "titleSize": "h6"
+    }
+  ],
+  "schemaVersion": 14,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "allValue": null,
+        "current": {
+          "tags": [],
+          "text": "home",
+          "value": [
+            "home"
+          ]
+        },
+        "datasource": "ddnmon",
+        "hide": 0,
+        "includeAll": false,
+        "label": null,
+        "multi": true,
+        "name": "fsname",
+        "options": [
+          {
+            "selected": true,
+            "text": "home",
+            "value": "home"
+          },
+          {
+            "selected": false,
+            "text": "scratch",
+            "value": "scratch"
+          }
+        ],
+        "query": "show tag values from \"ost_stats_samples\" with key = \"fs_name\"",
+        "refresh": 0,
+        "regex": "",
+        "sort": 0,
+        "tagValuesQuery": null,
+        "tags": [],
+        "tagsQuery": null,
+        "type": "query",
+        "useTags": false
+      }
+    ]
+  },
+  "time": {
+    "from": "now-2d",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "timezone": "browser",
+  "title": "DDNMon",
+  "version": 33
+}
