@@ -187,6 +187,20 @@ if [[[ $enable_xmlonly == 'no' ]]]; then
 	MB_CHECK_FILE([$GRAFANA_RPM_PATH], [],
 		[AC_MSG_ERROR([grafana RPM file $GRAFANA_RPM_PATH could not be found.])])
 
+        # -------- check for influxdb RPM --------
+        AC_MSG_CHECKING([for influxdb RPM])
+        AC_ARG_WITH([influxdb],
+                AC_HELP_STRING([--with-influxdb=path],
+                               [set path to influxdb RPM]),
+                [MB_ARG_CANON_PATH([influxdb], [INFLUXDB_RPM_PATH])],
+                [])
+        AC_MSG_RESULT([$INFLUXDB_RPM_PATH])
+        AC_SUBST(INFLUXDB_RPM_PATH)
+
+        # -------- check for influxdb --------
+        MB_CHECK_FILE([$INFLUXDB_RPM_PATH], [],
+                [AC_MSG_ERROR([influxdb RPM file $INFLUXDB_RPM_PATH could not be found.])])
+
 	# -------- check for opentsdb_web version --------
 	AC_MSG_CHECKING([for opentsdb_web version])
 	OPENTSDB_WEB_REV=$(git rev-parse --short HEAD)
