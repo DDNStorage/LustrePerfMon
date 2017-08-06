@@ -60,5 +60,31 @@ ns_multi errors: +([[:digit:]]+)</pattern>
 			FIELD(4, 18, ns_multi_errors, number, ime_${key:hostname}, bfs-stat, , derive, ns_multi_errors, ime_bfs_ns_multi_errors, , 1)
 		</item>
 	</entry>
+	<entry>
+		<subpath>
+			<subpath_type>constant</subpath_type>
+			<path>--frgbs | grep '[0-9]'</path>
+		</subpath>
+		<mode>file</mode>
+		<item>
+			<name>UM-stat</name>
+			<pattern>\s+MinFreeSpaceRatio   = +([[:digit:]]+)+\s+FlushThresholdRatio = +([[:digit:]]+)+\s+([[:digit:]]+)+ \|\s+([[:digit:]]+)+ \|\s+([[:digit:]]+).[[:digit:]]+ \|\s+([[:digit:]]+)+ \|\s+([[:digit:]]+)+ \|\s+([[:digit:]]+)+ \|\s+([[:digit:]]+)+ \|\s+([[:digit:]]+)+ \|\s+([[:digit:]]+)+ \|\s+([[:digit:]]+)+ \|\s+([[:digit:]]+)+ \|\s+([[:digit:]]+)+ \|</pattern>
+
+			FIELD(4, 1, MinFreeSpaceRatio, number, ime_${key:hostname}, UM-stat, , gauge, MinFreeSpaceRatio, ime_UM_MinFreeSpaceRatio, , 1)
+			FIELD(4, 2, FlushThresholdRatio, number, ime_${key:hostname}, UM-stat, , gauge, FlushThresholdRatio, ime_UM_FlushThresholdRatio, , 1)
+			FIELD(4, 3, Cap_InUse, number, ime_${key:hostname}, UM-stat, , gauge, Cap_InUse, ime_Cap_InUse, , 1)
+			FIELD(4, 4, Cap_Total, number, ime_${key:hostname}, UM-stat, , gauge, Cap_Total, ime_Cap_Total, , 1)
+			FIELD(4, 5, Cap_PCT_Free, number, ime_${key:hostname}, UM-stat, , gauge, Cap_PCT_Free, ime_PCT_Free, , 1)
+			FIELD(4, 6, DM_PrestageQueued, number, ime_${key:hostname}, UM-stat, , gauge, DM_PrestageQueued, ime_DM_PrestageQueued, , 1)
+			FIELD(4, 7, DM_SyncQueued, number, ime_${key:hostname}, UM-stat, , gauge, DM_SyncQueued, ime_DM_SyncQueued, , 1)
+			FIELD(4, 8, DM_Clean, number, ime_${key:hostname}, UM-stat, , gauge, DM_Clean, ime_DM_Clean, , 1)
+			FIELD(4, 9, DM_Pinned, number, ime_${key:hostname}, UM-stat, , gauge, DM_Pinned, ime_DM_Pinned, , 1)
+			FIELD(4, 10, FBS_FullDirty, number, ime_${key:hostname}, UM-stat, , gauge, FBS_FullDirty, ime_FBS_FullDirty, , 1)
+			FIELD(4, 11, FBS_PartialDirty, number, ime_${key:hostname}, UM-stat, , gauge, FBS_PartialDirty, ime_FBS_PartialDirty, , 1)
+			FIELD(4, 12, FBS_FullClean, number, ime_${key:hostname}, UM-stat, , gauge, FBS_FullClean, ime_FBS_FullClean, , 1)
+			FIELD(4, 13, FBS_PartialClean, number, ime_${key:hostname}, UM-stat, , gauge, FBS_PartialClean, ime_FBS_PartialClean, , 1)
+			FIELD(4, 14, FBS_Pinned, number, ime_${key:hostname}, UM-stat, , gauge, FBS_Pinned, ime_FBS_pinned, , 1)
+		</item>
+	</entry>
 </definition>
 
