@@ -1,0 +1,61 @@
+# ESMON specfile
+
+Name: @PACKAGE@
+Version: @VERSION@
+
+Vendor: DataDirect Networks Inc.
+Prefix: %{_prefix}
+
+%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+
+Release: @ESMON_RELEASE@%{?dist}
+
+Summary: ESMON - Exascaler Monitoring
+License: All rights reserved DataDirect Networks Inc.
+Group: Applications/System
+Source0: @PACKAGE@-%{version}.tar.gz
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+
+Requires: python-pip
+
+%description
+ESMON(Exascaler Monitoring) is a monitoring system for DDN Exascaler.
+
+Generated using options: @ac_configure_args@
+
+%prep
+%setup -q -n @PACKAGE@-%{version}
+
+%build
+python -m py_compile pyesmon/*.py
+rm -f pyesmon/*.py
+
+%install
+rm -rf $RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT%{_bindir}
+mkdir -p $RPM_BUILD_ROOT%{_libdir}/esmon
+mkdir -p $RPM_BUILD_ROOT%{python_sitelib}
+mkdir -p $RPM_BUILD_ROOT%{_mandir}/man1/
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/pyesmon/*.py
+cp -a esmon_install $RPM_BUILD_ROOT%{_bindir}
+cp -a pyesmon $RPM_BUILD_ROOT%{python_sitelib}
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
+cp -a esmon.conf $RPM_BUILD_ROOT%{_sysconfdir}
+install -g 0 -o 0 -m 0644 man1/esmon_install.1 $RPM_BUILD_ROOT%{_mandir}/man1/
+
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(-,root,root)
+
+%{_bindir}/esmon_install
+%{python_sitelib}/pyesmon
+%{_sysconfdir}/esmon.conf
+%{_mandir}/man1/esmon_install.1*
+
+%changelog
+
+* Mon Aug 11 2017 Li Xi <lixi@ddn.com> 0.1
+- Initial import

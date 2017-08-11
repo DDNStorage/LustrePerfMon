@@ -52,6 +52,7 @@ fi
 
 set -x
 
+touch configure.ac &&
 autoheader \
 && aclocal \
 && $libtoolize --ltdl --copy --force \

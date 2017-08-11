@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([monitor_packager],[m4_esyscmd(./version-gen.sh)])
+AC_INIT([esmon],[m4_esyscmd(./version-gen.sh)])
 AC_CONFIG_SRCDIR(./collectd/build.sh)
 AC_CONFIG_HEADERS(config.h)
 
@@ -285,7 +285,10 @@ else
 	AC_MSG_RESULT([skipped])
 fi
 
+ESMON_RELEASE="7"
+AC_DEFINE_UNQUOTED(RELEASE, "$ESMON_RELEASE", [release info] )
+AC_SUBST(ESMON_RELEASE)
 
-AC_CONFIG_FILES([Makefile collectd/Makefile xml_definition/Makefile
-	package/Makefile opentsdb_web/Makefile])
+AC_CONFIG_FILES([Makefile collectd/Makefile esmon.spec xml_definition/Makefile
+	opentsdb_web/Makefile])
 AC_OUTPUT
