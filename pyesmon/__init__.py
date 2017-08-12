@@ -1,1 +1,1 @@
-__all__ = ["daemon", "ssh_host", "utils", "watched_io"]
+__all__ = ["daemon", "esmon_install", "ssh_host", "utils", "watched_io"]

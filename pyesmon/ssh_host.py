@@ -14,7 +14,7 @@ import shutil
 import re
 
 # local libs
-from pylipe import utils
+from pyesmon import utils
 
 
 # OS distribution RHEL6/CentOS6
@@ -129,9 +129,10 @@ class SSHHost(object):
     Each SSH host has an object of SSHHost
     """
     # pylint: disable=too-many-public-methods
-    def __init__(self, hostname, identity_file=None):
+    def __init__(self, hostname, identity_file=None, local=False):
         self.sh_hostname = hostname
         self.sh_identity_file = identity_file
+        self.sh_local = local
 
     def sh_is_up(self, timeout=60):
         """
@@ -717,12 +718,20 @@ class SSHHost(object):
         Run a command on the host
         """
         # pylint: disable=too-many-arguments
-        ret = ssh_run(self.sh_hostname, command, login_name=login_name,
-                      timeout=timeout,
-                      stdout_tee=stdout_tee, stderr_tee=stderr_tee,
-                      stdin=stdin, return_stdout=return_stdout,
-                      return_stderr=return_stderr, quit_func=quit_func,
-                      identity_file=self.sh_identity_file, flush_tee=flush_tee)
+        if self.sh_local:
+            ret = utils.run(command, timeout=timeout, stdout_tee=stdout_tee,
+                            stderr_tee=stderr_tee, stdin=stdin,
+                            return_stdout=return_stdout,
+                            return_stderr=return_stderr,
+                            quit_func=quit_func, flush_tee=flush_tee)
+        else:
+            ret = ssh_run(self.sh_hostname, command, login_name=login_name,
+                          timeout=timeout,
+                          stdout_tee=stdout_tee, stderr_tee=stderr_tee,
+                          stdin=stdin, return_stdout=return_stdout,
+                          return_stderr=return_stderr, quit_func=quit_func,
+                          identity_file=self.sh_identity_file,
+                          flush_tee=flush_tee)
         if not silent:
             logging.debug("ran [%s] on host [%s], ret = [%d], stdout = [%s], "
                           "stderr = [%s]",
