@@ -25,15 +25,98 @@ class EsmonClient(object):
     """
     # pylint: disable=too-few-public-methods,too-many-instance-attributes
     # pylint: disable=too-many-arguments
-    def __init__(self, host):
-        self.ec_host = host 
+    def __init__(self, host, workspace):
+        self.ec_host = host
+        self.ec_workspace = workspace
+        self.ec_rpm_basename = "RPMS"
+        self.ec_rpm_dir = self.ec_workspace + "/" + self.ec_rpm_basename
+
+    def ec_dependent_rpms_install(self):
+        """
+        Install dependent RPMs
+        """
+        dependent_rpms = ["yajl", "openpgm", "zeromq3"]
+        for dependent_rpm in dependent_rpms:
+            ret = self.ec_host.sh_rpm_query(dependent_rpm)
+            if ret:
+                command = ("cd %s && rpm -ivh %s*.rpm" %
+                           (self.ec_rpm_dir, dependent_rpm))
+                retval = self.ec_host.sh_run(command)
+                if retval.cr_exit_status:
+                    logging.error("failed to run command [%s] on host [%s], "
+                                  "ret = [%d], stdout = [%s], stderr = [%s]",
+                                  command,
+                                  self.ec_host.sh_hostname,
+                                  retval.cr_exit_status,
+                                  retval.cr_stdout,
+                                  retval.cr_stderr)
+                    return -1
+        return 0
+
+    def ec_collectd_reinstall(self):
+        """
+        Reinstall collectd RPM
+        """
+        command = ("rpm -qa | grep collectd")
+        retval = self.ec_host.sh_run(command)
+        uninstall = True
+        if retval.cr_exit_status == 1 and retval.cr_stdout == "":
+            uninstall = False
+        elif retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.ec_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        if uninstall:
+            command = ("rpm -qa | grep collectd | xargs rpm -e")
+            retval = self.ec_host.sh_run(command)
+            if retval.cr_exit_status:
+                logging.error("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              self.ec_host.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
+                return -1
+
+        ret = self.ec_dependent_rpms_install()
+        if ret:
+            logging.error("failed to install dependent RPMs")
+            return -1
+
+        return self.ec_collectd_install()
+
+    def ec_collectd_install(self):
+        """
+        Install collectd RPM
+        """
+        command = ("cd %s && rpm -ivh collectd-* libcollectdclient-*" %
+                   (self.ec_rpm_dir))
+        retval = self.ec_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.ec_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        return 0
 
 
 def esmon_install_locked(workspace, config_fpath):
     """
     Start to install holding the confiure lock
     """
-    # pylint: disable=global-statement
+    # pylint: disable=global-statement,too-many-return-statements
+    # pylint: disable=too-many-branches,bare-except, too-many-locals
+    # pylint: disable=too-many-statements
     config_fd = open(config_fpath)
     ret = 0
     try:
@@ -45,6 +128,21 @@ def esmon_install_locked(workspace, config_fpath):
     config_fd.close()
     if ret:
         return -1
+
+    host_configs = config["ssh_hosts"]
+    hosts = {}
+    for host_config in host_configs:
+        hostname = host_config["hostname"]
+        host_id = host_config["host_id"]
+        if "ssh_identity_file" in host_config:
+            ssh_identity_file = host_config["ssh_identity_file"]
+        else:
+            ssh_identity_file = None
+        if host_id in hosts:
+            logging.error("multiple hosts with the same ID [%s]", host_id)
+            return -1
+        host = ssh_host.SSHHost(hostname, ssh_identity_file)
+        hosts[host_id] = host
 
     iso_path = config["iso_path"]
     mnt_path = "/mnt/" + utils.random_word(8)
@@ -62,6 +160,63 @@ def esmon_install_locked(workspace, config_fpath):
                       retval.cr_stdout,
                       retval.cr_stderr)
         return -1
+
+    client_host_configs = config["client_hosts"]
+    esmon_clients = {}
+    for client_host_config in client_host_configs:
+        host_id = client_host_config["host_id"]
+
+        if host_id not in hosts:
+            logging.error("no host with ID [%s] is configured", host_id)
+            return -1
+        host = hosts[host_id]
+        esmon_client = EsmonClient(host, workspace)
+        esmon_clients[host_id] = esmon_client
+
+    for esmon_client in esmon_clients.values():
+        ret = esmon_client.ec_host.sh_send_file(mnt_path,
+                                                esmon_client.ec_workspace)
+        if ret:
+            logging.error("failed to send file [%s] on local host to "
+                          "directory [%s] on host [%s]",
+                          mnt_path, esmon_client.ec_workspace,
+                          esmon_client.ec_host.sh_hostname)
+            break
+
+        command = ("mkdir -p %s" % (esmon_client.ec_workspace))
+        retval = esmon_client.ec_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          esmon_client.ec_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            ret = -1
+            break
+
+        basename = os.path.basename(mnt_path)
+        command = ("cd %s && mv %s %s" %
+                   (esmon_client.ec_workspace, basename,
+                    esmon_client.ec_rpm_basename))
+        retval = esmon_client.ec_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          esmon_client.ec_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            ret = -1
+            break
+
+        ret = esmon_client.ec_collectd_reinstall()
+        if ret:
+            logging.error("failed to install esmon client on host [%s]",
+                          esmon_client.ec_host.sh_hostname)
+            break
 
     command = ("umount %s" % (mnt_path))
     retval = local_host.sh_run(command)
@@ -86,7 +241,7 @@ def esmon_install_locked(workspace, config_fpath):
                       retval.cr_stdout,
                       retval.cr_stderr)
         return -1
-    return 0
+    return ret
 
 
 def esmon_install(workspace, config_fpath):

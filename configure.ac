@@ -187,19 +187,19 @@ if [[[ $enable_xmlonly == 'no' ]]]; then
 	MB_CHECK_FILE([$GRAFANA_RPM_PATH], [],
 		[AC_MSG_ERROR([grafana RPM file $GRAFANA_RPM_PATH could not be found.])])
 
-        # -------- check for influxdb RPM --------
-        AC_MSG_CHECKING([for influxdb RPM])
-        AC_ARG_WITH([influxdb],
-                AC_HELP_STRING([--with-influxdb=path],
-                               [set path to influxdb RPM]),
-                [MB_ARG_CANON_PATH([influxdb], [INFLUXDB_RPM_PATH])],
-                [])
-        AC_MSG_RESULT([$INFLUXDB_RPM_PATH])
-        AC_SUBST(INFLUXDB_RPM_PATH)
+	# -------- check for influxdb RPM --------
+	AC_MSG_CHECKING([for influxdb RPM])
+	AC_ARG_WITH([influxdb],
+		AC_HELP_STRING([--with-influxdb=path],
+			       [set path to influxdb RPM]),
+		[MB_ARG_CANON_PATH([influxdb], [INFLUXDB_RPM_PATH])],
+		[])
+	AC_MSG_RESULT([$INFLUXDB_RPM_PATH])
+	AC_SUBST(INFLUXDB_RPM_PATH)
 
-        # -------- check for influxdb --------
-        MB_CHECK_FILE([$INFLUXDB_RPM_PATH], [],
-                [AC_MSG_ERROR([influxdb RPM file $INFLUXDB_RPM_PATH could not be found.])])
+	# -------- check for influxdb --------
+	MB_CHECK_FILE([$INFLUXDB_RPM_PATH], [],
+		[AC_MSG_ERROR([influxdb RPM file $INFLUXDB_RPM_PATH could not be found.])])
 
 	# -------- check for opentsdb_web version --------
 	AC_MSG_CHECKING([for opentsdb_web version])
@@ -226,6 +226,20 @@ if [[[ $enable_xmlonly == 'no' ]]]; then
 	OPENTSDB_WEB_RPMS=opentsdb_web-${OPENTSDB_WEB_VERSION}-${OPENTSDB_WEB_RELEASE}.el${DISTRO_RELEASE}.x86_64.rpm
 	AC_MSG_RESULT([$OPENTSDB_WEB_RPMS])
 	AC_SUBST(OPENTSDB_WEB_RPMS)
+
+	# -------- check for dependent RPMs --------
+	AC_MSG_CHECKING([for dependent RPMs])
+	AC_ARG_WITH([dependent_rpms],
+		AC_HELP_STRING([--with-dependent-rpms=path],
+			       [set path to dependent RPMs]),
+		[MB_ARG_CANON_PATH([dependent-rpms], [DEPENDENT_RPMS_PATH])],
+		[])
+	AC_MSG_RESULT([$DEPENDENT_RPMS_PATH])
+	AC_SUBST(DEPENDENT_RPMS_PATH)
+
+	# -------- check for dependent --------
+	MB_CHECK_FILE([$DEPENDENT_RPMS_PATH], [],
+		[AC_MSG_ERROR([dependent RPMs dir $DEPENDENT_RPMS_PATH could not be found.])])
 fi
 
 # -------- check for xml_definition version --------

@@ -58,6 +58,7 @@ monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso: RPMS \
 		collectd.conf.ddnmon influxdb.conf.ddnmon grafana-ddnmon.json
 	rm -f monsystem-ddn.*.iso
 	rm -f monsystem-ddn.*.md5
+	cp $(DEPENDENT_RPMS_PATH)/*.rpm RPMS
 	cp $(ESMON_RPM) RPMS
 	createrepo RPMS
 	mkisofs -joliet-long -R -o monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso RPMS

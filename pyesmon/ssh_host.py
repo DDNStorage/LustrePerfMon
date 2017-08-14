@@ -1344,3 +1344,13 @@ class SSHHost(object):
             return 0
         else:
             return self.sh_truncate(fpath, size)
+
+    def sh_rpm_query(self, rpm_name):
+        """
+        Find RPM on the host
+        """
+        command = "rpm -q %s" % rpm_name
+        retval = self.sh_run(command)
+        if retval.cr_exit_status:
+            return -1
+        return 0
