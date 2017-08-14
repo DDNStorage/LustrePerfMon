@@ -54,11 +54,11 @@ monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso: BUILD_ISO \
 		$(LOCAL_INFLUXDB_RPMS) \
 		$(LOCAL_XML_DEFINITION_RPMS) \
 		$(LOCAL_OPENTSDB_WEB_RPMS) \
-		collectd.conf.esmon influxdb.conf.diff grafana-ddnmon.json
+		collectd.conf.template influxdb.conf.diff grafana-ddnmon.json
 	rm -f monsystem-ddn.*.iso
 	rm -f monsystem-ddn.*.md5
 	cp influxdb.conf.diff BUILD_ISO
-	cp collectd.conf.esmon BUILD_ISO
+	cp collectd.conf.template BUILD_ISO
 	cp $(DEPENDENT_RPMS_PATH)/*.rpm BUILD_ISO
 	cp $(ESMON_RPM) BUILD_ISO
 	createrepo BUILD_ISO

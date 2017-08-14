@@ -2,7 +2,7 @@
 # collectd.conf for DDN LustreMon
 #
 
-Interval      60
+Interval      ${esmon:interval}
 
 WriteQueueLimitHigh 1000000
 WriteQueueLimitLow   800000
@@ -224,6 +224,7 @@ LoadPlugin filedata
 #	</Node>
 #</Plugin>
 
+LoadPlugin "network"
 <Plugin "network">
     Server "${esmon:server_host}" "25826"
 </Plugin>
