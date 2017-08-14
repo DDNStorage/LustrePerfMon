@@ -447,25 +447,13 @@ def generate_collectd_config(mnt_path, workspace, esmon_server, test_config):
                 fout.write(line)
 
 
-def esmon_install_locked(workspace, config_fpath):
+def esmon_do_install(workspace, config, mnt_path):
     """
-    Start to install holding the confiure lock
+    Start to install with the ISO mounted
     """
-    # pylint: disable=global-statement,too-many-return-statements
+    # pylint: disable=too-many-return-statements
     # pylint: disable=too-many-branches,bare-except, too-many-locals
     # pylint: disable=too-many-statements
-    config_fd = open(config_fpath)
-    ret = 0
-    try:
-        config = yaml.load(config_fd)
-    except:
-        logging.error("not able to load [%s] as yaml file: %s", config_fpath,
-                      traceback.format_exc())
-        ret = -1
-    config_fd.close()
-    if ret:
-        return -1
-
     host_configs = config["ssh_hosts"]
     hosts = {}
     for host_config in host_configs:
@@ -480,23 +468,6 @@ def esmon_install_locked(workspace, config_fpath):
             return -1
         host = ssh_host.SSHHost(hostname, ssh_identity_file)
         hosts[host_id] = host
-
-    iso_path = config["iso_path"]
-    mnt_path = "/mnt/" + utils.random_word(8)
-
-    local_host = ssh_host.SSHHost("localhost", local=True)
-    command = ("mkdir -p %s && mount -o loop %s %s" %
-               (mnt_path, iso_path, mnt_path))
-    retval = local_host.sh_run(command)
-    if retval.cr_exit_status:
-        logging.error("failed to run command [%s] on host [%s], "
-                      "ret = [%d], stdout = [%s], stderr = [%s]",
-                      command,
-                      local_host.sh_hostname,
-                      retval.cr_exit_status,
-                      retval.cr_stdout,
-                      retval.cr_stderr)
-        return -1
 
     server_host_config = config["server_host"]
     host_id = server_host_config["host_id"]
@@ -586,6 +557,48 @@ def esmon_install_locked(workspace, config_fpath):
             logging.error("failed to start esmon client on host [%s]",
                           esmon_client.ec_host.sh_hostname)
             return -1
+    return ret
+
+def esmon_install_locked(workspace, config_fpath):
+    """
+    Start to install holding the confiure lock
+    """
+    # pylint: disable=too-many-branches,bare-except, too-many-locals
+    # pylint: disable=too-many-statements
+    config_fd = open(config_fpath)
+    ret = 0
+    try:
+        config = yaml.load(config_fd)
+    except:
+        logging.error("not able to load [%s] as yaml file: %s", config_fpath,
+                      traceback.format_exc())
+        ret = -1
+    config_fd.close()
+    if ret:
+        return -1
+
+    iso_path = config["iso_path"]
+    mnt_path = "/mnt/" + utils.random_word(8)
+
+    local_host = ssh_host.SSHHost("localhost", local=True)
+    command = ("mkdir -p %s && mount -o loop %s %s" %
+               (mnt_path, iso_path, mnt_path))
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    try:
+        ret = esmon_do_install(workspace, config, mnt_path)
+    except:
+        ret = -1
+        logging.error("exception: %s", traceback.format_exc())
 
     command = ("umount %s" % (mnt_path))
     retval = local_host.sh_run(command)
@@ -597,7 +610,7 @@ def esmon_install_locked(workspace, config_fpath):
                       retval.cr_exit_status,
                       retval.cr_stdout,
                       retval.cr_stderr)
-        return -1
+        ret = -1
 
     command = ("rmdir %s" % (mnt_path))
     retval = local_host.sh_run(command)
