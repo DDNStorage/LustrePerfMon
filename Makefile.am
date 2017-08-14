@@ -31,6 +31,7 @@ $(ESMON_RPM): esmon.spec dist
 	mkdir -p $(build_dir)/BUILD $(build_dir)/SPECS $(build_dir)/SRPMS $(build_dir)/RPMS \
 		&& rpmbuild $(rpmbuild_opt) --define="_topdir $(build_dir)" \
 			--define="_prefix $(prefix)" -tb $(distdir).tar.gz \
+			--define="dist .el${DISTRO_RELEASE}" \
 		&& echo "RPM successfully generated in $(build_dir)/RPMS"
 
 $(LOCAL_COLLECTD_RPMS): $(ORIGIN_COLLECTD_RPMS)
@@ -55,9 +56,10 @@ monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso: RPMS \
 		$(LOCAL_INFLUXDB_RPMS) \
 		$(LOCAL_XML_DEFINITION_RPMS) \
 		$(LOCAL_OPENTSDB_WEB_RPMS) \
-		collectd.conf.ddnmon influxdb.conf.ddnmon grafana-ddnmon.json
+		collectd.conf.ddnmon influxdb.conf.diff grafana-ddnmon.json
 	rm -f monsystem-ddn.*.iso
 	rm -f monsystem-ddn.*.md5
+	cp influxdb.conf.diff RPMS
 	cp $(DEPENDENT_RPMS_PATH)/*.rpm RPMS
 	cp $(ESMON_RPM) RPMS
 	createrepo RPMS

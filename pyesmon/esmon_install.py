@@ -17,11 +17,108 @@ from pyesmon import ssh_host
 ESMON_CONFIG_FNAME = "esmon.conf"
 ESMON_CONFIG = "/etc/" + ESMON_CONFIG_FNAME
 ESMON_INSTALL_LOG_DIR = "/var/log/esmon_install"
+INFLUXDB_CONFIG_FPATH = "/etc/influxdb/influxdb.conf"
+ESMON_INFLUXDB_CONFIG_DIFF = "influxdb.conf.diff"
 
+class EsmonServer(object):
+    """
+    ESMON server host has an object of this type
+    """
+    def __init__(self, host, workspace):
+        self.es_host = host
+        self.es_workspace = workspace
+        self.es_rpm_basename = "RPMS"
+        self.es_rpm_dir = self.es_workspace + "/" + self.es_rpm_basename
+
+    def es_influxdb_reinstall(self):
+        """
+        Install influxdb RPM
+        """
+        ret = self.es_host.sh_rpm_query("influxdb")
+        if ret == 0:
+            command = "rpm -e influxdb"
+            retval = self.es_host.sh_run(command)
+            if retval.cr_exit_status:
+                logging.error("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              self.es_host.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
+                return -1
+
+        command = ("cd %s && rpm -ivh influxdb-*" %
+                   (self.es_rpm_dir))
+        retval = self.es_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.es_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        config_diff = self.es_rpm_dir + "/" + ESMON_INFLUXDB_CONFIG_DIFF
+        command = ("patch -i %s %s" % (config_diff, INFLUXDB_CONFIG_FPATH))
+        retval = self.es_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.es_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        return 0
+
+    def es_send_rpms(self, mnt_path):
+        """
+        send RPMs to server
+        """
+        ret = self.es_host.sh_send_file(mnt_path,
+                                        self.es_workspace)
+        if ret:
+            logging.error("failed to send file [%s] on local host to "
+                          "directory [%s] on host [%s]",
+                          mnt_path, self.es_workspace,
+                          self.es_host.sh_hostname)
+            return -1
+
+        command = ("mkdir -p %s" % (self.es_workspace))
+        retval = self.es_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.es_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        basename = os.path.basename(mnt_path)
+        command = ("cd %s && mv %s %s" %
+                   (self.es_workspace, basename,
+                    self.es_rpm_basename))
+        retval = self.es_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.es_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        return 0
 
 class EsmonClient(object):
     """
-    Each ESMON host has an object of this type
+    Each client ESMON host has an object of this type
     """
     # pylint: disable=too-few-public-methods,too-many-instance-attributes
     # pylint: disable=too-many-arguments
@@ -109,6 +206,47 @@ class EsmonClient(object):
             return -1
         return 0
 
+    def ec_send_rpms(self, mnt_path):
+        """
+        send RPMs to client
+        """
+        ret = self.ec_host.sh_send_file(mnt_path,
+                                        self.ec_workspace)
+        if ret:
+            logging.error("failed to send file [%s] on local host to "
+                          "directory [%s] on host [%s]",
+                          mnt_path, self.ec_workspace,
+                          self.ec_host.sh_hostname)
+            return -1
+
+        command = ("mkdir -p %s" % (self.ec_workspace))
+        retval = self.ec_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.ec_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        basename = os.path.basename(mnt_path)
+        command = ("cd %s && mv %s %s" %
+                   (self.ec_workspace, basename,
+                    self.ec_rpm_basename))
+        retval = self.ec_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.ec_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        return 0
+
 
 def esmon_install_locked(workspace, config_fpath):
     """
@@ -161,6 +299,28 @@ def esmon_install_locked(workspace, config_fpath):
                       retval.cr_stderr)
         return -1
 
+    server_host_config = config["server_host"]
+    host_id = server_host_config["host_id"]
+    if host_id not in hosts:
+        logging.error("no host with ID [%s] is configured", host_id)
+        return -1
+    host = hosts[host_id]
+    esmon_server = EsmonServer(host, workspace)
+
+    ret = esmon_server.es_send_rpms(mnt_path)
+    if ret:
+        logging.error("failed to send file [%s] on local host to "
+                      "directory [%s] on host [%s]",
+                      mnt_path, esmon_server.es_workspace,
+                      esmon_server.es_host.sh_hostname)
+        return -1
+
+    ret = esmon_server.es_influxdb_reinstall()
+    if ret:
+        logging.error("failed to install esmon server on host [%s]",
+                      esmon_server.es_host.sh_hostname)
+        return -1
+
     client_host_configs = config["client_hosts"]
     esmon_clients = {}
     for client_host_config in client_host_configs:
@@ -174,43 +334,14 @@ def esmon_install_locked(workspace, config_fpath):
         esmon_clients[host_id] = esmon_client
 
     for esmon_client in esmon_clients.values():
-        ret = esmon_client.ec_host.sh_send_file(mnt_path,
-                                                esmon_client.ec_workspace)
-        if ret:
-            logging.error("failed to send file [%s] on local host to "
-                          "directory [%s] on host [%s]",
-                          mnt_path, esmon_client.ec_workspace,
-                          esmon_client.ec_host.sh_hostname)
-            break
-
-        command = ("mkdir -p %s" % (esmon_client.ec_workspace))
-        retval = esmon_client.ec_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          esmon_client.ec_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            ret = -1
-            break
-
-        basename = os.path.basename(mnt_path)
-        command = ("cd %s && mv %s %s" %
-                   (esmon_client.ec_workspace, basename,
-                    esmon_client.ec_rpm_basename))
-        retval = esmon_client.ec_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          esmon_client.ec_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            ret = -1
-            break
+        if esmon_server.es_host.sh_hostname != esmon_client.ec_host.sh_hostname:
+            ret = esmon_client.ec_send_rpms(mnt_path)
+            if ret:
+                logging.error("failed to send file [%s] on local host to "
+                              "directory [%s] on host [%s]",
+                              mnt_path, esmon_client.ec_workspace,
+                              esmon_client.ec_host.sh_hostname)
+                break
 
         ret = esmon_client.ec_collectd_reinstall()
         if ret:
@@ -315,7 +446,8 @@ def main():
     shutil.copyfile(config_fpath, save_fpath)
     ret = esmon_install(workspace, config_fpath)
     if ret:
-        logging.error("test failed, please check [%s] for more log", workspace)
+        logging.error("installation failed, please check [%s] for more log",
+                      workspace)
         sys.exit(ret)
     logging.info("Exascaler monistoring system is installed, please check [%s] "
                  "for more log", workspace)
