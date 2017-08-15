@@ -7,6 +7,8 @@ import logging
 import traceback
 import os
 import shutil
+import httplib
+import requests
 import yaml
 import filelock
 
@@ -34,15 +36,48 @@ class EsmonServer(object):
         self.es_workspace = workspace
         self.es_rpm_basename = "RPMS"
         self.es_rpm_dir = self.es_workspace + "/" + self.es_rpm_basename
+        self.es_grafana_failure = False
 
-    def es_influxdb_reinstall(self, erase_database):
+    def es_influxdb_reinstall(self, erase_influxdb, drop_database):
         """
         Reinstall influxdb RPM
         """
-        # pylint: disable=too-many-return-statements
+        # pylint: disable=too-many-return-statements,too-many-statements
+        # pylint: disable=too-many-branches
+        command = ("service influxdb stop")
+        retval = self.es_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.es_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        command = ("service influxdb status")
+        ret = self.es_host.sh_wait_update(command, expect_exit_status=3)
+        if ret:
+            logging.error("failed to drop database of collectd")
+            return -1
+
         ret = self.es_host.sh_rpm_query("influxdb")
         if ret == 0:
             command = "rpm -e influxdb"
+            retval = self.es_host.sh_run(command)
+            if retval.cr_exit_status:
+                logging.error("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              self.es_host.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
+                return -1
+
+        if erase_influxdb:
+            command = ('rm /var/lib/influxdb -fr')
             retval = self.es_host.sh_run(command)
             if retval.cr_exit_status:
                 logging.error("failed to run command [%s] on host [%s], "
@@ -80,7 +115,7 @@ class EsmonServer(object):
                           retval.cr_stderr)
             return -1
 
-        command = ("service influxdb restart")
+        command = ("service influxdb start")
         retval = self.es_host.sh_run(command)
         if retval.cr_exit_status:
             logging.error("failed to run command [%s] on host [%s], "
@@ -92,10 +127,16 @@ class EsmonServer(object):
                           retval.cr_stderr)
             return -1
 
+        command = ("service influxdb status")
+        ret = self.es_host.sh_wait_update(command, expect_exit_status=0)
+        if ret:
+            logging.error("failed to drop database of collectd")
+            return -1
+
         # Somehow the restart command won't be waited until finished, so wait
         # here
         need_wait = True
-        if erase_database:
+        if drop_database:
             command = ('influx -execute "DROP DATABASE collectd"')
             ret = self.es_host.sh_wait_update(command, expect_exit_status=0)
             if ret:
@@ -122,47 +163,6 @@ class EsmonServer(object):
                 return -1
         return 0
 
-    def es_send_rpms(self, mnt_path):
-        """
-        send RPMs to server
-        """
-        command = ("mkdir -p %s" % (self.es_workspace))
-        retval = self.es_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          self.es_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
-
-        ret = self.es_host.sh_send_file(mnt_path,
-                                        self.es_workspace)
-        if ret:
-            logging.error("failed to send file [%s] on local host to "
-                          "directory [%s] on host [%s]",
-                          mnt_path, self.es_workspace,
-                          self.es_host.sh_hostname)
-            return -1
-
-        basename = os.path.basename(mnt_path)
-        command = ("cd %s && mv %s %s" %
-                   (self.es_workspace, basename,
-                    self.es_rpm_basename))
-        retval = self.es_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          self.es_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
-        return 0
-
     def es_influxdb_check(self, retval, args):
         # pylint: disable=unused-argument,no-self-use
         """
@@ -184,6 +184,31 @@ class EsmonServer(object):
         ret = self.es_host.sh_wait_condition(command, self.es_influxdb_check,
                                              [])
         return ret
+
+    def es_grafana_url(self, api_path):
+        """
+        Return full Grafana URL
+        """
+        return ("http://admin:admin@" + self.es_host.sh_hostname + ":3000" +
+                api_path)
+
+    def es_grafana_try_connect(self, args):
+        # pylint: disable=no-self-use,bare-except,unused-argument
+        """
+        Check whether we can connect to Grafana
+        """
+        url = self.es_grafana_url("")
+        try:
+            response = requests.get(url)
+        except:
+            logging.debug("not able to connect to [%s]: %s", url,
+                          traceback.format_exc())
+            return -1
+        if response.status_code != httplib.OK:
+            logging.error("got grafana status [%d]", response.status_code)
+            self.es_grafana_failure = True
+            return 0
+        return 0
 
     def es_grafana_reinstall(self):
         """
@@ -229,21 +254,19 @@ class EsmonServer(object):
                           retval.cr_stderr)
             return -1
 
+        ret = utils.wait_condition(self.es_grafana_try_connect, [])
+        if ret:
+            logging.error("cannot connect to grafana")
+            return ret
+        if self.es_grafana_failure:
+            return -1
         return 0
 
-    def es_reinstall(self, mnt_path, erase_database):
+    def es_reinstall(self, erase_influxdb, drop_database):
         """
         Reinstall RPMs
         """
-        ret = self.es_send_rpms(mnt_path)
-        if ret:
-            logging.error("failed to send file [%s] on local host to "
-                          "directory [%s] on host [%s]",
-                          mnt_path, self.es_workspace,
-                          self.es_host.sh_hostname)
-            return -1
-
-        ret = self.es_influxdb_reinstall(erase_database)
+        ret = self.es_influxdb_reinstall(erase_influxdb, drop_database)
         if ret:
             logging.error("failed to reinstall influxdb on host [%s]",
                           self.es_host.sh_hostname)
@@ -540,14 +563,32 @@ def esmon_do_install(workspace, config, mnt_path):
 
     server_host_config = config["server_host"]
     host_id = server_host_config["host_id"]
-    erase_database = server_host_config["erase_database"]
+    erase_influxdb = server_host_config["erase_influxdb"]
+    drop_database = server_host_config["drop_database"]
     if host_id not in hosts:
         logging.error("no host with ID [%s] is configured", host_id)
         return -1
     host = hosts[host_id]
     esmon_server = EsmonServer(host, workspace)
+    esmon_server_client = EsmonClient(host, workspace)
 
-    ret = esmon_server.es_reinstall(mnt_path, erase_database)
+    ret = esmon_server_client.ec_send_rpms(mnt_path)
+    if ret:
+        logging.error("failed to send file [%s] on local host to "
+                      "directory [%s] on host [%s]",
+                      mnt_path, esmon_server_client.ec_workspace,
+                      esmon_server_client.ec_host.sh_hostname)
+        return -1
+
+    # Need to install collectd before influxdb, otherwise influxdb won't be
+    # able to be started successfully
+    ret = esmon_server_client.ec_collectd_reinstall()
+    if ret:
+        logging.error("failed to install esmon client on host [%s]",
+                      esmon_server_client.ec_host.sh_hostname)
+        return -1
+
+    ret = esmon_server.es_reinstall(erase_influxdb, drop_database)
     if ret:
         logging.error("failed to reinstall esmon server on host [%s]",
                       esmon_server.es_host.sh_hostname)

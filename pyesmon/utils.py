@@ -452,3 +452,21 @@ def which(program):
                 return exe_file
 
     return None
+
+def wait_condition(condition_func, args, timeout=90, sleep_interval=1):
+    # pylint: disable=too-many-arguments
+    """
+    Wait until the condition_func returns 0
+    """
+    waited = 0
+    while True:
+        ret = condition_func(args)
+        if ret:
+            if waited < timeout:
+                waited += sleep_interval
+                time.sleep(sleep_interval)
+                continue
+            logging.error("timeout when waiting condition")
+            return -1
+        return 0
+    return -1
