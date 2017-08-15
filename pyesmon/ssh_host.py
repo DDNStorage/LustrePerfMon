@@ -143,32 +143,38 @@ class SSHHost(object):
             return False
         return True
 
-    def sh_wait_update(self, command, expect_exit_status=None,
-                       expect_stdout=None,
-                       expect_stderr=None,
-                       timeout=90,
-                       sleep_interval=1):
+    def sh_expect_retval(self, retval, args):
         """
-        Wait until the command result on a host changed to expected values
+        Return 0 if got expected retval
         """
+        # pylint: disable=no-self-use
+        expect_exit_status = args[0]
+        expect_stdout = args[1]
+        expect_stderr = args[2]
+        if (expect_exit_status is not None and
+                expect_exit_status != retval.cr_exit_status):
+            return -1
+
+        if (expect_stdout is not None and
+                expect_stdout != retval.cr_stdout):
+            return -1
+
+        if (expect_stderr is not None and
+                expect_stderr != retval.cr_stderr):
+            return -1
+        return 0
+
+    def sh_wait_condition(self, command, condition_func, args, timeout=90,
+                          sleep_interval=1):
         # pylint: disable=too-many-arguments
+        """
+        Wait until the condition_func returns 0
+        """
         waited = 0
         while True:
             retval = self.sh_run(command)
-            diff = False
-            if (expect_exit_status is not None and
-                    expect_exit_status != retval.cr_exit_status):
-                diff = True
-
-            if (expect_stdout is not None and
-                    expect_stdout != retval.cr_stdout):
-                diff = True
-
-            if (expect_stderr is not None and
-                    expect_stderr != retval.cr_stderr):
-                diff = True
-
-            if diff:
+            ret = condition_func(retval, args)
+            if ret:
                 if waited < timeout:
                     waited += sleep_interval
                     time.sleep(sleep_interval)
@@ -182,6 +188,20 @@ class SSHHost(object):
                 return -1
             return 0
         return -1
+
+    def sh_wait_update(self, command, expect_exit_status=None,
+                       expect_stdout=None,
+                       expect_stderr=None,
+                       timeout=90,
+                       sleep_interval=1):
+        # pylint: disable=too-many-arguments
+        """
+        Wait until the command result on a host changed to expected values
+        """
+        args = [expect_exit_status, expect_stdout, expect_stderr]
+        return self.sh_wait_condition(command, self.sh_expect_retval,
+                                      args, timeout=timeout,
+                                      sleep_interval=sleep_interval)
 
     def sh_wait_up(self, timeout=LONGEST_TIME_REBOOT):
         """
