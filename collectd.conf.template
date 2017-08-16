@@ -210,23 +210,13 @@ LoadPlugin filedata
 #</ItemType>
 </Plugin>
 
-#loadPlugin "write_tsdb" 
-#<Plugin "write_tsdb">
-#	<Node>
-#		Host "172.30.140.11" 
-#		Port "4242" 
-#		DeriveRate true
-#	</Node>
-#	<Node>
-#		Host "172.30.140.12" 
-#		Port "4242" 
-#		DeriveRate true
-#	</Node>
-#</Plugin>
-
-LoadPlugin "network"
-<Plugin "network">
-    Server "${esmon:server_host}" "25826"
+loadPlugin "write_tsdb"
+<Plugin "write_tsdb">
+	<Node>
+		Host "${esmon:server_host}"
+		Port "4242"
+		DeriveRate true
+	</Node>
 </Plugin>
 
 #LoadPlugin "match_regex"

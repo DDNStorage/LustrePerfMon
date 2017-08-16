@@ -1,11 +1,15 @@
 --- /etc/influxdb/influxdb.conf	2017-07-21 00:34:08.000000000 +0800
-+++ influxdb.conf	2017-08-14 10:29:43.580437363 +0800
-@@ -327,7 +327,7 @@
++++ influxdb.conf	2017-08-16 12:43:36.297201165 +0800
+@@ -362,9 +362,9 @@
  ###
  
- [[collectd]]
+ [[opentsdb]]
 -  # enabled = false
+-  # bind-address = ":4242"
+-  # database = "opentsdb"
 +  enabled = true
-   # bind-address = ":25826"
-   # database = "collectd"
++  bind-address = ":4242"
++  database = "esmon_database"
    # retention-policy = ""
+   # consistency-level = "one"
+   # tls-enabled = false

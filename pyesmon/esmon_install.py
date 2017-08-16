@@ -26,7 +26,8 @@ COLLECTD_CONFIG_TEST_FNAME = "collectd.conf.test"
 COLLECTD_CONFIG_FINAL_FNAME = "collectd.conf.final"
 COLLECTD_INTERVAL_TEST = 1
 COLLECTD_INTERVAL_FINAL = 60
-ESMON_DATASOURCE_NAME = "esmon_datasource"
+GRAFANA_DATASOURCE_NAME = "esmon_datasource"
+INFLUXDB_DATABASE = "esmon_database"
 
 class EsmonServer(object):
     """
@@ -131,25 +132,25 @@ class EsmonServer(object):
         command = ("service influxdb status")
         ret = self.es_host.sh_wait_update(command, expect_exit_status=0)
         if ret:
-            logging.error("failed to drop database of collectd")
+            logging.error("failed to wait until influxdb starts")
             return -1
 
         # Somehow the restart command won't be waited until finished, so wait
         # here
         need_wait = True
         if drop_database:
-            command = ('influx -execute "DROP DATABASE collectd"')
+            command = ('influx -execute "DROP DATABASE %s"' % INFLUXDB_DATABASE)
             ret = self.es_host.sh_wait_update(command, expect_exit_status=0)
             if ret:
-                logging.error("failed to drop database of collectd")
+                logging.error("failed to drop database of ESMON")
                 return -1
             need_wait = False
 
-        command = ('influx -execute "CREATE DATABASE collectd"')
+        command = ('influx -execute "CREATE DATABASE %s"' % INFLUXDB_DATABASE)
         if need_wait:
             ret = self.es_host.sh_wait_update(command, expect_exit_status=0)
             if ret:
-                logging.error("failed to create database of collectd")
+                logging.error("failed to create database of ESMON")
                 return -1
         else:
             retval = self.es_host.sh_run(command)
@@ -179,9 +180,10 @@ class EsmonServer(object):
         """
         Check whether influxdb has datapoint from a client
         """
-        command = ('influx --database collectd -execute "'
-                   'SELECT * FROM memory_value WHERE host = \'%s\'"' %
-                   (esmon_client.ec_host.sh_hostname))
+        command = ('influx --database %s -execute "'
+                   'SELECT * FROM \\"memory.buffered.memory\\" '
+                   'WHERE fqdn = \'%s\'"' %
+                   (INFLUXDB_DATABASE, esmon_client.ec_host.sh_hostname))
         ret = self.es_host.sh_wait_condition(command, self.es_influxdb_check,
                                              [])
         return ret
@@ -218,12 +220,12 @@ class EsmonServer(object):
         # pylint: disable=bare-except
         influxdb_url = "http://%s:8086" % self.es_host.sh_hostname
         data = {
-            "name": ESMON_DATASOURCE_NAME,
+            "name": GRAFANA_DATASOURCE_NAME,
             "isDefault": True,
             "type": "influxdb",
             "url": influxdb_url,
             "access": "proxy",
-            "database": "collectd",
+            "database": INFLUXDB_DATABASE,
             "basicAuth": False,
         }
 
@@ -252,7 +254,8 @@ class EsmonServer(object):
         headers = {"Content-type": "application/json",
                    "Accept": "application/json"}
 
-        url = self.es_grafana_url("/api/datasources/name/%s" % ESMON_DATASOURCE_NAME)
+        url = self.es_grafana_url("/api/datasources/name/%s" %
+                                  GRAFANA_DATASOURCE_NAME)
         try:
             response = requests.delete(url, headers=headers)
         except:
@@ -661,14 +664,6 @@ def esmon_do_install(workspace, config, mnt_path):
         logging.error("failed to send file [%s] on local host to "
                       "directory [%s] on host [%s]",
                       mnt_path, esmon_server_client.ec_workspace,
-                      esmon_server_client.ec_host.sh_hostname)
-        return -1
-
-    # Need to install collectd before influxdb, otherwise influxdb won't be
-    # able to be started successfully
-    ret = esmon_server_client.ec_collectd_reinstall()
-    if ret:
-        logging.error("failed to install esmon client on host [%s]",
                       esmon_server_client.ec_host.sh_hostname)
         return -1
 
