@@ -26,6 +26,7 @@ COLLECTD_CONFIG_TEST_FNAME = "collectd.conf.test"
 COLLECTD_CONFIG_FINAL_FNAME = "collectd.conf.final"
 COLLECTD_INTERVAL_TEST = 1
 COLLECTD_INTERVAL_FINAL = 60
+ESMON_DATASOURCE_NAME = "esmon_datasource"
 
 class EsmonServer(object):
     """
@@ -193,7 +194,7 @@ class EsmonServer(object):
                 api_path)
 
     def es_grafana_try_connect(self, args):
-        # pylint: disable=no-self-use,bare-except,unused-argument
+        # pylint: disable=bare-except,unused-argument
         """
         Check whether we can connect to Grafana
         """
@@ -208,6 +209,81 @@ class EsmonServer(object):
             logging.error("got grafana status [%d]", response.status_code)
             self.es_grafana_failure = True
             return 0
+        return 0
+
+    def es_grafana_add_influxdb(self):
+        """
+        Add influxdb source to grafana
+        """
+        # pylint: disable=bare-except
+        influxdb_url = "http://%s:8086" % self.es_host.sh_hostname
+        data = {
+            "name": ESMON_DATASOURCE_NAME,
+            "isDefault": True,
+            "type": "influxdb",
+            "url": influxdb_url,
+            "access": "proxy",
+            "database": "collectd",
+            "basicAuth": False,
+        }
+
+        headers = {"Content-type": "application/json",
+                   "Accept": "application/json"}
+
+        url = self.es_grafana_url("/api/datasources")
+        try:
+            response = requests.post(url, json=data, headers=headers)
+        except:
+            logging.error("not able to create data source through [%s]: %s",
+                          url, traceback.format_exc())
+            return -1
+        if response.status_code != httplib.OK:
+            logging.error("got grafana status [%d] when creating datasource",
+                          response.status_code)
+            return -1
+        return 0
+
+
+    def es_grafana_delete_influxdb(self):
+        """
+        Delete influxdb source from grafana
+        """
+        # pylint: disable=bare-except
+        headers = {"Content-type": "application/json",
+                   "Accept": "application/json"}
+
+        url = self.es_grafana_url("/api/datasources/name/%s" % ESMON_DATASOURCE_NAME)
+        try:
+            response = requests.delete(url, headers=headers)
+        except:
+            logging.error("not able to delete data source through [%s]: %s",
+                          url, traceback.format_exc())
+            return -1
+        if response.status_code != httplib.OK:
+            logging.error("got grafana status [%d] when deleting datasource",
+                          response.status_code)
+            return -1
+        return 0
+
+    def es_grafana_datasources(self):
+        """
+        Get all datasources of grafana
+        """
+        # pylint: disable=bare-except
+        headers = {"Content-type": "application/json",
+                   "Accept": "application/json"}
+
+        url = self.es_grafana_url("/api/datasources")
+        try:
+            response = requests.get(url, headers=headers)
+        except:
+            logging.error("not able to get data sources through [%s]: %s",
+                          url, traceback.format_exc())
+            return -1
+        if response.status_code != httplib.OK:
+            logging.error("got grafana status [%d]", response.status_code)
+            return -1
+        print response.json()
         return 0
 
     def es_grafana_reinstall(self):
@@ -260,6 +336,14 @@ class EsmonServer(object):
             return ret
         if self.es_grafana_failure:
             return -1
+
+        ret = self.es_grafana_delete_influxdb()
+        if ret:
+            return ret
+
+        ret = self.es_grafana_add_influxdb()
+        if ret:
+            return ret
         return 0
 
     def es_reinstall(self, erase_influxdb, drop_database):
