@@ -8,6 +8,7 @@ import traceback
 import os
 import shutil
 import httplib
+import json
 import requests
 import yaml
 import filelock
@@ -27,7 +28,9 @@ COLLECTD_CONFIG_FINAL_FNAME = "collectd.conf.final"
 COLLECTD_INTERVAL_TEST = 1
 COLLECTD_INTERVAL_FINAL = 60
 GRAFANA_DATASOURCE_NAME = "esmon_datasource"
-INFLUXDB_DATABASE = "esmon_database"
+INFLUXDB_DATABASE_NAME = "esmon_database"
+GRAFANA_DASHBOARD_JSON_FNAME = "grafana_dashboard.json"
+GRAFANA_DASHBOARD_NAME = "esmon_dashboard"
 
 class EsmonServer(object):
     """
@@ -139,14 +142,14 @@ class EsmonServer(object):
         # here
         need_wait = True
         if drop_database:
-            command = ('influx -execute "DROP DATABASE %s"' % INFLUXDB_DATABASE)
+            command = ('influx -execute "DROP DATABASE %s"' % INFLUXDB_DATABASE_NAME)
             ret = self.es_host.sh_wait_update(command, expect_exit_status=0)
             if ret:
                 logging.error("failed to drop database of ESMON")
                 return -1
             need_wait = False
 
-        command = ('influx -execute "CREATE DATABASE %s"' % INFLUXDB_DATABASE)
+        command = ('influx -execute "CREATE DATABASE %s"' % INFLUXDB_DATABASE_NAME)
         if need_wait:
             ret = self.es_host.sh_wait_update(command, expect_exit_status=0)
             if ret:
@@ -183,7 +186,7 @@ class EsmonServer(object):
         command = ('influx --database %s -execute "'
                    'SELECT * FROM \\"memory.buffered.memory\\" '
                    'WHERE fqdn = \'%s\'"' %
-                   (INFLUXDB_DATABASE, esmon_client.ec_host.sh_hostname))
+                   (INFLUXDB_DATABASE_NAME, esmon_client.ec_host.sh_hostname))
         ret = self.es_host.sh_wait_condition(command, self.es_influxdb_check,
                                              [])
         return ret
@@ -213,7 +216,7 @@ class EsmonServer(object):
             return 0
         return 0
 
-    def es_grafana_add_influxdb(self):
+    def es_grafana_influxdb_add(self):
         """
         Add influxdb source to grafana
         """
@@ -225,7 +228,7 @@ class EsmonServer(object):
             "type": "influxdb",
             "url": influxdb_url,
             "access": "proxy",
-            "database": INFLUXDB_DATABASE,
+            "database": INFLUXDB_DATABASE_NAME,
             "basicAuth": False,
         }
 
@@ -246,7 +249,7 @@ class EsmonServer(object):
         return 0
 
 
-    def es_grafana_delete_influxdb(self):
+    def es_grafana_influxdb_delete(self):
         """
         Delete influxdb source from grafana
         """
@@ -286,7 +289,63 @@ class EsmonServer(object):
         if response.status_code != httplib.OK:
             logging.error("got grafana status [%d]", response.status_code)
             return -1
-        print response.json()
+        return 0
+
+    def es_grafana_dashboard_add(self):
+        """
+        Update dashboard of grafana
+        """
+        # pylint: disable=bare-except
+        dashboard_json_fpath = (self.es_rpm_dir + "/" +
+                                GRAFANA_DASHBOARD_JSON_FNAME)
+        with open(dashboard_json_fpath) as json_file:
+            dashboard = json.load(json_file)
+
+        #logging.error("dashboard: %s", dashboard)
+
+        data = {
+            "dashboard": dashboard,
+            "overwrite": False,
+        }
+
+        #logging.error("data: %s", data)
+
+        headers = {"Content-type": "application/json",
+                   "Accept": "application/json"}
+
+        url = self.es_grafana_url("/api/dashboards/db")
+        try:
+            response = requests.post(url, json=data, headers=headers)
+        except:
+            logging.error("not able to update bashboard through [%s]: %s",
+                          url, traceback.format_exc())
+            return -1
+        if response.status_code != httplib.OK:
+            logging.error("got grafana status [%d] when updating dashbard",
+                          response.status_code)
+            return -1
+        return 0
+
+    def es_grafana_dashboard_delete(self):
+        """
+        Delete bashboard from grafana
+        """
+        # pylint: disable=bare-except
+        headers = {"Content-type": "application/json",
+                   "Accept": "application/json"}
+
+        url = self.es_grafana_url("/api/dashboards/db/%s" %
+                                  GRAFANA_DASHBOARD_NAME)
+        try:
+            response = requests.delete(url, headers=headers)
+        except:
+            logging.error("not able to delete dashboard through [%s]: %s",
+                          url, traceback.format_exc())
+            return -1
+        if response.status_code != httplib.OK:
+            logging.error("got grafana status [%d] when deleting dashboard",
+                          response.status_code)
+            return -1
         return 0
 
     def es_grafana_reinstall(self):
@@ -340,11 +399,19 @@ class EsmonServer(object):
         if self.es_grafana_failure:
             return -1
 
-        ret = self.es_grafana_delete_influxdb()
+        ret = self.es_grafana_influxdb_delete()
         if ret:
             return ret
 
-        ret = self.es_grafana_add_influxdb()
+        ret = self.es_grafana_influxdb_add()
+        if ret:
+            return ret
+
+        ret = self.es_grafana_dashboard_delete()
+        if ret:
+            return ret
+
+        ret = self.es_grafana_dashboard_add()
         if ret:
             return ret
         return 0

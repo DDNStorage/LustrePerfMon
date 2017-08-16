@@ -6,7 +6,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "hideControls": false,
-  "id": 1,
+  "id": null,
   "links": [
     {
       "asDropdown": true,
@@ -2819,6 +2819,6 @@
     ]
   },
   "timezone": "browser",
-  "title": "DDNMon",
+  "title": "esmon_dashboard",
   "version": 33
 }
