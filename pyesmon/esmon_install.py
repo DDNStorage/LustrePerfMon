@@ -1,7 +1,7 @@
 """
 Library for installing ESMON
 """
-
+# pylint: disable=too-many-lines
 import sys
 import logging
 import traceback
@@ -45,12 +45,14 @@ class EsmonServer(object):
         self.es_rpm_dir = self.es_workspace + "/" + self.es_rpm_basename
         self.es_grafana_failure = False
 
-    def es_influxdb_reinstall(self, erase_influxdb, drop_database):
+    def es_influxdb_uninstall(self):
         """
-        Reinstall influxdb RPM
+        uninstall influxdb
         """
-        # pylint: disable=too-many-return-statements,too-many-statements
-        # pylint: disable=too-many-branches
+        ret = self.es_host.sh_rpm_query("influxdb")
+        if ret:
+            return 0
+
         command = ("service influxdb stop")
         retval = self.es_host.sh_run(command)
         if retval.cr_exit_status:
@@ -69,19 +71,28 @@ class EsmonServer(object):
             logging.error("failed to drop database of collectd")
             return -1
 
-        ret = self.es_host.sh_rpm_query("influxdb")
-        if ret == 0:
-            command = "rpm -e influxdb"
-            retval = self.es_host.sh_run(command)
-            if retval.cr_exit_status:
-                logging.error("failed to run command [%s] on host [%s], "
-                              "ret = [%d], stdout = [%s], stderr = [%s]",
-                              command,
-                              self.es_host.sh_hostname,
-                              retval.cr_exit_status,
-                              retval.cr_stdout,
-                              retval.cr_stderr)
-                return -1
+        command = "rpm -e influxdb"
+        retval = self.es_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.es_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        return 0
+
+    def es_influxdb_reinstall(self, erase_influxdb, drop_database):
+        """
+        Reinstall influxdb RPM
+        """
+        # pylint: disable=too-many-return-statements,too-many-statements
+        # pylint: disable=too-many-branches
+        ret = self.es_influxdb_uninstall()
+        if ret:
+            return ret
 
         if erase_influxdb:
             command = ('rm /var/lib/influxdb -fr')
@@ -383,7 +394,10 @@ class EsmonServer(object):
             return -1
         return 0
 
-    def es_grafana_update_status_panel(self):
+    def es_grafana_install_plugin(self):
+        """
+        Install grafana status plugin
+        """
         plugin_dir = GRAFANA_PLUGIN_DIR + "/" + GRAFANA_STATUS_PANEL
         command = ("rm -fr %s" % (plugin_dir))
         retval = self.es_host.sh_run(command)
@@ -482,7 +496,7 @@ class EsmonServer(object):
         if ret:
             return ret
 
-        ret = self.es_grafana_update_status_panel()
+        ret = self.es_grafana_install_plugin()
         if ret:
             return ret
         return 0
