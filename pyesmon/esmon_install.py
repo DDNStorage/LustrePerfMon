@@ -348,6 +348,39 @@ class EsmonServer(object):
             return -1
         return 0
 
+    def es_grafana_change_logo(self):
+        """
+        Change the logo of grafana
+        """
+        command = ("/bin/cp -f %s/DDN-Storage-RedBG.svg "
+                   "/usr/share/grafana/public/img/grafana_icon.svg" %
+                   (self.es_rpm_dir))
+        retval = self.es_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.es_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        command = ("/bin/cp -f %s/DDN-Storage-RedBG.png "
+                   "/usr/share/grafana/public/img/fav32.png" %
+                   (self.es_rpm_dir))
+        retval = self.es_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.es_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        return 0
+
     def es_grafana_reinstall(self):
         """
         Reinstall grafana RPM
@@ -412,6 +445,10 @@ class EsmonServer(object):
             return ret
 
         ret = self.es_grafana_dashboard_add()
+        if ret:
+            return ret
+
+        ret = self.es_grafana_change_logo()
         if ret:
             return ret
         return 0

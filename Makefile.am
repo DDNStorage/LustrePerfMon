@@ -60,6 +60,8 @@ monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso: BUILD_ISO \
 	cp influxdb.conf.diff BUILD_ISO
 	cp collectd.conf.template BUILD_ISO
 	cp grafana_dashboard.json BUILD_ISO
+	cp DDN-Storage-RedBG.svg BUILD_ISO
+	cp DDN-Storage-RedBG.png BUILD_ISO
 	cp $(DEPENDENT_RPMS_PATH)/*.rpm BUILD_ISO
 	cp $(ESMON_RPM) BUILD_ISO
 	createrepo BUILD_ISO
