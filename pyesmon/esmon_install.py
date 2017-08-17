@@ -31,6 +31,8 @@ GRAFANA_DATASOURCE_NAME = "esmon_datasource"
 INFLUXDB_DATABASE_NAME = "esmon_database"
 GRAFANA_DASHBOARD_JSON_FNAME = "grafana_dashboard.json"
 GRAFANA_DASHBOARD_NAME = "esmon_dashboard"
+GRAFANA_STATUS_PANEL = "Grafana_Status_panel"
+GRAFANA_PLUGIN_DIR = "/var/lib/grafana/plugins"
 
 class EsmonServer(object):
     """
@@ -381,6 +383,34 @@ class EsmonServer(object):
             return -1
         return 0
 
+    def es_grafana_update_status_panel(self):
+        plugin_dir = GRAFANA_PLUGIN_DIR + "/" + GRAFANA_STATUS_PANEL
+        command = ("rm -fr %s" % (plugin_dir))
+        retval = self.es_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.es_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        new_plugin_dir = self.es_rpm_dir + "/" + GRAFANA_STATUS_PANEL
+        command = ("cp -a %s %s" % (new_plugin_dir, GRAFANA_PLUGIN_DIR))
+        retval = self.es_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.es_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        return 0
+
     def es_grafana_reinstall(self):
         """
         Reinstall grafana RPM
@@ -449,6 +479,10 @@ class EsmonServer(object):
             return ret
 
         ret = self.es_grafana_change_logo()
+        if ret:
+            return ret
+
+        ret = self.es_grafana_update_status_panel()
         if ret:
             return ret
         return 0
