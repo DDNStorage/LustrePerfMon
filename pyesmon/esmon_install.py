@@ -284,6 +284,33 @@ class EsmonServer(object):
             return -1
         return 0
 
+
+    def es_grafana_has_influxdb(self):
+        """
+        Get influxdb datasource of grafana
+        Return 1 if has influxdb datasource, return 0 if not, return -1 if
+        error
+        """
+        # pylint: disable=bare-except
+        headers = {"Content-type": "application/json",
+                   "Accept": "application/json"}
+
+        url = self.es_grafana_url("/api/datasources/name/%s" %
+                                  GRAFANA_DATASOURCE_NAME)
+        try:
+            response = requests.get(url, headers=headers)
+        except:
+            logging.error("not able to get data source through [%s]: %s",
+                          url, traceback.format_exc())
+            return -1
+        if response.status_code == httplib.OK:
+            return 1
+        elif response.status_code == httplib.NOT_FOUND:
+            return 0
+        logging.error("got grafana status [%d] when get datasource of influxdb",
+                      response.status_code)
+        return -1
+
     def es_grafana_datasources(self):
         """
         Get all datasources of grafana
@@ -314,14 +341,10 @@ class EsmonServer(object):
         with open(dashboard_json_fpath) as json_file:
             dashboard = json.load(json_file)
 
-        #logging.error("dashboard: %s", dashboard)
-
         data = {
             "dashboard": dashboard,
             "overwrite": False,
         }
-
-        #logging.error("data: %s", data)
 
         headers = {"Content-type": "application/json",
                    "Accept": "application/json"}
@@ -360,6 +383,31 @@ class EsmonServer(object):
                           response.status_code)
             return -1
         return 0
+
+    def es_grafana_has_dashboard(self):
+        """
+        Check whether grafana has dashboard
+        Return 1 if has dashboard, return 0 if not, return -1 if error
+        """
+        # pylint: disable=bare-except
+        headers = {"Content-type": "application/json",
+                   "Accept": "application/json"}
+
+        url = self.es_grafana_url("/api/dashboards/db/%s" %
+                                  GRAFANA_DASHBOARD_NAME)
+        try:
+            response = requests.get(url, headers=headers)
+        except:
+            logging.error("not able to get dashboard through [%s]: %s",
+                          url, traceback.format_exc())
+            return -1
+        if response.status_code == httplib.OK:
+            return 1
+        elif response.status_code == httplib.NOT_FOUND:
+            return 0
+        logging.error("got grafana status [%d] when get dashboard",
+                      response.status_code)
+        return -1
 
     def es_grafana_change_logo(self):
         """
@@ -429,7 +477,7 @@ class EsmonServer(object):
         """
         Reinstall grafana RPM
         """
-        # pylint: disable=too-many-return-statements
+        # pylint: disable=too-many-return-statements,too-many-branches
         ret = self.es_host.sh_rpm_query("grafana")
         if ret == 0:
             command = "rpm -e grafana"
@@ -476,17 +524,25 @@ class EsmonServer(object):
         if self.es_grafana_failure:
             return -1
 
-        ret = self.es_grafana_influxdb_delete()
-        if ret:
-            return ret
+        ret = self.es_grafana_has_influxdb()
+        if ret < 0:
+            return -1
+        elif ret == 1:
+            ret = self.es_grafana_influxdb_delete()
+            if ret:
+                return ret
 
         ret = self.es_grafana_influxdb_add()
         if ret:
             return ret
 
-        ret = self.es_grafana_dashboard_delete()
-        if ret:
-            return ret
+        ret = self.es_grafana_has_dashboard()
+        if ret < 0:
+            return -1
+        elif ret == 1:
+            ret = self.es_grafana_dashboard_delete()
+            if ret:
+                return ret
 
         ret = self.es_grafana_dashboard_add()
         if ret:
