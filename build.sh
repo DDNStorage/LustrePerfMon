@@ -75,18 +75,18 @@ DEPENDENT_RPMS="rpms"
 rm -fr $DEPENDENT_RPMS
 mkdir $DEPENDENT_RPMS
 pushd $DEPENDENT_RPMS
-yumdownloader openpgm
-if [ $? -ne 0 ]; then
-    error "failed to download openpgm RPM"
-fi
-yumdownloader yajl
-if [ $? -ne 0 ]; then
-    error "failed to download yajl RPM"
-fi
-yumdownloader zeromq3
-if [ $? -ne 0 ]; then
-    error "failed to download zeromq3 RPM"
-fi
+
+# download dependent RPMs
+
+for rpmname in openpgm yajl zeromq3 fontconfig glibc glibc-common glibc-devel fontpackages-filesystem glibc-headers glibc-static libfontenc libtool-ltdl libtool-ltdl-devel libXfont libyaml openpgm patch python2-filelock python2-pip python-backports python-backports-ssl_match_hostname python-dateutil python-requests python-setuptools python-six python-urllib3 PyYAML rsync urw-fonts xorg-x11-font-utils python-chardet
+do
+  yumdownloader "$rpmname"
+  if [ $? -ne 0 ]; then
+    error "failed to download $rpmname RPM"
+  fi
+done
+rm *.i686.rpm -f
+
 git clone https://github.com/Vonage/Grafana_Status_panel.git Grafana_Status_panel
 if [ $? -ne 0 ]; then
     error "failed to download grafana status panel"

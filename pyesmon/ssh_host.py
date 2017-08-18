@@ -652,14 +652,15 @@ class SSHHost(object):
                                        delete_dest, preserve_symlinks)
         ret = utils.run(rsync)
         if ret.cr_exit_status != 0:
-            logging.error("failed to send file [%s] on local host "
-                          "to dest [%s] on host [%s] using rsync, "
-                          "command = [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          source, dest, self.sh_hostname, rsync,
-                          ret.cr_exit_status, ret.cr_stdout,
-                          ret.cr_stderr)
-            return -1
+            if("command not found" not in ret.cr_stderr):
+                logging.error("failed to send file [%s] on local host "
+                              "to dest [%s] on host [%s] using rsync, "
+                              "command = [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              source, dest, self.sh_hostname, rsync,
+                              ret.cr_exit_status, ret.cr_stdout,
+                              ret.cr_stderr)
+                return -1
         else:
             return 0
 

@@ -45,6 +45,31 @@ class EsmonServer(object):
         self.es_rpm_dir = self.es_workspace + "/" + self.es_rpm_basename
         self.es_grafana_failure = False
 
+    def es_dependent_rpms_install(self):
+        """
+        Install dependent RPMs
+        """
+        dependent_rpms = ["yajl", "openpgm", "zeromq3", "glibc", "patch",
+                          "fontpackages-filesystem", "libfontenc", "libtool",
+                          "fontconfig", "libXfont", "rsync",
+                          "xorg-x11-font-utils", "urw-fonts"]
+        for dependent_rpm in dependent_rpms:
+            ret = self.es_host.sh_rpm_query(dependent_rpm)
+            if ret:
+                command = ("cd %s && rpm -ivh %s*.rpm" %
+                           (self.es_rpm_dir, dependent_rpm))
+                retval = self.es_host.sh_run(command)
+                if retval.cr_exit_status:
+                    logging.error("failed to run command [%s] on host [%s], "
+                                  "ret = [%d], stdout = [%s], stderr = [%s]",
+                                  command,
+                                  self.es_host.sh_hostname,
+                                  retval.cr_exit_status,
+                                  retval.cr_stdout,
+                                  retval.cr_stderr)
+                    return -1
+        return 0
+
     def es_influxdb_uninstall(self):
         """
         uninstall influxdb
@@ -331,12 +356,12 @@ class EsmonServer(object):
             return -1
         return 0
 
-    def es_grafana_dashboard_add(self):
+    def es_grafana_dashboard_add(self, mnt_path):
         """
         Update dashboard of grafana
         """
         # pylint: disable=bare-except
-        dashboard_json_fpath = (self.es_rpm_dir + "/" +
+        dashboard_json_fpath = (mnt_path + "/" +
                                 GRAFANA_DASHBOARD_JSON_FNAME)
         with open(dashboard_json_fpath) as json_file:
             dashboard = json.load(json_file)
@@ -473,7 +498,7 @@ class EsmonServer(object):
             return -1
         return 0
 
-    def es_grafana_reinstall(self):
+    def es_grafana_reinstall(self, mnt_path):
         """
         Reinstall grafana RPM
         """
@@ -544,7 +569,7 @@ class EsmonServer(object):
             if ret:
                 return ret
 
-        ret = self.es_grafana_dashboard_add()
+        ret = self.es_grafana_dashboard_add(mnt_path)
         if ret:
             return ret
 
@@ -557,17 +582,22 @@ class EsmonServer(object):
             return ret
         return 0
 
-    def es_reinstall(self, erase_influxdb, drop_database):
+    def es_reinstall(self, erase_influxdb, drop_database, mnt_path):
         """
         Reinstall RPMs
         """
+
+        ret = self.es_dependent_rpms_install()
+        if ret:
+            logging.error("failed to install dependent RPMs to server")
+            return -1
         ret = self.es_influxdb_reinstall(erase_influxdb, drop_database)
         if ret:
             logging.error("failed to reinstall influxdb on host [%s]",
                           self.es_host.sh_hostname)
             return -1
 
-        ret = self.es_grafana_reinstall()
+        ret = self.es_grafana_reinstall(mnt_path)
         if ret:
             logging.error("failed to reinstall grafana on host [%s]",
                           self.es_host.sh_hostname)
@@ -591,7 +621,10 @@ class EsmonClient(object):
         """
         Install dependent RPMs
         """
-        dependent_rpms = ["yajl", "openpgm", "zeromq3"]
+        dependent_rpms = ["yajl", "openpgm", "zeromq3", "glibc", "patch",
+                          "fontpackages-filesystem", "libfontenc", "libtool",
+                          "fontconfig", "libXfont", "rsync", "xorg-x11-font-utils",
+                          "urw-fonts"]
         for dependent_rpm in dependent_rpms:
             ret = self.ec_host.sh_rpm_query(dependent_rpm)
             if ret:
@@ -875,7 +908,7 @@ def esmon_do_install(workspace, config, mnt_path):
                       esmon_server_client.ec_host.sh_hostname)
         return -1
 
-    ret = esmon_server.es_reinstall(erase_influxdb, drop_database)
+    ret = esmon_server.es_reinstall(erase_influxdb, drop_database, mnt_path)
     if ret:
         logging.error("failed to reinstall esmon server on host [%s]",
                       esmon_server.es_host.sh_hostname)
