@@ -23,6 +23,8 @@ class CollectdConfig(object):
         self.cc_configs["WriteQueueLimitHigh"] = 1000000
         self.cc_configs["WriteQueueLimitLow"] = 800000
         self.cc_plugin_syslog("err")
+        self.cc_plugin_memory()
+        self.cc_plugin_cpu()
 
     def cc_dump(self, fpath):
         """
@@ -39,7 +41,7 @@ class CollectdConfig(object):
 
             for plugin_name, plugin_config in self.cc_plugins.iteritems():
                 text = 'LoadPlugin %s\n' % plugin_name
-                text += plugin_config
+                text += plugin_config + '\n'
                 fout.write(text)
 
     def cc_plugin_syslog(self, log_level):
@@ -50,7 +52,7 @@ class CollectdConfig(object):
             return -1
         config = ('<Plugin "syslog">\n'
                   '    LogLevel %s\n'
-                  '</Plugin>\n\n' % log_level)
+                  '</Plugin>\n' % log_level)
         self.cc_plugins["syslog"] = config
         return 0
 
@@ -71,6 +73,41 @@ class CollectdConfig(object):
                   '        Port "4232"\n'
                   '        DeriveRate true\n'
                   '    </Node>\n'
-                  '</Plugin>\n\n' % host)
+                  '</Plugin>\n' % host)
         self.cc_plugins["write_tsdb"] = config
+        return 0
+
+    def cc_plugin_cpu(self):
+        """
+        Config the cpu plugin
+        """
+        config = """
+LoadPlugin aggregation
+<Plugin "aggregation">
+    <Aggregation>
+        Plugin "cpu"
+        Type "cpu"
+        GroupBy "Host"
+        GroupBy "TypeInstance"
+        CalculateAverage true
+    </Aggregation>
+</Plugin>
+
+LoadPlugin match_regex
+# Don't send "cpu-X" stats
+<Chain "PostCache">
+    <Rule>
+        <Match regex>
+            Plugin "^cpu$"
+            PluginInstance "^[0-9]+$"
+        </Match>
+        <Target write>
+            Plugin "aggregation"
+        </Target>
+        Target stop
+    </Rule>
+    Target "write"
+</Chain>
+"""
+        self.cc_plugins["cpu"] = config
         return 0

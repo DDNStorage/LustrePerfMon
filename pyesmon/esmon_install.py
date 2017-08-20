@@ -854,7 +854,6 @@ def generate_collectd_config(workspace, esmon_server, test_config):
     if test_config:
         collectd_config_fpath = workspace + "/" + collectd.COLLECTD_CONFIG_TEST_FNAME
         interval = collectd.COLLECTD_INTERVAL_TEST
-        collectd_config.cc_plugin_memory()
     else:
         collectd_config_fpath = workspace + "/" + collectd.COLLECTD_CONFIG_FINAL_FNAME
         interval = collectd.COLLECTD_INTERVAL_FINAL
