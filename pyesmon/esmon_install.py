@@ -1,3 +1,6 @@
+# Copyright (c) 2017 DataDirect Networks, Inc.
+# All Rights Reserved.
+# Author: lixi@ddn.com
 """
 Library for installing ESMON
 """
@@ -16,17 +19,13 @@ import filelock
 # Local libs
 from pyesmon import utils
 from pyesmon import ssh_host
+from pyesmon import collectd
 
 ESMON_CONFIG_FNAME = "esmon.conf"
 ESMON_CONFIG = "/etc/" + ESMON_CONFIG_FNAME
 ESMON_INSTALL_LOG_DIR = "/var/log/esmon_install"
 INFLUXDB_CONFIG_FPATH = "/etc/influxdb/influxdb.conf"
 ESMON_INFLUXDB_CONFIG_DIFF = "influxdb.conf.diff"
-COLLECTD_CONFIG_TEMPLATE_FNAME = "collectd.conf.template"
-COLLECTD_CONFIG_TEST_FNAME = "collectd.conf.test"
-COLLECTD_CONFIG_FINAL_FNAME = "collectd.conf.final"
-COLLECTD_INTERVAL_TEST = 1
-COLLECTD_INTERVAL_FINAL = 60
 GRAFANA_DATASOURCE_NAME = "esmon_datasource"
 INFLUXDB_DATABASE_NAME = "esmon_database"
 GRAFANA_DASHBOARD_JSON_FNAME = "grafana_dashboard.json"
@@ -847,25 +846,21 @@ class EsmonClient(object):
             return -1
         return 0
 
-def generate_collectd_config(mnt_path, workspace, esmon_server, test_config):
+def generate_collectd_config(workspace, esmon_server, test_config):
     """
     Generate collectd config
     """
-    server_hostname = esmon_server.es_host.sh_hostname
-    template_fpath = mnt_path + "/" + COLLECTD_CONFIG_TEMPLATE_FNAME
+    collectd_config = collectd.CollectdConfig()
     if test_config:
-        collectd_config_fpath = workspace + "/" + COLLECTD_CONFIG_TEST_FNAME
-        interval = COLLECTD_INTERVAL_TEST
+        collectd_config_fpath = workspace + "/" + collectd.COLLECTD_CONFIG_TEST_FNAME
+        interval = collectd.COLLECTD_INTERVAL_TEST
+        collectd_config.cc_plugin_memory()
     else:
-        collectd_config_fpath = workspace + "/" + COLLECTD_CONFIG_FINAL_FNAME
-        interval = COLLECTD_INTERVAL_FINAL
-    with open(template_fpath, "rt") as fin:
-        with open(collectd_config_fpath, "wt") as fout:
-            for line in fin:
-                line = line.replace('${esmon:server_host}', server_hostname)
-                line = line.replace('${esmon:interval}', str(interval))
-                fout.write(line)
-
+        collectd_config_fpath = workspace + "/" + collectd.COLLECTD_CONFIG_FINAL_FNAME
+        interval = collectd.COLLECTD_INTERVAL_FINAL
+    collectd_config.cc_configs["Interval"] = interval
+    collectd_config.cc_plugin_write_tsdb(esmon_server.es_host.sh_hostname)
+    collectd_config.cc_dump(collectd_config_fpath)
 
 def esmon_do_install(workspace, config, mnt_path):
     """
@@ -914,8 +909,8 @@ def esmon_do_install(workspace, config, mnt_path):
                       esmon_server.es_host.sh_hostname)
         return -1
 
-    generate_collectd_config(mnt_path, workspace, esmon_server, False)
-    generate_collectd_config(mnt_path, workspace, esmon_server, True)
+    generate_collectd_config(workspace, esmon_server, False)
+    generate_collectd_config(workspace, esmon_server, True)
 
     client_host_configs = config["client_hosts"]
     esmon_clients = {}
@@ -946,7 +941,7 @@ def esmon_do_install(workspace, config, mnt_path):
             return -1
 
         ret = esmon_client.ec_collectd_send_config(workspace + "/" +
-                                                   COLLECTD_CONFIG_TEST_FNAME)
+                                                   collectd.COLLECTD_CONFIG_TEST_FNAME)
         if ret:
             logging.error("failed to send test config to esmon client on host [%s]",
                           esmon_client.ec_host.sh_hostname)
@@ -966,7 +961,7 @@ def esmon_do_install(workspace, config, mnt_path):
             return -1
 
         ret = esmon_client.ec_collectd_send_config(workspace + "/" +
-                                                   COLLECTD_CONFIG_FINAL_FNAME)
+                                                   collectd.COLLECTD_CONFIG_FINAL_FNAME)
         if ret:
             logging.error("failed to send final config to esmon client on host [%s]",
                           esmon_client.ec_host.sh_hostname)
