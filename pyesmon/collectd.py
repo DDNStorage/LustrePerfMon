@@ -16,7 +16,7 @@ class CollectdConfig(object):
     """
     Each collectd config has an object of this type
     """
-    def __init__(self):
+    def __init__(self, esmon_client):
         self.cc_configs = collections.OrderedDict()
         self.cc_plugins = collections.OrderedDict()
         self.cc_checks = []
@@ -26,7 +26,8 @@ class CollectdConfig(object):
         self.cc_plugin_syslog("err")
         self.cc_plugin_memory()
         self.cc_plugin_cpu()
-        self.cc_influxdb_host = None
+        self.cc_esmon_client = esmon_client
+        self.cc_plugin_write_tsdb()
 
     def cc_dump(self, fpath):
         """
@@ -46,6 +47,16 @@ class CollectdConfig(object):
                 text += plugin_config + '\n'
                 fout.write(text)
 
+    def cc_check(self):
+        """
+        Check the config to file
+        """
+        for check in self.cc_checks:
+            ret = check()
+            if ret:
+                return ret
+        return 0
+
     def cc_plugin_syslog(self, log_level):
         """
         Config the syslog plugin
@@ -59,19 +70,25 @@ class CollectdConfig(object):
         return 0
 
     def cc_plugin_memory_check(self):
-        return 0
+        """
+        Check the memory plugin
+        """
+        return self.cc_esmon_client.ec_influxdb_measurement_check("memory.buffered.memory")
 
     def cc_plugin_memory(self):
         """
         Config the memory plugin
         """
         self.cc_plugins["memory"] = ""
+        if self.cc_plugin_memory_check not in self.cc_checks:
+            self.cc_checks.append(self.cc_plugin_memory_check)
         return 0
 
-    def cc_plugin_write_tsdb(self, host):
+    def cc_plugin_write_tsdb(self):
         """
         Config the write TSDB plugin
         """
+        host = self.cc_esmon_client.ec_esmon_server.es_host.sh_hostname
         config = ('<Plugin "write_tsdb">\n'
                   '    <Node>\n'
                   '        Host "%s\n'
@@ -80,9 +97,15 @@ class CollectdConfig(object):
                   '    </Node>\n'
                   '</Plugin>\n' % host)
         self.cc_plugins["write_tsdb"] = config
-        self.cc_influxdb_host = host
-        self.cc_checks.append(self.cc_plugin_memory_check)
         return 0
+
+    def cc_plugin_cpu_check(self):
+        """
+        Check the CPU plugin
+        """
+        client = self.cc_esmon_client
+        measurement = "aggregation.cpu-average.cpu.system"
+        return client.ec_influxdb_measurement_check(measurement)
 
     def cc_plugin_cpu(self):
         """
@@ -117,4 +140,6 @@ LoadPlugin match_regex
 </Chain>
 """
         self.cc_plugins["cpu"] = config
+        if self.cc_plugin_cpu_check not in self.cc_checks:
+            self.cc_checks.append(self.cc_plugin_cpu_check)
         return 0

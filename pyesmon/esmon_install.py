@@ -206,17 +206,6 @@ class EsmonServer(object):
                 return -1
         return 0
 
-    def es_influxdb_check(self, retval, args):
-        # pylint: disable=unused-argument,no-self-use
-        """
-        Return 0 if exit status is 0 and output is not empty
-        """
-        if retval.cr_exit_status:
-            return -1
-        elif retval.cr_stdout == "":
-            return -1
-        return 0
-
     def es_grafana_url(self, api_path):
         """
         Return full Grafana URL
@@ -605,14 +594,12 @@ class EsmonClient(object):
         self.ec_rpm_basename = "RPMS"
         self.ec_rpm_dir = self.ec_workspace + "/" + self.ec_rpm_basename
         self.ec_esmon_server = esmon_server
-        config = collectd.CollectdConfig()
+        config = collectd.CollectdConfig(self)
         config.cc_configs["Interval"] = collectd.COLLECTD_INTERVAL_TEST
-        config.cc_plugin_write_tsdb(esmon_server.es_host.sh_hostname)
         self.ec_collectd_config_test = config
 
-        config = collectd.CollectdConfig()
+        config = collectd.CollectdConfig(self)
         config.cc_configs["Interval"] = collectd.COLLECTD_INTERVAL_FINAL
-        config.cc_plugin_write_tsdb(esmon_server.es_host.sh_hostname)
         self.ec_collectd_config_final = config
         self.ec_influxdb_update_time = None
 
@@ -857,16 +844,17 @@ class EsmonClient(object):
             return -1
         return 0
 
-    def _ec_influxdb_check(self, args):
+    def _ec_influxdb_measurement_check(self, args):
         # pylint: disable=bare-except,unused-argument
         """
         Check whether we can connect to Grafana
         """
+        measurement_name = args[0]
         client = influxdb.InfluxDBClient(host=self.ec_esmon_server.es_host.sh_hostname,
                                          database=INFLUXDB_DATABASE_NAME)
-        query = ('SELECT * FROM "memory.buffered.memory" '
+        query = ('SELECT * FROM "%s" '
                  'WHERE fqdn = \'%s\' ORDER BY time DESC LIMIT 1;' %
-                 (self.ec_host.sh_hostname))
+                 (measurement_name, self.ec_host.sh_hostname))
         try:
             result = client.query(query, epoch="s")
         except:
@@ -882,13 +870,16 @@ class EsmonClient(object):
             return 0
         return -1
 
-    def ec_influxdb_check(self):
+    def ec_influxdb_measurement_check(self, measurement_name):
         """
-        Check whether influxdb has datapoint from a client
+        Check whether influxdb has datapoint
         """
-        ret = utils.wait_condition(self._ec_influxdb_check,
-                                   [])
+        ret = utils.wait_condition(self._ec_influxdb_measurement_check,
+                                   [measurement_name])
+        if ret:
+            logging.error("failed to check measurement [%s]", measurement_name)
         return ret
+
 
 def esmon_do_install(workspace, config, mnt_path):
     """
@@ -978,9 +969,9 @@ def esmon_do_install(workspace, config, mnt_path):
             return -1
 
     for esmon_client in esmon_clients.values():
-        ret = esmon_client.ec_influxdb_check()
+        ret = esmon_client.ec_collectd_config_test.cc_check()
         if ret:
-            logging.error("influx doesn't have datapoint from host [%s]",
+            logging.error("influx doesn't have expected datapoints from host [%s]",
                           esmon_client.ec_host.sh_hostname)
             return -1
 
