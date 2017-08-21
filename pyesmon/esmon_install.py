@@ -217,33 +217,6 @@ class EsmonServer(object):
             return -1
         return 0
 
-    def es_influxdb_check_client(self, args):
-        # pylint: disable=bare-except,unused-argument
-        """
-        Check whether we can connect to Grafana
-        """
-        esmon_client = args[0]
-        client = influxdb.InfluxDBClient(host=self.es_host.sh_hostname,
-                                         database=INFLUXDB_DATABASE_NAME)
-        try:
-            result = client.query('SELECT * FROM "memory.buffered.memory" '
-                                  'WHERE fqdn = \'%s\';' %
-                                  (esmon_client.ec_host.sh_hostname))
-        except:
-            logging.debug("not able to query influx db: %s",
-                          traceback.format_exc())
-            return -1
-
-        return 0
-
-    def es_influxdb_has_client(self, esmon_client):
-        """
-        Check whether influxdb has datapoint from a client
-        """
-        ret = utils.wait_condition(self.es_influxdb_check_client,
-                                   [esmon_client])
-        return ret
-
     def es_grafana_url(self, api_path):
         """
         Return full Grafana URL
@@ -883,6 +856,33 @@ class EsmonClient(object):
             return -1
         return 0
 
+    def _ec_influxdb_check(self, args):
+        # pylint: disable=bare-except,unused-argument
+        """
+        Check whether we can connect to Grafana
+        """
+        client = influxdb.InfluxDBClient(host=self.ec_esmon_server.es_host.sh_hostname,
+                                         database=INFLUXDB_DATABASE_NAME)
+        try:
+            result = client.query('SELECT * FROM "memory.buffered.memory" '
+                                  'WHERE fqdn = \'%s\';' %
+                                  (self.ec_host.sh_hostname))
+        except:
+            logging.debug("not able to query influx db: %s",
+                          traceback.format_exc())
+            return -1
+        print result
+
+        return 0
+
+    def ec_influxdb_check(self):
+        """
+        Check whether influxdb has datapoint from a client
+        """
+        ret = utils.wait_condition(self._ec_influxdb_check,
+                                   [])
+        return ret
+
 def esmon_do_install(workspace, config, mnt_path):
     """
     Start to install with the ISO mounted
@@ -971,7 +971,7 @@ def esmon_do_install(workspace, config, mnt_path):
             return -1
 
     for esmon_client in esmon_clients.values():
-        ret = esmon_server.es_influxdb_has_client(esmon_client)
+        ret = esmon_client.ec_influxdb_check()
         if ret:
             logging.error("influx doesn't have datapoint from host [%s]",
                           esmon_client.ec_host.sh_hostname)
