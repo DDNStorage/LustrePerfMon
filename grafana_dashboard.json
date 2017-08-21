@@ -8,7 +8,7 @@
   "hideControls": false,
   "id": null,
   "links": [],
-  "refresh": false,
+  "refresh": "1m",
   "rows": [
     {
       "collapse": false,
@@ -3053,8 +3053,8 @@
     "list": []
   },
   "time": {
-    "from": "2017-07-31T23:18:35.686Z",
-    "to": "2017-08-01T05:18:35.686Z"
+    "from": "now-1h",
+    "to": "now"
   },
   "timepicker": {
     "refresh_intervals": [
