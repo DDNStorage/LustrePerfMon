@@ -19,12 +19,14 @@ class CollectdConfig(object):
     def __init__(self):
         self.cc_configs = collections.OrderedDict()
         self.cc_plugins = collections.OrderedDict()
+        self.cc_checks = []
         self.cc_configs["Interval"] = COLLECTD_INTERVAL_FINAL
         self.cc_configs["WriteQueueLimitHigh"] = 1000000
         self.cc_configs["WriteQueueLimitLow"] = 800000
         self.cc_plugin_syslog("err")
         self.cc_plugin_memory()
         self.cc_plugin_cpu()
+        self.cc_influxdb_host = None
 
     def cc_dump(self, fpath):
         """
@@ -56,6 +58,9 @@ class CollectdConfig(object):
         self.cc_plugins["syslog"] = config
         return 0
 
+    def cc_plugin_memory_check(self):
+        return 0
+
     def cc_plugin_memory(self):
         """
         Config the memory plugin
@@ -75,6 +80,8 @@ class CollectdConfig(object):
                   '    </Node>\n'
                   '</Plugin>\n' % host)
         self.cc_plugins["write_tsdb"] = config
+        self.cc_influxdb_host = host
+        self.cc_checks.append(self.cc_plugin_memory_check)
         return 0
 
     def cc_plugin_cpu(self):

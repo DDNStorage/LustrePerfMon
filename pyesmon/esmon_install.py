@@ -15,6 +15,7 @@ import json
 import requests
 import yaml
 import filelock
+import influxdb
 
 # Local libs
 from pyesmon import utils
@@ -216,16 +217,31 @@ class EsmonServer(object):
             return -1
         return 0
 
+    def es_influxdb_check_client(self, args):
+        # pylint: disable=bare-except,unused-argument
+        """
+        Check whether we can connect to Grafana
+        """
+        esmon_client = args[0]
+        client = influxdb.InfluxDBClient(host=self.es_host.sh_hostname,
+                                         database=INFLUXDB_DATABASE_NAME)
+        try:
+            result = client.query('SELECT * FROM "memory.buffered.memory" '
+                                  'WHERE fqdn = \'%s\';' %
+                                  (esmon_client.ec_host.sh_hostname))
+        except:
+            logging.debug("not able to query influx db: %s",
+                          traceback.format_exc())
+            return -1
+
+        return 0
+
     def es_influxdb_has_client(self, esmon_client):
         """
         Check whether influxdb has datapoint from a client
         """
-        command = ('influx --database %s -execute "'
-                   'SELECT * FROM \\"memory.buffered.memory\\" '
-                   'WHERE fqdn = \'%s\'"' %
-                   (INFLUXDB_DATABASE_NAME, esmon_client.ec_host.sh_hostname))
-        ret = self.es_host.sh_wait_condition(command, self.es_influxdb_check,
-                                             [])
+        ret = utils.wait_condition(self.es_influxdb_check_client,
+                                   [esmon_client])
         return ret
 
     def es_grafana_url(self, api_path):
@@ -610,11 +626,21 @@ class EsmonClient(object):
     """
     # pylint: disable=too-few-public-methods,too-many-instance-attributes
     # pylint: disable=too-many-arguments
-    def __init__(self, host, workspace):
+    def __init__(self, host, workspace, esmon_server):
         self.ec_host = host
         self.ec_workspace = workspace
         self.ec_rpm_basename = "RPMS"
         self.ec_rpm_dir = self.ec_workspace + "/" + self.ec_rpm_basename
+        self.ec_esmon_server = esmon_server
+        config = collectd.CollectdConfig()
+        config.cc_configs["Interval"] = collectd.COLLECTD_INTERVAL_TEST
+        config.cc_plugin_write_tsdb(esmon_server.es_host.sh_hostname)
+        self.ec_collectd_config_test = config
+
+        config = collectd.CollectdConfig()
+        config.cc_configs["Interval"] = collectd.COLLECTD_INTERVAL_FINAL
+        config.cc_plugin_write_tsdb(esmon_server.es_host.sh_hostname)
+        self.ec_collectd_config_final = config
 
     def ec_dependent_rpms_install(self):
         """
@@ -739,10 +765,21 @@ class EsmonClient(object):
                           retval.cr_stderr)
             return -1
 
-    def ec_collectd_send_config(self, fpath):
+    def ec_collectd_send_config(self, test_config):
         """
         Send collectd config to client
         """
+        fpath = self.ec_workspace + "/"
+        if test_config:
+            fpath += collectd.COLLECTD_CONFIG_TEST_FNAME
+            config = self.ec_collectd_config_test
+        else:
+            fpath += collectd.COLLECTD_CONFIG_FINAL_FNAME
+            config = self.ec_collectd_config_final
+        fpath += "." + self.ec_host.sh_hostname
+
+        config.cc_dump(fpath)
+
         etc_path = "/etc/collectd.conf"
         ret = self.ec_host.sh_send_file(fpath, etc_path)
         if ret:
@@ -846,21 +883,6 @@ class EsmonClient(object):
             return -1
         return 0
 
-def generate_collectd_config(workspace, esmon_server, test_config):
-    """
-    Generate collectd config
-    """
-    collectd_config = collectd.CollectdConfig()
-    if test_config:
-        collectd_config_fpath = workspace + "/" + collectd.COLLECTD_CONFIG_TEST_FNAME
-        interval = collectd.COLLECTD_INTERVAL_TEST
-    else:
-        collectd_config_fpath = workspace + "/" + collectd.COLLECTD_CONFIG_FINAL_FNAME
-        interval = collectd.COLLECTD_INTERVAL_FINAL
-    collectd_config.cc_configs["Interval"] = interval
-    collectd_config.cc_plugin_write_tsdb(esmon_server.es_host.sh_hostname)
-    collectd_config.cc_dump(collectd_config_fpath)
-
 def esmon_do_install(workspace, config, mnt_path):
     """
     Start to install with the ISO mounted
@@ -892,7 +914,7 @@ def esmon_do_install(workspace, config, mnt_path):
         return -1
     host = hosts[host_id]
     esmon_server = EsmonServer(host, workspace)
-    esmon_server_client = EsmonClient(host, workspace)
+    esmon_server_client = EsmonClient(host, workspace, esmon_server)
 
     ret = esmon_server_client.ec_send_rpms(mnt_path)
     if ret:
@@ -908,9 +930,6 @@ def esmon_do_install(workspace, config, mnt_path):
                       esmon_server.es_host.sh_hostname)
         return -1
 
-    generate_collectd_config(workspace, esmon_server, False)
-    generate_collectd_config(workspace, esmon_server, True)
-
     client_host_configs = config["client_hosts"]
     esmon_clients = {}
     for client_host_config in client_host_configs:
@@ -920,7 +939,7 @@ def esmon_do_install(workspace, config, mnt_path):
             logging.error("no host with ID [%s] is configured", host_id)
             return -1
         host = hosts[host_id]
-        esmon_client = EsmonClient(host, workspace)
+        esmon_client = EsmonClient(host, workspace, esmon_server)
         esmon_clients[host_id] = esmon_client
 
     for esmon_client in esmon_clients.values():
@@ -939,8 +958,7 @@ def esmon_do_install(workspace, config, mnt_path):
                           esmon_client.ec_host.sh_hostname)
             return -1
 
-        ret = esmon_client.ec_collectd_send_config(workspace + "/" +
-                                                   collectd.COLLECTD_CONFIG_TEST_FNAME)
+        ret = esmon_client.ec_collectd_send_config(True)
         if ret:
             logging.error("failed to send test config to esmon client on host [%s]",
                           esmon_client.ec_host.sh_hostname)
@@ -959,8 +977,7 @@ def esmon_do_install(workspace, config, mnt_path):
                           esmon_client.ec_host.sh_hostname)
             return -1
 
-        ret = esmon_client.ec_collectd_send_config(workspace + "/" +
-                                                   collectd.COLLECTD_CONFIG_FINAL_FNAME)
+        ret = esmon_client.ec_collectd_send_config(False)
         if ret:
             logging.error("failed to send final config to esmon client on host [%s]",
                           esmon_client.ec_host.sh_hostname)
