@@ -614,6 +614,7 @@ class EsmonClient(object):
         config.cc_configs["Interval"] = collectd.COLLECTD_INTERVAL_FINAL
         config.cc_plugin_write_tsdb(esmon_server.es_host.sh_hostname)
         self.ec_collectd_config_final = config
+        self.ec_influxdb_update_time = None
 
     def ec_dependent_rpms_install(self):
         """
@@ -863,17 +864,23 @@ class EsmonClient(object):
         """
         client = influxdb.InfluxDBClient(host=self.ec_esmon_server.es_host.sh_hostname,
                                          database=INFLUXDB_DATABASE_NAME)
+        query = ('SELECT * FROM "memory.buffered.memory" '
+                 'WHERE fqdn = \'%s\' ORDER BY time DESC LIMIT 1;' %
+                 (self.ec_host.sh_hostname))
         try:
-            result = client.query('SELECT * FROM "memory.buffered.memory" '
-                                  'WHERE fqdn = \'%s\';' %
-                                  (self.ec_host.sh_hostname))
+            result = client.query(query, epoch="s")
         except:
-            logging.debug("not able to query influx db: %s",
-                          traceback.format_exc())
             return -1
-        print result
-
-        return 0
+        points = list(result.get_points())
+        if len(points) != 1:
+            return -1
+        point = points[0]
+        timestamp = int(point["time"])
+        if self.ec_influxdb_update_time is None:
+            self.ec_influxdb_update_time = timestamp
+        elif timestamp > self.ec_influxdb_update_time:
+            return 0
+        return -1
 
     def ec_influxdb_check(self):
         """
