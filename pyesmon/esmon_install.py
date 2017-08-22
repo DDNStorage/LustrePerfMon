@@ -29,6 +29,8 @@ INFLUXDB_CONFIG_FPATH = "/etc/influxdb/influxdb.conf"
 ESMON_INFLUXDB_CONFIG_DIFF = "influxdb.conf.diff"
 GRAFANA_DATASOURCE_NAME = "esmon_datasource"
 INFLUXDB_DATABASE_NAME = "esmon_database"
+INFLUXDB_CQ_PREFIX = "cq_"
+INFLUXDB_CQ_MEASUREMENT_PREFIX = "cqm_"
 GRAFANA_DASHBOARD_JSON_FNAME = "grafana_dashboard.json"
 GRAFANA_DASHBOARD_NAME = "esmon_dashboard"
 GRAFANA_STATUS_PANEL = "Grafana_Status_panel"
@@ -44,6 +46,9 @@ class EsmonServer(object):
         self.es_rpm_basename = "RPMS"
         self.es_rpm_dir = self.es_workspace + "/" + self.es_rpm_basename
         self.es_grafana_failure = False
+        hostname = host.sh_hostname
+        self.es_influxdb_client = influxdb.InfluxDBClient(host=hostname,
+                                                          database=INFLUXDB_DATABASE_NAME)
 
     def es_dependent_rpms_install(self):
         """
@@ -581,6 +586,31 @@ class EsmonServer(object):
             return -1
         return 0
 
+    def es_influxdb_cq_create(self, measurement, groups, interval="1m"):
+        """
+        Create continuous query in influxdb
+        """
+        # pylint: disable=bare-except
+        cq_query = INFLUXDB_CQ_PREFIX + measurement
+        cq_measurement = INFLUXDB_CQ_MEASUREMENT_PREFIX + measurement
+        group_string = ""
+        for group in groups:
+            group_string += ', "%s"' % group
+        query = ('CREATE CONTINUOUS QUERY %s ON "%s"\n'
+                 '  BEGIN SELECT sum("value") INTO "%s" '
+                 '      FROM "%s" GROUP BY time(%s), "job_id", "optype"\n'
+                 'END;' %
+                 (cq_query, INFLUXDB_DATABASE_NAME, cq_measurement,
+                  measurement, interval))
+        client = self.es_influxdb_client
+        try:
+            client.query(query)
+        except:
+            logging.error("failed to create continuous query with query [%s]",
+                          query)
+            return -1
+        return 0
+
 
 class EsmonClient(object):
     """
@@ -862,11 +892,10 @@ class EsmonClient(object):
         Check whether we can connect to Grafana
         """
         measurement_name = args[0]
-        client = influxdb.InfluxDBClient(host=self.ec_esmon_server.es_host.sh_hostname,
-                                         database=INFLUXDB_DATABASE_NAME)
         query = ('SELECT * FROM "%s" '
                  'WHERE fqdn = \'%s\' ORDER BY time DESC LIMIT 1;' %
                  (measurement_name, self.ec_host.sh_hostname))
+        client = self.ec_esmon_server.es_influxdb_client
         try:
             result = client.query(query, epoch="s")
         except:
@@ -940,6 +969,47 @@ def esmon_do_install(workspace, config, mnt_path):
                       esmon_server.es_host.sh_hostname)
         return -1
 
+    ret = esmon_server.es_influxdb_cq_create("mdt_jobstats_samples",
+                                             ["job_id", "optype"])
+    if ret:
+        return -1
+
+    ret = esmon_server.es_influxdb_cq_create("ost_jobstats_samples",
+                                             ["job_id", "optype"])
+    if ret:
+        return -1
+
+    ret = esmon_server.es_influxdb_cq_create("ost_brw_stats_rpc_bulk_samples",
+                                             ["size", "field"])
+    if ret:
+        return -1
+
+    ret = esmon_server.es_influxdb_cq_create("ost_stats_bytes",
+                                             ["optype"])
+    if ret:
+        return -1
+
+    ret = esmon_server.es_influxdb_cq_create("md_stats",
+                                             ["optype"])
+    if ret:
+        return -1
+
+    ret = esmon_server.es_influxdb_cq_create("mdt_acctuser_samples",
+                                             ["user_id", "optype"])
+    if ret:
+        return -1
+
+    ret = esmon_server.es_influxdb_cq_create("ost_acctuser_samples",
+                                             ["user_id", "optype"])
+    if ret:
+        return -1
+
+    ret = esmon_server.es_influxdb_cq_create("ost_kbytesinfo_used",
+                                             ["user_id", "optype"],
+                                             interval="10m")
+    if ret:
+        return -1
+
     client_host_configs = config["client_hosts"]
     esmon_clients = {}
     for client_host_config in client_host_configs:
@@ -992,6 +1062,7 @@ def esmon_do_install(workspace, config, mnt_path):
                           esmon_client.ec_host.sh_hostname)
             return -1
 
+    for esmon_client in esmon_clients.values():
         ret = esmon_client.ec_collectd_send_config(False)
         if ret:
             logging.error("failed to send final config to esmon client on host [%s]",
