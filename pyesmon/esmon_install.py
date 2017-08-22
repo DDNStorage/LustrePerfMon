@@ -588,7 +588,8 @@ class EsmonClient(object):
     """
     # pylint: disable=too-few-public-methods,too-many-instance-attributes
     # pylint: disable=too-many-arguments
-    def __init__(self, host, workspace, esmon_server):
+    def __init__(self, host, workspace, esmon_server, lustre_oss=False,
+                 lustre_mds=False, ime=False):
         self.ec_host = host
         self.ec_workspace = workspace
         self.ec_rpm_basename = "RPMS"
@@ -596,11 +597,22 @@ class EsmonClient(object):
         self.ec_esmon_server = esmon_server
         config = collectd.CollectdConfig(self)
         config.cc_configs["Interval"] = collectd.COLLECTD_INTERVAL_TEST
+        if lustre_oss or lustre_mds:
+            config.cc_plugin_lustre(lustre_oss=lustre_oss,
+                                    lustre_mds=lustre_mds)
+        if ime:
+            config.cc_plugin_ime()
         self.ec_collectd_config_test = config
 
         config = collectd.CollectdConfig(self)
         config.cc_configs["Interval"] = collectd.COLLECTD_INTERVAL_FINAL
+        if lustre_oss or lustre_mds:
+            config.cc_plugin_lustre(lustre_oss=lustre_oss,
+                                    lustre_mds=lustre_mds)
+        if ime:
+            config.cc_plugin_ime()
         self.ec_collectd_config_final = config
+
         self.ec_influxdb_update_time = None
 
     def ec_dependent_rpms_install(self):
@@ -937,7 +949,12 @@ def esmon_do_install(workspace, config, mnt_path):
             logging.error("no host with ID [%s] is configured", host_id)
             return -1
         host = hosts[host_id]
-        esmon_client = EsmonClient(host, workspace, esmon_server)
+        lustre_oss = client_host_config["lustre_oss"]
+        lustre_mds = client_host_config["lustre_mds"]
+        ime = client_host_config["ime"]
+        esmon_client = EsmonClient(host, workspace, esmon_server,
+                                   lustre_oss=lustre_oss,
+                                   lustre_mds=lustre_mds, ime=ime)
         esmon_clients[host_id] = esmon_client
 
     for esmon_client in esmon_clients.values():

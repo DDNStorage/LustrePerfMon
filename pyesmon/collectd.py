@@ -91,8 +91,8 @@ class CollectdConfig(object):
         host = self.cc_esmon_client.ec_esmon_server.es_host.sh_hostname
         config = ('<Plugin "write_tsdb">\n'
                   '    <Node>\n'
-                  '        Host "%s\n'
-                  '        Port "4232"\n'
+                  '        Host "%s"\n'
+                  '        Port "4242"\n'
                   '        DeriveRate true\n'
                   '    </Node>\n'
                   '</Plugin>\n' % host)
@@ -142,4 +142,188 @@ LoadPlugin match_regex
         self.cc_plugins["cpu"] = config
         if self.cc_plugin_cpu_check not in self.cc_checks:
             self.cc_checks.append(self.cc_plugin_cpu_check)
+        return 0
+
+    def cc_plugin_lustre(self, lustre_oss=False, lustre_mds=False):
+        """
+        Config the Lustre plugin
+        """
+        config = """
+<Plugin "filedata">
+    <Common>
+        DefinitionFile "/etc/lustre-ieel-2.7_definition.xml"
+    </Common>
+"""
+        if lustre_oss:
+            config += """
+    # OST stats
+    <Item>
+        Type "ost_acctuser"
+        Query_interval 10
+    </Item>
+    <Item>
+        Type "ost_kbytestotal"
+        Query_interval 10
+    </Item>
+    <Item>
+        Type "ost_kbytesfree"
+        Query_interval 10
+    </Item>
+    <Item>
+        Type "ost_kbytesused"
+        Query_interval 10
+    </Item>
+    <Item>
+        Type "ost_filesused"
+        Query_interval 10
+    </Item>
+    <Item>
+        Type "ost_stats_write"
+    </Item>
+    <Item>
+        Type "ost_stats_read"
+    </Item>
+    <Item>
+        Type "ost_brw_stats_rpc_bulk"
+    </Item>
+    <Item>
+        Type "ost_jobstats"
+#        <Rule>
+#            Field "job_id"
+#            Match "[[:digit:]]+"
+#        </Rule>
+    </Item>
+#   <ItemType>
+#       Type "ost_jobstats"
+#       <ExtendedParse>
+#           # Parse the field job_id
+#           Field "job_id"
+#           # Match the pattern
+#           Pattern "u([[:digit:]]+)[.]g([[:digit:]]+)[.]j([[:digit:]]+)"
+#           <ExtendedField>
+#               Index 1
+#               Name slurm_job_uid
+#           </ExtendedField>
+#           <ExtendedField>
+#               Index 2
+#               Name slurm_job_gid
+#           </ExtendedField>
+#           <ExtendedField>
+#               Index 3
+#               Name slurm_job_id
+#           </ExtendedField>
+#       </ExtendedParse>
+#       TsdbTags "slurm_job_uid=${extendfield:slurm_job_uid} slurm_job_gid=${extendfield:slurm_job_gid} slurm_job_id=${extendfield:slurm_job_id}"
+#   </ItemType>
+"""
+        if lustre_mds:
+            config += """
+    # MDT stats
+    <Item>
+        Type "mdt_acctuser"
+        Query_interval 10
+    </Item>
+    <Item>
+        Type "mdt_filestotal"
+        Query_interval 10
+    </Item>
+    <Item>
+        Type "mdt_filesfree"
+        Query_interval 10
+    </Item>
+    <Item>
+        Type "mdt_filesused"
+        Query_interval 10
+    </Item>
+    <Item>
+        Type "md_stats_open"
+    </Item>
+    <Item>
+        Type "md_stats_close"
+    </Item>
+    <Item>
+        Type "md_stats_mknod"
+    </Item>
+    <Item>
+        Type "md_stats_unlink"
+    </Item>
+    <Item>
+        Type "md_stats_mkdir"
+    </Item>
+    <Item>
+        Type "md_stats_rmdir"
+    </Item>
+    <Item>
+        Type "md_stats_rename"
+    </Item>
+    <Item>
+        Type "md_stats_getattr"
+    </Item>
+    <Item>
+        Type "md_stats_setattr"
+    </Item>
+    <Item>
+        Type "md_stats_getxattr"
+    </Item>
+    <Item>
+        Type "md_stats_setxattr"
+    </Item>
+    <Item>
+        Type "md_stats_statfs"
+    </Item>
+    <Item>
+        Type "md_stats_sync"
+    </Item>
+    <Item>
+        Type "mdt_jobstats"
+#       <Rule>
+#           Field "job_id"
+#           Match "[[:digit:]]+"
+#       </Rule>
+    </Item>
+#   <ItemType>
+#       Type "mdt_jobstats"
+#       <ExtendedParse>
+#           # Parse the field job_id
+#           Field "job_id"
+#           # Match the pattern
+#           Pattern "u([[:digit:]]+)[.]g([[:digit:]]+)[.]j([[:digit:]]+)"
+#           <ExtendedField>
+#               Index 1
+#               Name slurm_job_uid
+#           </ExtendedField>
+#           <ExtendedField>
+#               Index 2
+#               Name slurm_job_gid
+#           </ExtendedField>
+#           <ExtendedField>
+#               Index 3
+#               Name slurm_job_id
+#           </ExtendedField>
+#       </ExtendedParse>
+#       TsdbTags "slurm_job_uid=${extendfield:slurm_job_uid} slurm_job_gid=${extendfield:slurm_job_gid} slurm_job_id=${extendfield:slurm_job_id}"
+#   </ItemType>
+"""
+        config += "</Plugin>\n"
+        self.cc_plugins["filedata"] = config
+        return 0
+
+    def cc_plugin_ime(self):
+        """
+        Config the IME plugin
+        """
+        config = """
+<Plugin "ime">
+    <Common>
+        DefinitionFile "/etc/ime-0.1_definition.xml"
+    </Common>
+    <Item>
+        Type "nvm-stat"
+    </Item>
+    <Item>
+        Type "bfs-stat"
+    </Item>
+</Plugin>
+"""
+        self.cc_plugins["ime"] = config
         return 0
