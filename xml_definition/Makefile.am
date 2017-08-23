@@ -23,14 +23,13 @@ $(XML_DESTINE_FILES): $(M4_FILES)
 	fi
 	mv $@.tmp $@
 
-$(XML_DEFINITION_RPM): CLEAN_BUILD_DIRS $(XML_DESTINE_FILES)
+$(XML_DEFINITION_RPM): $(BUILD_DIRS) $(XML_DESTINE_FILES)
 	tar czvf xml_definition.tar.gz *.xml collectd.conf.all
 	mv xml_definition.tar.gz ./SOURCES
 	rpmbuild -ba --define="rev ${XML_DEFINITION_REV}" --define="dist .el${DISTRO_RELEASE}" --define="_topdir $(shell pwd)" xml_definition.spec
 
-CLEAN_BUILD_DIRS:
-	rm $(BUILD_DIRS) -fr
-	mkdir $(BUILD_DIRS)
+$(BUILD_DIRS):
+	mkdir $@
 
 clean-local:
 	-rm -f $(XML_DEFINITION_RPMS)
