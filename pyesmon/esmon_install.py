@@ -50,13 +50,58 @@ class EsmonServer(object):
         self.es_influxdb_client = influxdb.InfluxDBClient(host=hostname,
                                                           database=INFLUXDB_DATABASE_NAME)
 
+    def es_firewall_open_ports(self):
+        """
+        Open necessary ports in the firewall
+        """
+        ret = self.es_host.sh_rpm_query("firewalld")
+        if ret:
+            logging.debug("firewalld is not installed on host [%s], "
+                          "skipping opening ports", self.es_host.sh_hostname)
+            return 0
+
+        command = ("firewall-cmd --state")
+        retval = self.es_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.debug("firewall is already closed on host [%s], skipping "
+                          "opening ports", self.es_host.sh_hostname)
+            return 0
+
+        ports = [300, 4242, 8086, 8088, 25826]
+        for port in ports:
+            command = ("firewall-cmd --zone=public --add-port=%d/tcp "
+                       "--permanent" % port)
+            retval = self.es_host.sh_run(command)
+            if retval.cr_exit_status:
+                logging.error("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              self.es_host.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
+                return -1
+
+        command = ("firewall-cmd --reload")
+        retval = self.es_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.es_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        return 0
+
     def es_dependent_rpms_install(self):
         """
         Install dependent RPMs
         """
         dependent_rpms = ["yajl", "openpgm", "zeromq3", "glibc", "patch",
                           "fontpackages-filesystem", "libfontenc", "libtool-ltdl",
-                          "fontconfig", "libXfont", "rsync",
+                          "libtool", "fontconfig", "libXfont", "rsync",
                           "xorg-x11-font-utils", "urw-fonts"]
         for dependent_rpm in dependent_rpms:
             ret = self.es_host.sh_rpm_query(dependent_rpm)
@@ -65,15 +110,14 @@ class EsmonServer(object):
                            (self.es_rpm_dir, dependent_rpm))
                 retval = self.es_host.sh_run(command)
                 if retval.cr_exit_status:
-                    if("already installed" not in retval.cr_stderr):
-                        logging.error("failed to run command [%s] on host [%s], "
-                                      "ret = [%d], stdout = [%s], stderr = [%s]",
-                                      command,
-                                      self.es_host.sh_hostname,
-                                      retval.cr_exit_status,
-                                      retval.cr_stdout,
-                                      retval.cr_stderr)
-                        return -1
+                    logging.error("failed to run command [%s] on host [%s], "
+                                  "ret = [%d], stdout = [%s], stderr = [%s]",
+                                  command,
+                                  self.es_host.sh_hostname,
+                                  retval.cr_exit_status,
+                                  retval.cr_stdout,
+                                  retval.cr_stderr)
+                    return -1
         return 0
 
     def es_influxdb_uninstall(self):
@@ -574,6 +618,13 @@ class EsmonServer(object):
         if ret:
             logging.error("failed to install dependent RPMs to server")
             return -1
+
+        ret = self.es_firewall_open_ports()
+        if ret:
+            logging.error("failed to export ports of ESMON server, later"
+                          "operations mght faill")
+            return -1
+
         ret = self.es_influxdb_reinstall(erase_influxdb, drop_database)
         if ret:
             logging.error("failed to reinstall influxdb on host [%s]",
@@ -620,7 +671,7 @@ class EsmonClient(object):
     # pylint: disable=too-few-public-methods,too-many-instance-attributes
     # pylint: disable=too-many-arguments
     def __init__(self, host, workspace, esmon_server, lustre_oss=False,
-                 lustre_mds=False, ime=False, **otherKeys):
+                 lustre_mds=False, ime=False):
         self.ec_host = host
         self.ec_workspace = workspace
         self.ec_rpm_basename = "RPMS"
@@ -661,15 +712,14 @@ class EsmonClient(object):
                            (self.ec_rpm_dir, dependent_rpm))
                 retval = self.ec_host.sh_run(command)
                 if retval.cr_exit_status:
-                    if("already installed" not in retval.cr_stderr):
-                        logging.error("failed to run command [%s] on host [%s], "
-                                      "ret = [%d], stdout = [%s], stderr = [%s]",
-                                      command,
-                                      self.ec_host.sh_hostname,
-                                      retval.cr_exit_status,
-                                      retval.cr_stdout,
-                                      retval.cr_stderr)
-                        return -1
+                    logging.error("failed to run command [%s] on host [%s], "
+                                  "ret = [%d], stdout = [%s], stderr = [%s]",
+                                  command,
+                                  self.ec_host.sh_hostname,
+                                  retval.cr_exit_status,
+                                  retval.cr_stdout,
+                                  retval.cr_stderr)
+                    return -1
         return 0
 
     def ec_rpm_uninstall(self, rpm_name):
@@ -1216,7 +1266,7 @@ def main():
     shutil.copyfile(config_fpath, save_fpath)
     ret = esmon_install(workspace, config_fpath)
     if ret:
-        logging.error("installation failed, please check [%s] for more log",
+        logging.error("installation failed, please check [%s] for more log\n",
                       workspace)
         sys.exit(ret)
     logging.info("Exascaler monistoring system is installed, please check [%s] "
