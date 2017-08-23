@@ -10,7 +10,7 @@ M4_FILES = general.m4 lustre.m4 $(M4_DESTINE_FILES)
 
 XML_DESTINE_FILES=$(M4_DESTINE_FILES:.m4=.xml)
 
-noinst_DATA = $(BUILD_DIRS) $(XML_DEFINITION_RPMS) $(M4_FILES) test_driver.py \
+noinst_DATA = $(BUILD_DIRS) $(XML_DEFINITION_RPM) $(M4_FILES) test_driver.py \
 	xml_definition.spec tests/lustre-2.5
 
 $(XML_DESTINE_FILES): $(M4_FILES)
@@ -23,13 +23,14 @@ $(XML_DESTINE_FILES): $(M4_FILES)
 	fi
 	mv $@.tmp $@
 
-$(XML_DEFINITION_RPMS): $(XML_DESTINE_FILES)
+$(XML_DEFINITION_RPM): CLEAN_BUILD_DIRS $(XML_DESTINE_FILES)
 	tar czvf xml_definition.tar.gz *.xml collectd.conf.all
 	mv xml_definition.tar.gz ./SOURCES
 	rpmbuild -ba --define="rev ${XML_DEFINITION_REV}" --define="dist .el${DISTRO_RELEASE}" --define="_topdir $(shell pwd)" xml_definition.spec
 
-$(BUILD_DIRS):
-	mkdir $@
+CLEAN_BUILD_DIRS:
+	rm $(BUILD_DIRS) -fr
+	mkdir $(BUILD_DIRS)
 
 clean-local:
 	-rm -f $(XML_DEFINITION_RPMS)

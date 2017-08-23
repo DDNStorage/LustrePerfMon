@@ -55,7 +55,7 @@ class EsmonServer(object):
         Install dependent RPMs
         """
         dependent_rpms = ["yajl", "openpgm", "zeromq3", "glibc", "patch",
-                          "fontpackages-filesystem", "libfontenc", "libtool",
+                          "fontpackages-filesystem", "libfontenc", "libtool-ltdl",
                           "fontconfig", "libXfont", "rsync",
                           "xorg-x11-font-utils", "urw-fonts"]
         for dependent_rpm in dependent_rpms:
@@ -651,9 +651,9 @@ class EsmonClient(object):
         Install dependent RPMs
         """
         dependent_rpms = ["yajl", "openpgm", "zeromq3", "glibc", "patch",
-                          "fontpackages-filesystem", "libfontenc", "libtool",
-                          "fontconfig", "libXfont", "rsync", "xorg-x11-font-utils",
-                          "urw-fonts"]
+                          "fontpackages-filesystem", "libfontenc", "libtool-ltdl",
+                          "libtool", "fontconfig", "libXfont", "rsync",
+                          "xorg-x11-font-utils", "urw-fonts"]
         for dependent_rpm in dependent_rpms:
             ret = self.ec_host.sh_rpm_query(dependent_rpm)
             if ret:

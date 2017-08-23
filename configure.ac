@@ -262,11 +262,11 @@ XML_DEFINITION_RELEASE=$(grep Release xml_definition/xml_definition.spec | \
 AC_MSG_RESULT([$XML_DEFINITION_RELEASE])
 AC_SUBST(XML_DEFINITION_RELEASE)
 
-# -------- check for xml_definition RPMs --------
-AC_MSG_CHECKING([for xml_definition RPMs])
-XML_DEFINITION_RPMS=xml_definition-${XML_DEFINITION_VERSION}-${XML_DEFINITION_RELEASE}.noarch.rpm
-AC_MSG_RESULT([$XML_DEFINITION_RPMS])
-AC_SUBST(XML_DEFINITION_RPMS)
+# -------- check for xml_definition RPM --------
+AC_MSG_CHECKING([for xml_definition RPM])
+XML_DEFINITION_RPM=xml_definition-${XML_DEFINITION_VERSION}-${XML_DEFINITION_RELEASE}.noarch.rpm
+AC_MSG_RESULT([$XML_DEFINITION_RPM])
+AC_SUBST(XML_DEFINITION_RPM)
 
 # ------- check for python --------
 AC_CHECK_PROGS([PYTHON], [python], [])

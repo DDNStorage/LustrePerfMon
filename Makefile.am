@@ -10,12 +10,12 @@ EXTRA_DIST = version-gen.sh autogen.sh detect-distro.sh esmon.spec \
 ORIGIN_COLLECTD_RPMS = $(addprefix collectd/RPMS/x86_64/, $(COLLECTD_RPMS))
 GRAFANA_RPM = $(notdir $(GRAFANA_RPM_PATH))
 INFLUXDB_RPM = $(notdir $(INFLUXDB_RPM_PATH))
-ORIGIN_XML_DEFINITION_RPMS = $(addprefix xml_definition/RPMS/noarch/, $(XML_DEFINITION_RPMS))
+ORIGIN_XML_DEFINITION_RPM = $(addprefix xml_definition/RPMS/noarch/, $(XML_DEFINITION_RPM))
 ORIGIN_OPENTSDB_WEB_RPMS = $(addprefix opentsdb_web/RPMS/x86_64/, $(OPENTSDB_WEB_RPMS))
 LOCAL_COLLECTD_RPMS = $(addprefix RPMS/, $(COLLECTD_RPMS))
 LOCAL_GRAFANA_RPMS = $(addprefix RPMS/, $(GRAFANA_RPM))
 LOCAL_INFLUXDB_RPMS = $(addprefix RPMS/, $(INFLUXDB_RPM))
-LOCAL_XML_DEFINITION_RPMS = $(addprefix RPMS/, $(XML_DEFINITION_RPMS))
+LOCAL_XML_DEFINITION_RPM = $(addprefix RPMS/, $(XML_DEFINITION_RPM))
 LOCAL_OPENTSDB_WEB_RPMS = $(addprefix RPMS/, $(OPENTSDB_WEB_RPMS))
 ESMON_RPM = ./build/RPMS/x86_64/esmon-$(MONSYSTEM_PKGVER)-$(ESMON_RELEASE).el$(DISTRO_RELEASE).x86_64.rpm
 
@@ -41,18 +41,18 @@ $(LOCAL_GRAFANA_RPMS): $(GRAFANA_RPM_PATH)
 $(LOCAL_INFLUXDB_RPMS): $(INFLUXDB_RPM_PATH)
 	cp $(INFLUXDB_RPM_PATH) BUILD_ISO
 
-$(LOCAL_XML_DEFINITION_RPMS): $(ORIGIN_XML_DEFINITION_RPMS)
+$(LOCAL_XML_DEFINITION_RPM): $(ORIGIN_XML_DEFINITION_RPM)
 	cp $(addprefix xml_definition/RPMS/noarch/, $(notdir $@)) BUILD_ISO
 
 $(LOCAL_OPENTSDB_WEB_RPMS): $(ORIGIN_OPENTSDB_WEB_RPMS)
 	cp $(addprefix opentsdb_web/RPMS/x86_64/, $(notdir $@)) BUILD_ISO
 
-monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso: BUILD_ISO \
+monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso: CLEAN_BUILD_ISO \
 		$(ESMON_RPM) \
 		$(LOCAL_COLLECTD_RPMS) \
 		$(LOCAL_GRAFANA_RPMS) \
 		$(LOCAL_INFLUXDB_RPMS) \
-		$(LOCAL_XML_DEFINITION_RPMS) \
+		$(LOCAL_XML_DEFINITION_RPM) \
 		$(LOCAL_OPENTSDB_WEB_RPMS) \
 		collectd.conf.template influxdb.conf.diff grafana_dashboard.json
 	rm -f monsystem-ddn.*.iso
@@ -61,13 +61,9 @@ monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso: BUILD_ISO \
 	cp collectd.conf.template BUILD_ISO
 	cp grafana_dashboard.json BUILD_ISO
 	cp installesmon.sh BUILD_ISO	
-	rm BUILD_ISO/pylibs/* -f	
-	rm BUILD_ISO/pylibs -rf	
-	mkdir BUILD_ISO/pylibs
-	cp -a $(DEPENDENT_RPMS_PATH)/*.gz BUILD_ISO/pylibs
+	cp -a $(DEPENDENT_RPMS_PATH)/* BUILD_ISO
 	cp DDN-Storage-RedBG.svg BUILD_ISO
 	cp DDN-Storage-RedBG.png BUILD_ISO
-	cp -a $(DEPENDENT_RPMS_PATH)/*.rpm BUILD_ISO
 	cp $(ESMON_RPM) BUILD_ISO
 	createrepo BUILD_ISO
 	mkisofs -joliet-long -R -o monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso BUILD_ISO
@@ -77,8 +73,8 @@ monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.md5: \
 	md5sum monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso \
 		> monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.md5
 
-BUILD_ISO:
-	rm BUILD_ISO/* -f 
+CLEAN_BUILD_ISO:
+	rm BUILD_ISO -fr 
 	mkdir BUILD_ISO
 
 clean-local:

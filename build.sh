@@ -76,6 +76,8 @@ rm -fr $DEPENDENT_RPMS
 mkdir $DEPENDENT_RPMS
 pushd $DEPENDENT_RPMS
 
+mkdir pylibs
+pushd pylibs
 # download python libs from pipy
 #python - certifi
 if [ ! -e ../rtifi-2017.7.27.1.tar.gz ]; then
@@ -152,12 +154,13 @@ if [ ! -e ../chardet-3.0.4.tar.gz ]; then
         error "failed to download python - chardet package"
     fi
 fi
+popd
 
 # download dependent RPMs
 
 for rpmname in openpgm yajl zeromq3 fontconfig glibc glibc-common \
                glibc-devel fontpackages-filesystem glibc-headers glibc-static \
-               libfontenc libtool-ltdl libtool-ltdl-devel libXfont libyaml \
+               libfontenc libtool libtool-ltdl libtool-ltdl-devel libXfont libyaml \
                openpgm patch python2-filelock python2-pip python-backports \
                python-backports-ssl_match_hostname python-dateutil \
                python-requests python-setuptools python-six python-urllib3 \
@@ -170,31 +173,14 @@ do
   fi
 done
 
-#if [ `uname -m` == 'x86_64' ]
-#then
-  rm -f *.i686.rpm
-#fi
-
-#yumdownloader openpgm
-#if [ $? -ne 0 ]; then
-#    error "failed to download openpgm RPM"
-#fi
-#yumdownloader yajl
-#if [ $? -ne 0 ]; then
-#    error "failed to download yajl RPM"
-#fi
-#yumdownloader zeromq3
-#if [ $? -ne 0 ]; then
-#    error "failed to download zeromq3 RPM"
-#fi
-
-
 git clone https://github.com/Vonage/Grafana_Status_panel.git Grafana_Status_panel
 if [ $? -ne 0 ]; then
     error "failed to download grafana status panel"
 fi
 popd
 popd
+
+rm esmon-*.tar.bz2 esmon-*.tar.gz -f
 
 sh ./autogen.sh
 if [ $? -ne 0 ]; then
