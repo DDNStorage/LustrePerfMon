@@ -65,14 +65,15 @@ class EsmonServer(object):
                            (self.es_rpm_dir, dependent_rpm))
                 retval = self.es_host.sh_run(command)
                 if retval.cr_exit_status:
-                    logging.error("failed to run command [%s] on host [%s], "
-                                  "ret = [%d], stdout = [%s], stderr = [%s]",
-                                  command,
-                                  self.es_host.sh_hostname,
-                                  retval.cr_exit_status,
-                                  retval.cr_stdout,
-                                  retval.cr_stderr)
-                    return -1
+                    if("already installed" not in retval.cr_stderr):
+                        logging.error("failed to run command [%s] on host [%s], "
+                                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                                      command,
+                                      self.es_host.sh_hostname,
+                                      retval.cr_exit_status,
+                                      retval.cr_stdout,
+                                      retval.cr_stderr)
+                        return -1
         return 0
 
     def es_influxdb_uninstall(self):
@@ -619,7 +620,7 @@ class EsmonClient(object):
     # pylint: disable=too-few-public-methods,too-many-instance-attributes
     # pylint: disable=too-many-arguments
     def __init__(self, host, workspace, esmon_server, lustre_oss=False,
-                 lustre_mds=False, ime=False):
+                 lustre_mds=False, ime=False, **otherKeys):
         self.ec_host = host
         self.ec_workspace = workspace
         self.ec_rpm_basename = "RPMS"
@@ -660,14 +661,15 @@ class EsmonClient(object):
                            (self.ec_rpm_dir, dependent_rpm))
                 retval = self.ec_host.sh_run(command)
                 if retval.cr_exit_status:
-                    logging.error("failed to run command [%s] on host [%s], "
-                                  "ret = [%d], stdout = [%s], stderr = [%s]",
-                                  command,
-                                  self.ec_host.sh_hostname,
-                                  retval.cr_exit_status,
-                                  retval.cr_stdout,
-                                  retval.cr_stderr)
-                    return -1
+                    if("already installed" not in retval.cr_stderr):
+                        logging.error("failed to run command [%s] on host [%s], "
+                                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                                      command,
+                                      self.ec_host.sh_hostname,
+                                      retval.cr_exit_status,
+                                      retval.cr_stdout,
+                                      retval.cr_stderr)
+                        return -1
         return 0
 
     def ec_rpm_uninstall(self, rpm_name):

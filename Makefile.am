@@ -60,10 +60,14 @@ monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso: BUILD_ISO \
 	cp influxdb.conf.diff BUILD_ISO
 	cp collectd.conf.template BUILD_ISO
 	cp grafana_dashboard.json BUILD_ISO
-	cp installesmon.sh BUILD_ISO
+	cp installesmon.sh BUILD_ISO	
+	rm BUILD_ISO/pylibs/* -f	
+	rm BUILD_ISO/pylibs -rf	
+	mkdir BUILD_ISO/pylibs
+	cp -a $(DEPENDENT_RPMS_PATH)/*.gz BUILD_ISO/pylibs
 	cp DDN-Storage-RedBG.svg BUILD_ISO
 	cp DDN-Storage-RedBG.png BUILD_ISO
-	cp -a $(DEPENDENT_RPMS_PATH)/* BUILD_ISO
+	cp -a $(DEPENDENT_RPMS_PATH)/*.rpm BUILD_ISO
 	cp $(ESMON_RPM) BUILD_ISO
 	createrepo BUILD_ISO
 	mkisofs -joliet-long -R -o monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso BUILD_ISO
