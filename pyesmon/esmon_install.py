@@ -974,35 +974,84 @@ class EsmonClient(object):
         return ret
 
 
-def esmon_do_install(workspace, config, mnt_path):
+def config_value(config, key):
+    """
+    Return value of a key in config
+    """
+    if key not in config:
+        return None
+    return config[key]
+
+
+def esmon_do_install(workspace, config, config_fpath, mnt_path):
     """
     Start to install with the ISO mounted
     """
     # pylint: disable=too-many-return-statements
     # pylint: disable=too-many-branches,bare-except, too-many-locals
     # pylint: disable=too-many-statements
-    host_configs = config["ssh_hosts"]
+    host_configs = config_value(config, "ssh_hosts")
+    if host_configs is None:
+        logging.error("can NOT find [ssh_hosts] in the config file, "
+                      "please correct file [%s]", config_fpath)
+        return -1
+
     hosts = {}
     for host_config in host_configs:
-        hostname = host_config["hostname"]
         host_id = host_config["host_id"]
-        if "ssh_identity_file" in host_config:
-            ssh_identity_file = host_config["ssh_identity_file"]
-        else:
-            ssh_identity_file = None
+        if host_id is None:
+            logging.error("can NOT find [host_id] in the config of a "
+                          "SSH host, please correct file [%s]",
+                          config_fpath)
+            return -1
+
+        hostname = config_value(host_config, "hostname")
+        if hostname is None:
+            logging.error("can NOT find [hostname] in the config of SSH host "
+                          "with ID [%s], please correct file [%s]",
+                          host_id, config_fpath)
+            return -1
+
+        ssh_identity_file = config_value(host_config, "ssh_identity_file")
+
         if host_id in hosts:
-            logging.error("multiple hosts with the same ID [%s]", host_id)
+            logging.error("multiple SSH hosts with the same ID [%s], please "
+                          "correct file [%s]", host_id, config_fpath)
             return -1
         host = ssh_host.SSHHost(hostname, ssh_identity_file)
         hosts[host_id] = host
 
-    server_host_config = config["server_host"]
-    host_id = server_host_config["host_id"]
-    erase_influxdb = server_host_config["erase_influxdb"]
-    drop_database = server_host_config["drop_database"]
-    if host_id not in hosts:
-        logging.error("no host with ID [%s] is configured", host_id)
+    server_host_config = config_value(config, "server_host")
+    if hostname is None:
+        logging.error("can NOT find [server_host] in the config file [%s], "
+                      "please it", config_fpath)
         return -1
+
+    host_id = config_value(server_host_config, "host_id")
+    if host_id is None:
+        logging.error("can NOT find [host_id] in the config of [server_host], "
+                      "please correct file [%s]", config_fpath)
+        return -1
+
+    erase_influxdb = config_value(server_host_config, "erase_influxdb")
+    if erase_influxdb is None:
+        erase_influxdb = False
+    logging.info("Influxdb will %sbe erased according to the config",
+                 "" if erase_influxdb else "NOT ")
+
+    drop_database = config_value(server_host_config, "drop_database")
+    if drop_database is None:
+        drop_database = False
+    logging.info("database [%s] of Influxdb will %sbe dropped "
+                 "according to the config", INFLUXDB_DATABASE_NAME,
+                 "" if drop_database else "NOT ")
+
+    if host_id not in hosts:
+        logging.error("SSH host with ID [%s] is NOT configured in "
+                      "[ssh_hosts], please correct file [%s]",
+                      host_id, config_fpath)
+        return -1
+
     host = hosts[host_id]
     esmon_server = EsmonServer(host, workspace)
     esmon_server_client = EsmonClient(host, workspace, esmon_server)
@@ -1062,18 +1111,53 @@ def esmon_do_install(workspace, config, mnt_path):
     if ret:
         return -1
 
-    client_host_configs = config["client_hosts"]
+    client_host_configs = config_value(config, "client_hosts")
+    if client_host_configs is None:
+        logging.error("can NOT find [client_hosts] in the config file, "
+                      "please correct file [%s]", config_fpath)
+        return -1
+
     esmon_clients = {}
     for client_host_config in client_host_configs:
-        host_id = client_host_config["host_id"]
+        host_id = config_value(client_host_config, "host_id")
+        if host_id is None:
+            logging.error("can NOT find [host_id] in the config of a "
+                          "ESMON client host, please correct file [%s]",
+                          config_fpath)
+            return -1
 
         if host_id not in hosts:
-            logging.error("no host with ID [%s] is configured", host_id)
+            logging.error("ESMON client with ID [%s] is NOT configured in "
+                          "[ssh_hosts], please correct file [%s]",
+                          host_id, config_fpath)
             return -1
+
+        enabled_plugins = "memory, CPU"
+
         host = hosts[host_id]
-        lustre_oss = client_host_config["lustre_oss"]
-        lustre_mds = client_host_config["lustre_mds"]
+        lustre_oss = config_value(client_host_config, "lustre_oss")
+        if lustre_oss is None:
+            lustre_oss = False
+        if lustre_oss:
+            enabled_plugins += ", Lustre OSS"
+
+        lustre_mds = config_value(client_host_config, "lustre_mds")
+        if lustre_mds is None:
+            lustre_mds = False
+        if lustre_mds:
+            enabled_plugins += ", Lustre MDS"
+
         ime = client_host_config["ime"]
+        ime = config_value(client_host_config, "ime")
+        if ime is None:
+            ime = False
+        if ime:
+            enabled_plugins += ", DDN IME"
+
+        logging.info("support for metrics of [%s] will be enabled on ESMON "
+                     "client [%s] according to the config",
+                     enabled_plugins, host.sh_hostname)
+
         esmon_client = EsmonClient(host, workspace, esmon_server,
                                    lustre_oss=lustre_oss,
                                    lustre_mds=lustre_mds, ime=ime)
@@ -1164,7 +1248,7 @@ def esmon_install_locked(workspace, config_fpath):
         return -1
 
     try:
-        ret = esmon_do_install(workspace, config, mnt_path)
+        ret = esmon_do_install(workspace, config, config_fpath, mnt_path)
     except:
         ret = -1
         logging.error("exception: %s", traceback.format_exc())
