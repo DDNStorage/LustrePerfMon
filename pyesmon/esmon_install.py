@@ -598,10 +598,10 @@ class EsmonServer(object):
             group_string += ', "%s"' % group
         query = ('CREATE CONTINUOUS QUERY %s ON "%s"\n'
                  '  BEGIN SELECT sum("value") INTO "%s" '
-                 '      FROM "%s" GROUP BY time(%s), "job_id", "optype"\n'
+                 '      FROM "%s" GROUP BY time(%s)%s\n'
                  'END;' %
                  (cq_query, INFLUXDB_DATABASE_NAME, cq_measurement,
-                  measurement, interval))
+                  measurement, interval, group_string))
         client = self.es_influxdb_client
         try:
             client.query(query)
