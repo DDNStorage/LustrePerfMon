@@ -276,7 +276,8 @@ class EsmonServer(object):
                           traceback.format_exc())
             return -1
         if response.status_code != httplib.OK:
-            logging.error("got grafana status [%d]", response.status_code)
+            logging.debug("got grafana status [%d] when acessing grafana url "
+                          "[%s]", response.status_code, url)
             self.es_grafana_failure = True
             return 0
         return 0
@@ -951,9 +952,12 @@ class EsmonClient(object):
         try:
             result = client.query(query, epoch="s")
         except:
+            logging.debug("got exception with query [%s]", query)
             return -1
         points = list(result.get_points())
         if len(points) != 1:
+            logging.debug("got multiple points with query [%s]: %s", query,
+                          points)
             return -1
         point = points[0]
         timestamp = int(point["time"])
@@ -961,6 +965,8 @@ class EsmonClient(object):
             self.ec_influxdb_update_time = timestamp
         elif timestamp > self.ec_influxdb_update_time:
             return 0
+        logging.debug("timestamp [%d] is not updated with query [%s]",
+                      timestamp, query)
         return -1
 
     def ec_influxdb_measurement_check(self, measurement_name):
