@@ -146,7 +146,7 @@ class EsmonServer(object):
             logging.error("failed to drop database of collectd")
             return -1
 
-        command = "rpm -e influxdb"
+        command = "rpm -e --nodeps influxdb"
         retval = self.es_host.sh_run(command)
         if retval.cr_exit_status:
             logging.error("failed to run command [%s] on host [%s], "
@@ -532,7 +532,7 @@ class EsmonServer(object):
         # pylint: disable=too-many-return-statements,too-many-branches
         ret = self.es_host.sh_rpm_query("grafana")
         if ret == 0:
-            command = "rpm -e grafana"
+            command = "rpm -e --nodeps grafana"
             retval = self.es_host.sh_run(command)
             if retval.cr_exit_status:
                 logging.error("failed to run command [%s] on host [%s], "
@@ -741,7 +741,7 @@ class EsmonClient(object):
                           retval.cr_stderr)
             return -1
         if uninstall:
-            command = ("rpm -qa | grep %s | xargs rpm -e" % rpm_name)
+            command = ("rpm -qa | grep %s | xargs rpm -e --nodeps" % rpm_name)
             retval = self.ec_host.sh_run(command)
             if retval.cr_exit_status:
                 logging.error("failed to run command [%s] on host [%s], "
