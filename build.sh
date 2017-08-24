@@ -167,10 +167,10 @@ for rpmname in openpgm yajl zeromq3 fontconfig glibc glibc-common \
                PyYAML rsync urw-fonts xorg-x11-font-utils python-chardet \
                python-idna 
 do
-  yumdownloader "$rpmname"
-  if [ $? -ne 0 ]; then
-    error "failed to download $rpmname RPM"
-  fi
+    yumdownloader -x \*i686 --archlist=x86_64 "$rpmname"
+    if [ $? -ne 0 ]; then
+        error "failed to download $rpmname RPM"
+    fi
 done
 
 git clone https://github.com/Vonage/Grafana_Status_panel.git Grafana_Status_panel
