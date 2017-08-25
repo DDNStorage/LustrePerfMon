@@ -16,6 +16,7 @@ import requests
 import yaml
 import filelock
 import influxdb
+import slugify
 
 # Local libs
 from pyesmon import utils
@@ -31,10 +32,30 @@ GRAFANA_DATASOURCE_NAME = "esmon_datasource"
 INFLUXDB_DATABASE_NAME = "esmon_database"
 INFLUXDB_CQ_PREFIX = "cq_"
 INFLUXDB_CQ_MEASUREMENT_PREFIX = "cqm_"
-GRAFANA_DASHBOARD_JSON_FNAME = "grafana_dashboard.json"
-GRAFANA_DASHBOARD_NAME = "esmon_dashboard"
+GRAFANA_DASHBOARD_DIR = "dashboards"
+GRAFANA_DASHBOARD_LUSTRE_FNAME = "lustre_statistics.json"
+GRAFANA_DASHBOARD_LUSTRE_NAME = "Lustre Statistics"
+GRAFANA_DASHBOARD_SERVER_FNAME = "server_statistics.json"
+GRAFANA_DASHBOARD_SERVER_NAME = "Server Statistics"
 GRAFANA_STATUS_PANEL = "Grafana_Status_panel"
 GRAFANA_PLUGIN_DIR = "/var/lib/grafana/plugins"
+
+def grafana_dashboard_check(name, dashboard):
+    """
+    Check whether the dashboard is legal or not
+    """
+    if dashboard["id"] is not None:
+        logging.error("dashabord [%s] is invalid, expected [id] to be "
+                      "[null], but got [%s]",
+                      name, dashboard["id"])
+        return -1
+    if dashboard["title"] != name:
+        logging.error("dashabord [%s] is invalid, expected [title] to be "
+                      "[%s], but got [%s]",
+                      name, name, dashboard["title"])
+        return -1
+    return 0
+
 
 class EsmonServer(object):
     """
@@ -385,15 +406,19 @@ class EsmonServer(object):
             return -1
         return 0
 
-    def es_grafana_dashboard_add(self, mnt_path):
+    def es_grafana_dashboard_add(self, mnt_path, name, fname):
         """
-        Update dashboard of grafana
+        Add dashboard of grafana
         """
         # pylint: disable=bare-except
-        dashboard_json_fpath = (mnt_path + "/" +
-                                GRAFANA_DASHBOARD_JSON_FNAME)
+        dashboard_json_fpath = (mnt_path + "/" + GRAFANA_DASHBOARD_DIR +
+                                "/" + fname)
         with open(dashboard_json_fpath) as json_file:
             dashboard = json.load(json_file)
+
+        ret = grafana_dashboard_check(name, dashboard)
+        if ret:
+            return ret
 
         data = {
             "dashboard": dashboard,
@@ -407,16 +432,16 @@ class EsmonServer(object):
         try:
             response = requests.post(url, json=data, headers=headers)
         except:
-            logging.error("not able to update bashboard through [%s]: %s",
+            logging.error("not able to add bashboard through [%s]: %s",
                           url, traceback.format_exc())
             return -1
         if response.status_code != httplib.OK:
-            logging.error("got grafana status [%d] when updating dashbard",
-                          response.status_code)
+            logging.error("got grafana status [%d] when adding dashbard [%s]",
+                          response.status_code, name)
             return -1
         return 0
 
-    def es_grafana_dashboard_delete(self):
+    def es_grafana_dashboard_delete(self, name):
         """
         Delete bashboard from grafana
         """
@@ -425,7 +450,7 @@ class EsmonServer(object):
                    "Accept": "application/json"}
 
         url = self.es_grafana_url("/api/dashboards/db/%s" %
-                                  GRAFANA_DASHBOARD_NAME)
+                                  slugify.slugify(name))
         try:
             response = requests.delete(url, headers=headers)
         except:
@@ -438,7 +463,7 @@ class EsmonServer(object):
             return -1
         return 0
 
-    def es_grafana_has_dashboard(self):
+    def es_grafana_has_dashboard(self, name):
         """
         Check whether grafana has dashboard
         Return 1 if has dashboard, return 0 if not, return -1 if error
@@ -448,7 +473,7 @@ class EsmonServer(object):
                    "Accept": "application/json"}
 
         url = self.es_grafana_url("/api/dashboards/db/%s" %
-                                  GRAFANA_DASHBOARD_NAME)
+                                  slugify.slugify(name))
         try:
             response = requests.get(url, headers=headers)
         except:
@@ -590,17 +615,21 @@ class EsmonServer(object):
         if ret:
             return ret
 
-        ret = self.es_grafana_has_dashboard()
-        if ret < 0:
-            return -1
-        elif ret == 1:
-            ret = self.es_grafana_dashboard_delete()
+        dashboards = {}
+        dashboards[GRAFANA_DASHBOARD_LUSTRE_NAME] = GRAFANA_DASHBOARD_LUSTRE_FNAME
+        #dashboards[GRAFANA_DASHBOARD_SERVER_NAME] = GRAFANA_DASHBOARD_SERVER_FNAME
+        for name, fname in dashboards.iteritems():
+            ret = self.es_grafana_has_dashboard(name)
+            if ret < 0:
+                return -1
+            elif ret == 1:
+                ret = self.es_grafana_dashboard_delete(name)
+                if ret:
+                    return ret
+
+            ret = self.es_grafana_dashboard_add(mnt_path, name, fname)
             if ret:
                 return ret
-
-        ret = self.es_grafana_dashboard_add(mnt_path)
-        if ret:
-            return ret
 
         ret = self.es_grafana_change_logo()
         if ret:

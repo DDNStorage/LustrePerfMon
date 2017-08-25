@@ -54,12 +54,11 @@ monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso: CLEAN_BUILD_IS
 		$(LOCAL_INFLUXDB_RPMS) \
 		$(LOCAL_XML_DEFINITION_RPM) \
 		$(LOCAL_OPENTSDB_WEB_RPMS) \
-		collectd.conf.template influxdb.conf.diff grafana_dashboard.json
+		influxdb.conf.diff
 	rm -f monsystem-ddn.*.iso
 	rm -f monsystem-ddn.*.md5
 	cp influxdb.conf.diff BUILD_ISO
-	cp collectd.conf.template BUILD_ISO
-	cp grafana_dashboard.json BUILD_ISO
+	cp -a dashboards BUILD_ISO
 	cp installesmon.sh BUILD_ISO	
 	cp -a $(DEPENDENT_RPMS_PATH)/* BUILD_ISO
 	cp DDN-Storage-RedBG.svg BUILD_ISO
