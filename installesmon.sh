@@ -15,7 +15,7 @@ for pylib in certifi-2017.7.27.1 pytz-2017.2 six-1.10.0 \
              python-dateutil-2.6.1 urllib3-1.22 idna-2.6 \
              chardet-3.0.4 requests-2.18.4 influxdb-4.1.1
 do
-  cp pylibs/$pylib.tar.gz $TMPDIR/
+  cp $pylib.tar.gz $TMPDIR/
   cd $TMPDIR
   tar -xf $pylib.tar.gz
   cd $pylib

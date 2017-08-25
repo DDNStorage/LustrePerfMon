@@ -67,7 +67,7 @@ class EsmonServer(object):
                           "opening ports", self.es_host.sh_hostname)
             return 0
 
-        ports = [300, 4242, 8086, 8088, 25826]
+        ports = [3000, 4242, 8086, 8088, 25826]
         for port in ports:
             command = ("firewall-cmd --zone=public --add-port=%d/tcp "
                        "--permanent" % port)
@@ -110,14 +110,15 @@ class EsmonServer(object):
                            (self.es_rpm_dir, dependent_rpm))
                 retval = self.es_host.sh_run(command)
                 if retval.cr_exit_status:
-                    logging.error("failed to run command [%s] on host [%s], "
-                                  "ret = [%d], stdout = [%s], stderr = [%s]",
-                                  command,
-                                  self.es_host.sh_hostname,
-                                  retval.cr_exit_status,
-                                  retval.cr_stdout,
-                                  retval.cr_stderr)
-                    return -1
+                    if "already installed" not in retval.cr_stderr:
+                        logging.error("failed to run command [%s] on host [%s], "
+                                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                                      command,
+                                      self.es_host.sh_hostname,
+                                      retval.cr_exit_status,
+                                      retval.cr_stdout,
+                                      retval.cr_stderr)
+                        return -1
         return 0
 
     def es_influxdb_uninstall(self):
@@ -182,7 +183,7 @@ class EsmonServer(object):
                               retval.cr_stderr)
                 return -1
 
-        command = ("cd %s && rpm -ivh influxdb-*" %
+        command = ("cd %s && rpm -ivh influxdb-*.rpm" %
                    (self.es_rpm_dir))
         retval = self.es_host.sh_run(command)
         if retval.cr_exit_status:
@@ -545,7 +546,7 @@ class EsmonServer(object):
                               retval.cr_stderr)
                 return -1
 
-        command = ("cd %s && rpm -ivh grafana-*" %
+        command = ("cd %s && rpm -ivh grafana-*.rpm" %
                    (self.es_rpm_dir))
         retval = self.es_host.sh_run(command)
         if retval.cr_exit_status:
@@ -732,14 +733,15 @@ class EsmonClient(object):
                            (self.ec_rpm_dir, dependent_rpm))
                 retval = self.ec_host.sh_run(command)
                 if retval.cr_exit_status:
-                    logging.error("failed to run command [%s] on host [%s], "
-                                  "ret = [%d], stdout = [%s], stderr = [%s]",
-                                  command,
-                                  self.ec_host.sh_hostname,
-                                  retval.cr_exit_status,
-                                  retval.cr_stdout,
-                                  retval.cr_stderr)
-                    return -1
+                    if "already installed" not in retval.cr_stderr:
+                        logging.error("failed to run command [%s] on host [%s], "
+                                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                                      command,
+                                      self.ec_host.sh_hostname,
+                                      retval.cr_exit_status,
+                                      retval.cr_stdout,
+                                      retval.cr_stderr)
+                        return -1
         return 0
 
     def ec_rpm_uninstall(self, rpm_name):
@@ -827,7 +829,7 @@ class EsmonClient(object):
         """
         Install collectd RPM
         """
-        command = ("cd %s && rpm -ivh collectd-* libcollectdclient-*" %
+        command = ("cd %s && rpm -ivh collectd-*.rpm libcollectdclient-*.rpm" %
                    (self.ec_rpm_dir))
         retval = self.ec_host.sh_run(command)
         if retval.cr_exit_status:
