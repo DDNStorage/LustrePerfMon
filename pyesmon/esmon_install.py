@@ -33,12 +33,11 @@ INFLUXDB_DATABASE_NAME = "esmon_database"
 INFLUXDB_CQ_PREFIX = "cq_"
 INFLUXDB_CQ_MEASUREMENT_PREFIX = "cqm_"
 GRAFANA_DASHBOARD_DIR = "dashboards"
-GRAFANA_DASHBOARD_LUSTRE_FNAME = "lustre_statistics.json"
-GRAFANA_DASHBOARD_LUSTRE_NAME = "Lustre Statistics"
-GRAFANA_DASHBOARD_SERVER_FNAME = "server_statistics.json"
-GRAFANA_DASHBOARD_SERVER_NAME = "Server Statistics"
 GRAFANA_STATUS_PANEL = "Grafana_Status_panel"
 GRAFANA_PLUGIN_DIR = "/var/lib/grafana/plugins"
+GRAFANA_DASHBOARDS = {}
+GRAFANA_DASHBOARDS["Lustre Statistics"] = "lustre_statistics.json"
+GRAFANA_DASHBOARDS["Server Statistics"] = "server_statistics.json"
 
 def grafana_dashboard_check(name, dashboard):
     """
@@ -615,10 +614,7 @@ class EsmonServer(object):
         if ret:
             return ret
 
-        dashboards = {}
-        dashboards[GRAFANA_DASHBOARD_LUSTRE_NAME] = GRAFANA_DASHBOARD_LUSTRE_FNAME
-        #dashboards[GRAFANA_DASHBOARD_SERVER_NAME] = GRAFANA_DASHBOARD_SERVER_FNAME
-        for name, fname in dashboards.iteritems():
+        for name, fname in GRAFANA_DASHBOARDS.iteritems():
             ret = self.es_grafana_has_dashboard(name)
             if ret < 0:
                 return -1

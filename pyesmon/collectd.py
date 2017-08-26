@@ -29,6 +29,7 @@ class CollectdConfig(object):
         self.cc_esmon_client = esmon_client
         self.cc_plugin_write_tsdb()
         self.cc_plugin_df()
+        self.cc_plugin_load()
 
     def cc_dump(self, fpath):
         """
@@ -349,4 +350,22 @@ LoadPlugin match_regex
         self.cc_plugins["df"] = config
         if self.cc_plugin_df_check not in self.cc_checks:
             self.cc_checks.append(self.cc_plugin_df_check)
+        return 0
+
+    def cc_plugin_load_check(self):
+        """
+        Check the load plugin
+        """
+        client = self.cc_esmon_client
+        measurement = "load.load.shortterm"
+        return client.ec_influxdb_measurement_check(measurement)
+
+    def cc_plugin_load(self):
+        """
+        Config the load plugin
+        """
+        config = ""
+        self.cc_plugins["load"] = config
+        if self.cc_plugin_load_check not in self.cc_checks:
+            self.cc_checks.append(self.cc_plugin_load_check)
         return 0
