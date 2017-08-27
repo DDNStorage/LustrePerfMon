@@ -126,6 +126,8 @@ LoadPlugin aggregation
 </Plugin>
 
 LoadPlugin match_regex
+
+PostCacheChain "PostCache"
 # Don't send "cpu-X" stats
 <Chain "PostCache">
     <Rule>
@@ -369,3 +371,4 @@ LoadPlugin match_regex
         if self.cc_plugin_load_check not in self.cc_checks:
             self.cc_checks.append(self.cc_plugin_load_check)
         return 0
+

@@ -2,7 +2,6 @@
   "annotations": {
     "list": []
   },
-  "editMode": false,
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
@@ -17,7 +16,7 @@
       "panels": [
         {
           "clusterName": "",
-          "description": "Warning (yellow) if one or more of the following conditions are true:\n\n1) Free space of \"/\" is less than 10 GiB;\n2) Free memory is less than 1000 MiB;\n3) Idle CPU is less than 20%.\n4) Load is higher than 1\n\nCritial (red) if one or more of the following conditions are true:\n\n1) Free space of \"/\" is less than 1 GiB;\n2) Free memory is less than 100 MiB;\n3) Idle CPU is less than 5%.\n4) Load is higher than 10\n\nThe system load is defined as the number of runnable tasks in the run-queue and is provided by many operating systems as a one minute average.",
+          "description": "Warning (yellow) if one or more of the following conditions are true:\n\n1) Idle CPU is less than 20%.\n2) Load is higher than 5\n3) Free memory is less than 1000 MiB;\n4) Free space of \"/\" is less than 10 GiB;\n\nCritial (red) if one or more of the following conditions are true:\n\n1) Idle CPU is less than 5%.\n2) Load is higher than 10\n3) Free space of \"/\" is less than 1 GiB;\n4) Free memory is less than 100 MiB;\n\nThe system load is defined as the number of runnable tasks in the run-queue and is provided by many operating systems as a one minute average.",
           "displayName": "",
           "flipCard": false,
           "flipTime": 5,
@@ -32,8 +31,8 @@
           "targets": [
             {
               "aggregation": "Last",
-              "alias": "Free Space on Root (GiB)",
-              "crit": "1",
+              "alias": "Idle CPU (%)",
+              "crit": "5",
               "display": true,
               "displayType": "Regular",
               "dsType": "influxdb",
@@ -41,7 +40,7 @@
               "measurement": "df.root.df_complex.free",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT last(\"value\")  / 1073844224 FROM \"df.root.df_complex.free\" WHERE \"fqdn\" = '$fqdn' AND $timeFilter",
+              "query": "\n\nSELECT \"value\" FROM \"aggregation.cpu-average.cpu.idle\" WHERE \"fqdn\" = '$fqdn' AND $timeFilter",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -74,12 +73,12 @@
               ],
               "url": "",
               "valueHandler": "Threshold",
-              "warn": "10"
+              "warn": "20"
             },
             {
               "aggregation": "Last",
-              "alias": "Free Memory (MiB)",
-              "crit": "100",
+              "alias": "Load",
+              "crit": "10",
               "display": true,
               "displayType": "Regular",
               "dsType": "influxdb",
@@ -99,7 +98,7 @@
               ],
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT last(\"value\")  / 1048576 FROM \"memory.free.memory\" WHERE \"fqdn\" = '$fqdn' AND $timeFilter",
+              "query": "SELECT \"value\" FROM \"load.load.shortterm\" WHERE \"fqdn\" = '$fqdn' AND $timeFilter\n",
               "rawQuery": true,
               "refId": "B",
               "resultFormat": "time_series",
@@ -120,12 +119,12 @@
               "tags": [],
               "valueDisplayRegex": "",
               "valueHandler": "Threshold",
-              "warn": "1000"
+              "warn": "5"
             },
             {
               "aggregation": "Last",
-              "alias": "Idle CPU (%)",
-              "crit": "5",
+              "alias": "Free Memory (MiB)",
+              "crit": "100",
               "display": true,
               "displayType": "Regular",
               "dsType": "influxdb",
@@ -133,8 +132,8 @@
               "measurement": "aggregation.cpu-average.cpu.idle",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT last(\"value\")  / 1048576 FROM \"memory.free.memory\" WHERE \"fqdn\" = '$fqdn' AND $timeFilter",
-              "rawQuery": false,
+              "query": "SELECT last(\"value\")  / 1048576 FROM \"memory.free.memory\" WHERE \"fqdn\" = '$fqdn' AND $timeFilter\n",
+              "rawQuery": true,
               "refId": "C",
               "resultFormat": "time_series",
               "select": [
@@ -155,12 +154,12 @@
                 }
               ],
               "valueHandler": "Threshold",
-              "warn": "20"
+              "warn": "1000"
             },
             {
               "aggregation": "Last",
-              "alias": "Load",
-              "crit": "10",
+              "alias": "Free Space on Root (GiB)",
+              "crit": "1",
               "display": true,
               "displayType": "Regular",
               "dsType": "influxdb",
@@ -168,7 +167,7 @@
               "measurement": "load.load.shortterm",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" FROM \"load.load.shortterm\" WHERE \"fqdn\" = '$fqdn' AND $timeFilter",
+              "query": "SELECT last(\"value\")  / 1073844224 FROM \"df.root.df_complex.free\" WHERE \"fqdn\" = '$fqdn' AND $timeFilter",
               "rawQuery": true,
               "refId": "D",
               "resultFormat": "time_series",
@@ -190,7 +189,7 @@
                 }
               ],
               "valueHandler": "Threshold",
-              "warn": "1"
+              "warn": "10"
             }
           ],
           "title": "General Status",
@@ -203,252 +202,7 @@
       "repeatIteration": null,
       "repeatRowId": null,
       "showTitle": false,
-      "title": "Free Space on /",
-      "titleSize": "h6"
-    },
-    {
-      "collapse": false,
-      "height": "250px",
-      "panels": [
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "id": 1,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "links": [],
-          "nullPointMode": "null",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "span": 12,
-          "stack": true,
-          "steppedLine": false,
-          "targets": [
-            {
-              "alias": "Used",
-              "dsType": "influxdb",
-              "groupBy": [],
-              "hide": false,
-              "measurement": "memory.used.memory",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "query": "SELECT sum(\"value\") FROM \"aggregation.cpu-average.cpu.system\" WHERE $timeFilter GROUP BY time(1m) fill(null)",
-              "rawQuery": false,
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "value"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fqdn",
-                  "operator": "=",
-                  "value": "$fqdn"
-                }
-              ]
-            },
-            {
-              "alias": "Buffered",
-              "dsType": "influxdb",
-              "groupBy": [],
-              "measurement": "memory.buffered.memory",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "refId": "B",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "value"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fqdn",
-                  "operator": "=",
-                  "value": "$fqdn"
-                }
-              ]
-            },
-            {
-              "alias": "Cached",
-              "dsType": "influxdb",
-              "groupBy": [],
-              "measurement": "memory.cached.memory",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "refId": "C",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "value"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fqdn",
-                  "operator": "=",
-                  "value": "$fqdn"
-                }
-              ]
-            },
-            {
-              "alias": "Free",
-              "dsType": "influxdb",
-              "groupBy": [],
-              "measurement": "memory.free.memory",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "refId": "D",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "value"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fqdn",
-                  "operator": "=",
-                  "value": "$fqdn"
-                }
-              ]
-            },
-            {
-              "alias": "Slab_recl",
-              "dsType": "influxdb",
-              "groupBy": [],
-              "measurement": "memory.slab_recl.memory",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "refId": "E",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "value"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fqdn",
-                  "operator": "=",
-                  "value": "$fqdn"
-                }
-              ]
-            },
-            {
-              "alias": "Slab_unrecl",
-              "dsType": "influxdb",
-              "groupBy": [],
-              "measurement": "memory.slab_unrecl.memory",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "refId": "F",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "value"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fqdn",
-                  "operator": "=",
-                  "value": "$fqdn"
-                }
-              ]
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Memory Usage",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "bytes",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": false
-            }
-          ]
-        }
-      ],
-      "repeat": null,
-      "repeatIteration": null,
-      "repeatRowId": null,
-      "showTitle": false,
-      "title": "Memory Usage",
+      "title": "General Status",
       "titleSize": "h6"
     },
     {
@@ -782,6 +536,558 @@
       "showTitle": false,
       "title": "CPU Usage",
       "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "description": "The system load is defined as the number of runnable tasks in the run-queue and is provided by many operating systems as a one, five or fifteen minute average.",
+          "fill": 1,
+          "id": 5,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 12,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "Longterm",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "load.load.longterm",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": []
+            },
+            {
+              "alias": "Midterm",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "load.load.midterm",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "B",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": []
+            },
+            {
+              "alias": "Shortterm",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "load.load.shortterm",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "C",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": []
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Load",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Load",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 1,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 12,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "Used",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "hide": false,
+              "measurement": "memory.used.memory",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT sum(\"value\") FROM \"aggregation.cpu-average.cpu.system\" WHERE $timeFilter GROUP BY time(1m) fill(null)",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                }
+              ]
+            },
+            {
+              "alias": "Buffered",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "memory.buffered.memory",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "B",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                }
+              ]
+            },
+            {
+              "alias": "Cached",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "memory.cached.memory",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "C",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                }
+              ]
+            },
+            {
+              "alias": "Free",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "memory.free.memory",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "D",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                }
+              ]
+            },
+            {
+              "alias": "Slab_recl",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "memory.slab_recl.memory",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "E",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                }
+              ]
+            },
+            {
+              "alias": "Slab_unrecl",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "memory.slab_unrecl.memory",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "F",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Memory Usage",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "bytes",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Memory Usage",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 4,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 12,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "Free",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "df.root.df_complex.free",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\"   FROM \"df.root.df_complex.free\" WHERE \"fqdn\" = '$fqdn' AND $timeFilter",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                }
+              ]
+            },
+            {
+              "alias": "Reserved",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "df.root.df_complex.reserved",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "B",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                }
+              ]
+            },
+            {
+              "alias": "Used",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "df.root.df_complex.used",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "C",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Disk Usage on Root",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "decbytes",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Disk Usage on Root",
+      "titleSize": "h6"
     }
   ],
   "schemaVersion": 14,
@@ -793,7 +1099,6 @@
         "allValue": null,
         "current": {
           "selected": true,
-          "tags": [],
           "text": "server17",
           "value": "server17"
         },
