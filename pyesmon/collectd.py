@@ -34,6 +34,8 @@ class CollectdConfig(object):
         self.cc_plugin_load()
         self.cc_plugin_sensors()
         self.cc_plugin_disk()
+        self.cc_plugin_uptime()
+        self.cc_plugin_users()
 
     def cc_dump(self, fpath):
         """
@@ -392,7 +394,7 @@ PostCacheChain "PostCache"
 
     def cc_plugin_sensors_check(self):
         """
-        Check the load plugin
+        Check the sensors plugin
         """
         client = self.cc_esmon_client
         measurement = "aggregation.sensors-max.temperature"
@@ -400,7 +402,7 @@ PostCacheChain "PostCache"
 
     def cc_plugin_sensors(self):
         """
-        Config the load plugin
+        Config the sensors plugin
         """
         self.cc_aggregations["sensors"] = """    <Aggregation>
         Plugin "sensors"
@@ -431,3 +433,36 @@ PostCacheChain "PostCache"
         self.cc_plugins["disk"] = ""
         return 0
 
+    def cc_plugin_uptime_check(self):
+        """
+        Check the uptime plugin
+        """
+        client = self.cc_esmon_client
+        measurement = "uptime.uptime"
+        return client.ec_influxdb_measurement_check(measurement)
+
+    def cc_plugin_uptime(self):
+        """
+        Config the uptime plugin
+        """
+        self.cc_plugins["uptime"] = ""
+        if self.cc_plugin_uptime_check not in self.cc_checks:
+            self.cc_checks.append(self.cc_plugin_uptime_check)
+        return 0
+
+    def cc_plugin_users_check(self):
+        """
+        Check the users plugin
+        """
+        client = self.cc_esmon_client
+        measurement = "users.users"
+        return client.ec_influxdb_measurement_check(measurement)
+
+    def cc_plugin_users(self):
+        """
+        Config the users plugin
+        """
+        self.cc_plugins["users"] = ""
+        if self.cc_plugin_users_check not in self.cc_checks:
+            self.cc_checks.append(self.cc_plugin_users_check)
+        return 0

@@ -1135,7 +1135,8 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
                           host_id, config_fpath)
             return -1
 
-        enabled_plugins = "memory, CPU, df(/), load, sensors, disk"
+        enabled_plugins = ("memory, CPU, df(/), load, sensors, disk, uptime, "
+                           "users")
 
         host = hosts[host_id]
         lustre_oss = config_value(client_host_config, "lustre_oss")
