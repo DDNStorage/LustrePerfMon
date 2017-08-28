@@ -750,7 +750,8 @@ class EsmonClient(object):
         dependent_rpms = ["yajl", "openpgm", "zeromq3", "glibc", "patch",
                           "fontpackages-filesystem", "libfontenc", "libtool-ltdl",
                           "libtool", "fontconfig", "libXfont", "rsync",
-                          "xorg-x11-font-utils", "urw-fonts"]
+                          "xorg-x11-font-utils", "urw-fonts",
+                          "lm_sensors-libs"]
         for dependent_rpm in dependent_rpms:
             ret = self.ec_host.sh_rpm_query(dependent_rpm)
             if ret:
@@ -1134,7 +1135,7 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
                           host_id, config_fpath)
             return -1
 
-        enabled_plugins = "memory, CPU"
+        enabled_plugins = "memory, CPU, df(/), load, sensors"
 
         host = hosts[host_id]
         lustre_oss = config_value(client_host_config, "lustre_oss")
@@ -1149,7 +1150,6 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
         if lustre_mds:
             enabled_plugins += ", Lustre MDS"
 
-        ime = client_host_config["ime"]
         ime = config_value(client_host_config, "ime")
         if ime is None:
             ime = False

@@ -165,7 +165,7 @@ for rpmname in openpgm yajl zeromq3 fontconfig glibc glibc-common \
                python-backports-ssl_match_hostname python-dateutil \
                python-requests python-setuptools python-six python-urllib3 \
                PyYAML rsync urw-fonts xorg-x11-font-utils python-chardet \
-               python-idna 
+               python-idna lm_sensors-libs
 do
     yumdownloader -x \*i686 --archlist=x86_64 "$rpmname"
     if [ $? -ne 0 ]; then

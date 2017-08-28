@@ -40,7 +40,7 @@
               "measurement": "df.root.df_complex.free",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "\n\nSELECT \"value\" FROM \"aggregation.cpu-average.cpu.idle\" WHERE \"fqdn\" = '$fqdn' AND $timeFilter",
+              "query": "\n\nSELECT last(\"value\") FROM \"aggregation.cpu-average.cpu.idle\" WHERE \"fqdn\" = '$fqdn' AND $timeFilter",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -98,7 +98,7 @@
               ],
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" FROM \"load.load.shortterm\" WHERE \"fqdn\" = '$fqdn' AND $timeFilter\n",
+              "query": "SELECT last(\"value\") FROM \"load.load.shortterm\" WHERE \"fqdn\" = '$fqdn' AND $timeFilter\n",
               "rawQuery": true,
               "refId": "B",
               "resultFormat": "time_series",
@@ -190,6 +190,43 @@
               ],
               "valueHandler": "Threshold",
               "warn": "10"
+            },
+            {
+              "aggregation": "Last",
+              "alias": "Temperature(°C)",
+              "crit": "80",
+              "display": true,
+              "displayType": "Regular",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "aggregation.sensors-max.temperature",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "E",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "last"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                }
+              ],
+              "valueHandler": "Threshold",
+              "warn": "60"
             }
           ],
           "title": "General Status",
@@ -962,10 +999,10 @@
           "steppedLine": false,
           "targets": [
             {
-              "alias": "Free",
+              "alias": "Reserved",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "df.root.df_complex.free",
+              "measurement": "df.root.df_complex.reserved",
               "orderByTime": "ASC",
               "policy": "default",
               "query": "SELECT \"value\"   FROM \"df.root.df_complex.free\" WHERE \"fqdn\" = '$fqdn' AND $timeFilter",
@@ -991,10 +1028,10 @@
               ]
             },
             {
-              "alias": "Reserved",
+              "alias": "Free",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "df.root.df_complex.reserved",
+              "measurement": "df.root.df_complex.free",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "B",
@@ -1088,6 +1125,124 @@
       "showTitle": false,
       "title": "Disk Usage on Root",
       "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 6,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 12,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$__interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "\nSELECT \"value\" FROM /sensors\\..*\\.temperature\\..*/  WHERE \"fqdn\" = '$fqdn' AND $timeFilter\n",
+              "rawQuery": true,
+              "refId": "B",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": []
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Temperature",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "celsius",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Temperature",
+      "titleSize": "h6"
     }
   ],
   "schemaVersion": 14,
@@ -1098,9 +1253,9 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "server17",
-          "value": "server17"
+          "selected": false,
+          "text": "server1",
+          "value": "server1"
         },
         "datasource": "esmon_datasource",
         "hide": 0,
@@ -1110,7 +1265,7 @@
         "name": "fqdn",
         "options": [
           {
-            "selected": false,
+            "selected": true,
             "text": "server1",
             "value": "server1"
           },
@@ -1135,7 +1290,7 @@
             "value": "server16"
           },
           {
-            "selected": true,
+            "selected": false,
             "text": "server17",
             "value": "server17"
           },

@@ -19,6 +19,8 @@ class CollectdConfig(object):
     def __init__(self, esmon_client):
         self.cc_configs = collections.OrderedDict()
         self.cc_plugins = collections.OrderedDict()
+        self.cc_aggregations = collections.OrderedDict()
+        self.cc_post_cache_chain_rules = collections.OrderedDict()
         self.cc_checks = []
         self.cc_configs["Interval"] = COLLECTD_INTERVAL_FINAL
         self.cc_configs["WriteQueueLimitHigh"] = 1000000
@@ -30,6 +32,7 @@ class CollectdConfig(object):
         self.cc_plugin_write_tsdb()
         self.cc_plugin_df()
         self.cc_plugin_load()
+        self.cc_plugin_sensors()
 
     def cc_dump(self, fpath):
         """
@@ -43,6 +46,35 @@ class CollectdConfig(object):
                 text = '%s %s\n' % (config_name, config)
                 fout.write(text)
             fout.write("\n")
+
+            if any(self.cc_aggregations):
+                config = """LoadPlugin aggregation
+<Plugin "aggregation">
+"""
+                fout.write(config)
+                for config in self.cc_aggregations.values():
+                    fout.write(config)
+                config = """
+</Plugin>
+
+"""
+                fout.write(config)
+
+            if any(self.cc_post_cache_chain_rules):
+                config = """LoadPlugin match_regex
+PostCacheChain "PostCache"
+# Don't send "cpu-X" stats
+<Chain "PostCache">
+"""
+                fout.write(config)
+                for config in self.cc_post_cache_chain_rules.values():
+                    fout.write(config)
+                config = """
+    Target "write"
+</Chain>
+
+"""
+                fout.write(config)
 
             for plugin_name, plugin_config in self.cc_plugins.iteritems():
                 text = 'LoadPlugin %s\n' % plugin_name
@@ -113,24 +145,15 @@ class CollectdConfig(object):
         """
         Config the cpu plugin
         """
-        config = """
-LoadPlugin aggregation
-<Plugin "aggregation">
-    <Aggregation>
+        self.cc_aggregations["cpu"] = """    <Aggregation>
         Plugin "cpu"
         Type "cpu"
         GroupBy "Host"
         GroupBy "TypeInstance"
         CalculateAverage true
     </Aggregation>
-</Plugin>
-
-LoadPlugin match_regex
-
-PostCacheChain "PostCache"
-# Don't send "cpu-X" stats
-<Chain "PostCache">
-    <Rule>
+"""
+        self.cc_post_cache_chain_rules["cpu"] = """    <Rule>
         <Match regex>
             Plugin "^cpu$"
             PluginInstance "^[0-9]+$"
@@ -140,10 +163,8 @@ PostCacheChain "PostCache"
         </Target>
         Target stop
     </Rule>
-    Target "write"
-</Chain>
 """
-        self.cc_plugins["cpu"] = config
+        self.cc_plugins["cpu"] = ""
         if self.cc_plugin_cpu_check not in self.cc_checks:
             self.cc_checks.append(self.cc_plugin_cpu_check)
         return 0
@@ -152,8 +173,7 @@ PostCacheChain "PostCache"
         """
         Config the Lustre plugin
         """
-        config = """
-<Plugin "filedata">
+        config = """<Plugin "filedata">
     <Common>
         DefinitionFile "/etc/lustre-ieel-2.7_definition.xml"
     </Common>
@@ -308,7 +328,7 @@ PostCacheChain "PostCache"
 #       TsdbTags "slurm_job_uid=${extendfield:slurm_job_uid} slurm_job_gid=${extendfield:slurm_job_gid} slurm_job_id=${extendfield:slurm_job_id}"
 #   </ItemType>
 """
-        config += "</Plugin>\n"
+        config += "</Plugin>\n\n"
         self.cc_plugins["filedata"] = config
         return 0
 
@@ -316,8 +336,7 @@ PostCacheChain "PostCache"
         """
         Config the IME plugin
         """
-        config = """
-<Plugin "ime">
+        self.cc_plugins["ime"] = """<Plugin "ime">
     <Common>
         DefinitionFile "/etc/ime-0.1_definition.xml"
     </Common>
@@ -328,8 +347,8 @@ PostCacheChain "PostCache"
         Type "bfs-stat"
     </Item>
 </Plugin>
+
 """
-        self.cc_plugins["ime"] = config
         return 0
 
     def cc_plugin_df_check(self):
@@ -344,12 +363,11 @@ PostCacheChain "PostCache"
         """
         Config the df plugin on /
         """
-        config = """
-<Plugin "df">
+        self.cc_plugins["df"] = """<Plugin "df">
     MountPoint "/"
 </Plugin>
+
 """
-        self.cc_plugins["df"] = config
         if self.cc_plugin_df_check not in self.cc_checks:
             self.cc_checks.append(self.cc_plugin_df_check)
         return 0
@@ -366,9 +384,41 @@ PostCacheChain "PostCache"
         """
         Config the load plugin
         """
-        config = ""
-        self.cc_plugins["load"] = config
+        self.cc_plugins["load"] = ""
         if self.cc_plugin_load_check not in self.cc_checks:
             self.cc_checks.append(self.cc_plugin_load_check)
         return 0
 
+    def cc_plugin_sensors_check(self):
+        """
+        Check the load plugin
+        """
+        client = self.cc_esmon_client
+        measurement = "aggregation.sensors-max.temperature"
+        return client.ec_influxdb_measurement_check(measurement)
+
+    def cc_plugin_sensors(self):
+        """
+        Config the load plugin
+        """
+        self.cc_aggregations["sensors"] = """    <Aggregation>
+        Plugin "sensors"
+        Type "temperature"
+        GroupBy "Host"
+        CalculateMaximum true
+    </Aggregation>
+"""
+        self.cc_post_cache_chain_rules["sensors"] = """    <Rule>
+        <Match regex>
+            Plugin "^sensors$"
+            Type "^temperature$"
+        </Match>
+        <Target write>
+            Plugin "aggregation"
+        </Target>
+    </Rule>
+"""
+        self.cc_plugins["sensors"] = ""
+        if self.cc_plugin_sensors_check not in self.cc_checks:
+            self.cc_checks.append(self.cc_plugin_sensors_check)
+        return 0
