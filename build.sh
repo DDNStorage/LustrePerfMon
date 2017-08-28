@@ -156,6 +156,25 @@ if [ ! -e ../chardet-3.0.4.tar.gz ]; then
 fi
 popd
 
+#python - Unidecode
+if [ ! -e ../Unidecode-0.04.21.tar.gz ]; then
+    wget https://pypi.python.org/packages/0e/26/6a4295c494e381d56bba986893382b5dd5e82e2643fc72e4e49b6c99ce15/Unidecode-0.04.21.tar.gz#md5=089031ed00637d7078f33dad9d6a3c12
+    if [ $? -ne 0 ]; then
+        error "failed to download python - Unidecode package"
+    fi
+fi
+popd
+
+#python - slugify
+if [ ! -e ../python-slugify-1.2.4.tar.gz ]; then
+    wget https://pypi.python.org/packages/9f/b0/2723356c20fb01b0e09f6ee03c0c629f4e30811e7d92ebd15453d648e5f0/python-slugify-1.2.4.tar.gz#md5=338ab6beafcea746161f07b6173a9031
+    if [ $? -ne 0 ]; then
+        error "failed to download python - slugify package"
+    fi
+fi
+popd
+
+
 # download dependent RPMs
 
 for rpmname in openpgm yajl zeromq3 fontconfig glibc glibc-common \

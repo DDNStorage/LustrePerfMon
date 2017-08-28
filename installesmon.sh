@@ -13,7 +13,8 @@ mkdir $TMPDIR
 
 for pylib in certifi-2017.7.27.1 pytz-2017.2 six-1.10.0 \
              python-dateutil-2.6.1 urllib3-1.22 idna-2.6 \
-             chardet-3.0.4 requests-2.18.4 influxdb-4.1.1
+             chardet-3.0.4 requests-2.18.4 influxdb-4.1.1 \
+             Unidecode-0.04.21 python-slugify-1.2.4
 do
   cp $pylib.tar.gz $TMPDIR/
   cd $TMPDIR

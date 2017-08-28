@@ -59,7 +59,7 @@ monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso: CLEAN_BUILD_IS
 	rm -f monsystem-ddn.*.md5
 	cp influxdb.conf.diff BUILD_ISO
 	cp -a dashboards BUILD_ISO
-	cp installesmon.sh BUILD_ISO	
+	cp installesmon.sh BUILD_ISO
 	cp -a $(DEPENDENT_RPMS_PATH)/* BUILD_ISO
 	cp DDN-Storage-RedBG.svg BUILD_ISO
 	cp DDN-Storage-RedBG.png BUILD_ISO
@@ -73,7 +73,7 @@ monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.md5: \
 		> monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.md5
 
 CLEAN_BUILD_ISO:
-	rm BUILD_ISO -fr 
+	rm BUILD_ISO -fr
 	mkdir BUILD_ISO
 
 clean-local:
