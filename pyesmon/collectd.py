@@ -33,6 +33,7 @@ class CollectdConfig(object):
         self.cc_plugin_df()
         self.cc_plugin_load()
         self.cc_plugin_sensors()
+        self.cc_plugin_disk()
 
     def cc_dump(self, fpath):
         """
@@ -422,3 +423,11 @@ PostCacheChain "PostCache"
         if self.cc_plugin_sensors_check not in self.cc_checks:
             self.cc_checks.append(self.cc_plugin_sensors_check)
         return 0
+
+    def cc_plugin_disk(self):
+        """
+        Config the disk plugin
+        """
+        self.cc_plugins["disk"] = ""
+        return 0
+
