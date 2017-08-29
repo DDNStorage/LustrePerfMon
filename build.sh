@@ -70,14 +70,12 @@ if [ ! -e ../influxdb-1.3.1.x86_64.rpm ]; then
     popd
 fi
 
-pushd ../
-DEPENDENT_RPMS="rpms"
+DEPENDENT_RPMS="../rpms"
+PYLIBS_DIR=$DEPENDENT_RPMS"/pylibs"
 rm -fr $DEPENDENT_RPMS
-mkdir $DEPENDENT_RPMS
-pushd $DEPENDENT_RPMS
 
-mkdir pylibs
-pushd pylibs
+mkdir -p $PYLIBS_DIR
+pushd $PYLIBS_DIR
 # download python libs from pipy
 #python - certifi
 if [ ! -e ../rtifi-2017.7.27.1.tar.gz ]; then
@@ -174,9 +172,8 @@ if [ ! -e ../python-slugify-1.2.4.tar.gz ]; then
 fi
 popd
 
-
+pushd $DEPENDENT_RPMS
 # download dependent RPMs
-
 for rpmname in openpgm yajl zeromq3 fontconfig glibc glibc-common \
                glibc-devel fontpackages-filesystem glibc-headers glibc-static \
                libfontenc libtool libtool-ltdl libtool-ltdl-devel libXfont libyaml \
@@ -197,7 +194,6 @@ if [ $? -ne 0 ]; then
     error "failed to download grafana status panel"
 fi
 popd
-popd
 
 rm esmon-*.tar.bz2 esmon-*.tar.gz -f
 
@@ -206,7 +202,7 @@ if [ $? -ne 0 ]; then
     error "failed to run autogen.sh"
 fi
 ./configure --with-collectd=../collectd.git --with-grafana=../grafana-4.4.1-1.x86_64.rpm \
-    --with-influxdb=../influxdb-1.3.1.x86_64.rpm --with-dependent-rpms=../$DEPENDENT_RPMS
+    --with-influxdb=../influxdb-1.3.1.x86_64.rpm --with-dependent-rpms=$DEPENDENT_RPMS
 if [ $? -ne 0 ]; then
     error "failed to run configure"
 fi
