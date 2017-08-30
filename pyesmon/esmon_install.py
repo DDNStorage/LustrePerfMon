@@ -751,7 +751,7 @@ class EsmonClient(object):
                           "fontpackages-filesystem", "libfontenc", "libtool-ltdl",
                           "libtool", "fontconfig", "libXfont", "rsync",
                           "xorg-x11-font-utils", "urw-fonts",
-                          "lm_sensors-libs"]
+                          "lm_sensors-libs", "lm_sensors"]
         for dependent_rpm in dependent_rpms:
             ret = self.ec_host.sh_rpm_query(dependent_rpm)
             if ret:

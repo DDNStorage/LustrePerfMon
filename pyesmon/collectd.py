@@ -5,6 +5,7 @@
 Library for generating collectd config
 """
 import collections
+import logging
 
 COLLECTD_CONFIG_TEMPLATE_FNAME = "collectd.conf.template"
 COLLECTD_CONFIG_TEST_FNAME = "collectd.conf.test"
@@ -16,6 +17,7 @@ class CollectdConfig(object):
     """
     Each collectd config has an object of this type
     """
+    # pylint: disable=too-many-public-methods
     def __init__(self, esmon_client):
         self.cc_configs = collections.OrderedDict()
         self.cc_plugins = collections.OrderedDict()
@@ -397,7 +399,19 @@ PostCacheChain "PostCache"
         Check the sensors plugin
         """
         client = self.cc_esmon_client
+        host = client.ec_host
         measurement = "aggregation.sensors-max.temperature"
+
+        command = "sensors"
+        retval = host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.debug("failed to run command [%s] on host [%s], there "
+                          "might be no sensor, skip checking measurement "
+                          "[%s]",
+                          command,
+                          host.sh_hostname,
+                          measurement)
+            return 0
         return client.ec_influxdb_measurement_check(measurement)
 
     def cc_plugin_sensors(self):
