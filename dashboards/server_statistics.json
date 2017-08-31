@@ -1492,7 +1492,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "counts the The number of users currently logged into the system.",
+          "description": "The number of users currently logged into the system.",
           "fill": 1,
           "height": "200px",
           "id": 10,
@@ -1579,7 +1579,7 @@
               "logBase": 1,
               "max": null,
               "min": null,
-              "show": true
+              "show": false
             }
           ]
         }
@@ -1623,7 +1623,7 @@
           "renderer": "flot",
           "seriesOverrides": [],
           "spaceLength": 10,
-          "span": 6,
+          "span": 12,
           "stack": false,
           "steppedLine": false,
           "targets": [
@@ -1720,9 +1720,9 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "server17",
-          "value": "server17"
+          "tags": [],
+          "text": "server1",
+          "value": "server1"
         },
         "datasource": "esmon_datasource",
         "hide": 0,
@@ -1732,39 +1732,9 @@
         "name": "fqdn",
         "options": [
           {
-            "selected": false,
+            "selected": true,
             "text": "server1",
             "value": "server1"
-          },
-          {
-            "selected": false,
-            "text": "server10",
-            "value": "server10"
-          },
-          {
-            "selected": false,
-            "text": "server11",
-            "value": "server11"
-          },
-          {
-            "selected": false,
-            "text": "server13",
-            "value": "server13"
-          },
-          {
-            "selected": false,
-            "text": "server16",
-            "value": "server16"
-          },
-          {
-            "selected": true,
-            "text": "server17",
-            "value": "server17"
-          },
-          {
-            "selected": false,
-            "text": "server17-el7-vm1",
-            "value": "server17-el7-vm1"
           },
           {
             "selected": false,
@@ -1790,12 +1760,42 @@
             "selected": false,
             "text": "server9",
             "value": "server9"
+          },
+          {
+            "selected": false,
+            "text": "server10",
+            "value": "server10"
+          },
+          {
+            "selected": false,
+            "text": "server11",
+            "value": "server11"
+          },
+          {
+            "selected": false,
+            "text": "server13",
+            "value": "server13"
+          },
+          {
+            "selected": false,
+            "text": "server16",
+            "value": "server16"
+          },
+          {
+            "selected": false,
+            "text": "server17",
+            "value": "server17"
+          },
+          {
+            "selected": false,
+            "text": "server17-el7-vm1",
+            "value": "server17-el7-vm1"
           }
         ],
         "query": "SHOW TAG VALUES FROM \"memory.buffered.memory\" WITH KEY = fqdn",
         "refresh": 0,
         "regex": "",
-        "sort": 0,
+        "sort": 3,
         "tagValuesQuery": "",
         "tags": [],
         "tagsQuery": "",
