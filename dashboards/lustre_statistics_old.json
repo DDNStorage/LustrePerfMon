@@ -15,52 +15,69 @@
       "height": 250,
       "panels": [
         {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
           "datasource": null,
-          "fill": 1,
-          "id": 27,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
+          "decimals": null,
+          "format": "short",
+          "gauge": {
+            "maxValue": 226492416,
+            "minValue": 0,
             "show": true,
-            "total": false,
-            "values": false
+            "thresholdLabels": false,
+            "thresholdMarkers": true
           },
-          "lines": true,
-          "linewidth": 1,
+          "height": "200",
+          "id": 18,
+          "interval": null,
           "links": [],
-          "nullPointMode": "null",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "span": 6,
-          "stack": true,
-          "steppedLine": false,
+          "mappingType": 1,
+          "mappingTypes": [
+            {
+              "name": "value to text",
+              "value": 1
+            },
+            {
+              "name": "range to text",
+              "value": 2
+            }
+          ],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "80%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [
+            {
+              "from": "null",
+              "text": "N/A",
+              "to": "null"
+            }
+          ],
+          "span": 2,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "tableColumn": "",
           "targets": [
             {
-              "alias": "$tag_mdt_index",
               "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "mdt_index"
-                  ],
-                  "type": "tag"
-                }
-              ],
-              "measurement": "mdt_filesinfo_free",
-              "orderByTime": "ASC",
+              "groupBy": [],
+              "measurement": "mdt_filesinfo_used",
               "policy": "default",
-              "query": "SELECT \"value\" FROM \"mdt_filesinfo_free\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"mdt_index\"",
-              "rawQuery": true,
+              "query": "SELECT sum(\"value\")  FROM \"mdt_filesinfo_used\" WHERE \"mdt_index\" = 'MDT0000' AND $timeFilter GROUP BY time(10m) fill(null)",
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
@@ -70,101 +87,99 @@
                       "value"
                     ],
                     "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "last"
                   }
                 ]
               ],
               "tags": [
                 {
-                  "key": "fs_name",
+                  "key": "mdt_index",
                   "operator": "=",
-                  "value": "$fs_name"
+                  "value": "MDT0000"
                 }
               ]
             }
           ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Free Inode Number",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
+          "thresholds": "",
+          "title": "Number of inode in MDT0000",
+          "type": "singlestat",
+          "valueFontSize": "80%",
+          "valueMaps": [
             {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": false
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
             }
-          ]
+          ],
+          "valueName": "avg"
         },
         {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
           "datasource": null,
-          "fill": 1,
-          "id": 28,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
+          "decimals": null,
+          "format": "short",
+          "gauge": {
+            "maxValue": 3623878656,
+            "minValue": 0,
             "show": true,
-            "total": false,
-            "values": false
+            "thresholdLabels": false,
+            "thresholdMarkers": true
           },
-          "lines": true,
-          "linewidth": 1,
+          "height": "200",
+          "id": 20,
+          "interval": null,
           "links": [],
-          "nullPointMode": "null",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "span": 6,
-          "stack": true,
-          "steppedLine": false,
+          "mappingType": 1,
+          "mappingTypes": [
+            {
+              "name": "value to text",
+              "value": 1
+            },
+            {
+              "name": "range to text",
+              "value": 2
+            }
+          ],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "80%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [
+            {
+              "from": "null",
+              "text": "N/A",
+              "to": "null"
+            }
+          ],
+          "span": 2,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "tableColumn": "",
           "targets": [
             {
-              "alias": "$tag_mdt_index",
               "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "mdt_index"
-                  ],
-                  "type": "tag"
-                }
-              ],
-              "measurement": "mdt_filesinfo_free",
-              "orderByTime": "ASC",
+              "groupBy": [],
+              "measurement": "mdt_filesinfo_used",
               "policy": "default",
-              "query": "SELECT \"value\" FROM \"mdt_filesinfo_used\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"mdt_index\"",
-              "rawQuery": true,
+              "query": "SELECT sum(\"value\") FROM \"mdt_filesinfo_used\" WHERE \"mdt_index\" = 'MDT0001' AND $timeFilter GROUP BY time(10m) fill(null)",
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
@@ -179,48 +194,426 @@
               ],
               "tags": [
                 {
-                  "key": "fs_name",
+                  "key": "mdt_index",
                   "operator": "=",
-                  "value": "$fs_name"
+                  "value": "MDT0001"
                 }
               ]
             }
           ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Used Inode Number",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
+          "thresholds": "",
+          "title": "Number of inode in MDT0001",
+          "type": "singlestat",
+          "valueFontSize": "80%",
+          "valueMaps": [
             {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "avg"
+        },
+        {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "datasource": null,
+          "decimals": null,
+          "format": "short",
+          "gauge": {
+            "maxValue": 3623878656,
+            "minValue": 0,
+            "show": true,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "height": "200",
+          "id": 21,
+          "interval": null,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [
+            {
+              "name": "value to text",
+              "value": 1
             },
             {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": false
+              "name": "range to text",
+              "value": 2
             }
-          ]
+          ],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "80%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [
+            {
+              "from": "null",
+              "text": "N/A",
+              "to": "null"
+            }
+          ],
+          "span": 2,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "tableColumn": "",
+          "targets": [
+            {
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "mdt_filesinfo_used",
+              "policy": "default",
+              "query": "SELECT sum(\"value\") FROM \"mdt_filesinfo_used\" WHERE \"mdt_index\" = 'MDT0003' AND $timeFilter GROUP BY time(10m) fill(null)",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "last"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "mdt_index",
+                  "operator": "=",
+                  "value": "MDT0002"
+                }
+              ]
+            }
+          ],
+          "thresholds": "",
+          "title": "Number of inode in MDT0002",
+          "type": "singlestat",
+          "valueFontSize": "80%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "avg"
+        },
+        {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "datasource": null,
+          "decimals": null,
+          "format": "short",
+          "gauge": {
+            "maxValue": 3623878656,
+            "minValue": 0,
+            "show": true,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "height": "200",
+          "id": 22,
+          "interval": null,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [
+            {
+              "name": "value to text",
+              "value": 1
+            },
+            {
+              "name": "range to text",
+              "value": 2
+            }
+          ],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "80%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [
+            {
+              "from": "null",
+              "text": "N/A",
+              "to": "null"
+            }
+          ],
+          "span": 2,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "tableColumn": "",
+          "targets": [
+            {
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "mdt_filesinfo_used",
+              "policy": "default",
+              "query": "SELECT sum(\"value\") FROM \"mdt_filesinfo_used\" WHERE \"mdt_index\" = 'MDT0003' AND $timeFilter GROUP BY time(10m) fill(null)",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "last"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "mdt_index",
+                  "operator": "=",
+                  "value": "MDT0003"
+                }
+              ]
+            }
+          ],
+          "thresholds": "",
+          "title": "Number of inode in MDT0003",
+          "type": "singlestat",
+          "valueFontSize": "80%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "avg"
+        },
+        {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "datasource": null,
+          "decimals": null,
+          "format": "short",
+          "gauge": {
+            "maxValue": 3623878656,
+            "minValue": 0,
+            "show": true,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "height": "200",
+          "id": 23,
+          "interval": null,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [
+            {
+              "name": "value to text",
+              "value": 1
+            },
+            {
+              "name": "range to text",
+              "value": 2
+            }
+          ],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "80%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [
+            {
+              "from": "null",
+              "text": "N/A",
+              "to": "null"
+            }
+          ],
+          "span": 2,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "tableColumn": "",
+          "targets": [
+            {
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "mdt_filesinfo_used",
+              "policy": "default",
+              "query": "SELECT sum(\"value\") FROM \"mdt_filesinfo_used\" WHERE \"mdt_index\" = 'MDT0003' AND $timeFilter GROUP BY time(10m) fill(null)",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "last"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "mdt_index",
+                  "operator": "=",
+                  "value": "MDT0004"
+                }
+              ]
+            }
+          ],
+          "thresholds": "",
+          "title": "Number of inode in MDT0004",
+          "type": "singlestat",
+          "valueFontSize": "80%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "avg"
+        },
+        {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "datasource": null,
+          "decimals": null,
+          "format": "deckbytes",
+          "gauge": {
+            "maxValue": 25337068386520,
+            "minValue": 0,
+            "show": true,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "height": "200",
+          "id": 24,
+          "interval": null,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [
+            {
+              "name": "value to text",
+              "value": 1
+            },
+            {
+              "name": "range to text",
+              "value": 2
+            }
+          ],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "80%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [
+            {
+              "from": "null",
+              "text": "N/A",
+              "to": "null"
+            }
+          ],
+          "span": 2,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "tableColumn": "",
+          "targets": [
+            {
+              "dsType": "influxdb",
+              "groupBy": [],
+              "limit": "",
+              "measurement": "sum_ost_kbytesinfo_used",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT sum(\"value\") FROM \"mdt_filesinfo_used\" WHERE \"mdt_index\" = 'MDT0003' AND $timeFilter GROUP BY time(10m) fill(null)",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "slimit": "",
+              "tags": []
+            }
+          ],
+          "thresholds": "",
+          "title": "Capacity Usage of Lustre",
+          "type": "singlestat",
+          "valueFontSize": "80%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "avg"
         }
       ],
       "repeat": null,
@@ -435,7 +828,7 @@
                 }
               ],
               "limit": "",
-              "measurement": "cqm_mdt_acctuser_samples",
+              "measurement": "mdt_acctuser_samples_by_user_id",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "A",
@@ -451,13 +844,7 @@
                 ]
               ],
               "slimit": "",
-              "tags": [
-                {
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
-                }
-              ]
+              "tags": []
             }
           ],
           "title": "Quota Accounting (Capacity)",
@@ -532,13 +919,7 @@
                   }
                 ]
               ],
-              "tags": [
-                {
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
-                }
-              ]
+              "tags": []
             }
           ],
           "title": "Quota Accounting (inode)",
@@ -594,9 +975,21 @@
               "groupBy": [
                 {
                   "params": [
+                    "1m"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
                     "optype"
                   ],
                   "type": "tag"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
                 }
               ],
               "measurement": "cqm_ost_stats_bytes",
@@ -611,16 +1004,14 @@
                       "sum"
                     ],
                     "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
                   }
                 ]
               ],
-              "tags": [
-                {
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
-                }
-              ]
+              "tags": []
             }
           ],
           "thresholds": [],
@@ -696,16 +1087,26 @@
               "groupBy": [
                 {
                   "params": [
+                    "1m"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
                     "optype"
                   ],
                   "type": "tag"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
                 }
               ],
               "measurement": "cqm_md_stats",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_md_stats\" WHERE $timeFilter",
-              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
@@ -715,16 +1116,14 @@
                       "sum"
                     ],
                     "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
                   }
                 ]
               ],
-              "tags": [
-                {
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
-                }
-              ]
+              "tags": []
             }
           ],
           "thresholds": [],
@@ -836,12 +1235,6 @@
                   "key": "field",
                   "operator": "=",
                   "value": "write_sample"
-                },
-                {
-                  "condition": "AND",
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
                 }
               ]
             },
@@ -875,12 +1268,6 @@
                   "key": "field",
                   "operator": "=",
                   "value": "write_sample"
-                },
-                {
-                  "condition": "AND",
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
                 }
               ]
             },
@@ -914,12 +1301,6 @@
                   "key": "field",
                   "operator": "=",
                   "value": "write_sample"
-                },
-                {
-                  "condition": "AND",
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
                 }
               ]
             },
@@ -953,12 +1334,6 @@
                   "key": "field",
                   "operator": "=",
                   "value": "write_sample"
-                },
-                {
-                  "condition": "AND",
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
                 }
               ]
             },
@@ -992,12 +1367,6 @@
                   "key": "field",
                   "operator": "=",
                   "value": "write_sample"
-                },
-                {
-                  "condition": "AND",
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
                 }
               ]
             },
@@ -1031,12 +1400,6 @@
                   "key": "field",
                   "operator": "=",
                   "value": "write_sample"
-                },
-                {
-                  "condition": "AND",
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
                 }
               ]
             },
@@ -1070,12 +1433,6 @@
                   "key": "field",
                   "operator": "=",
                   "value": "write_sample"
-                },
-                {
-                  "condition": "AND",
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
                 }
               ]
             },
@@ -1109,12 +1466,6 @@
                   "key": "field",
                   "operator": "=",
                   "value": "write_sample"
-                },
-                {
-                  "condition": "AND",
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
                 }
               ]
             },
@@ -1148,12 +1499,6 @@
                   "key": "field",
                   "operator": "=",
                   "value": "write_sample"
-                },
-                {
-                  "condition": "AND",
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
                 }
               ]
             },
@@ -1187,12 +1532,6 @@
                   "key": "field",
                   "operator": "=",
                   "value": "write_sample"
-                },
-                {
-                  "condition": "AND",
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
                 }
               ]
             },
@@ -1226,12 +1565,6 @@
                   "key": "field",
                   "operator": "=",
                   "value": "write_sample"
-                },
-                {
-                  "condition": "AND",
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
                 }
               ]
             },
@@ -1265,12 +1598,6 @@
                   "key": "field",
                   "operator": "=",
                   "value": "write_sample"
-                },
-                {
-                  "condition": "AND",
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
                 }
               ]
             },
@@ -1304,12 +1631,6 @@
                   "key": "field",
                   "operator": "=",
                   "value": "write_sample"
-                },
-                {
-                  "condition": "AND",
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
                 }
               ]
             }
@@ -1873,104 +2194,7 @@
             "col": 3,
             "desc": true
           },
-          "span": 4,
-          "styles": [
-            {
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "pattern": "/.*/",
-              "thresholds": [],
-              "type": "number",
-              "unit": "Bps"
-            }
-          ],
-          "targets": [
-            {
-              "alias": "$tag_job_id",
-              "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "job_id"
-                  ],
-                  "type": "tag"
-                }
-              ],
-              "measurement": "cqm_ost_jobstats_samples",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "query": "SELECT sum(\"sum\") FROM \"cqm_ost_jobstats_samples\" WHERE \"optype\" = 'sum_write_bytes' AND \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY time(1m), \"job_id\" fill(null)",
-              "rawQuery": false,
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "sum"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "optype",
-                  "operator": "=",
-                  "value": "sum_write_bytes"
-                },
-                {
-                  "condition": "AND",
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
-                }
-              ]
-            }
-          ],
-          "timeFrom": null,
-          "title": "Write Performance of Jobs",
-          "transform": "timeseries_aggregations",
-          "type": "table"
-        },
-        {
-          "columns": [
-            {
-              "text": "Avg",
-              "value": "avg"
-            },
-            {
-              "text": "Max",
-              "value": "max"
-            },
-            {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
-          "filterNull": false,
-          "fontSize": "100%",
-          "height": "",
-          "id": 29,
-          "links": [],
-          "pageSize": null,
-          "scroll": true,
-          "showHeader": true,
-          "sort": {
-            "col": 3,
-            "desc": true
-          },
-          "span": 4,
+          "span": 6,
           "styles": [
             {
               "dateFormat": "YYYY-MM-DD HH:mm:ss",
@@ -2018,8 +2242,6 @@
               "measurement": "cqm_ost_jobstats_samples",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT sum(\"sum\") FROM \"cqm_ost_jobstats_samples\" WHERE ( \"optype\" = 'sum_write_bytes' OR \"optype\" = 'sum_read_bytes' ) AND \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY time(1m), \"job_id\" fill(null)",
-              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
@@ -2040,19 +2262,19 @@
                 {
                   "key": "optype",
                   "operator": "=",
-                  "value": "sum_read_bytes"
+                  "value": "sum_write_bytes"
                 },
                 {
-                  "condition": "AND",
-                  "key": "fs_name",
+                  "condition": "OR",
+                  "key": "optype",
                   "operator": "=",
-                  "value": "$fs_name"
+                  "value": "sum_read_bytes"
                 }
               ]
             }
           ],
-          "timeFrom": null,
-          "title": "Read Performance of Jobs",
+          "timeFrom": "3h",
+          "title": "Lustre Top B/W Activity per USER",
           "transform": "timeseries_aggregations",
           "type": "table"
         },
@@ -2083,7 +2305,7 @@
             "col": 3,
             "desc": true
           },
-          "span": 4,
+          "span": 6,
           "styles": [
             {
               "dateFormat": "YYYY-MM-DD HH:mm:ss",
@@ -2111,9 +2333,21 @@
               "groupBy": [
                 {
                   "params": [
+                    "1m"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
                     "job_id"
                   ],
                   "type": "tag"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
                 }
               ],
               "measurement": "cqm_mdt_jobstats_samples",
@@ -2128,20 +2362,18 @@
                       "sum"
                     ],
                     "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
                   }
                 ]
               ],
-              "tags": [
-                {
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
-                }
-              ]
+              "tags": []
             }
           ],
-          "timeFrom": null,
-          "title": "Metadata Performance of Jobs",
+          "timeFrom": "3h",
+          "title": "Lustre Top Metadata Activity Per USER",
           "transform": "timeseries_aggregations",
           "type": "table"
         }
@@ -2152,49 +2384,671 @@
       "showTitle": false,
       "title": "Lustre Top Activity Per USER",
       "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": true,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 7,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": false,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 6,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "system",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "1m"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "aggregation.cpu-average.cpu.system",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": []
+            },
+            {
+              "alias": "user",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "1m"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "aggregation.cpu-average.cpu.user",
+              "policy": "default",
+              "refId": "B",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": []
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "IME Aggregated CPU Usage",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "percent",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 17,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "Migration (Sync)",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "1m"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "ime_bfs_write_bytes",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": []
+            },
+            {
+              "alias": "Prestage",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "1m"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "ime_bfs_read_bytes",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "B",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": []
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "IME PFS Operation",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "Bps",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "IME Aggregated CPU uages and PFS Operation",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {},
+          "id": 2,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "$tag_rw",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "1m"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "rw"
+                  ],
+                  "type": "tag"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "ime_nvm_IOs_byrw",
+              "policy": "default",
+              "query": "SELECT mean(\"value\") FROM \"measurement\" WHERE $timeFilter GROUP BY time($interval) fill(null)",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": []
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "IME Aggregated IOPS",
+          "tooltip": {
+            "msResolution": true,
+            "shared": true,
+            "sort": 0,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "iops",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {},
+          "id": 1,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "$tag_rw",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "1m"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "rw"
+                  ],
+                  "type": "tag"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "ime_nvm_MBs_byrw",
+              "policy": "default",
+              "query": "SELECT sum(\"value\") FROM \"ime_nvm_MBs\" WHERE \"rw\" = 'write' AND $timeFilter GROUP BY time($interval) fill(null)",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "sum"
+                  }
+                ]
+              ],
+              "tags": []
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "IME Aggregated B/W",
+          "tooltip": {
+            "msResolution": true,
+            "shared": true,
+            "sort": 0,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "Mbits",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "IME Aggregated IOPS and B/W",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 27,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": false,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "1m"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "measurement": "ime_PCT_Free",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT 100 - mean(value) FROM \"ime_PCT_Free\" WHERE $timeFilter GROUP BY time(1m)",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": []
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "IME Capacity Utilization",
+          "tooltip": {
+            "shared": false,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "percent",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "IME Capacity Utilization",
+      "titleSize": "h6"
     }
   ],
   "schemaVersion": 14,
   "style": "dark",
   "tags": [],
   "templating": {
-    "list": [
-      {
-        "allValue": null,
-        "current": {
-          "selected": true,
-          "text": "969362ae",
-          "value": "969362ae"
-        },
-        "datasource": "esmon_datasource",
-        "hide": 0,
-        "includeAll": false,
-        "label": "Filesystem Name",
-        "multi": false,
-        "name": "fs_name",
-        "options": [
-          {
-            "selected": false,
-            "text": "server17",
-            "value": "server17"
-          },
-          {
-            "selected": true,
-            "text": "969362ae",
-            "value": "969362ae"
-          }
-        ],
-        "query": "SHOW TAG VALUES FROM \"md_stats\" WITH KEY = fs_name",
-        "refresh": 0,
-        "regex": "",
-        "sort": 3,
-        "tagValuesQuery": "",
-        "tags": [],
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
-      }
-    ]
+    "list": []
   },
   "time": {
     "from": "now-1h",

@@ -665,7 +665,7 @@ class EsmonServer(object):
             return -1
         return 0
 
-    def es_influxdb_cq_create(self, measurement, groups, interval="1m"):
+    def _es_influxdb_cq_create(self, measurement, groups, interval="1m"):
         """
         Create continuous query in influxdb
         """
@@ -685,10 +685,45 @@ class EsmonServer(object):
         try:
             client.query(query)
         except:
-            logging.error("failed to create continuous query with query [%s]",
+            logging.debug("failed to create continuous query with query [%s]",
                           query)
             return -1
         return 0
+
+    def es_influxdb_cq_delete(self, measurement):
+        """
+        Delete continuous query in influxdb
+        """
+        # pylint: disable=bare-except
+        cq_query = INFLUXDB_CQ_PREFIX + measurement
+        query = ('DROP CONTINUOUS QUERY %s ON "%s";' %
+                 (cq_query, INFLUXDB_DATABASE_NAME))
+        client = self.es_influxdb_client
+        try:
+            client.query(query)
+        except:
+            logging.error("failed to delete continuous query with query [%s]",
+                          query)
+            return -1
+        return 0
+
+    def es_influxdb_cq_create(self, measurement, groups, interval="1m"):
+        """
+        Create continuous query in influxdb, delete one first if necesary
+        """
+        ret = self._es_influxdb_cq_create(measurement, groups, interval=interval)
+        if ret == 0:
+            return 0
+
+        ret = self.es_influxdb_cq_delete(measurement)
+        if ret:
+            return ret
+
+        ret = self._es_influxdb_cq_create(measurement, groups, interval=interval)
+        if ret:
+            logging.error("failed to create continuous query for measurement [%s]",
+                          measurement)
+        return ret
 
 
 class EsmonClient(object):
@@ -1187,42 +1222,42 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
         return -1
 
     ret = esmon_server.es_influxdb_cq_create("mdt_jobstats_samples",
-                                             ["job_id", "optype"])
+                                             ["job_id", "optype", "fs_name"])
     if ret:
         return -1
 
     ret = esmon_server.es_influxdb_cq_create("ost_jobstats_samples",
-                                             ["job_id", "optype"])
+                                             ["job_id", "optype", "fs_name"])
     if ret:
         return -1
 
     ret = esmon_server.es_influxdb_cq_create("ost_brw_stats_rpc_bulk_samples",
-                                             ["size", "field"])
+                                             ["size", "field", "fs_name"])
     if ret:
         return -1
 
     ret = esmon_server.es_influxdb_cq_create("ost_stats_bytes",
-                                             ["optype"])
+                                             ["optype", "fs_name"])
     if ret:
         return -1
 
     ret = esmon_server.es_influxdb_cq_create("md_stats",
-                                             ["optype"])
+                                             ["optype", "fs_name"])
     if ret:
         return -1
 
     ret = esmon_server.es_influxdb_cq_create("mdt_acctuser_samples",
-                                             ["user_id", "optype"])
+                                             ["user_id", "optype", "fs_name"])
     if ret:
         return -1
 
     ret = esmon_server.es_influxdb_cq_create("ost_acctuser_samples",
-                                             ["user_id", "optype"])
+                                             ["user_id", "optype", "fs_name"])
     if ret:
         return -1
 
     ret = esmon_server.es_influxdb_cq_create("ost_kbytesinfo_used",
-                                             ["user_id", "optype"],
+                                             ["user_id", "optype", "fs_name"],
                                              interval="10m")
     if ret:
         return -1
