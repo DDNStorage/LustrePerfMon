@@ -19,8 +19,8 @@ LOCAL_XML_DEFINITION_RPM = $(addprefix RPMS/, $(XML_DEFINITION_RPM))
 LOCAL_OPENTSDB_WEB_RPMS = $(addprefix RPMS/, $(OPENTSDB_WEB_RPMS))
 ESMON_RPM = ./build/RPMS/x86_64/esmon-$(MONSYSTEM_PKGVER)-$(ESMON_RELEASE).el$(DISTRO_RELEASE).x86_64.rpm
 
-noinst_DATA = monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso \
-	monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.md5
+noinst_DATA = esmon.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso \
+	esmon.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.md5
 
 build_dir = `pwd`/build
 
@@ -32,21 +32,21 @@ $(ESMON_RPM): esmon.spec dist
 		&& echo "RPM successfully generated in $(build_dir)/RPMS"
 
 $(LOCAL_COLLECTD_RPMS): $(ORIGIN_COLLECTD_RPMS)
-	cp $(addprefix collectd/RPMS/x86_64/, $(notdir $@)) BUILD_ISO
+	cp $(addprefix collectd/RPMS/x86_64/, $(notdir $@)) BUILD_ISO/RPMS/el7
 
 $(LOCAL_GRAFANA_RPMS): $(GRAFANA_RPM_PATH)
-	cp $(GRAFANA_RPM_PATH) BUILD_ISO
+	cp $(GRAFANA_RPM_PATH) BUILD_ISO/RPMS/el7
 
 $(LOCAL_INFLUXDB_RPMS): $(INFLUXDB_RPM_PATH)
-	cp $(INFLUXDB_RPM_PATH) BUILD_ISO
+	cp $(INFLUXDB_RPM_PATH) BUILD_ISO/RPMS/el7
 
 $(LOCAL_XML_DEFINITION_RPM): $(ORIGIN_XML_DEFINITION_RPM)
-	cp $(addprefix xml_definition/RPMS/noarch/, $(notdir $@)) BUILD_ISO
+	cp $(addprefix xml_definition/RPMS/noarch/, $(notdir $@)) BUILD_ISO/RPMS/el7
 
 $(LOCAL_OPENTSDB_WEB_RPMS): $(ORIGIN_OPENTSDB_WEB_RPMS)
-	cp $(addprefix opentsdb_web/RPMS/x86_64/, $(notdir $@)) BUILD_ISO
+	cp $(addprefix opentsdb_web/RPMS/x86_64/, $(notdir $@)) BUILD_ISO/RPMS/el7
 
-monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso: CLEAN_BUILD_ISO \
+esmon.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso: CLEAN_BUILD_ISO \
 		$(ESMON_RPM) \
 		$(LOCAL_COLLECTD_RPMS) \
 		$(LOCAL_GRAFANA_RPMS) \
@@ -54,31 +54,32 @@ monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso: CLEAN_BUILD_IS
 		$(LOCAL_XML_DEFINITION_RPM) \
 		$(LOCAL_OPENTSDB_WEB_RPMS) \
 		influxdb.conf.diff
-	rm -f monsystem-ddn.*.iso
-	rm -f monsystem-ddn.*.md5
+	rm -f esmon.*.iso
+	rm -f esmon.*.md5
 	cp influxdb.conf.diff BUILD_ISO
 	cp -a dashboards BUILD_ISO
 	cp installesmon.sh BUILD_ISO
-	cp -a $(DEPENDENT_RPMS_PATH)/* BUILD_ISO
+	cp -a $(DEPENDENT_RPMS_PATH)/Grafana_Status_panel BUILD_ISO
+	cp -a $(DEPENDENT_RPMS_PATH)/python_library BUILD_ISO
+	cp $(DEPENDENT_RPMS_PATH)/RPMS/el7/*.rpm BUILD_ISO/RPMS/el7
 	cp DDN-Storage-RedBG.svg BUILD_ISO
 	cp DDN-Storage-RedBG.png BUILD_ISO
-	cp $(ESMON_RPM) BUILD_ISO
-	createrepo BUILD_ISO
-	mkisofs -joliet-long -R -o monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso BUILD_ISO
+	cp $(ESMON_RPM) BUILD_ISO/RPMS/el7
+	mkisofs -joliet-long -R -o esmon.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso BUILD_ISO
 
-monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.md5: \
-		monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso
-	md5sum monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso \
-		> monsystem-ddn.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.md5
+esmon.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.md5: \
+		esmon.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso
+	md5sum esmon.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso \
+		> esmon.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.md5
 
 CLEAN_BUILD_ISO:
 	rm BUILD_ISO -fr
-	mkdir BUILD_ISO
+	mkdir -p BUILD_ISO/RPMS/el7
 
 clean-local:
 	-rm -f -r $(BUILD_DIRS)
-	-rm -f monsystem-ddn.*.iso
-	-rm -f monsystem-ddn.*.md5
+	-rm -f esmon.*.iso
+	-rm -f esmon.*.md5
 
 maintainer-clean-local:
 	-rm -f -r libltdl
