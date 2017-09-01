@@ -91,7 +91,7 @@ def build():
     command = "test -e %s" % grafana_rpm_path
     retval = local_host.sh_run(command)
     if retval.cr_exit_status:
-        command = ("cd %s && wget --no-check-certificate "
+        command = ("cd %s/.. && wget --no-check-certificate "
                    "https://s3-us-west-2.amazonaws.com/grafana-releases"
                    "/release/grafana-4.4.1-1.x86_64.rpm" % workspace)
         retval = local_host.sh_run(command)
@@ -109,7 +109,7 @@ def build():
     command = "test -e %s" % influxdb_rpm_path
     retval = local_host.sh_run(command)
     if retval.cr_exit_status:
-        command = ("cd %s && curl -LO https://dl.influxdata.com/influxdb/"
+        command = ("cd %s/.. && curl -LO https://dl.influxdata.com/influxdb/"
                    "releases/influxdb-1.3.1.x86_64.rpm" % workspace)
         retval = local_host.sh_run(command)
         if retval.cr_exit_status:
@@ -205,6 +205,25 @@ def build():
                       retval.cr_stderr)
         return -1
 
+    pylib_files = os.listdir(pylibs_dir)
+    for name in python_libs.iterkeys():
+        pylib_files.remove(name)
+
+    for extra_fname in pylib_files:
+        logging.warning("find unknown file [%s] under directory [%s], removing",
+                        extra_fname, pylibs_dir)
+        command = ("rm -fr %s/%s" % (pylibs_dir, extra_fname))
+        retval = local_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          local_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
     for name, url in python_libs.iteritems():
         path = pylibs_dir + "/" + name
         command = "test -e %s" % path
@@ -227,7 +246,7 @@ def build():
     retval = local_host.sh_run(command)
     if retval.cr_exit_status:
         command = ("cd %s && unzip pytz-2017.2.zip && "
-                   "tar -cf pytz-2017.2.tar.gz && "
+                   "tar -czf pytz-2017.2.tar.gz pytz-2017.2 && "
                    "rm -fr pytz-2017.2.zip pytz-2017.2" % pylibs_dir)
         retval = local_host.sh_run(command)
         if retval.cr_exit_status:
@@ -324,8 +343,8 @@ def build():
                           retval.cr_stdout,
                           retval.cr_stderr)
             return -1
+        dependent_files.remove(grafana_status_panel)
 
-    dependent_files.remove(grafana_status_panel)
     if len(dependent_files) != 0:
         logging.error("find unknown files under directory [%s]: %s",
                       dependent_rpm_dir, dependent_files)
