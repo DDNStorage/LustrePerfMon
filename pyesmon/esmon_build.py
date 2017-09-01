@@ -172,7 +172,7 @@ def build():
     python_libs[name] = url
 
     name = "chardet-3.0.4.tar.gz"
-    url = ("wget https://pypi.python.org/packages/fc/bb/"
+    url = ("https://pypi.python.org/packages/fc/bb/"
            "a5768c230f9ddb03acc9ef3f0d4a3cf93462473795d18e9535498c8f929d/"
            "chardet-3.0.4.tar.gz#md5=7dd1ba7f9c77e32351b0a0cfacf4055c")
     python_libs[name] = url
