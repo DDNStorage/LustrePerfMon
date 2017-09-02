@@ -19,12 +19,84 @@ ESMON_BUILD_CONFIG = "/etc/esmon_build.conf"
 ESMON_BUILD_LOG_DIR = "/var/log/esmon_build"
 
 
+def download_dependent_rpms(host, dependent_dir, distro):
+    """
+    Download dependent RPMs
+    """
+    dependent_rpms = ["openpgm", "yajl", "zeromq3", "fontconfig", "glibc",
+                      "glibc-common", "glibc-devel", "fontpackages-filesystem",
+                      "glibc-headers", "glibc-static", "libfontenc", "libtool",
+                      "libtool-ltdl", "libtool-ltdl-devel", "libXfont", "libyaml",
+                      "patch", "PyYAML", "rsync", "urw-fonts",
+                      "xorg-x11-font-utils", "python-chardet",
+                      "lm_sensors-libs", "lm_sensors"]
+    if distro == ssh_host.DISTRO_RHEL7:
+        python_rpms = ["python2-filelock", "python2-pip",
+                       "python-backports",
+                       "python-backports-ssl_match_hostname",
+                       "python-dateutil", "python-requests",
+                       "python-setuptools", "python-six", "python-urllib3",
+                       "python-idna"]
+        dependent_rpms.extend(python_rpms)
+
+    rpm_dir = dependent_dir + "/RPMS/" + distro
+    command = ("mkdir -p %s" % (rpm_dir))
+    retval = host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    existing_rpm_fnames = os.listdir(rpm_dir)
+    for rpm_name in dependent_rpms:
+        rpm_pattern = (r"^%s-\d.+\.el7.*\.(x86_64|noarch)\.rpm$" % rpm_name)
+        rpm_regular = re.compile(rpm_pattern)
+        not_matched = True
+        for filename in existing_rpm_fnames[:]:
+            match = rpm_regular.match(filename)
+            if match:
+                existing_rpm_fnames.remove(filename)
+                not_matched = False
+                logging.debug("matched pattern [%s] with fname [%s]",
+                              rpm_pattern, filename)
+                break
+
+        if not_matched:
+            logging.debug("not find RPM with pattern [%s], downloading",
+                          rpm_pattern)
+
+            command = (r"cd %s && yumdownloader -x \*i686 --archlist=x86_64 %s" %
+                       (rpm_dir, rpm_name))
+            retval = host.sh_run(command)
+            if retval.cr_exit_status:
+                logging.error("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              host.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
+                return -1
+
+    # TODO: add more strict check later for all distros
+    if distro == ssh_host.DISTRO_RHEL7 and len(existing_rpm_fnames) != 0:
+        logging.error("find unknown files under directory [%s]: %s",
+                      dependent_dir, existing_rpm_fnames)
+        return -1
+    return 0
+
+
 def centos6_build(centos6_host, local_host, collectd_git_path, rpm_dir,
-                  rpm_el6_basename):
+                  rpm_el6_basename, dependent_dir):
     """
     Build on CentOS6 host
     """
-    # pylint: disable=too-many-return-statements
+    # pylint: disable=too-many-return-statements,too-many-arguments
     distro = centos6_host.sh_distro()
     if distro != ssh_host.DISTRO_RHEL6:
         logging.error("host [%s] is not RHEL6/CentOS6 host",
@@ -162,6 +234,12 @@ def centos6_build(centos6_host, local_host, collectd_git_path, rpm_dir,
                       retval.cr_stdout,
                       retval.cr_stderr)
         return -1
+
+    ret = download_dependent_rpms(centos6_host, dependent_dir,
+                                  ssh_host.DISTRO_RHEL6)
+    if ret:
+        logging.error("failed to download depdendent RPMs")
+        return ret
 
     return 0
 
@@ -309,9 +387,9 @@ def esmon_do_build(config, config_fpath):
             return -1
 
     ret = centos6_build(centos6_host, local_host, collectd_git_path,
-                        rpm_dir, rpm_el6_basename)
+                        rpm_dir, rpm_el6_basename, dependent_dir)
     if ret:
-        logging.error("failed to build Collectd on host [%s]",
+        logging.error("failed to prepare RPMs of CentOS6 on host [%s]",
                       centos6_host.sh_hostname)
         return -1
 
@@ -523,65 +601,11 @@ def esmon_do_build(config, config_fpath):
                       python_library_dir, python_library_existing_files)
         return -1
 
-    dependent_rpms = ["openpgm", "yajl", "zeromq3", "fontconfig", "glibc",
-                      "glibc-common", "glibc-devel", "fontpackages-filesystem",
-                      "glibc-headers", "glibc-static", "libfontenc", "libtool",
-                      "libtool-ltdl", "libtool-ltdl-devel", "libXfont", "libyaml",
-                      "openpgm", "patch", "python2-filelock", "python2-pip",
-                      "python-backports", "python-backports-ssl_match_hostname",
-                      "python-dateutil", "python-requests", "python-setuptools",
-                      "python-six", "python-urllib3", "PyYAML", "rsync", "urw-fonts",
-                      "xorg-x11-font-utils", "python-chardet", "python-idna",
-                      "lm_sensors-libs", "lm_sensors"]
-
-    rpm_el7_dir = dependent_dir + "/RPMS/" + ssh_host.DISTRO_RHEL7
-    command = ("mkdir -p %s" % (rpm_el7_dir))
-    retval = local_host.sh_run(command)
-    if retval.cr_exit_status:
-        logging.error("failed to run command [%s] on host [%s], "
-                      "ret = [%d], stdout = [%s], stderr = [%s]",
-                      command,
-                      local_host.sh_hostname,
-                      retval.cr_exit_status,
-                      retval.cr_stdout,
-                      retval.cr_stderr)
-        return -1
-
-    rpm_el7_existing_files = os.listdir(rpm_el7_dir)
-    for rpm_name in dependent_rpms:
-        rpm_pattern = (r"^%s-\d.+\.el7.*\.(x86_64|noarch)\.rpm$" % rpm_name)
-        rpm_regular = re.compile(rpm_pattern)
-        not_matched = True
-        for filename in rpm_el7_existing_files[:]:
-            match = rpm_regular.match(filename)
-            if match:
-                rpm_el7_existing_files.remove(filename)
-                not_matched = False
-                logging.debug("matched pattern [%s] with fname [%s]",
-                              rpm_pattern, filename)
-                break
-
-        if not_matched:
-            logging.debug("not find RPM with pattern [%s], downloading",
-                          rpm_pattern)
-
-            command = (r"cd %s && yumdownloader -x \*i686 --archlist=x86_64 %s" %
-                       (rpm_el7_dir, rpm_name))
-            retval = local_host.sh_run(command)
-            if retval.cr_exit_status:
-                logging.error("failed to run command [%s] on host [%s], "
-                              "ret = [%d], stdout = [%s], stderr = [%s]",
-                              command,
-                              local_host.sh_hostname,
-                              retval.cr_exit_status,
-                              retval.cr_stdout,
-                              retval.cr_stderr)
-                return -1
-
-    if len(rpm_el7_existing_files) != 0:
-        logging.error("find unknown files under directory [%s]: %s",
-                      dependent_dir, rpm_el7_existing_files)
-        return -1
+    ret = download_dependent_rpms(local_host, dependent_dir,
+                                  ssh_host.DISTRO_RHEL7)
+    if ret:
+        logging.error("failed to install depdendent RPMs")
+        return ret
 
     grafana_status_panel = "Grafana_Status_panel"
     grafana_status_panel_git_path = dependent_dir + "/" + grafana_status_panel
