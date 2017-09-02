@@ -39,8 +39,8 @@ GRAFANA_PLUGIN_DIR = "/var/lib/grafana/plugins"
 GRAFANA_DASHBOARDS = {}
 GRAFANA_DASHBOARDS["Lustre Statistics"] = "lustre_statistics.json"
 GRAFANA_DASHBOARDS["Server Statistics"] = "server_statistics.json"
-RPM_PATTERN_RHEL7 = r"^%s-\d.+\.el7.*\.(x86_64|noarch)\.rpm$"
-RPM_PATTERN_RHEL6 = r"^%s-\d.+\.el6.*\.(x86_64|noarch)\.rpm$"
+RPM_PATTERN_RHEL7 = r"^%s-\d.+(\.el7|).*\.(x86_64|noarch)\.rpm$"
+RPM_PATTERN_RHEL6 = r"^%s-\d.+(\.el6|).*\.(x86_64|noarch)\.rpm$"
 
 def grafana_dashboard_check(name, dashboard):
     """
@@ -218,18 +218,11 @@ class EsmonServer(object):
                               retval.cr_stderr)
                 return -1
 
-        command = ("cd %s && rpm -ivh influxdb-*.rpm" %
-                   (self.es_rpm_dir))
-        retval = self.es_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          self.es_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
+        ret = self.es_client.ec_rpm_install("influxdb")
+        if ret:
+            logging.error("failed to install Influxdb RPM on ESMON "
+                          "server [%s]", self.es_host.sh_hostname)
+            return ret
 
         config_diff = self.es_iso_dir + "/" + ESMON_INFLUXDB_CONFIG_DIFF
         command = ("patch -i %s %s" % (config_diff, INFLUXDB_CONFIG_FPATH))
@@ -585,18 +578,11 @@ class EsmonServer(object):
                               retval.cr_stderr)
                 return -1
 
-        command = ("cd %s && rpm -ivh grafana-*.rpm" %
-                   (self.es_rpm_dir))
-        retval = self.es_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          self.es_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
+        ret = self.es_client.ec_rpm_install("grafana")
+        if ret:
+            logging.error("failed to install Influxdb RPM on ESMON "
+                          "server [%s]", self.es_host.sh_hostname)
+            return ret
 
         command = ("service grafana-server restart")
         retval = self.es_host.sh_run(command)
@@ -843,36 +829,11 @@ class EsmonClient(object):
         for dependent_rpm in dependent_rpms:
             ret = self.ec_host.sh_rpm_query(dependent_rpm)
             if ret:
-                rpm_pattern = (RPM_PATTERN_RHEL7 % dependent_rpm)
-                rpm_regular = re.compile(rpm_pattern)
-                matched_fname = None
-                for filename in existing_rpms[:]:
-                    match = rpm_regular.match(filename)
-                    if match:
-                        existing_rpms.remove(filename)
-                        matched_fname = filename
-                        logging.debug("matched pattern [%s] with fname [%s]",
-                                      rpm_pattern, filename)
-                        break
-
-                if matched_fname is None:
-                    logging.error("failed to find RPM with pattern [%s] under "
-                                  "directory [%s] of host [%s]", rpm_pattern,
-                                  self.ec_rpm_dir, self.ec_host.sh_hostname)
-                    return -1
-
-                command = ("cd %s && rpm -ivh %s" %
-                           (self.ec_rpm_dir, matched_fname))
-                retval = self.ec_host.sh_run(command)
-                if retval.cr_exit_status:
-                    logging.error("failed to run command [%s] on host [%s], "
-                                  "ret = [%d], stdout = [%s], stderr = [%s]",
-                                  command,
-                                  self.ec_host.sh_hostname,
-                                  retval.cr_exit_status,
-                                  retval.cr_stdout,
-                                  retval.cr_stderr)
-                    return -1
+                ret = self.ec_rpm_install(rpm_name)
+                if ret:
+                    logging.error("failed to install RPM [%s] on ESMON client "
+                                  "[%s]", rpm_name, self.ec_host.sh_hostname)
+                    return ret
         return 0
 
     def ec_rpm_uninstall(self, rpm_name):
@@ -916,18 +877,11 @@ class EsmonClient(object):
             logging.error("failed to reinstall collectd RPM")
             return -1
 
-        command = ("cd %s && rpm -ivh %s*.rpm" %
-                   (self.ec_rpm_dir, rpm_name))
-        retval = self.ec_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          self.ec_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
+        ret = self.ec_rpm_install(rpm_name)
+        if ret:
+            logging.error("failed to install RPM [%s] on ESMON client "
+                          "[%s]", rpm_name, self.ec_host.sh_hostname)
+            return ret
         return 0
 
     def ec_collectd_reinstall(self):
