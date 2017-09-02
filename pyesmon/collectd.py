@@ -335,6 +335,10 @@ PostCacheChain "PostCache"
 """
         config += "</Plugin>\n\n"
         self.cc_plugins["filedata"] = config
+        client = self.cc_esmon_client
+        rpm_name = "collectd-filedata"
+        if rpm_name not in client.ec_needed_collectd_rpms:
+            client.ec_needed_collectd_rpms.append(rpm_name)
         return 0
 
     def cc_plugin_ime(self):
@@ -354,6 +358,10 @@ PostCacheChain "PostCache"
 </Plugin>
 
 """
+        client = self.cc_esmon_client
+        rpm_name = "collectd-ime"
+        if rpm_name not in client.ec_needed_collectd_rpms:
+            client.ec_needed_collectd_rpms.append(rpm_name)
         return 0
 
     def cc_plugin_df_check(self):
@@ -438,6 +446,11 @@ PostCacheChain "PostCache"
         self.cc_plugins["sensors"] = ""
         if self.cc_plugin_sensors_check not in self.cc_checks:
             self.cc_checks.append(self.cc_plugin_sensors_check)
+
+        client = self.cc_esmon_client
+        rpm_name = "collectd-sensors"
+        if rpm_name not in client.ec_needed_collectd_rpms:
+            client.ec_needed_collectd_rpms.append(rpm_name)
         return 0
 
     def cc_plugin_disk(self):
@@ -445,6 +458,11 @@ PostCacheChain "PostCache"
         Config the disk plugin
         """
         self.cc_plugins["disk"] = ""
+
+        client = self.cc_esmon_client
+        rpm_name = "collectd-disk"
+        if rpm_name not in client.ec_needed_collectd_rpms:
+            client.ec_needed_collectd_rpms.append(rpm_name)
         return 0
 
     def cc_plugin_uptime_check(self):

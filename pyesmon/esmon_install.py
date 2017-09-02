@@ -39,6 +39,8 @@ GRAFANA_PLUGIN_DIR = "/var/lib/grafana/plugins"
 GRAFANA_DASHBOARDS = {}
 GRAFANA_DASHBOARDS["Lustre Statistics"] = "lustre_statistics.json"
 GRAFANA_DASHBOARDS["Server Statistics"] = "server_statistics.json"
+RPM_PATTERN_RHEL7 = r"^%s-\d.+\.el7.*\.(x86_64|noarch)\.rpm$"
+RPM_PATTERN_RHEL6 = r"^%s-\d.+\.el6.*\.(x86_64|noarch)\.rpm$"
 
 def grafana_dashboard_check(name, dashboard):
     """
@@ -71,6 +73,7 @@ class EsmonServer(object):
         hostname = host.sh_hostname
         self.es_influxdb_client = influxdb.InfluxDBClient(host=hostname,
                                                           database=INFLUXDB_DATABASE_NAME)
+        self.es_client = EsmonClient(host, workspace, self)
 
     def es_check(self):
         """
@@ -79,6 +82,13 @@ class EsmonServer(object):
         distro = self.es_host.sh_distro()
         if distro != ssh_host.DISTRO_RHEL7:
             logging.error("ESMON server should be RHEL7/CentOS7 host")
+            return -1
+
+        ret = self.es_client.ec_check()
+        if ret:
+            logging.error("checking of ESMON server [%s] failed, please fix "
+                          "the problem",
+                          self.es_host.sh_hostname)
             return -1
         return 0
 
@@ -132,25 +142,18 @@ class EsmonServer(object):
         Install dependent RPMs
         """
         dependent_rpms = ["yajl", "openpgm", "zeromq3", "glibc", "patch",
-                          "fontpackages-filesystem", "libfontenc", "libtool-ltdl",
-                          "libtool", "fontconfig", "libXfont", "rsync",
-                          "xorg-x11-font-utils", "urw-fonts"]
+                          "fontpackages-filesystem", "libfontenc",
+                          "libtool-ltdl", "libtool", "fontconfig", "libXfont",
+                          "rsync", "xorg-x11-font-utils", "urw-fonts"]
         for dependent_rpm in dependent_rpms:
             ret = self.es_host.sh_rpm_query(dependent_rpm)
+            if ret == 0:
+                continue
+            ret = self.es_client.ec_rpm_install(dependent_rpm)
             if ret:
-                command = ("cd %s && rpm -ivh %s*.rpm" %
-                           (self.es_rpm_dir, dependent_rpm))
-                retval = self.es_host.sh_run(command)
-                if retval.cr_exit_status:
-                    if "already installed" not in retval.cr_stderr:
-                        logging.error("failed to run command [%s] on host [%s], "
-                                      "ret = [%d], stdout = [%s], stderr = [%s]",
-                                      command,
-                                      self.es_host.sh_hostname,
-                                      retval.cr_exit_status,
-                                      retval.cr_stdout,
-                                      retval.cr_stderr)
-                        return -1
+                logging.error("failed to install dependent RPM on ESMON "
+                              "server [%s]", self.es_host.sh_hostname)
+                return ret
         return 0
 
     def es_influxdb_uninstall(self):
@@ -176,7 +179,7 @@ class EsmonServer(object):
         command = ("service influxdb status")
         ret = self.es_host.sh_wait_update(command, expect_exit_status=3)
         if ret:
-            logging.error("failed to drop database of collectd")
+            logging.error("failed to drop Influx database of ESMON")
             return -1
 
         command = "rpm -e --nodeps influxdb"
@@ -751,6 +754,7 @@ class EsmonClient(object):
         self.ec_iso_basename = "ISO"
         self.ec_iso_dir = self.ec_workspace + "/" + self.ec_iso_basename
         self.ec_esmon_server = esmon_server
+        self.ec_needed_collectd_rpms = ["libcollectdclient", "collectd"]
         config = collectd.CollectdConfig(self)
         config.cc_configs["Interval"] = collectd.COLLECTD_INTERVAL_TEST
         if lustre_oss or lustre_mds:
@@ -771,7 +775,9 @@ class EsmonClient(object):
 
         self.ec_influxdb_update_time = None
         self.ec_distro = None
+        self.ec_rpm_pattern = None
         self.ec_rpm_dir = None
+        self.ec_rpm_fnames = None
 
     def ec_check(self):
         """
@@ -792,11 +798,15 @@ class EsmonClient(object):
             return -1
 
         distro = self.ec_host.sh_distro()
-        if distro != ssh_host.DISTRO_RHEL6 and distro != ssh_host.DISTRO_RHEL7:
+        self.ec_distro = distro
+        if distro == ssh_host.DISTRO_RHEL6:
+            self.ec_rpm_pattern = RPM_PATTERN_RHEL6
+        elif distro == ssh_host.DISTRO_RHEL7:
+            self.ec_rpm_pattern = RPM_PATTERN_RHEL7
+        else:
             logging.error("distro of host [%s] is not RHEL6/CentOS6 or "
                           "RHEL7/CentOS7", self.ec_host.sh_hostname)
             return -1
-        self.ec_distro = distro
         self.ec_rpm_dir = self.ec_iso_dir + "/RPMS/" + distro
         return 0
 
@@ -804,18 +814,7 @@ class EsmonClient(object):
         """
         Install dependent RPMs
         """
-        command = "ls %s" % self.ec_rpm_dir
-        retval = self.ec_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          self.ec_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
-        existing_rpms = retval.cr_stdout.split()
+        existing_rpms = self.ec_rpm_fnames[:]
         logging.debug("find following RPMs: %s", existing_rpms)
 
         # lm_sensors-libs might be installed with different version. So remove
@@ -844,8 +843,7 @@ class EsmonClient(object):
         for dependent_rpm in dependent_rpms:
             ret = self.ec_host.sh_rpm_query(dependent_rpm)
             if ret:
-                rpm_pattern = (r"^%s-\d.+\.el7.*\.(x86_64|noarch)\.rpm$" %
-                               dependent_rpm)
+                rpm_pattern = (RPM_PATTERN_RHEL7 % dependent_rpm)
                 rpm_regular = re.compile(rpm_pattern)
                 matched_fname = None
                 for filename in existing_rpms[:]:
@@ -867,15 +865,14 @@ class EsmonClient(object):
                            (self.ec_rpm_dir, matched_fname))
                 retval = self.ec_host.sh_run(command)
                 if retval.cr_exit_status:
-                    if "already installed" not in retval.cr_stderr:
-                        logging.error("failed to run command [%s] on host [%s], "
-                                      "ret = [%d], stdout = [%s], stderr = [%s]",
-                                      command,
-                                      self.ec_host.sh_hostname,
-                                      retval.cr_exit_status,
-                                      retval.cr_stdout,
-                                      retval.cr_stderr)
-                        return -1
+                    logging.error("failed to run command [%s] on host [%s], "
+                                  "ret = [%d], stdout = [%s], stderr = [%s]",
+                                  command,
+                                  self.ec_host.sh_hostname,
+                                  retval.cr_exit_status,
+                                  retval.cr_stdout,
+                                  retval.cr_stderr)
+                    return -1
         return 0
 
     def ec_rpm_uninstall(self, rpm_name):
@@ -954,17 +951,33 @@ class EsmonClient(object):
 
         ret = self.ec_rpm_reinstall("xml_definition")
         if ret:
-            logging.error("failed to reinstall collectd RPM")
+            logging.error("failed to reinstall XML definition RPM")
             return -1
 
         return 0
 
-    def ec_collectd_install(self):
+    def ec_rpm_install(self, name):
         """
-        Install collectd RPM
+        Install a RPM in the ISO given the name of the RPM
         """
-        command = ("cd %s && rpm -ivh collectd-*.rpm libcollectdclient-*.rpm" %
-                   (self.ec_rpm_dir))
+        rpm_pattern = (self.ec_rpm_pattern % name)
+        rpm_regular = re.compile(rpm_pattern)
+        matched_fname = None
+        for filename in self.ec_rpm_fnames[:]:
+            match = rpm_regular.match(filename)
+            if match:
+                matched_fname = filename
+                logging.debug("matched pattern [%s] with fname [%s]",
+                              rpm_pattern, filename)
+                break
+        if matched_fname is None:
+            logging.error("failed to find RPM with pattern [%s] under "
+                          "directory [%s] of host [%s]", rpm_pattern,
+                          self.ec_rpm_dir, self.ec_host.sh_hostname)
+            return -1
+
+        command = ("cd %s && rpm -ivh %s" %
+                   (self.ec_rpm_dir, matched_fname))
         retval = self.ec_host.sh_run(command)
         if retval.cr_exit_status:
             logging.error("failed to run command [%s] on host [%s], "
@@ -975,6 +988,19 @@ class EsmonClient(object):
                           retval.cr_stdout,
                           retval.cr_stderr)
             return -1
+        return 0
+
+    def ec_collectd_install(self):
+        """
+        Install collectd RPMs
+        """
+        for rpm_name in self.ec_needed_collectd_rpms:
+            ret = self.ec_rpm_install(rpm_name)
+            if ret:
+                logging.error("failed to install RPM [%s] on ESMON client "
+                              "[%s]", rpm_name, self.ec_host.sh_hostname)
+                return ret
+        return 0
 
     def ec_collectd_send_config(self, test_config):
         """
@@ -1002,11 +1028,48 @@ class EsmonClient(object):
 
         return 0
 
-    def ec_send_iso_files(self, mnt_path):
+    def ec_send_iso_files(self, mnt_path, no_copy=False):
         """
         send RPMs to client
         """
-        command = ("mkdir -p %s" % (self.ec_workspace))
+        if not no_copy:
+            command = ("mkdir -p %s" % (self.ec_workspace))
+            retval = self.ec_host.sh_run(command)
+            if retval.cr_exit_status:
+                logging.error("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              self.ec_host.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
+                return -1
+
+            ret = self.ec_host.sh_send_file(mnt_path,
+                                            self.ec_workspace)
+            if ret:
+                logging.error("failed to send file [%s] on local host to "
+                              "directory [%s] on host [%s]",
+                              mnt_path, self.ec_workspace,
+                              self.ec_host.sh_hostname)
+                return -1
+
+            basename = os.path.basename(mnt_path)
+            command = ("cd %s && mv %s %s" %
+                       (self.ec_workspace, basename,
+                        self.ec_iso_basename))
+            retval = self.ec_host.sh_run(command)
+            if retval.cr_exit_status:
+                logging.error("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              self.ec_host.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
+                return -1
+
+        command = "ls %s" % self.ec_rpm_dir
         retval = self.ec_host.sh_run(command)
         if retval.cr_exit_status:
             logging.error("failed to run command [%s] on host [%s], "
@@ -1017,30 +1080,7 @@ class EsmonClient(object):
                           retval.cr_stdout,
                           retval.cr_stderr)
             return -1
-
-        ret = self.ec_host.sh_send_file(mnt_path,
-                                        self.ec_workspace)
-        if ret:
-            logging.error("failed to send file [%s] on local host to "
-                          "directory [%s] on host [%s]",
-                          mnt_path, self.ec_workspace,
-                          self.ec_host.sh_hostname)
-            return -1
-
-        basename = os.path.basename(mnt_path)
-        command = ("cd %s && mv %s %s" %
-                   (self.ec_workspace, basename,
-                    self.ec_iso_basename))
-        retval = self.ec_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          self.ec_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
+        self.ec_rpm_fnames = retval.cr_stdout.split()
         return 0
 
     def ec_collectd_start(self):
@@ -1221,13 +1261,6 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
                       "problem", esmon_server.es_host.sh_hostname)
         return -1
 
-    esmon_server_client = EsmonClient(host, workspace, esmon_server)
-    ret = esmon_server_client.ec_check()
-    if ret:
-        logging.error("checking of ESMON server [%s] failed, please fix the "
-                      "problem", esmon_server_client.ec_host.sh_hostname)
-        return -1
-
     client_host_configs = config_value(config, "client_hosts")
     if client_host_configs is None:
         logging.error("can NOT find [client_hosts] in the config file, "
@@ -1286,12 +1319,12 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
                           esmon_client.ec_host.sh_hostname)
             return -1
 
-    ret = esmon_server_client.ec_send_iso_files(mnt_path)
+    ret = esmon_server.es_client.ec_send_iso_files(mnt_path)
     if ret:
         logging.error("failed to send file [%s] on local host to "
                       "directory [%s] on host [%s]",
-                      mnt_path, esmon_server_client.ec_workspace,
-                      esmon_server_client.ec_host.sh_hostname)
+                      mnt_path, esmon_server.es_workspace,
+                      esmon_server.es_host.sh_hostname)
         return -1
 
     ret = esmon_server.es_reinstall(erase_influxdb, drop_database, mnt_path)
@@ -1342,14 +1375,15 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
         return -1
 
     for esmon_client in esmon_clients.values():
-        if esmon_server.es_host.sh_hostname != esmon_client.ec_host.sh_hostname:
-            ret = esmon_client.ec_send_iso_files(mnt_path)
-            if ret:
-                logging.error("failed to send file [%s] on local host to "
-                              "directory [%s] on host [%s]",
-                              mnt_path, esmon_client.ec_workspace,
-                              esmon_client.ec_host.sh_hostname)
-                return -1
+        no_copy = (esmon_server.es_host.sh_hostname ==
+                   esmon_client.ec_host.sh_hostname)
+        ret = esmon_client.ec_send_iso_files(mnt_path, no_copy=no_copy)
+        if ret:
+            logging.error("failed to send file [%s] on local host to "
+                          "directory [%s] on host [%s]",
+                          mnt_path, esmon_client.ec_workspace,
+                          esmon_client.ec_host.sh_hostname)
+            return -1
 
         ret = esmon_client.ec_collectd_reinstall()
         if ret:
