@@ -24,7 +24,7 @@ from pyesmon import utils
 from pyesmon import ssh_host
 from pyesmon import collectd
 
-ESMON_CONFIG_FNAME = "esmon.conf"
+ESMON_CONFIG_FNAME = "esmon_install.conf"
 ESMON_CONFIG = "/etc/" + ESMON_CONFIG_FNAME
 ESMON_INSTALL_LOG_DIR = "/var/log/esmon_install"
 INFLUXDB_CONFIG_FPATH = "/etc/influxdb/influxdb.conf"
@@ -65,11 +65,22 @@ class EsmonServer(object):
         self.es_host = host
         self.es_workspace = workspace
         self.es_iso_dir = workspace + "/ISO"
-        self.es_rpm_dir = self.es_iso_dir + "/" + "RPMS/el7"
+        self.es_rpm_dir = (self.es_iso_dir + "/" + "RPMS/" +
+                           ssh_host.DISTRO_RHEL7)
         self.es_grafana_failure = False
         hostname = host.sh_hostname
         self.es_influxdb_client = influxdb.InfluxDBClient(host=hostname,
                                                           database=INFLUXDB_DATABASE_NAME)
+
+    def es_check(self):
+        """
+        Check whether this host is proper for a ESMON server
+        """
+        distro = self.es_host.sh_distro()
+        if distro != ssh_host.DISTRO_RHEL7:
+            logging.error("ESMON server should be RHEL7/CentOS7 host")
+            return -1
+        return 0
 
     def es_firewall_open_ports(self):
         """
@@ -739,7 +750,6 @@ class EsmonClient(object):
         self.ec_workspace = workspace
         self.ec_iso_basename = "ISO"
         self.ec_iso_dir = self.ec_workspace + "/" + self.ec_iso_basename
-        self.ec_rpm_dir = self.ec_iso_dir + "/RPMS/el7"
         self.ec_esmon_server = esmon_server
         config = collectd.CollectdConfig(self)
         config.cc_configs["Interval"] = collectd.COLLECTD_INTERVAL_TEST
@@ -760,6 +770,8 @@ class EsmonClient(object):
         self.ec_collectd_config_final = config
 
         self.ec_influxdb_update_time = None
+        self.ec_distro = None
+        self.ec_rpm_dir = None
 
     def ec_check(self):
         """
@@ -778,6 +790,14 @@ class EsmonClient(object):
                           retval.cr_stdout,
                           retval.cr_stderr)
             return -1
+
+        distro = self.ec_host.sh_distro()
+        if distro != ssh_host.DISTRO_RHEL6 and distro != ssh_host.DISTRO_RHEL7:
+            logging.error("distro of host [%s] is not RHEL6/CentOS6 or "
+                          "RHEL7/CentOS7", self.ec_host.sh_hostname)
+            return -1
+        self.ec_distro = distro
+        self.ec_rpm_dir = self.ec_iso_dir + "/RPMS/" + distro
         return 0
 
     def ec_dependent_rpms_install(self):
@@ -1165,7 +1185,7 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
     server_host_config = config_value(config, "server_host")
     if hostname is None:
         logging.error("can NOT find [server_host] in the config file [%s], "
-                      "please it", config_fpath)
+                      "please correct it", config_fpath)
         return -1
 
     host_id = config_value(server_host_config, "host_id")
@@ -1195,6 +1215,12 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
 
     host = hosts[host_id]
     esmon_server = EsmonServer(host, workspace)
+    ret = esmon_server.es_check()
+    if ret:
+        logging.error("checking of ESMON server [%s] failed, please fix the "
+                      "problem", esmon_server.es_host.sh_hostname)
+        return -1
+
     esmon_server_client = EsmonClient(host, workspace, esmon_server)
     ret = esmon_server_client.ec_check()
     if ret:
@@ -1368,7 +1394,7 @@ def esmon_install_locked(workspace, config_fpath):
     """
     Start to install holding the confiure lock
     """
-    # pylint: disable=too-many-branches,bare-except, too-many-locals
+    # pylint: disable=too-many-branches,bare-except,too-many-locals
     # pylint: disable=too-many-statements
     config_fd = open(config_fpath)
     ret = 0

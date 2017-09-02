@@ -6,28 +6,315 @@ Library for building ESMON
 """
 import sys
 import logging
+import traceback
 import os
 import re
+import yaml
 
 # Local libs
 from pyesmon import utils
 from pyesmon import ssh_host
 
+ESMON_BUILD_CONFIG = "/etc/esmon_build.conf"
+ESMON_BUILD_LOG_DIR = "/var/log/esmon_build"
 
-def usage():
-    """
-    Print usage string
-    """
-    utils.eprint("Usage: %s" %
-                 sys.argv[0])
 
-def build():
+def centos6_build(centos6_host, local_host, collectd_git_path, rpm_dir,
+                  rpm_el6_basename):
+    """
+    Build on CentOS6 host
+    """
+    # pylint: disable=too-many-return-statements
+    distro = centos6_host.sh_distro()
+    if distro != ssh_host.DISTRO_RHEL6:
+        logging.error("host [%s] is not RHEL6/CentOS6 host",
+                      centos6_host.sh_hostname)
+        return -1
+
+    command = ("rpm -e zeromq-devel")
+    centos6_host.sh_run(command)
+
+    command = ("yum install libgcrypt-devel libtool-ltdl-devel curl-devel "
+               "libxml2-devel yajl-devel libdbi-devel libpcap-devel "
+               "OpenIPMI-devel iptables-devel libvirt-devel "
+               "libvirt-devel libmemcached-devel mysql-devel libnotify-devel "
+               "libesmtp-devel postgresql-devel rrdtool-devel "
+               "lm_sensors-libs lm_sensors-devel net-snmp-devel libcap-devel "
+               "lvm2-devel libmodbus-devel libmnl-devel iproute-devel "
+               "hiredis-devel libatasmart-devel protobuf-c-devel "
+               "mosquitto-devel gtk2-devel openldap-devel "
+               "zeromq3-devel libssh2-devel rrdtool-devel rrdtool "
+               "createrepo mkisofs yum-utils redhat-lsb unzip "
+               "epel-release perl-Regexp-Common python-pep8 pylint "
+               "lua-devel byacc ganglia-devel -y")
+    retval = centos6_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      centos6_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    identity = utils.local_strftime(utils.utcnow(), "%Y-%m-%d-%H_%M_%S")
+    workspace = ESMON_BUILD_LOG_DIR + "/" + identity
+    command = "mkdir -p %s" % workspace
+    retval = centos6_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      centos6_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    ret = centos6_host.sh_send_file(collectd_git_path, workspace)
+    if ret:
+        logging.error("failed to send file [%s] on local host to "
+                      "directory [%s] on host [%s]",
+                      collectd_git_path, workspace,
+                      centos6_host.sh_hostname)
+        return -1
+
+    collectd_path = workspace + "/" + "collectd.git"
+    command = ("cd %s && mkdir -p libltdl/config && sh ./build.sh && "
+               "./configure --enable-write_tsdb --enable-dist --enable-nfs "
+               "--disable-java --disable-amqp --disable-gmond --disable-nut "
+               "--disable-pinba --disable-ping --disable-varnish "
+               "--disable-dpdkstat --disable-turbostat && "
+               "make && make dist-bzip2 && "
+               "mkdir {BUILD,RPMS,SOURCES,SRPMS} && "
+               "mv collectd-*.tar.bz2 SOURCES" % collectd_path)
+    retval = centos6_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      centos6_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    command = ('cd %s && '
+               'rpmbuild -ba --with write_tsdb --with nfs --without java '
+               '--without amqp --without gmond --without nut --without pinba '
+               '--without ping --without varnish --without dpdkstat '
+               '--without turbostat --without redis --without write_redis '
+               '--define "_topdir %s" '
+               '--define="rev $(git rev-parse --short HEAD)" '
+               'contrib/redhat/collectd.spec' %
+               (collectd_path, collectd_path))
+    retval = centos6_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      centos6_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    command = ("rm %s/%s -fr" % (rpm_dir, rpm_el6_basename))
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    host_rpm_dir = collectd_path + "/RPMS/x86_64"
+    ret = centos6_host.sh_get_file(host_rpm_dir, rpm_dir)
+    if ret:
+        logging.error("failed to get Collectd RPMs from path [%s] on host "
+                      "[%s]", host_rpm_dir, centos6_host.sh_hostname)
+        return -1
+
+    command = ("mv %s/x86_64 %s/%s" % (rpm_dir, rpm_dir, rpm_el6_basename))
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    command = ("rm -rf %s" % workspace)
+    retval = centos6_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      centos6_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    return 0
+
+
+def config_value(config, key):
+    """
+    Return value of a key in config
+    """
+    if key not in config:
+        return None
+    return config[key]
+
+
+def esmon_do_build(config, config_fpath):
     """
     Build the ISO
     """
     # pylint: disable=too-many-locals,too-many-return-statements
     # pylint: disable=too-many-branches,too-many-statements
+    host_configs = config_value(config, "ssh_hosts")
+    if host_configs is None:
+        logging.error("can NOT find [ssh_hosts] in the config file, "
+                      "please correct file [%s]", config_fpath)
+        return -1
+
+    hosts = {}
+    for host_config in host_configs:
+        host_id = host_config["host_id"]
+        if host_id is None:
+            logging.error("can NOT find [host_id] in the config of a "
+                          "SSH host, please correct file [%s]",
+                          config_fpath)
+            return -1
+
+        hostname = config_value(host_config, "hostname")
+        if hostname is None:
+            logging.error("can NOT find [hostname] in the config of SSH host "
+                          "with ID [%s], please correct file [%s]",
+                          host_id, config_fpath)
+            return -1
+
+        ssh_identity_file = config_value(host_config, "ssh_identity_file")
+
+        if host_id in hosts:
+            logging.error("multiple SSH hosts with the same ID [%s], please "
+                          "correct file [%s]", host_id, config_fpath)
+            return -1
+        host = ssh_host.SSHHost(hostname, ssh_identity_file)
+        hosts[host_id] = host
+
+    centos6_host_config = config_value(config, "centos6_host")
+    if hostname is None:
+        logging.error("can NOT find [centos6_host] in the config file [%s], "
+                      "please correct it", config_fpath)
+        return -1
+
+    centos6_host_id = config_value(centos6_host_config, "host_id")
+    if centos6_host_id is None:
+        logging.error("can NOT find [host_id] in the config of [centos6_host], "
+                      "please correct file [%s]", config_fpath)
+        return -1
+
+    if centos6_host_id not in hosts:
+        logging.error("SSH host with ID [%s] is NOT configured in "
+                      "[ssh_hosts], please correct file [%s]",
+                      centos6_host_id, config_fpath)
+        return -1
+    centos6_host = hosts[centos6_host_id]
+
     local_host = ssh_host.SSHHost("localhost", local=True)
+    distro = local_host.sh_distro()
+    if distro != ssh_host.DISTRO_RHEL7:
+        logging.error("build can only be launched on RHEL7/CentOS7 host")
+        return -1
+
+    workspace = os.getcwd()
+    dependent_dir = workspace + "/../dependent_dir"
+    collectd_git_path = workspace + "/../" + "collectd.git"
+    rpm_dir = dependent_dir + "/RPMS"
+    command = ("mkdir -p %s" % (rpm_dir))
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+    rpm_el6_basename = ssh_host.DISTRO_RHEL6
+
+    command = "test -e %s" % collectd_git_path
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        command = "git clone git://10.128.7.3/collectd.git %s" % collectd_git_path
+        retval = local_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          local_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+    else:
+        command = ("cd %s && git checkout master" %
+                   collectd_git_path)
+        retval = local_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          local_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        # The branch might already been deleted, so ignore the return failure
+        command = ("cd %s && git branch -D master-ddn" %
+                   collectd_git_path)
+        retval = local_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.warning("failed to run command [%s] on host [%s], "
+                            "ret = [%d], stdout = [%s], stderr = [%s]",
+                            command,
+                            local_host.sh_hostname,
+                            retval.cr_exit_status,
+                            retval.cr_stdout,
+                            retval.cr_stderr)
+
+        command = ("cd %s && git pull && git checkout master-ddn" %
+                   collectd_git_path)
+        retval = local_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          local_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+    ret = centos6_build(centos6_host, local_host, collectd_git_path,
+                        rpm_dir, rpm_el6_basename)
+    if ret:
+        logging.error("failed to build Collectd on host [%s]",
+                      centos6_host.sh_hostname)
+        return -1
+
     command = ("rpm -e zeromq-devel")
     local_host.sh_run(command)
 
@@ -54,38 +341,6 @@ def build():
                       retval.cr_stdout,
                       retval.cr_stderr)
         return -1
-
-    workspace = os.getcwd()
-    collectd_git_path = workspace + "/../" + "collectd.git"
-    command = "test -e %s" % collectd_git_path
-    retval = local_host.sh_run(command)
-    if retval.cr_exit_status:
-        command = "git clone git://10.128.7.3/collectd.git %s" % collectd_git_path
-        retval = local_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          local_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
-    else:
-        command = ("cd %s && git checkout master && "
-                   "git branch -D master-ddn && "
-                   "git pull && git checkout master-ddn" %
-                   collectd_git_path)
-        retval = local_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          local_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
 
     grafana_rpm_path = workspace + "/../" + "grafana-4.4.1-1.x86_64.rpm"
     command = "test -e %s" % grafana_rpm_path
@@ -189,7 +444,6 @@ def build():
            "python-slugify-1.2.4.tar.gz#md5=338ab6beafcea746161f07b6173a9031")
     python_library_dict[name] = url
 
-    dependent_dir = workspace + "/../dependent_dir"
     python_library_name = "python_library"
     python_library_dir = dependent_dir + "/" + python_library_name
 
@@ -280,7 +534,7 @@ def build():
                       "xorg-x11-font-utils", "python-chardet", "python-idna",
                       "lm_sensors-libs", "lm_sensors"]
 
-    rpm_el7_dir = dependent_dir + "/RPMS/el7"
+    rpm_el7_dir = dependent_dir + "/RPMS/" + ssh_host.DISTRO_RHEL7
     command = ("mkdir -p %s" % (rpm_el7_dir))
     retval = local_host.sh_run(command)
     if retval.cr_exit_status:
@@ -400,19 +654,54 @@ def build():
     return 0
 
 
+def esmon_build(config_fpath):
+    """
+    Build the ISO
+    """
+    # pylint: disable=bare-except
+    config_fd = open(config_fpath)
+    ret = 0
+    try:
+        config = yaml.load(config_fd)
+    except:
+        logging.error("not able to load [%s] as yaml file: %s", config_fpath,
+                      traceback.format_exc())
+        ret = -1
+    config_fd.close()
+    if ret:
+        return -1
+
+    return esmon_do_build(config, config_fpath)
+
+
+def usage():
+    """
+    Print usage string
+    """
+    utils.eprint("Usage: %s <config_file>" %
+                 sys.argv[0])
+
+
 def main():
     """
     Install Exascaler monitoring
     """
+    # pylint: disable=unused-variable
     reload(sys)
     sys.setdefaultencoding("utf-8")
+    config_fpath = ESMON_BUILD_CONFIG
 
-    if len(sys.argv) != 1:
+    if len(sys.argv) == 2:
+        config_fpath = sys.argv[1]
+    elif len(sys.argv) > 2:
         usage()
         sys.exit(-1)
 
     logging.root.setLevel(logging.DEBUG)
 
-    ret = build()
-
-    sys.exit(ret)
+    ret = esmon_build(config_fpath)
+    if ret:
+        logging.error("build failed")
+        sys.exit(ret)
+    logging.info("Exascaler monistoring system is successfully built")
+    sys.exit(0)

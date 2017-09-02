@@ -4,8 +4,11 @@ else
 SUBDIRS = collectd xml_definition opentsdb_web .
 endif
 
+DISTRO_RHEL6 = rhel6
+DISTRO_RHEL7 = rhel7
+
 EXTRA_DIST = version-gen.sh autogen.sh detect-distro.sh esmon.spec \
-	esmon_install esmon.conf pyesmon/*.py man1/*
+	esmon_install esmon_install.conf pyesmon/*.py man1/*
 
 ORIGIN_COLLECTD_RPMS = $(addprefix collectd/RPMS/x86_64/, $(COLLECTD_RPMS))
 GRAFANA_RPM = $(notdir $(GRAFANA_RPM_PATH))
@@ -19,8 +22,8 @@ LOCAL_XML_DEFINITION_RPM = $(addprefix RPMS/, $(XML_DEFINITION_RPM))
 LOCAL_OPENTSDB_WEB_RPMS = $(addprefix RPMS/, $(OPENTSDB_WEB_RPMS))
 ESMON_RPM = ./build/RPMS/x86_64/esmon-$(MONSYSTEM_PKGVER)-$(ESMON_RELEASE).el$(DISTRO_RELEASE).x86_64.rpm
 
-noinst_DATA = esmon.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso \
-	esmon.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.md5
+noinst_DATA = esmon-$(MONSYSTEM_PKGVER).x86_64.iso \
+	esmon-$(MONSYSTEM_PKGVER).x86_64.md5
 
 build_dir = `pwd`/build
 
@@ -32,21 +35,24 @@ $(ESMON_RPM): esmon.spec dist
 		&& echo "RPM successfully generated in $(build_dir)/RPMS"
 
 $(LOCAL_COLLECTD_RPMS): $(ORIGIN_COLLECTD_RPMS)
-	cp $(addprefix collectd/RPMS/x86_64/, $(notdir $@)) BUILD_ISO/RPMS/el7
+	cp $(addprefix collectd/RPMS/x86_64/, $(notdir $@)) \
+	    BUILD_ISO/RPMS/$(DISTRO_RHEL7)
 
 $(LOCAL_GRAFANA_RPMS): $(GRAFANA_RPM_PATH)
-	cp $(GRAFANA_RPM_PATH) BUILD_ISO/RPMS/el7
+	cp $(GRAFANA_RPM_PATH) BUILD_ISO/RPMS/$(DISTRO_RHEL7)
 
 $(LOCAL_INFLUXDB_RPMS): $(INFLUXDB_RPM_PATH)
-	cp $(INFLUXDB_RPM_PATH) BUILD_ISO/RPMS/el7
+	cp $(INFLUXDB_RPM_PATH) BUILD_ISO/RPMS/$(DISTRO_RHEL7)
 
 $(LOCAL_XML_DEFINITION_RPM): $(ORIGIN_XML_DEFINITION_RPM)
-	cp $(addprefix xml_definition/RPMS/noarch/, $(notdir $@)) BUILD_ISO/RPMS/el7
+	cp $(addprefix xml_definition/RPMS/noarch/, $(notdir $@)) \
+	    BUILD_ISO/RPMS/$(DISTRO_RHEL7)
 
 $(LOCAL_OPENTSDB_WEB_RPMS): $(ORIGIN_OPENTSDB_WEB_RPMS)
-	cp $(addprefix opentsdb_web/RPMS/x86_64/, $(notdir $@)) BUILD_ISO/RPMS/el7
+	cp $(addprefix opentsdb_web/RPMS/x86_64/, $(notdir $@)) \
+	    BUILD_ISO/RPMS/$(DISTRO_RHEL7)
 
-esmon.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso: CLEAN_BUILD_ISO \
+esmon-$(MONSYSTEM_PKGVER).x86_64.iso: CLEAN_BUILD_ISO \
 		$(ESMON_RPM) \
 		$(LOCAL_COLLECTD_RPMS) \
 		$(LOCAL_GRAFANA_RPMS) \
@@ -61,20 +67,22 @@ esmon.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso: CLEAN_BUILD_ISO \
 	cp installesmon.sh BUILD_ISO
 	cp -a $(DEPENDENT_RPMS_PATH)/Grafana_Status_panel BUILD_ISO
 	cp -a $(DEPENDENT_RPMS_PATH)/python_library BUILD_ISO
-	cp $(DEPENDENT_RPMS_PATH)/RPMS/el7/*.rpm BUILD_ISO/RPMS/el7
+	cp $(DEPENDENT_RPMS_PATH)/RPMS/$(DISTRO_RHEL7)/*.rpm \
+	    BUILD_ISO/RPMS/$(DISTRO_RHEL7)
+	cp -a $(DEPENDENT_RPMS_PATH)/RPMS/$(DISTRO_RHEL6) BUILD_ISO/RPMS
 	cp DDN-Storage-RedBG.svg BUILD_ISO
 	cp DDN-Storage-RedBG.png BUILD_ISO
-	cp $(ESMON_RPM) BUILD_ISO/RPMS/el7
-	mkisofs -joliet-long -R -o esmon.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso BUILD_ISO
+	cp $(ESMON_RPM) BUILD_ISO/RPMS/$(DISTRO_RHEL7)
+	mkisofs -joliet-long -R -o esmon-$(MONSYSTEM_PKGVER).x86_64.iso BUILD_ISO
 
-esmon.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.md5: \
-		esmon.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso
-	md5sum esmon.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.iso \
-		> esmon.$(MONSYSTEM_PKGVER).el$(DISTRO_RELEASE).x86_64.md5
+esmon-$(MONSYSTEM_PKGVER).x86_64.md5: \
+		esmon-$(MONSYSTEM_PKGVER).x86_64.iso
+	md5sum esmon-$(MONSYSTEM_PKGVER).x86_64.iso \
+		> esmon-$(MONSYSTEM_PKGVER).x86_64.md5
 
 CLEAN_BUILD_ISO:
 	rm BUILD_ISO -fr
-	mkdir -p BUILD_ISO/RPMS/el7
+	mkdir -p BUILD_ISO/RPMS/$(DISTRO_RHEL7)
 
 clean-local:
 	-rm -f -r $(BUILD_DIRS)

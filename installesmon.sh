@@ -25,9 +25,9 @@ do
 done
 
 #backup old settings
-if [ -f /etc/esmon.conf ]
+if [ -f /etc/esmon_install.conf ]
 then
-  cp -f /etc/esmon.conf /etc/esmon.conf.bak
+  cp -f /etc/esmon_install.conf /etc/esmon_install.conf.bak
 fi
 
 yum -y remove esmon
@@ -39,9 +39,9 @@ if [ $? -ne 0 ];then
 fi
 
 #restore old settings
-if [ -f /etc/esmon.conf.bak ]
+if [ -f /etc/esmon_install.conf.bak ]
 then
-  mv -f /etc/esmon.conf.bak /etc/esmon.conf
+  mv -f /etc/esmon_install.conf.bak /etc/esmon_install.conf
 fi
 
 
