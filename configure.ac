@@ -223,9 +223,9 @@ if [[[ $enable_xmlonly == 'no' ]]]; then
 
 	# -------- check for opentsdb_web RPMs --------
 	AC_MSG_CHECKING([for opentsdb_web RPMs])
-	OPENTSDB_WEB_RPMS=opentsdb_web-${OPENTSDB_WEB_VERSION}-${OPENTSDB_WEB_RELEASE}.el${DISTRO_RELEASE}.x86_64.rpm
-	AC_MSG_RESULT([$OPENTSDB_WEB_RPMS])
-	AC_SUBST(OPENTSDB_WEB_RPMS)
+	OPENTSDB_WEB_RPM=opentsdb_web-${OPENTSDB_WEB_VERSION}-${OPENTSDB_WEB_RELEASE}.el${DISTRO_RELEASE}.x86_64.rpm
+	AC_MSG_RESULT([$OPENTSDB_WEB_RPM])
+	AC_SUBST(OPENTSDB_WEB_RPM)
 
 	# -------- check for dependent RPMs --------
 	AC_MSG_CHECKING([for dependent RPMs])

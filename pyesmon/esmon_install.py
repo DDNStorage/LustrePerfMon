@@ -829,10 +829,11 @@ class EsmonClient(object):
         for dependent_rpm in dependent_rpms:
             ret = self.ec_host.sh_rpm_query(dependent_rpm)
             if ret:
-                ret = self.ec_rpm_install(rpm_name)
+                ret = self.ec_rpm_install(dependent_rpm)
                 if ret:
                     logging.error("failed to install RPM [%s] on ESMON client "
-                                  "[%s]", rpm_name, self.ec_host.sh_hostname)
+                                  "[%s]", dependent_rpm,
+                                  self.ec_host.sh_hostname)
                     return ret
         return 0
 
