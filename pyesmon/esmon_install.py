@@ -1053,6 +1053,19 @@ class EsmonClient(object):
                           retval.cr_stdout,
                           retval.cr_stderr)
             return -1
+
+        # The start might return 0 even failure happened, so check again
+        command = ("service collectd status")
+        retval = self.ec_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.ec_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
         return 0
 
     def ec_collectd_stop(self):
@@ -1361,7 +1374,8 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
     for esmon_client in esmon_clients.values():
         ret = esmon_client.ec_collectd_config_test.cc_check()
         if ret:
-            logging.error("influx doesn't have expected datapoints from host [%s]",
+            logging.error("Influxdb doesn't have expected datapoints from "
+                          "host [%s]",
                           esmon_client.ec_host.sh_hostname)
             return -1
 

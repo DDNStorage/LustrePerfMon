@@ -2185,7 +2185,7 @@
           }
         ],
         "query": "SHOW TAG VALUES FROM \"md_stats\" WITH KEY = fs_name",
-        "refresh": 0,
+        "refresh": 1,
         "regex": "",
         "sort": 3,
         "tagValuesQuery": "",

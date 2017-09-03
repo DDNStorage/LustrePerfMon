@@ -1800,7 +1800,7 @@
           }
         ],
         "query": "SHOW TAG VALUES FROM \"memory.buffered.memory\" WITH KEY = fqdn",
-        "refresh": 0,
+        "refresh": 1,
         "regex": "",
         "sort": 3,
         "tagValuesQuery": "",

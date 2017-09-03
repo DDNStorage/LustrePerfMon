@@ -410,7 +410,7 @@ PostCacheChain "PostCache"
         host = client.ec_host
         measurement = "aggregation.sensors-max.temperature"
 
-        command = "sensors"
+        command = "sensors | grep temp"
         retval = host.sh_run(command)
         if retval.cr_exit_status:
             logging.debug("failed to run command [%s] on host [%s], there "
