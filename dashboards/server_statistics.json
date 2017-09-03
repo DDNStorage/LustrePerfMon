@@ -21,7 +21,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "#### _CPU Usage_\n  &emsp; the amount of time spent by the CPU in various states, most notably executing user code, executing system code, waiting for IO-operations and being idle.",
+          "description": "######  &emsp; The amount of time spent by the CPU in various states, most notably executing user code, executing system code, waiting for IO-operations and being idle.",
           "fill": 1,
           "height": "200px",
           "id": 2,
@@ -339,7 +339,7 @@
         },
         {
           "clusterName": "",
-          "description": "#### _Warning(yellow)_\n###### &emsp; if one or more of the following conditions are true:\n  * Idle CPU is less than 20%.\n  * Load is higher than 5\n  * Free memory is less than 1000 MiB;\n  * Free space of \"/\" is less than 10 GiB;\n#### _Critial(red)_\n ###### &emsp; if one or more of the following conditions are true:\n  + Idle CPU is less than 5%.\n  + Load is higher than 10\n  + Free space of \"/\" is less than 1 GiB;\n  + Free memory is less than 100 MiB;\n\n----\n   &emsp; The system load is defined as the number of runnable tasks in the run-queue and is provided by many operating systems as a one minute average.",
+          "description": "#### _Warning(yellow)_\n###### &emsp; if one or more of the following conditions are true:\n  * Idle CPU is less than 20%.\n  * Load is higher than 5\n  * Free memory is less than 1000 MiB;\n  * Free space of \"/\" is less than 10 GiB;\n#### _Critial(red)_\n ###### &emsp; if one or more of the following conditions are true:\n  + Idle CPU is less than 5%.\n  + Load is higher than 10\n  + Free space of \"/\" is less than 1 GiB;\n  + Free memory is less than 100 MiB;\n\n----\n######   &emsp; The system load is defined as the number of runnable tasks in the run-queue and is provided by many operating systems as a one minute average.",
           "displayName": "",
           "flipCard": false,
           "flipTime": 5,
@@ -640,7 +640,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "#### _Memory Usage_\n &emsp; The values are reported by the operating system.  The categories are: \n - Used \n - Buffered \n - Cached \n - Free\n - Slab recl\n - Slab unrecl \n\n----\n_Free memory_ is memory you paid for, that's using power and that doesn't do anything useful. It is normal that the operating system puts that memory to use.",
+          "description": "###### &emsp; The values are reported by the operating system.  The categories are: \n - Used \n - Buffered \n - Cached \n - Free\n - Slab recl\n - Slab unrecl \n\n----\n###### &emsp; _Free memory_ is memory you paid for, that's using power and that doesn't do anything useful. It is normal that the operating system puts that memory to use.",
           "fill": 1,
           "height": "200px",
           "id": 1,
@@ -887,7 +887,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "#### _Disk Write Rate_\n &emsp; This panel shows the writting rate for each disk.",
+          "description": "###### &emsp; This panel shows the writting rate for each disk.",
           "fill": 1,
           "height": "200px",
           "id": 7,
@@ -996,7 +996,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "#### _Disk Read Rate_\n &emsp; This panel shows the reading rate for each disk.",
+          "description": "###### &emsp; This panel shows the reading rate for each disk.",
           "fill": 1,
           "height": "200px",
           "id": 8,
@@ -1104,7 +1104,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "#### _Disk Usage on Root_\n&emsp; This value show the usage of the disk which is mounted as Root. There will be three categories:\n - Free\n - Used\n - Reserved\n\n----\n_Warning_ will be reported when there's a little free space left.",
+          "description": "###### &emsp; This value show the usage of the disk which is mounted as Root. There will be three categories:\n - Free\n - Used\n - Reserved\n\n----\n###### _Warning_ will be reported when there's a little free space left.",
           "fill": 1,
           "height": "200px",
           "id": 4,
@@ -1269,7 +1269,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "#### _Load_\n &emsp; The system load is defined as the number of runnable tasks in the run-queue and is provided by many operating systems as:\n  - Shortterm --- one minute average\n  - Midterm ---  five minutes average\n  - Longterm --- fifteen minutes average",
+          "description": "###### &emsp; The system load is defined as the number of runnable tasks in the run-queue and is provided by many operating systems as:\n  - Shortterm --- one minute average\n  - Midterm ---  five minutes average\n  - Longterm --- fifteen minutes average",
           "fill": 1,
           "height": "200px",
           "id": 5,
@@ -1402,7 +1402,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "#### _Uptime_\n &emsp; It keeps track of the system uptime, providing informations such as the average running time or the maximum reached uptime over a certain period of time",
+          "description": "###### &emsp; It keeps track of the system uptime, providing informations such as the average running time or the maximum reached uptime over a certain period of time",
           "fill": 1,
           "id": 9,
           "legend": {
@@ -1498,7 +1498,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "#### _Users_\n &emsp; Counts the The number of users currently logged into the system.",
+          "description": "###### &emsp; Counts the The number of users currently logged into the system.",
           "fill": 1,
           "height": "200px",
           "id": 10,
@@ -1607,7 +1607,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "#### _Temperature_\n &emsp; System Temperature is collected by sensors. This panel shows the temperture of these sensors.",
+          "description": "###### &emsp; System Temperature is collected by sensors. This panel shows the temperture of these sensors.",
           "fill": 1,
           "height": "200px",
           "id": 6,
@@ -1727,7 +1727,6 @@
       {
         "allValue": null,
         "current": {
-          "tags": [],
           "text": "server1",
           "value": "server1"
         },
@@ -1737,68 +1736,7 @@
         "label": "Server Host Name",
         "multi": false,
         "name": "fqdn",
-        "options": [
-          {
-            "selected": true,
-            "text": "server1",
-            "value": "server1"
-          },
-          {
-            "selected": false,
-            "text": "server4",
-            "value": "server4"
-          },
-          {
-            "selected": false,
-            "text": "server5",
-            "value": "server5"
-          },
-          {
-            "selected": false,
-            "text": "server7",
-            "value": "server7"
-          },
-          {
-            "selected": false,
-            "text": "server8",
-            "value": "server8"
-          },
-          {
-            "selected": false,
-            "text": "server9",
-            "value": "server9"
-          },
-          {
-            "selected": false,
-            "text": "server10",
-            "value": "server10"
-          },
-          {
-            "selected": false,
-            "text": "server11",
-            "value": "server11"
-          },
-          {
-            "selected": false,
-            "text": "server13",
-            "value": "server13"
-          },
-          {
-            "selected": false,
-            "text": "server16",
-            "value": "server16"
-          },
-          {
-            "selected": false,
-            "text": "server17",
-            "value": "server17"
-          },
-          {
-            "selected": false,
-            "text": "server17-el7-vm1",
-            "value": "server17-el7-vm1"
-          }
-        ],
+        "options": [],
         "query": "SHOW TAG VALUES FROM \"memory.buffered.memory\" WITH KEY = fqdn",
         "refresh": 1,
         "regex": "",
