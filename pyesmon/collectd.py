@@ -23,6 +23,7 @@ class CollectdConfig(object):
         self.cc_plugins = collections.OrderedDict()
         self.cc_aggregations = collections.OrderedDict()
         self.cc_post_cache_chain_rules = collections.OrderedDict()
+        self.cc_sfas = collections.OrderedDict()
         self.cc_checks = []
         self.cc_configs["Interval"] = COLLECTD_INTERVAL_FINAL
         self.cc_configs["WriteQueueLimitHigh"] = 1000000
@@ -43,6 +44,7 @@ class CollectdConfig(object):
         """
         Dump the config to file
         """
+        # pylint: disable=too-many-statements
         with open(fpath, "wt") as fout:
             fout.write("# Collectd config file generated automatcially by "
                        "ESMON\n# Please contact DDN Storage for information "
@@ -80,6 +82,71 @@ PostCacheChain "PostCache"
 
 """
                 fout.write(config)
+
+            if any(self.cc_sfas):
+                config = 'LoadPlugin ssh\n'
+                fout.write(config)
+                for sfa in self.cc_sfas.values():
+                    config = '<Plugin "ssh">\n'
+                    config += '    <Common>\n'
+                    config += '        DefinitionFile "/etc/sfa-3.0_definition.xml"\n'
+                    config += '        Extra_tags "extrahost=%s"\n' % sfa["name"]
+                    config += '        <ServerHost>\n'
+                    config += '            HostName "%s"\n' % sfa["controller0_host"]
+                    config += '            UserName "user"\n'
+                    config += '            UserPassword "user"\n'
+                    config += '            SshTerminator "RAID[0]$ "\n'
+                    config += '            IpcDir "/tmp"\n'
+                    config += '            #KnownhostsFile "/root/.ssh/known_hosts"\n'
+                    config += '            #PublicKeyfile "/root/.ssh/id_dsa.pub"\n'
+                    config += '            #PrivateKeyfile "/root/.ssh/id_dsa"\n'
+                    config += '            #SshKeyPassphrase "passphrase"\n'
+                    config += '        </ServerHost>\n'
+                    config += '        <ServerHost>\n'
+                    config += '            HostName "%s"\n' % sfa["controller1_host"]
+                    config += '            UserName "user"\n'
+                    config += '            UserPassword "user"\n'
+                    config += '            SshTerminator "RAID[1]$ "\n'
+                    config += '            IpcDir "/tmp"\n'
+                    config += '            #KnownhostsFile "/root/.ssh/known_hosts"\n'
+                    config += '            #PublicKeyfile "/root/.ssh/id_dsa.pub"\n'
+                    config += '            #PrivateKeyfile "/root/.ssh/id_dsa"\n'
+                    config += '            #SshKeyPassphrase "passphrase"\n'
+                    config += '        </ServerHost>\n'
+                    config += '    </Common>\n'
+                    config += """    <Item>
+        Type "vd_c_rates"
+    </Item>
+    <Item>
+        Type "vd_read_latency"
+    </Item>
+    <Item>
+        Type "vd_write_latency"
+    </Item>
+    <Item>
+        Type "vd_read_iosize"
+    </Item>
+    <Item>
+        Type "vd_write_iosize"
+    </Item>
+    <Item>
+        Type "pd_c_rates"
+    </Item>
+    <Item>
+        Type "pd_read_latency"
+    </Item>
+    <Item>
+        Type "pd_write_latency"
+    </Item>
+    <Item>
+        Type "pd_read_iosize"
+    </Item>
+    <Item>
+        Type "pd_write_iosize"
+    </Item>
+"""
+                    config += '</Plugin>\n\n'
+                    fout.write(config)
 
             for plugin_name, plugin_config in self.cc_plugins.iteritems():
                 text = 'LoadPlugin %s\n' % plugin_name
@@ -497,4 +564,59 @@ PostCacheChain "PostCache"
         self.cc_plugins["users"] = ""
         if self.cc_plugin_users_check not in self.cc_checks:
             self.cc_checks.append(self.cc_plugin_users_check)
+        return 0
+
+    def cc_plugin_sfa_check(self):
+        """
+        Check the SFA plugin
+        """
+        client = self.cc_esmon_client
+        host = client.ec_host
+        measurement = "vd_rate"
+
+        ret = host.sh_run("which sshpass")
+        if ret.cr_exit_status != 0:
+            logging.warning("sshpass is missing on host [%s], so skip "
+                            "testing SFAs on that host", host.sh_hostname)
+            return 0
+
+        for sfa in self.cc_sfas.values():
+            controller0 = sfa["controller0_host"]
+            controller1 = sfa["controller1_host"]
+            fqdn = sfa["name"]
+            host_dead = True
+
+            # IMPROVE: Use "SET CLI $COMMAND" to configure SFA CLI for proper
+            # output
+            command = ("sshpass -p user ssh user@%s SHOW SUBSYSTEM" %
+                       controller0)
+            retval = host.sh_run(command)
+            if retval.cr_exit_status == 0:
+                host_dead = False
+
+            if host_dead:
+                command = ("sshpass -p user ssh user@%s SHOW SUBSYSTEM" %
+                           controller1)
+                retval = host.sh_run(command)
+                if retval.cr_exit_status == 0:
+                    host_dead = False
+
+            if host_dead:
+                continue
+
+            return client.ec_influxdb_measurement_check(measurement, fqdn=fqdn)
+
+    def cc_plugin_sfa(self, sfa):
+        """
+        Add SFA configuration
+        """
+        name = sfa["name"]
+        self.cc_sfas[name] = sfa
+        if self.cc_plugin_sfa_check not in self.cc_checks:
+            self.cc_checks.append(self.cc_plugin_sfa_check)
+
+        rpm_name = "collectd-ssh"
+        client = self.cc_esmon_client
+        if rpm_name not in client.ec_needed_collectd_rpms:
+            client.ec_needed_collectd_rpms.append(rpm_name)
         return 0

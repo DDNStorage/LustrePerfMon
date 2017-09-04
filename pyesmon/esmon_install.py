@@ -39,6 +39,9 @@ GRAFANA_PLUGIN_DIR = "/var/lib/grafana/plugins"
 GRAFANA_DASHBOARDS = {}
 GRAFANA_DASHBOARDS["Lustre Statistics"] = "lustre_statistics.json"
 GRAFANA_DASHBOARDS["Server Statistics"] = "server_statistics.json"
+GRAFANA_DASHBOARDS["Server Statistics"] = "server_statistics.json"
+GRAFANA_DASHBOARDS["SFA Physical Disk"] = "SFA_physical_disk.json"
+GRAFANA_DASHBOARDS["SFA Virtual Disk"] = "SFA_virtual_disk.json"
 RPM_PATTERN_RHEL7 = r"^%s-\d.+(\.el7|).*\.(x86_64|noarch)\.rpm$"
 RPM_PATTERN_RHEL6 = r"^%s-\d.+(\.el6|).*\.(x86_64|noarch)\.rpm$"
 
@@ -734,7 +737,7 @@ class EsmonClient(object):
     # pylint: disable=too-few-public-methods,too-many-instance-attributes
     # pylint: disable=too-many-arguments
     def __init__(self, host, workspace, esmon_server, lustre_oss=False,
-                 lustre_mds=False, ime=False):
+                 lustre_mds=False, ime=False, sfas=None):
         self.ec_host = host
         self.ec_workspace = workspace
         self.ec_iso_basename = "ISO"
@@ -748,6 +751,9 @@ class EsmonClient(object):
                                     lustre_mds=lustre_mds)
         if ime:
             config.cc_plugin_ime()
+        if sfas is not None:
+            for sfa in sfas:
+                config.cc_plugin_sfa(sfa)
         self.ec_collectd_config_test = config
 
         config = collectd.CollectdConfig(self)
@@ -757,6 +763,9 @@ class EsmonClient(object):
                                     lustre_mds=lustre_mds)
         if ime:
             config.cc_plugin_ime()
+        if sfas is not None:
+            for sfa in sfas:
+                config.cc_plugin_sfa(sfa)
         self.ec_collectd_config_final = config
 
         self.ec_influxdb_update_time = None
@@ -1108,9 +1117,10 @@ class EsmonClient(object):
         Check whether we can connect to Grafana
         """
         measurement_name = args[0]
+        fqdn = args[1]
         query = ('SELECT * FROM "%s" '
                  'WHERE fqdn = \'%s\' ORDER BY time DESC LIMIT 1;' %
-                 (measurement_name, self.ec_host.sh_hostname))
+                 (measurement_name, fqdn))
         client = self.ec_esmon_server.es_influxdb_client
         try:
             result = client.query(query, epoch="s")
@@ -1132,12 +1142,14 @@ class EsmonClient(object):
                       timestamp, query)
         return -1
 
-    def ec_influxdb_measurement_check(self, measurement_name):
+    def ec_influxdb_measurement_check(self, measurement_name, fqdn=None):
         """
         Check whether influxdb has datapoint
         """
+        if fqdn is None:
+            fqdn = self.ec_host.sh_hostname
         ret = utils.wait_condition(self._ec_influxdb_measurement_check,
-                                   [measurement_name])
+                                   [measurement_name, fqdn])
         if ret:
             logging.error("failed to check measurement [%s]", measurement_name)
         return ret
@@ -1272,13 +1284,64 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
         if ime:
             enabled_plugins += ", DDN IME"
 
+        sfas = config_value(client_host_config, "sfas")
+        sfa_names = []
+        sfa_hosts = []
+        if sfas is not None:
+            for sfa in sfas:
+                name = config_value(sfa, "name")
+                if name is None:
+                    logging.error("can NOT find [name] in the SFA config of a "
+                                  "ESMON client host, please correct file "
+                                  "[%s]", config_fpath)
+                    return -1
+
+                if name in sfa_names:
+                    logging.error("multiple SFAs with the same name [%s], "
+                                  "please correct file [%s]", name,
+                                  config_fpath)
+                    return -1
+                sfa_names.append(name)
+
+                controller0_host = config_value(sfa, "controller0_host")
+                if controller0_host is None:
+                    logging.error("can NOT find [controller0_host] in the SFA "
+                                  "config of a ESMON client host, please "
+                                  "correct file [%s]", config_fpath)
+                    return -1
+
+                if controller0_host in sfa_hosts:
+                    logging.error("multiple SFAs with the same controller "
+                                  "host [%s], please correct file [%s]",
+                                  controller0_host,
+                                  config_fpath)
+                    return -1
+                sfa_hosts.append(controller0_host)
+
+                controller1_host = config_value(sfa, "controller1_host")
+                if controller1_host is None:
+                    logging.error("can NOT find [controller1_host] in the SFA "
+                                  "config of a ESMON client host, please "
+                                  "correct file [%s]", config_fpath)
+                    return -1
+
+                if controller1_host in sfa_hosts:
+                    logging.error("multiple SFAs with the same controller "
+                                  "host [%s], please correct file [%s]",
+                                  controller1_host,
+                                  config_fpath)
+                    return -1
+                sfa_hosts.append(controller1_host)
+            enabled_plugins += ", SFA"
+
         logging.info("support for metrics of [%s] will be enabled on ESMON "
                      "client [%s] according to the config",
                      enabled_plugins, host.sh_hostname)
 
         esmon_client = EsmonClient(host, workspace, esmon_server,
                                    lustre_oss=lustre_oss,
-                                   lustre_mds=lustre_mds, ime=ime)
+                                   lustre_mds=lustre_mds, ime=ime,
+                                   sfas=sfas)
         esmon_clients[host_id] = esmon_client
         ret = esmon_client.ec_check()
         if ret:

@@ -1,0 +1,3490 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "hideControls": false,
+  "id": null,
+  "links": [],
+  "refresh": "1m",
+  "rows": [
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 8,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 4,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "Controller $tag_controller",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "controller"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "pd_rate",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" FROM \"pd_rate\" WHERE \"disk_index\" = '$disk_index' AND \"fqdn\" = '$fqdn' AND $timeFilter GROUP BY \"controller\", \"type\", \"fqdn\"",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "KiBps"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "I/O Performance on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "KBs",
+              "label": "",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 2,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 4,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "Controller $tag_controller",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "controller"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "pd_rate",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_rate\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'iops' AND $timeFilter GROUP BY \"controller\"",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "iops"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "IOPS on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": "IOs/sec",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 9,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 4,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "Controller $tag_controller",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "controller"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "pd_rate",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" FROM \"vd_rate\" WHERE \"fqdn\" = 'OST' AND \"disk_index\" = '$disk_index' AND \"type\" = 'KiBps' AND $timeFilter GROUP BY \"controller\"",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "KiBpIO"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Bytes per I/O on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "kbytes",
+              "label": "",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Performance, IOPS and I/O size",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 11,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 6,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "Controller $tag_controller",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "controller"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "pd_rate",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" FROM \"pd_rate\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'W_KiBps' AND $timeFilter GROUP BY \"controller\"",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "W_KiBps"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Write Performance on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "KBs",
+              "label": "",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 10,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 6,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "Controller $tag_controller",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "controller"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "pd_rate",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" FROM \"pd_rate\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'R_KiBps' AND $timeFilter GROUP BY \"controller\"",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "R_KiBps"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Read Performance on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "KBs",
+              "label": "",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Write/Read Performance",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 7,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 6,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "le4KiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le4KiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le4KiB"
+                }
+              ]
+            },
+            {
+              "alias": "le8KiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le8KiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "B",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le8KiB"
+                }
+              ]
+            },
+            {
+              "alias": "le16KiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le16KiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "C",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le16KiB"
+                }
+              ]
+            },
+            {
+              "alias": "le32KiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le32KiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "D",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le32KiB"
+                }
+              ]
+            },
+            {
+              "alias": "le64KiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le64KiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "E",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le64KiB"
+                }
+              ]
+            },
+            {
+              "alias": "le128KiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le128KiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "F",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le128KiB"
+                }
+              ]
+            },
+            {
+              "alias": "le256KiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le256KiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "G",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le256KiB"
+                }
+              ]
+            },
+            {
+              "alias": "le512KiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le512KiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "H",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le512KiB"
+                }
+              ]
+            },
+            {
+              "alias": "le1MiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le1MiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "I",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le1MiB"
+                }
+              ]
+            },
+            {
+              "alias": "le2MiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le2MiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "J",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le2MiB"
+                }
+              ]
+            },
+            {
+              "alias": "le4MiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le4MiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "K",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le4MiB"
+                }
+              ]
+            },
+            {
+              "alias": "gt4MiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'gt4MiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "L",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "gt4MiB"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Write I/O Size Samples on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": "Samples/s",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 1,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 6,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "le4KiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le4KiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le4KiB"
+                }
+              ]
+            },
+            {
+              "alias": "le8KiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "vd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le8KiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "B",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le8KiB"
+                }
+              ]
+            },
+            {
+              "alias": "le16KiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "vd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le16KiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "C",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le16KiB"
+                }
+              ]
+            },
+            {
+              "alias": "le32KiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "vd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le32KiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "D",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le32KiB"
+                }
+              ]
+            },
+            {
+              "alias": "le64KiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "vd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le64KiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "E",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le64KiB"
+                }
+              ]
+            },
+            {
+              "alias": "le128KiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "vd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le128KiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "F",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le128KiB"
+                }
+              ]
+            },
+            {
+              "alias": "le256KiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "vd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le256KiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "G",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le256KiB"
+                }
+              ]
+            },
+            {
+              "alias": "le512KiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "vd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le512KiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "H",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le512KiB"
+                }
+              ]
+            },
+            {
+              "alias": "le1MiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "vd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le1MiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "I",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le1MiB"
+                }
+              ]
+            },
+            {
+              "alias": "le2MiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "vd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le2MiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "J",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le2MiB"
+                }
+              ]
+            },
+            {
+              "alias": "le4MiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "vd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le4MiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "K",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "le4MiB"
+                }
+              ]
+            },
+            {
+              "alias": "gt4MiB",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "vd_iosize",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'gt4MiB' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "L",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "iosize",
+                  "operator": "=",
+                  "value": "gt4MiB"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Read I/O Size Samples on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": "Samples/s",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Write/Read I/O Size Distribution",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 14,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 6,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "le4ms",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le4ms' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "write"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le4ms"
+                }
+              ]
+            },
+            {
+              "alias": "le8ms",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le8ms' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "B",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "write"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le8ms"
+                }
+              ]
+            },
+            {
+              "alias": "le16ms",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le16ms' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "C",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "write"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le16ms"
+                }
+              ]
+            },
+            {
+              "alias": "le32ms",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le32ms' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "D",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "write"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le32ms"
+                }
+              ]
+            },
+            {
+              "alias": "le64ms",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le64ms' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "E",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "write"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le64ms"
+                }
+              ]
+            },
+            {
+              "alias": "le128ms",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le128ms' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "F",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "write"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le128ms"
+                }
+              ]
+            },
+            {
+              "alias": "le256ms",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le256ms' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "G",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "write"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le256ms"
+                }
+              ]
+            },
+            {
+              "alias": "le512ms",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le512ms' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "H",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "write"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le512ms"
+                }
+              ]
+            },
+            {
+              "alias": "le1s",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le1s' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "I",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "write"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le1s"
+                }
+              ]
+            },
+            {
+              "alias": "le2s",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le2s' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "J",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "write"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le2s"
+                }
+              ]
+            },
+            {
+              "alias": "le4s",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le4s' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "K",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "write"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le4s"
+                }
+              ]
+            },
+            {
+              "alias": "gt4s",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'gt4s' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "L",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "write"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "gt4s"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Write Latency Samples on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "none",
+              "label": "Samples/s",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 15,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 6,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "le4ms",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le4ms' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le4ms"
+                }
+              ]
+            },
+            {
+              "alias": "le8ms",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le8ms' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "B",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le8ms"
+                }
+              ]
+            },
+            {
+              "alias": "le16ms",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le16ms' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "C",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le16ms"
+                }
+              ]
+            },
+            {
+              "alias": "le32ms",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le32ms' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "D",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le32ms"
+                }
+              ]
+            },
+            {
+              "alias": "le64ms",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le64ms' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "E",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le64ms"
+                }
+              ]
+            },
+            {
+              "alias": "le128ms",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le128ms' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "F",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le128ms"
+                }
+              ]
+            },
+            {
+              "alias": "le256ms",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le256ms' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "G",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le256ms"
+                }
+              ]
+            },
+            {
+              "alias": "le512ms",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le512ms' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "H",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le512ms"
+                }
+              ]
+            },
+            {
+              "alias": "le1s",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le1s' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "I",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le1s"
+                }
+              ]
+            },
+            {
+              "alias": "le2s",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le2s' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "J",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le2s"
+                }
+              ]
+            },
+            {
+              "alias": "le4s",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le4s' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "K",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le4s"
+                }
+              ]
+            },
+            {
+              "alias": "gt4s",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "pd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'gt4s' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "L",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "gt4s"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Read Latency Samples on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "none",
+              "label": "Samples/s",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Write/Read Latency Distribution",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 12,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 6,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "Controller $tag_controller",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "controller"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "pd_rate",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" FROM \"pd_rate\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'Fwd_KiBps' AND $timeFilter GROUP BY \"controller\"",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "Fwd_KiBps"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Forwarding I/O Performance on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "KBs",
+              "label": "",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 13,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 6,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "Controller $tag_controller",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "controller"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "pd_rate",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" FROM \"pd_rate\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'Fwd_iops' AND $timeFilter GROUP BY \"controller\"",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "Fwd_iops"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Forwarding IOPS on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "KBs",
+              "label": "",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Fwd Performance and IOPS",
+      "titleSize": "h6"
+    }
+  ],
+  "schemaVersion": 14,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "allValue": null,
+        "current": {
+          "text": "OST",
+          "value": "OST"
+        },
+        "datasource": "esmon_datasource",
+        "hide": 0,
+        "includeAll": false,
+        "label": "SFA Name",
+        "multi": false,
+        "name": "fqdn",
+        "options": [],
+        "query": "SHOW TAG VALUES FROM \"pd_iosize\" WITH KEY = fqdn",
+        "refresh": 1,
+        "regex": "",
+        "sort": 3,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "text": "1",
+          "value": "1"
+        },
+        "datasource": "esmon_datasource",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Disk Index",
+        "multi": false,
+        "name": "disk_index",
+        "options": [],
+        "query": "SHOW TAG VALUES FROM \"pd_iosize\" WITH KEY = disk_index",
+        "refresh": 1,
+        "regex": "",
+        "sort": 3,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "1m"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "timezone": "",
+  "title": "SFA Physical Disk",
+  "version": 1
+}
