@@ -215,18 +215,26 @@ class SSHHost(object):
         Return the distro of this host
         """
         # pylint: disable=too-many-return-statements,too-many-branches
-        ret = self.sh_run("yum install redhat-lsb -y",
-                          timeout=LONGEST_TIME_YUM_INSTALL)
-        if ret.cr_exit_status != 0:
-            logging.error("failed to install redhat-lsb on host [%s]",
-                          self.sh_hostname)
-            return None
-
+        no_lsb = False
         ret = self.sh_run("which lsb_release")
         if ret.cr_exit_status != 0:
-            logging.error("lsb_release is needed on host [%s] for accurate "
-                          "distro identification", self.sh_hostname)
-            return None
+            logging.warning("lsb_release is needed on host [%s] for accurate "
+                            "distro identification", self.sh_hostname)
+            no_lsb = True
+
+        if no_lsb:
+            ret = self.sh_run("uname -r")
+            if ret.cr_exit_status != 0:
+                logging.error("lsb_release is needed on host [%s] for accurate "
+                              "distro identification", self.sh_hostname)
+                return None
+            else:
+                if "el7" in ret.cr_stdout:
+                    return DISTRO_RHEL7
+                elif "el6" in ret.cr_stdout:
+                    return DISTRO_RHEL6
+                else:
+                    return None
 
         ret = self.sh_run("lsb_release -s -i")
         if ret.cr_exit_status != 0:
@@ -652,15 +660,14 @@ class SSHHost(object):
                                        delete_dest, preserve_symlinks)
         ret = utils.run(rsync)
         if ret.cr_exit_status != 0:
-            if("command not found" not in ret.cr_stderr):
-                logging.error("failed to send file [%s] on local host "
-                              "to dest [%s] on host [%s] using rsync, "
-                              "command = [%s], "
-                              "ret = [%d], stdout = [%s], stderr = [%s]",
-                              source, dest, self.sh_hostname, rsync,
-                              ret.cr_exit_status, ret.cr_stdout,
-                              ret.cr_stderr)
-                return -1
+            logging.error("failed to send file [%s] on local host "
+                          "to dest [%s] on host [%s] using rsync, "
+                          "command = [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          source, dest, self.sh_hostname, rsync,
+                          ret.cr_exit_status, ret.cr_stdout,
+                          ret.cr_stderr)
+            return -1
         else:
             return 0
 
