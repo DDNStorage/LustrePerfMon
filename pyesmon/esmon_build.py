@@ -83,7 +83,7 @@ def download_dependent_rpms(host, dependent_dir, distro):
                               retval.cr_stderr)
                 return -1
 
-    # TODO: add more strict check later for all distros
+    # IMPROVE: add more strict check later for all distros
     if distro == ssh_host.DISTRO_RHEL7 and len(existing_rpm_fnames) != 0:
         logging.error("find unknown files under directory [%s]: %s",
                       dependent_dir, existing_rpm_fnames)
@@ -335,7 +335,13 @@ def esmon_do_build(config, config_fpath):
     command = "test -e %s" % collectd_git_path
     retval = local_host.sh_run(command)
     if retval.cr_exit_status:
-        command = "git clone git://10.128.7.3/collectd.git %s" % collectd_git_path
+        collectd_git_url = config_value(config, "collectd_git_url")
+        if collectd_git_url is None:
+            logging.error("can NOT find [collectd_git_url] in the config, "
+                          "please correct file [%s]", config_fpath)
+            return -1
+
+        command = "git clone %s %s" % (collectd_git_url, collectd_git_path)
         retval = local_host.sh_run(command)
         if retval.cr_exit_status:
             logging.error("failed to run command [%s] on host [%s], "
@@ -373,7 +379,7 @@ def esmon_do_build(config, config_fpath):
                             retval.cr_stdout,
                             retval.cr_stderr)
 
-        command = ("cd %s && git pull && git checkout master-ddn" %
+        command = ("cd %s && git pull" %
                    collectd_git_path)
         retval = local_host.sh_run(command)
         if retval.cr_exit_status:
@@ -385,6 +391,19 @@ def esmon_do_build(config, config_fpath):
                           retval.cr_stdout,
                           retval.cr_stderr)
             return -1
+
+    command = ("cd %s && git checkout master-ddn" %
+               collectd_git_path)
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
 
     ret = centos6_build(centos6_host, local_host, collectd_git_path,
                         rpm_dir, rpm_el6_basename, dependent_dir)
