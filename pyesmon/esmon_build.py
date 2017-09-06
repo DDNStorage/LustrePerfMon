@@ -10,13 +10,15 @@ import logging
 import traceback
 import os
 import re
+import shutil
 import yaml
 
 # Local libs
 from pyesmon import utils
 from pyesmon import ssh_host
 
-ESMON_BUILD_CONFIG = "/etc/esmon_build.conf"
+ESMON_BUILD_CONFIG_FNAME = "esmon_build.conf"
+ESMON_BUILD_CONFIG = "/etc/" + ESMON_BUILD_CONFIG_FNAME
 ESMON_BUILD_LOG_DIR = "/var/log/esmon_build"
 DEPENDENT_STRING = "dependent"
 COLLECTD_STRING = "collectd"
@@ -147,8 +149,8 @@ def download_dependent_rpms(host, dependent_dir):
     return 0
 
 
-def collectd_build(build_host, local_host, collectd_git_path,
-                   iso_cached_dir, host_workspace, distro):
+def collectd_build(workspace, build_host, local_host, collectd_git_path,
+                   iso_cached_dir, distro):
     """
     Build Collectd on CentOS6 host
     """
@@ -159,13 +161,13 @@ def collectd_build(build_host, local_host, collectd_git_path,
                                       (local_distro_rpm_dir, X86_64_STRING))
     local_collectd_rpm_dir = ("%s/%s" %
                               (local_distro_rpm_dir, COLLECTD_STRING))
-    host_collectd_git_dir = ("%s/%s" % (host_workspace, COLLECT_GIT_STRING))
+    host_collectd_git_dir = ("%s/%s" % (workspace, COLLECT_GIT_STRING))
     host_collectd_rpm_dir = ("%s/%s" % (host_collectd_git_dir, RPM_PATH_STRING))
-    ret = build_host.sh_send_file(collectd_git_path, host_workspace)
+    ret = build_host.sh_send_file(collectd_git_path, workspace)
     if ret:
         logging.error("failed to send file [%s] on local host to "
                       "directory [%s] on host [%s]",
-                      collectd_git_path, host_workspace,
+                      collectd_git_path, workspace,
                       build_host.sh_hostname)
         return -1
 
@@ -252,8 +254,8 @@ def collectd_build(build_host, local_host, collectd_git_path,
         return -1
     return 0
 
-def collectd_build_check(build_host, local_host, collectd_git_path,
-                         iso_cached_dir, host_workspace, collectd_version_release,
+def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
+                         iso_cached_dir, collectd_version_release,
                          distro):
     """
     Check and build Collectd RPMs
@@ -305,8 +307,8 @@ def collectd_build_check(build_host, local_host, collectd_git_path,
             break
 
     if not found:
-        ret = collectd_build(build_host, local_host, collectd_git_path,
-                             iso_cached_dir, host_workspace, distro)
+        ret = collectd_build(workspace, build_host, local_host,
+                             collectd_git_path, iso_cached_dir, distro)
         if ret:
             logging.error("failed to build Collectd on host [%s]",
                           build_host.sh_hostname)
@@ -370,7 +372,7 @@ def collectd_build_check(build_host, local_host, collectd_git_path,
                     return -1
     return 0
 
-def centos6_build(centos6_host, local_host, collectd_git_path,
+def centos6_build(workspace, centos6_host, local_host, collectd_git_path,
                   iso_cached_dir, collectd_version_release):
     """
     Build on CentOS6 host
@@ -385,6 +387,7 @@ def centos6_build(centos6_host, local_host, collectd_git_path,
     local_copying_dependent_rpm_dir = ("%s/%s" %
                                        (local_copying_rpm_dir,
                                         DEPENDENT_STRING))
+    host_dependent_rpm_dir = ("%s/%s" % (workspace, DEPENDENT_STRING))
 
     distro = centos6_host.sh_distro()
     if distro != ssh_host.DISTRO_RHEL6:
@@ -419,11 +422,7 @@ def centos6_build(centos6_host, local_host, collectd_git_path,
                       retval.cr_stderr)
         return -1
 
-    identity = utils.local_strftime(utils.utcnow(), "%Y-%m-%d-%H_%M_%S")
-    host_workspace = ESMON_BUILD_LOG_DIR + "/" + identity
-    host_dependent_rpm_dir = ("%s/%s" % (host_workspace, DEPENDENT_STRING))
-
-    command = "mkdir -p %s" % host_workspace
+    command = "mkdir -p %s" % workspace
     retval = centos6_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
@@ -435,9 +434,10 @@ def centos6_build(centos6_host, local_host, collectd_git_path,
                       retval.cr_stderr)
         return -1
 
-    ret = collectd_build_check(centos6_host, local_host, collectd_git_path,
-                               iso_cached_dir, host_workspace,
-                               collectd_version_release, ssh_host.DISTRO_RHEL6)
+    ret = collectd_build_check(workspace, centos6_host, local_host,
+                               collectd_git_path, iso_cached_dir,
+                               collectd_version_release,
+                               ssh_host.DISTRO_RHEL6)
     if ret:
         return -1
 
@@ -458,7 +458,7 @@ def centos6_build(centos6_host, local_host, collectd_git_path,
             dependent_rpm_cached = True
 
     if dependent_rpm_cached:
-        ret = centos6_host.sh_send_file(local_dependent_rpm_dir, host_workspace)
+        ret = centos6_host.sh_send_file(local_dependent_rpm_dir, workspace)
         if ret:
             logging.error("failed to send cached dependent RPMs from local path "
                           "[%s] to dir [%s] on host [%s]", local_dependent_rpm_dir,
@@ -518,7 +518,7 @@ def centos6_build(centos6_host, local_host, collectd_git_path,
                       retval.cr_stderr)
         return -1
 
-    command = ("rm -rf %s" % host_workspace)
+    command = ("rm -rf %s" % workspace)
     retval = centos6_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
@@ -542,7 +542,7 @@ def config_value(config, key):
     return config[key]
 
 
-def esmon_do_build(config, config_fpath):
+def esmon_do_build(workspace, config, config_fpath):
     """
     Build the ISO
     """
@@ -604,9 +604,9 @@ def esmon_do_build(config, config_fpath):
         logging.error("build can only be launched on RHEL7/CentOS7 host")
         return -1
 
-    workspace = os.getcwd()
-    iso_cached_dir = workspace + "/../iso_cached_dir"
-    collectd_git_path = workspace + "/../" + "collectd.git"
+    current_dir = os.getcwd()
+    iso_cached_dir = current_dir + "/../iso_cached_dir"
+    collectd_git_path = current_dir + "/../" + "collectd.git"
     rpm_dir = iso_cached_dir + "/RPMS"
     command = ("mkdir -p %s" % (rpm_dir))
     retval = local_host.sh_run(command)
@@ -740,7 +740,7 @@ def esmon_do_build(config, config_fpath):
     collectd_release = collectd_release_string.replace('%{?dist}', '')
     collectd_version_release = collectd_version + "-" + collectd_release
 
-    ret = centos6_build(centos6_host, local_host, collectd_git_path,
+    ret = centos6_build(workspace, centos6_host, local_host, collectd_git_path,
                         iso_cached_dir, collectd_version_release)
     if ret:
         logging.error("failed to prepare RPMs of CentOS6 on host [%s]",
@@ -774,7 +774,7 @@ def esmon_do_build(config, config_fpath):
                       retval.cr_stderr)
         return -1
 
-    grafana_rpm_path = workspace + "/../" + "grafana-4.4.1-1.x86_64.rpm"
+    grafana_rpm_path = current_dir + "/../" + "grafana-4.4.1-1.x86_64.rpm"
     command = "test -e %s" % grafana_rpm_path
     retval = local_host.sh_run(command)
     if retval.cr_exit_status:
@@ -792,12 +792,12 @@ def esmon_do_build(config, config_fpath):
                           retval.cr_stderr)
             return -1
 
-    influxdb_rpm_path = workspace + "/../" + "influxdb-1.3.1.x86_64.rpm"
+    influxdb_rpm_path = current_dir + "/../" + "influxdb-1.3.1.x86_64.rpm"
     command = "test -e %s" % influxdb_rpm_path
     retval = local_host.sh_run(command)
     if retval.cr_exit_status:
         command = ("cd %s/.. && curl -LO https://dl.influxdata.com/influxdb/"
-                   "releases/influxdb-1.3.1.x86_64.rpm" % workspace)
+                   "releases/influxdb-1.3.1.x86_64.rpm" % current_dir)
         retval = local_host.sh_run(command)
         if retval.cr_exit_status:
             logging.error("failed to run command [%s] on host [%s], "
@@ -1019,7 +1019,7 @@ def esmon_do_build(config, config_fpath):
                "./configure --with-collectd=%s --with-grafana=%s "
                "--with-influxdb=%s --with-dependent-rpms=%s && "
                "make" %
-               (workspace, collectd_git_path, grafana_rpm_path,
+               (current_dir, collectd_git_path, grafana_rpm_path,
                 influxdb_rpm_path, iso_cached_dir))
     retval = local_host.sh_run(command)
     if retval.cr_exit_status:
@@ -1035,7 +1035,7 @@ def esmon_do_build(config, config_fpath):
     return 0
 
 
-def esmon_build(config_fpath):
+def esmon_build(workspace, config_fpath):
     """
     Build the ISO
     """
@@ -1052,7 +1052,7 @@ def esmon_build(config_fpath):
     if ret:
         return -1
 
-    return esmon_do_build(config, config_fpath)
+    return esmon_do_build(workspace, config, config_fpath)
 
 
 def usage():
@@ -1078,17 +1078,35 @@ def main():
         usage()
         sys.exit(-1)
 
-    default_formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] "
-                                          "[%(filename)s:%(lineno)s] "
-                                          "%(message)s",
-                                          "%Y/%m/%d-%H:%M:%S")
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(default_formatter)
-    logging.root.handlers = []
-    logging.root.addHandler(console_handler)
-    logging.root.setLevel(logging.DEBUG)
+    identity = utils.local_strftime(utils.utcnow(), "%Y-%m-%d-%H_%M_%S")
+    workspace = ESMON_BUILD_LOG_DIR + "/" + identity
 
-    ret = esmon_build(config_fpath)
+    if not os.path.exists(ESMON_BUILD_LOG_DIR):
+        os.mkdir(ESMON_BUILD_LOG_DIR)
+    elif not os.path.isdir(ESMON_BUILD_LOG_DIR):
+        logging.error("[%s] is not a directory", ESMON_BUILD_LOG_DIR)
+        sys.exit(-1)
+
+    if not os.path.exists(workspace):
+        os.mkdir(workspace)
+    elif not os.path.isdir(workspace):
+        logging.error("[%s] is not a directory", workspace)
+        sys.exit(-1)
+
+    print("Started building Exascaler monitoring system using config [%s], "
+          "please check [%s] for more log" %
+          (config_fpath, workspace))
+    utils.configure_logging(workspace)
+
+    console_handler = utils.LOGGING_HANLDERS["console"]
+    console_handler.setLevel(logging.DEBUG)
+
+    save_fpath = workspace + "/" + ESMON_BUILD_CONFIG_FNAME
+    logging.debug("copying config file from [%s] to [%s]", config_fpath,
+                  save_fpath)
+    shutil.copyfile(config_fpath, save_fpath)
+
+    ret = esmon_build(workspace, config_fpath)
     if ret:
         logging.error("build failed")
         sys.exit(ret)

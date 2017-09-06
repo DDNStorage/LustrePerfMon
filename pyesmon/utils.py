@@ -23,7 +23,7 @@ import string
 import dateutil.tz
 
 LOG_INFO_FNAME = "info.log"
-
+LOGGING_HANLDERS = {}
 
 def eprint(*args, **kwargs):
     """
@@ -380,6 +380,11 @@ def configure_logging(resultsdir):
     logging.root.addHandler(console_handler)
     logging.root.addHandler(warning_handler)
     logging.root.addHandler(error_handler)
+
+    LOGGING_HANLDERS["debug"] = debug_handler
+    LOGGING_HANLDERS["console"] = console_handler
+    LOGGING_HANLDERS["warning"] = warning_handler
+    LOGGING_HANLDERS["error"] = error_handler
 
 
 def utcnow():

@@ -24,11 +24,11 @@ from pyesmon import utils
 from pyesmon import ssh_host
 from pyesmon import collectd
 
-ESMON_CONFIG_FNAME = "esmon_install.conf"
-ESMON_CONFIG = "/etc/" + ESMON_CONFIG_FNAME
+ESMON_INSTALL_CONFIG_FNAME = "esmon_install.conf"
+ESMON_INSTALL_CONFIG = "/etc/" + ESMON_INSTALL_CONFIG_FNAME
 ESMON_INSTALL_LOG_DIR = "/var/log/esmon_install"
 INFLUXDB_CONFIG_FPATH = "/etc/influxdb/influxdb.conf"
-ESMON_INFLUXDB_CONFIG_DIFF = "influxdb.conf.diff"
+INFLUXDB_CONFIG_DIFF = "influxdb.conf.diff"
 GRAFANA_DATASOURCE_NAME = "esmon_datasource"
 INFLUXDB_DATABASE_NAME = "esmon_database"
 INFLUXDB_CQ_PREFIX = "cq_"
@@ -234,7 +234,7 @@ class EsmonServer(object):
                           "server [%s]", self.es_host.sh_hostname)
             return ret
 
-        config_diff = self.es_iso_dir + "/" + ESMON_INFLUXDB_CONFIG_DIFF
+        config_diff = self.es_iso_dir + "/" + INFLUXDB_CONFIG_DIFF
         command = ("patch -i %s %s" % (config_diff, INFLUXDB_CONFIG_FPATH))
         retval = self.es_host.sh_run(command)
         if retval.cr_exit_status:
@@ -1618,7 +1618,7 @@ def main():
     # pylint: disable=unused-variable
     reload(sys)
     sys.setdefaultencoding("utf-8")
-    config_fpath = ESMON_CONFIG
+    config_fpath = ESMON_INSTALL_CONFIG
 
     if len(sys.argv) == 2:
         config_fpath = sys.argv[1]
@@ -1646,7 +1646,7 @@ def main():
           (config_fpath, workspace))
     utils.configure_logging(workspace)
 
-    save_fpath = workspace + "/" + ESMON_CONFIG_FNAME
+    save_fpath = workspace + "/" + ESMON_INSTALL_CONFIG_FNAME
     logging.debug("copying config file from [%s] to [%s]", config_fpath,
                   save_fpath)
     shutil.copyfile(config_fpath, save_fpath)
