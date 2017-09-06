@@ -195,7 +195,7 @@ def collectd_build(workspace, build_host, local_host, collectd_git_path,
                '--without amqp --without gmond --without nut --without pinba '
                '--without ping --without varnish --without dpdkstat '
                '--without turbostat --without redis --without write_redis '
-               '--define "_topdir %s" '
+               '--without gps --define "_topdir %s" '
                '--define="rev $(git rev-parse --short HEAD)" '
                'contrib/redhat/collectd.spec' %
                (host_collectd_git_dir, host_collectd_git_dir))
@@ -372,15 +372,21 @@ def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
                     return -1
     return 0
 
-def centos6_build(workspace, centos6_host, local_host, collectd_git_path,
-                  iso_cached_dir, collectd_version_release):
+def host_build(workspace, build_host, local_host, collectd_git_path,
+               iso_cached_dir, collectd_version_release, distro):
     """
-    Build on CentOS6 host
+    Build on host
     """
     # pylint: disable=too-many-return-statements,too-many-arguments
     # pylint: disable=too-many-statements,too-many-locals,too-many-branches
+    if distro != build_host.sh_distro():
+        logging.error("wrong distro of build host [%s], expected [%s], got "
+                      "[%s]", build_host.sh_hostname, distro,
+                      build_host.sh_distro())
+        return -1
+
     local_distro_rpm_dir = ("%s/%s/%s" %
-                            (iso_cached_dir, RPM_STRING, ssh_host.DISTRO_RHEL6))
+                            (iso_cached_dir, RPM_STRING, distro))
     local_dependent_rpm_dir = ("%s/%s" %
                                (local_distro_rpm_dir, DEPENDENT_STRING))
     local_copying_rpm_dir = ("%s/%s" % (local_distro_rpm_dir, COPYING_STRING))
@@ -389,14 +395,8 @@ def centos6_build(workspace, centos6_host, local_host, collectd_git_path,
                                         DEPENDENT_STRING))
     host_dependent_rpm_dir = ("%s/%s" % (workspace, DEPENDENT_STRING))
 
-    distro = centos6_host.sh_distro()
-    if distro != ssh_host.DISTRO_RHEL6:
-        logging.error("host [%s] is not RHEL6/CentOS6 host",
-                      centos6_host.sh_hostname)
-        return -1
-
     command = ("rpm -e zeromq-devel")
-    centos6_host.sh_run(command)
+    build_host.sh_run(command)
 
     command = ("yum install libgcrypt-devel libtool-ltdl-devel curl-devel "
                "libxml2-devel yajl-devel libdbi-devel libpcap-devel "
@@ -411,33 +411,33 @@ def centos6_build(workspace, centos6_host, local_host, collectd_git_path,
                "createrepo mkisofs yum-utils redhat-lsb unzip "
                "epel-release perl-Regexp-Common python-pep8 pylint "
                "lua-devel byacc ganglia-devel -y")
-    retval = centos6_host.sh_run(command)
+    retval = build_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
                       "ret = [%d], stdout = [%s], stderr = [%s]",
                       command,
-                      centos6_host.sh_hostname,
+                      build_host.sh_hostname,
                       retval.cr_exit_status,
                       retval.cr_stdout,
                       retval.cr_stderr)
         return -1
 
     command = "mkdir -p %s" % workspace
-    retval = centos6_host.sh_run(command)
+    retval = build_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
                       "ret = [%d], stdout = [%s], stderr = [%s]",
                       command,
-                      centos6_host.sh_hostname,
+                      build_host.sh_hostname,
                       retval.cr_exit_status,
                       retval.cr_stdout,
                       retval.cr_stderr)
         return -1
 
-    ret = collectd_build_check(workspace, centos6_host, local_host,
+    ret = collectd_build_check(workspace, build_host, local_host,
                                collectd_git_path, iso_cached_dir,
                                collectd_version_release,
-                               ssh_host.DISTRO_RHEL6)
+                               distro)
     if ret:
         return -1
 
@@ -458,11 +458,11 @@ def centos6_build(workspace, centos6_host, local_host, collectd_git_path,
             dependent_rpm_cached = True
 
     if dependent_rpm_cached:
-        ret = centos6_host.sh_send_file(local_dependent_rpm_dir, workspace)
+        ret = build_host.sh_send_file(local_dependent_rpm_dir, workspace)
         if ret:
             logging.error("failed to send cached dependent RPMs from local path "
                           "[%s] to dir [%s] on host [%s]", local_dependent_rpm_dir,
-                          local_dependent_rpm_dir, centos6_host.sh_hostname)
+                          local_dependent_rpm_dir, build_host.sh_hostname)
             return -1
     else:
         command = ("mkdir -p %s" % (host_dependent_rpm_dir))
@@ -477,7 +477,7 @@ def centos6_build(workspace, centos6_host, local_host, collectd_git_path,
                           retval.cr_stderr)
             return -1
 
-    ret = download_dependent_rpms(centos6_host, host_dependent_rpm_dir)
+    ret = download_dependent_rpms(build_host, host_dependent_rpm_dir)
     if ret:
         logging.error("failed to download depdendent RPMs")
         return ret
@@ -495,11 +495,11 @@ def centos6_build(workspace, centos6_host, local_host, collectd_git_path,
                       retval.cr_stderr)
         return -1
 
-    ret = centos6_host.sh_get_file(host_dependent_rpm_dir, local_copying_rpm_dir)
+    ret = build_host.sh_get_file(host_dependent_rpm_dir, local_copying_rpm_dir)
     if ret:
         logging.error("failed to get dependent RPMs from path [%s] on host "
                       "[%s] to local dir [%s]", host_dependent_rpm_dir,
-                      centos6_host.sh_hostname, local_copying_rpm_dir)
+                      build_host.sh_hostname, local_copying_rpm_dir)
         return -1
 
     command = ("rm -fr %s && mv %s %s && rm -rf %s" %
@@ -507,24 +507,24 @@ def centos6_build(workspace, centos6_host, local_host, collectd_git_path,
                 local_copying_dependent_rpm_dir,
                 local_dependent_rpm_dir,
                 local_copying_rpm_dir))
-    retval = centos6_host.sh_run(command)
+    retval = build_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
                       "ret = [%d], stdout = [%s], stderr = [%s]",
                       command,
-                      centos6_host.sh_hostname,
+                      build_host.sh_hostname,
                       retval.cr_exit_status,
                       retval.cr_stdout,
                       retval.cr_stderr)
         return -1
 
     command = ("rm -rf %s" % workspace)
-    retval = centos6_host.sh_run(command)
+    retval = build_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
                       "ret = [%d], stdout = [%s], stderr = [%s]",
                       command,
-                      centos6_host.sh_hostname,
+                      build_host.sh_hostname,
                       retval.cr_exit_status,
                       retval.cr_stdout,
                       retval.cr_stderr)
@@ -740,12 +740,20 @@ def esmon_do_build(workspace, config, config_fpath):
     collectd_release = collectd_release_string.replace('%{?dist}', '')
     collectd_version_release = collectd_version + "-" + collectd_release
 
-    ret = centos6_build(workspace, centos6_host, local_host, collectd_git_path,
-                        iso_cached_dir, collectd_version_release)
+    ret = host_build(workspace, centos6_host, local_host, collectd_git_path,
+                     iso_cached_dir, collectd_version_release,
+                     ssh_host.DISTRO_RHEL6)
     if ret:
         logging.error("failed to prepare RPMs of CentOS6 on host [%s]",
                       centos6_host.sh_hostname)
         return -1
+
+    # The build host of CentOS7 could potentially be another host, not local
+    # host
+    ret = host_build(workspace, local_host, local_host, collectd_git_path,
+                     iso_cached_dir, collectd_version_release,
+                     ssh_host.DISTRO_RHEL7)
+    return -1
 
     command = ("rpm -e zeromq-devel")
     local_host.sh_run(command)
@@ -1019,7 +1027,7 @@ def esmon_do_build(workspace, config, config_fpath):
                "./configure --with-collectd=%s --with-grafana=%s "
                "--with-influxdb=%s --with-dependent-rpms=%s && "
                "make" %
-               (current_dir, collectd_git_path, grafana_rpm_path,
+               (workspace, collectd_git_path, grafana_rpm_path,
                 influxdb_rpm_path, iso_cached_dir))
     retval = local_host.sh_run(command)
     if retval.cr_exit_status:

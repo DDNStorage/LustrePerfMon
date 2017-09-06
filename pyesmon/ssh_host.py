@@ -133,6 +133,7 @@ class SSHHost(object):
         self.sh_hostname = hostname
         self.sh_identity_file = identity_file
         self.sh_local = local
+        self.sh_cached_distro = None
 
     def sh_is_up(self, timeout=60):
         """
@@ -215,6 +216,9 @@ class SSHHost(object):
         Return the distro of this host
         """
         # pylint: disable=too-many-return-statements,too-many-branches
+        if self.sh_cached_distro is not None:
+            return self.sh_cached_distro
+
         no_lsb = False
         ret = self.sh_run("which lsb_release")
         if ret.cr_exit_status != 0:
