@@ -4,10 +4,12 @@
 """
 Library for building ESMON
 """
+# pylint: disable=too-many-lines
 import sys
 import logging
 import traceback
 import os
+import re
 import yaml
 
 # Local libs
@@ -23,6 +25,9 @@ X86_64_STRING = "x86_64"
 RPM_STRING = "RPMS"
 RPM_PATH_STRING = RPM_STRING + "/" + X86_64_STRING
 COPYING_STRING = "copying"
+COLLECTD_RPM_NAMES = ["collectd", "collectd-disk", "collectd-filedata",
+                      "collectd-ime", "collectd-sensors", "collectd-ssh",
+                      "libcollectdclient"]
 
 def download_dependent_rpms(host, dependent_dir):
     """
@@ -249,7 +254,7 @@ def centos6_build_collectd(centos6_host, local_host, collectd_git_path,
 
 
 def centos6_build(centos6_host, local_host, collectd_git_path,
-                  iso_cached_dir):
+                  iso_cached_dir, collectd_version_release):
     """
     Build on CentOS6 host
     """
@@ -313,13 +318,105 @@ def centos6_build(centos6_host, local_host, collectd_git_path,
                       retval.cr_stderr)
         return -1
 
-    ret = 0
-    #ret = centos6_build_collectd(centos6_host, local_host, collectd_git_path,
-    #                             iso_cached_dir, host_workspace)
-    if ret:
-        logging.error("failed to build Collectd on host [%s]",
-                      centos6_host.sh_hostname)
+    local_distro_rpm_dir = ("%s/%s/%s" %
+                            (iso_cached_dir, RPM_STRING, ssh_host.DISTRO_RHEL6))
+    local_collectd_rpm_dir = ("%s/%s" %
+                              (local_distro_rpm_dir, COLLECTD_STRING))
+    command = ("mkdir -p %s && ls %s" %
+               (local_collectd_rpm_dir, local_collectd_rpm_dir))
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
         return -1
+    rpm_collectd_fnames = retval.cr_stdout.split()
+
+    found = False
+    for collect_rpm_name in COLLECTD_RPM_NAMES:
+        collect_rpm_full = ("%s-%s.el6.x86_64.rpm" %
+                            (collect_rpm_name, collectd_version_release))
+        found = False
+        for rpm_collectd_fname in rpm_collectd_fnames[:]:
+            if collect_rpm_full == rpm_collectd_fname:
+                found = True
+                rpm_collectd_fnames.remove(rpm_collectd_fname)
+                logging.debug("RPM [%s/%s] already cached",
+                              local_collectd_rpm_dir, collect_rpm_full)
+                break
+
+        if not found:
+            logging.debug("RPM [%s] not cached in directory [%s], building "
+                          "Collectd", collect_rpm_full, local_collectd_rpm_dir)
+            break
+
+    if not found:
+        ret = centos6_build_collectd(centos6_host, local_host, collectd_git_path,
+                                     iso_cached_dir, host_workspace)
+        if ret:
+            logging.error("failed to build Collectd on host [%s]",
+                          centos6_host.sh_hostname)
+            return -1
+
+        # Don't trust the build, check RPMs again
+        command = ("ls %s" % (local_collectd_rpm_dir))
+        retval = local_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          local_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        rpm_collectd_fnames = retval.cr_stdout.split()
+
+        for collect_rpm_name in COLLECTD_RPM_NAMES:
+            collect_rpm_full = ("%s-%s.el6.x86_64.rpm" %
+                                (collect_rpm_name, collectd_version_release))
+            found = False
+            for rpm_collectd_fname in rpm_collectd_fnames[:]:
+                if collect_rpm_full == rpm_collectd_fname:
+                    found = True
+                    rpm_collectd_fnames.remove(rpm_collectd_fname)
+                    logging.debug("RPM [%s/%s] already cached",
+                                  local_collectd_rpm_dir, collect_rpm_full)
+                    break
+
+            if not found:
+                logging.error("RPM [%s] not found in directory [%s] after "
+                              "building Collectd", collect_rpm_full,
+                              local_collectd_rpm_dir)
+                return -1
+    else:
+        collect_rpm_pattern = (r"collectd-\S+-%s.el6.x86_64.rpm" %
+                               (collectd_version_release))
+        collect_rpm_regular = re.compile(collect_rpm_pattern)
+        for rpm_collectd_fname in rpm_collectd_fnames[:]:
+            match = collect_rpm_regular.match(rpm_collectd_fname)
+            if not match:
+                fpath = ("%s/%s" %
+                         (local_collectd_rpm_dir, rpm_collectd_fname))
+                logging.debug("found a file [%s] not matched with pattern "
+                              "[%s], removing it", fpath,
+                              collect_rpm_pattern)
+
+                command = ("rm -f %s" % (fpath))
+                retval = local_host.sh_run(command)
+                if retval.cr_exit_status:
+                    logging.error("failed to run command [%s] on host [%s], "
+                                  "ret = [%d], stdout = [%s], stderr = [%s]",
+                                  command,
+                                  local_host.sh_hostname,
+                                  retval.cr_exit_status,
+                                  retval.cr_stdout,
+                                  retval.cr_stderr)
+                    return -1
 
     dependent_rpm_cached = False
     command = ("test -e %s" % (local_dependent_rpm_dir))
@@ -573,8 +670,55 @@ def esmon_do_build(config, config_fpath):
                       retval.cr_stderr)
         return -1
 
+    command = ("cd %s && git rev-parse --short HEAD" %
+               collectd_git_path)
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+    collectd_git_version = retval.cr_stdout.strip()
+
+    command = (r"cd %s && grep Version contrib/redhat/collectd.spec | "
+               r"grep -v \# | awk '{print $2}'"  %
+               collectd_git_path)
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+    collectd_version_string = retval.cr_stdout.strip()
+    collectd_version = collectd_version_string.replace('%{?rev}', collectd_git_version)
+
+    command = (r"cd %s && grep Release contrib/redhat/collectd.spec | "
+               r"grep -v \# | awk '{print $2}'"  %
+               collectd_git_path)
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+    collectd_release_string = retval.cr_stdout.strip()
+    collectd_release = collectd_release_string.replace('%{?dist}', '')
+    collectd_version_release = collectd_version + "-" + collectd_release
+
     ret = centos6_build(centos6_host, local_host, collectd_git_path,
-                        iso_cached_dir)
+                        iso_cached_dir, collectd_version_release)
     if ret:
         logging.error("failed to prepare RPMs of CentOS6 on host [%s]",
                       centos6_host.sh_hostname)
