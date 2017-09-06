@@ -8,7 +8,6 @@ import sys
 import logging
 import traceback
 import os
-import re
 import yaml
 
 # Local libs
@@ -17,30 +16,46 @@ from pyesmon import ssh_host
 
 ESMON_BUILD_CONFIG = "/etc/esmon_build.conf"
 ESMON_BUILD_LOG_DIR = "/var/log/esmon_build"
+DEPENDENT_STRING = "dependent"
+COLLECTD_STRING = "collectd"
+COLLECT_GIT_STRING = COLLECTD_STRING + ".git"
+X86_64_STRING = "x86_64"
+RPM_STRING = "RPMS"
+RPM_PATH_STRING = RPM_STRING + "/" + X86_64_STRING
+COPYING_STRING = "copying"
 
-
-def download_dependent_rpms(host, dependent_dir, distro):
+def download_dependent_rpms(host, dependent_dir):
     """
     Download dependent RPMs
     """
+    # pylint: disable=too-many-locals,too-many-return-statements
+    # pylint: disable=too-many-branches
     dependent_rpms = ["openpgm", "yajl", "zeromq3", "fontconfig", "glibc",
                       "glibc-common", "glibc-devel", "fontpackages-filesystem",
                       "glibc-headers", "glibc-static", "libfontenc", "libtool",
                       "libtool-ltdl", "libtool-ltdl-devel", "libXfont", "libyaml",
                       "patch", "PyYAML", "rsync", "urw-fonts",
                       "xorg-x11-font-utils", "python-chardet",
-                      "lm_sensors-libs", "lm_sensors"]
-    if distro == ssh_host.DISTRO_RHEL7:
-        python_rpms = ["python2-filelock", "python2-pip",
-                       "python-backports",
-                       "python-backports-ssl_match_hostname",
-                       "python-dateutil", "python-requests",
-                       "python-setuptools", "python-six", "python-urllib3",
-                       "python-idna"]
-        dependent_rpms.extend(python_rpms)
+                      "lm_sensors-libs"]
 
-    rpm_dir = dependent_dir + "/RPMS/" + distro
-    command = ("mkdir -p %s" % (rpm_dir))
+    command = ("ls %s" % (dependent_dir))
+    retval = host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+    existing_rpm_fnames = retval.cr_stdout.split()
+
+    command = "yum install -y"
+    for rpm_name in dependent_rpms:
+        command += " " + rpm_name
+
+    # Install the RPM to get the fullname and checksum in db
     retval = host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
@@ -52,51 +67,203 @@ def download_dependent_rpms(host, dependent_dir, distro):
                       retval.cr_stderr)
         return -1
 
-    existing_rpm_fnames = os.listdir(rpm_dir)
     for rpm_name in dependent_rpms:
-        rpm_pattern = (r"^%s-\d.+\.el7.*\.(x86_64|noarch)\.rpm$" % rpm_name)
-        rpm_regular = re.compile(rpm_pattern)
-        not_matched = True
+        command = "rpm -q %s" % rpm_name
+        retval = host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        rpm_fullname = retval.cr_stdout.strip()
+        sha256sum = host.sh_yumdb_sha256(rpm_fullname)
+        if sha256sum is None:
+            logging.error("failed to get sha256 of RPM [%s] on host [%s]",
+                          rpm_fullname, host.sh_hostname)
+            return -1
+
+        rpm_filename = rpm_fullname + ".rpm"
+        fpath = dependent_dir + "/" + rpm_filename
+        found = False
         for filename in existing_rpm_fnames[:]:
-            match = rpm_regular.match(filename)
-            if match:
+            if filename == rpm_filename:
+                file_sha256sum = host.sh_sha256sum(fpath)
+                if sha256sum != file_sha256sum:
+                    logging.debug("found RPM [%s] with wrong sha256sum, "
+                                  "deleting it", fpath)
+                    ret = host.sh_remove_file(fpath)
+                    if ret:
+                        return -1
+                    break
+
+                logging.debug("found RPM [%s] with correct sha256sum", fpath)
                 existing_rpm_fnames.remove(filename)
-                not_matched = False
-                logging.debug("matched pattern [%s] with fname [%s]",
-                              rpm_pattern, filename)
+                found = True
                 break
 
-        if not_matched:
-            logging.debug("not find RPM with pattern [%s], downloading",
-                          rpm_pattern)
+        if found:
+            continue
 
-            command = (r"cd %s && yumdownloader -x \*i686 --archlist=x86_64 %s" %
-                       (rpm_dir, rpm_name))
-            retval = host.sh_run(command)
-            if retval.cr_exit_status:
-                logging.error("failed to run command [%s] on host [%s], "
-                              "ret = [%d], stdout = [%s], stderr = [%s]",
-                              command,
-                              host.sh_hostname,
-                              retval.cr_exit_status,
-                              retval.cr_stdout,
-                              retval.cr_stderr)
-                return -1
+        logging.debug("downloading RPM [%s] on host [%s]", fpath,
+                      host.sh_hostname)
 
-    # IMPROVE: add more strict check later for all distros
-    if distro == ssh_host.DISTRO_RHEL7 and len(existing_rpm_fnames) != 0:
-        logging.error("find unknown files under directory [%s]: %s",
-                      dependent_dir, existing_rpm_fnames)
+        command = (r"cd %s && yumdownloader -x \*i686 --archlist=x86_64 %s" %
+                   (dependent_dir, rpm_name))
+        retval = host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        # Don't trust yumdownloader, check again
+        file_sha256sum = host.sh_sha256sum(fpath)
+        if sha256sum != file_sha256sum:
+            logging.error("downloaded RPM [%s] on host [%s] with wrong "
+                          "sha256sum, expected [%s], got [%s]", fpath,
+                          host.sh_hostname, sha256sum, file_sha256sum)
+            return -1
+
+    for fname in existing_rpm_fnames:
+        logging.debug("found unnecessary file [%s] under directory [%s], "
+                      "removing it", fname, dependent_dir)
+        ret = host.sh_remove_file(fpath)
+        if ret:
+            return -1
+    return 0
+
+
+def centos6_build_collectd(centos6_host, local_host, collectd_git_path,
+                           iso_cached_dir, host_workspace):
+    """
+    Build Collectd on CentOS6 host
+    """
+    # pylint: disable=too-many-return-statements
+    local_distro_rpm_dir = ("%s/%s/%s" %
+                            (iso_cached_dir, RPM_STRING, ssh_host.DISTRO_RHEL6))
+    local_collectd_rpm_copying_dir = ("%s/%s" %
+                                      (local_distro_rpm_dir, X86_64_STRING))
+    local_collectd_rpm_dir = ("%s/%s" %
+                              (local_distro_rpm_dir, COLLECTD_STRING))
+    host_collectd_git_dir = ("%s/%s" % (host_workspace, COLLECT_GIT_STRING))
+    host_collectd_rpm_dir = ("%s/%s" % (host_collectd_git_dir, RPM_PATH_STRING))
+    ret = centos6_host.sh_send_file(collectd_git_path, host_workspace)
+    if ret:
+        logging.error("failed to send file [%s] on local host to "
+                      "directory [%s] on host [%s]",
+                      collectd_git_path, host_workspace,
+                      centos6_host.sh_hostname)
+        return -1
+
+    command = ("cd %s && mkdir -p libltdl/config && sh ./build.sh && "
+               "./configure --enable-write_tsdb --enable-dist --enable-nfs "
+               "--disable-java --disable-amqp --disable-gmond --disable-nut "
+               "--disable-pinba --disable-ping --disable-varnish "
+               "--disable-dpdkstat --disable-turbostat && "
+               "make && make dist-bzip2 && "
+               "mkdir {BUILD,RPMS,SOURCES,SRPMS} && "
+               "mv collectd-*.tar.bz2 SOURCES" % host_collectd_git_dir)
+    retval = centos6_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      centos6_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    command = ('cd %s && '
+               'rpmbuild -ba --with write_tsdb --with nfs --without java '
+               '--without amqp --without gmond --without nut --without pinba '
+               '--without ping --without varnish --without dpdkstat '
+               '--without turbostat --without redis --without write_redis '
+               '--define "_topdir %s" '
+               '--define="rev $(git rev-parse --short HEAD)" '
+               'contrib/redhat/collectd.spec' %
+               (host_collectd_git_dir, host_collectd_git_dir))
+    retval = centos6_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      centos6_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    command = ("mkdir -p %s" % (local_distro_rpm_dir))
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    command = ("rm %s -fr" % (local_collectd_rpm_dir))
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    ret = centos6_host.sh_get_file(host_collectd_rpm_dir, local_distro_rpm_dir)
+    if ret:
+        logging.error("failed to get Collectd RPMs from path [%s] on host "
+                      "[%s] to local dir [%s]", host_collectd_rpm_dir,
+                      centos6_host.sh_hostname, local_distro_rpm_dir)
+        return -1
+
+    command = ("mv %s %s" % (local_collectd_rpm_copying_dir, local_collectd_rpm_dir))
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
         return -1
     return 0
 
 
-def centos6_build(centos6_host, local_host, collectd_git_path, rpm_dir,
-                  rpm_el6_basename, dependent_dir):
+def centos6_build(centos6_host, local_host, collectd_git_path,
+                  iso_cached_dir):
     """
     Build on CentOS6 host
     """
     # pylint: disable=too-many-return-statements,too-many-arguments
+    # pylint: disable=too-many-statements,too-many-locals,too-many-branches
+    local_distro_rpm_dir = ("%s/%s/%s" %
+                            (iso_cached_dir, RPM_STRING, ssh_host.DISTRO_RHEL6))
+    local_dependent_rpm_dir = ("%s/%s" %
+                               (local_distro_rpm_dir, DEPENDENT_STRING))
+    local_copying_rpm_dir = ("%s/%s" % (local_distro_rpm_dir, COPYING_STRING))
+    local_copying_dependent_rpm_dir = ("%s/%s" %
+                                       (local_copying_rpm_dir,
+                                        DEPENDENT_STRING))
+
     distro = centos6_host.sh_distro()
     if distro != ssh_host.DISTRO_RHEL6:
         logging.error("host [%s] is not RHEL6/CentOS6 host",
@@ -131,8 +298,10 @@ def centos6_build(centos6_host, local_host, collectd_git_path, rpm_dir,
         return -1
 
     identity = utils.local_strftime(utils.utcnow(), "%Y-%m-%d-%H_%M_%S")
-    workspace = ESMON_BUILD_LOG_DIR + "/" + identity
-    command = "mkdir -p %s" % workspace
+    host_workspace = ESMON_BUILD_LOG_DIR + "/" + identity
+    host_dependent_rpm_dir = ("%s/%s" % (host_workspace, DEPENDENT_STRING))
+
+    command = "mkdir -p %s" % host_workspace
     retval = centos6_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
@@ -144,102 +313,102 @@ def centos6_build(centos6_host, local_host, collectd_git_path, rpm_dir,
                       retval.cr_stderr)
         return -1
 
-    ret = centos6_host.sh_send_file(collectd_git_path, workspace)
+    ret = 0
+    #ret = centos6_build_collectd(centos6_host, local_host, collectd_git_path,
+    #                             iso_cached_dir, host_workspace)
     if ret:
-        logging.error("failed to send file [%s] on local host to "
-                      "directory [%s] on host [%s]",
-                      collectd_git_path, workspace,
+        logging.error("failed to build Collectd on host [%s]",
                       centos6_host.sh_hostname)
         return -1
 
-    collectd_path = workspace + "/" + "collectd.git"
-    command = ("cd %s && mkdir -p libltdl/config && sh ./build.sh && "
-               "./configure --enable-write_tsdb --enable-dist --enable-nfs "
-               "--disable-java --disable-amqp --disable-gmond --disable-nut "
-               "--disable-pinba --disable-ping --disable-varnish "
-               "--disable-dpdkstat --disable-turbostat && "
-               "make && make dist-bzip2 && "
-               "mkdir {BUILD,RPMS,SOURCES,SRPMS} && "
-               "mv collectd-*.tar.bz2 SOURCES" % collectd_path)
-    retval = centos6_host.sh_run(command)
-    if retval.cr_exit_status:
-        logging.error("failed to run command [%s] on host [%s], "
-                      "ret = [%d], stdout = [%s], stderr = [%s]",
-                      command,
-                      centos6_host.sh_hostname,
-                      retval.cr_exit_status,
-                      retval.cr_stdout,
-                      retval.cr_stderr)
-        return -1
-
-    command = ('cd %s && '
-               'rpmbuild -ba --with write_tsdb --with nfs --without java '
-               '--without amqp --without gmond --without nut --without pinba '
-               '--without ping --without varnish --without dpdkstat '
-               '--without turbostat --without redis --without write_redis '
-               '--define "_topdir %s" '
-               '--define="rev $(git rev-parse --short HEAD)" '
-               'contrib/redhat/collectd.spec' %
-               (collectd_path, collectd_path))
-    retval = centos6_host.sh_run(command)
-    if retval.cr_exit_status:
-        logging.error("failed to run command [%s] on host [%s], "
-                      "ret = [%d], stdout = [%s], stderr = [%s]",
-                      command,
-                      centos6_host.sh_hostname,
-                      retval.cr_exit_status,
-                      retval.cr_stdout,
-                      retval.cr_stderr)
-        return -1
-
-    command = ("rm %s/%s -fr" % (rpm_dir, rpm_el6_basename))
+    dependent_rpm_cached = False
+    command = ("test -e %s" % (local_dependent_rpm_dir))
     retval = local_host.sh_run(command)
-    if retval.cr_exit_status:
-        logging.error("failed to run command [%s] on host [%s], "
-                      "ret = [%d], stdout = [%s], stderr = [%s]",
-                      command,
-                      local_host.sh_hostname,
-                      retval.cr_exit_status,
-                      retval.cr_stdout,
-                      retval.cr_stderr)
-        return -1
+    if retval.cr_exit_status == 0:
+        command = ("test -d %s" % (local_dependent_rpm_dir))
+        retval = local_host.sh_run(command)
+        if retval.cr_exit_status != 0:
+            command = ("rm -f %s" % (local_dependent_rpm_dir))
+            retval = local_host.sh_run(command)
+            if retval.cr_exit_status:
+                logging.error("path [%s] is not a directory and can't be "
+                              "deleted", local_dependent_rpm_dir)
+                return -1
+        else:
+            dependent_rpm_cached = True
 
-    host_rpm_dir = collectd_path + "/RPMS/x86_64"
-    ret = centos6_host.sh_get_file(host_rpm_dir, rpm_dir)
-    if ret:
-        logging.error("failed to get Collectd RPMs from path [%s] on host "
-                      "[%s]", host_rpm_dir, centos6_host.sh_hostname)
-        return -1
+    if dependent_rpm_cached:
+        ret = centos6_host.sh_send_file(local_dependent_rpm_dir, host_workspace)
+        if ret:
+            logging.error("failed to send cached dependent RPMs from local path "
+                          "[%s] to dir [%s] on host [%s]", local_dependent_rpm_dir,
+                          local_dependent_rpm_dir, centos6_host.sh_hostname)
+            return -1
+    else:
+        command = ("mkdir -p %s" % (host_dependent_rpm_dir))
+        retval = local_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          local_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
 
-    command = ("mv %s/x86_64 %s/%s" % (rpm_dir, rpm_dir, rpm_el6_basename))
-    retval = local_host.sh_run(command)
-    if retval.cr_exit_status:
-        logging.error("failed to run command [%s] on host [%s], "
-                      "ret = [%d], stdout = [%s], stderr = [%s]",
-                      command,
-                      local_host.sh_hostname,
-                      retval.cr_exit_status,
-                      retval.cr_stdout,
-                      retval.cr_stderr)
-        return -1
-
-    command = ("rm -rf %s" % workspace)
-    retval = centos6_host.sh_run(command)
-    if retval.cr_exit_status:
-        logging.error("failed to run command [%s] on host [%s], "
-                      "ret = [%d], stdout = [%s], stderr = [%s]",
-                      command,
-                      centos6_host.sh_hostname,
-                      retval.cr_exit_status,
-                      retval.cr_stdout,
-                      retval.cr_stderr)
-        return -1
-
-    ret = download_dependent_rpms(centos6_host, dependent_dir,
-                                  ssh_host.DISTRO_RHEL6)
+    ret = download_dependent_rpms(centos6_host, host_dependent_rpm_dir)
     if ret:
         logging.error("failed to download depdendent RPMs")
         return ret
+
+    command = ("rm -fr %s && mkdir -p %s" %
+               (local_copying_rpm_dir, local_copying_rpm_dir))
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    ret = centos6_host.sh_get_file(host_dependent_rpm_dir, local_copying_rpm_dir)
+    if ret:
+        logging.error("failed to get dependent RPMs from path [%s] on host "
+                      "[%s] to local dir [%s]", host_dependent_rpm_dir,
+                      centos6_host.sh_hostname, local_copying_rpm_dir)
+        return -1
+
+    command = ("rm -fr %s && mv %s %s && rm -rf %s" %
+               (local_dependent_rpm_dir,
+                local_copying_dependent_rpm_dir,
+                local_dependent_rpm_dir,
+                local_copying_rpm_dir))
+    retval = centos6_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      centos6_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    command = ("rm -rf %s" % host_workspace)
+    retval = centos6_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      centos6_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
 
     return 0
 
@@ -316,9 +485,9 @@ def esmon_do_build(config, config_fpath):
         return -1
 
     workspace = os.getcwd()
-    dependent_dir = workspace + "/../dependent_dir"
+    iso_cached_dir = workspace + "/../iso_cached_dir"
     collectd_git_path = workspace + "/../" + "collectd.git"
-    rpm_dir = dependent_dir + "/RPMS"
+    rpm_dir = iso_cached_dir + "/RPMS"
     command = ("mkdir -p %s" % (rpm_dir))
     retval = local_host.sh_run(command)
     if retval.cr_exit_status:
@@ -330,7 +499,6 @@ def esmon_do_build(config, config_fpath):
                       retval.cr_stdout,
                       retval.cr_stderr)
         return -1
-    rpm_el6_basename = ssh_host.DISTRO_RHEL6
 
     command = "test -e %s" % collectd_git_path
     retval = local_host.sh_run(command)
@@ -406,7 +574,7 @@ def esmon_do_build(config, config_fpath):
         return -1
 
     ret = centos6_build(centos6_host, local_host, collectd_git_path,
-                        rpm_dir, rpm_el6_basename, dependent_dir)
+                        iso_cached_dir)
     if ret:
         logging.error("failed to prepare RPMs of CentOS6 on host [%s]",
                       centos6_host.sh_hostname)
@@ -542,7 +710,7 @@ def esmon_do_build(config, config_fpath):
     python_library_dict[name] = url
 
     python_library_name = "python_library"
-    python_library_dir = dependent_dir + "/" + python_library_name
+    python_library_dir = iso_cached_dir + "/" + python_library_name
 
     command = ("mkdir -p %s" % (python_library_dir))
     retval = local_host.sh_run(command)
@@ -620,14 +788,17 @@ def esmon_do_build(config, config_fpath):
                       python_library_dir, python_library_existing_files)
         return -1
 
-    ret = download_dependent_rpms(local_host, dependent_dir,
-                                  ssh_host.DISTRO_RHEL7)
+    local_distro_rpm_dir = ("%s/%s/%s" %
+                            (iso_cached_dir, RPM_STRING, ssh_host.DISTRO_RHEL7))
+    local_dependent_rpm_dir = ("%s/%s" %
+                               (local_distro_rpm_dir, DEPENDENT_STRING))
+    ret = download_dependent_rpms(local_host, local_dependent_rpm_dir)
     if ret:
         logging.error("failed to install depdendent RPMs")
         return ret
 
     grafana_status_panel = "Grafana_Status_panel"
-    grafana_status_panel_git_path = dependent_dir + "/" + grafana_status_panel
+    grafana_status_panel_git_path = iso_cached_dir + "/" + grafana_status_panel
     command = "test -e %s" % grafana_status_panel_git_path
     retval = local_host.sh_run(command)
     if retval.cr_exit_status:
@@ -657,14 +828,14 @@ def esmon_do_build(config, config_fpath):
                           retval.cr_stderr)
             return -1
 
-    dependent_existing_files = os.listdir(dependent_dir)
+    dependent_existing_files = os.listdir(iso_cached_dir)
     dependent_existing_files.remove(grafana_status_panel)
     dependent_existing_files.remove("RPMS")
     dependent_existing_files.remove(python_library_name)
     for extra_fname in dependent_existing_files:
         logging.warning("find unknown file [%s] under directory [%s], removing",
-                        extra_fname, dependent_dir)
-        command = ("rm -fr %s/%s" % (dependent_dir, extra_fname))
+                        extra_fname, iso_cached_dir)
+        command = ("rm -fr %s/%s" % (iso_cached_dir, extra_fname))
         retval = local_host.sh_run(command)
         if retval.cr_exit_status:
             logging.error("failed to run command [%s] on host [%s], "
@@ -682,7 +853,7 @@ def esmon_do_build(config, config_fpath):
                "--with-influxdb=%s --with-dependent-rpms=%s && "
                "make" %
                (workspace, collectd_git_path, grafana_rpm_path,
-                influxdb_rpm_path, dependent_dir))
+                influxdb_rpm_path, iso_cached_dir))
     retval = local_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
@@ -740,6 +911,14 @@ def main():
         usage()
         sys.exit(-1)
 
+    default_formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] "
+                                          "[%(filename)s:%(lineno)s] "
+                                          "%(message)s",
+                                          "%Y/%m/%d-%H:%M:%S")
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(default_formatter)
+    logging.root.handlers = []
+    logging.root.addHandler(console_handler)
     logging.root.setLevel(logging.DEBUG)
 
     ret = esmon_build(config_fpath)

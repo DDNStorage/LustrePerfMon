@@ -746,6 +746,9 @@ class SSHHost(object):
         Run a command on the host
         """
         # pylint: disable=too-many-arguments
+        if not silent:
+            logging.debug("starting [%s] on host [%s]", command,
+                          self.sh_hostname)
         if self.sh_local:
             ret = utils.run(command, timeout=timeout, stdout_tee=stdout_tee,
                             stderr_tee=stderr_tee, stdin=stdin,
@@ -837,6 +840,20 @@ class SSHHost(object):
             logging.error("failed to remove directory [%s] on host [%s], "
                           "ret = %d, stdout = [%s], stderr = [%s]",
                           directory, self.sh_hostname,
+                          ret.cr_exit_status, ret.cr_stdout,
+                          ret.cr_stderr)
+            return -1
+        return 0
+
+    def sh_remove_file(self, fpath):
+        """
+        Remove file
+        """
+        ret = self.sh_run("rm -f %s" % (fpath))
+        if ret.cr_exit_status != 0:
+            logging.error("failed to remove file [%s] on host [%s], "
+                          "ret = %d, stdout = [%s], stderr = [%s]",
+                          fpath, self.sh_hostname,
                           ret.cr_exit_status, ret.cr_stdout,
                           ret.cr_stderr)
             return -1
@@ -1382,3 +1399,74 @@ class SSHHost(object):
         if retval.cr_exit_status:
             return -1
         return 0
+
+    def sh_yumdb_info(self, rpm_name):
+        """
+        Get the key/value pairs of a RPM from yumdb
+        """
+        command = "yumdb info %s" % rpm_name
+        retval = self.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return None
+        lines = retval.cr_stdout.splitlines()
+        output_pattern = (r"^ +(?P<key>\S+) = (?P<value>.+)$")
+        output_regular = re.compile(output_pattern)
+        infos = {}
+        for line in lines:
+            match = output_regular.match(line)
+            if match:
+                logging.debug("matched pattern [%s] with line [%s]",
+                              output_pattern, line)
+                key = match.group("key")
+                value = match.group("value")
+                infos[key] = value
+
+        return infos
+
+    def sh_yumdb_sha256(self, rpm_name):
+        """
+        Get the SHA256 checksum of a RPM from yumdb
+        """
+        rpm_infos = self.sh_yumdb_info(rpm_name)
+        if rpm_infos is None:
+            logging.error("failed to get YUM info of [%s] on host [%s]",
+                          rpm_name, self.sh_hostname)
+            return None
+
+        if ("checksum_data" not in rpm_infos or
+                "checksum_type" not in rpm_infos):
+            logging.error("failed to get YUM info of [%s] on host [%s]",
+                          rpm_name, self.sh_hostname)
+            return None
+
+        if rpm_infos["checksum_type"] != "sha256":
+            logging.error("unexpected checksum type of RPM [%s] on host [%s], "
+                          "expected [sha256], got [%s]",
+                          rpm_name, self.sh_hostname,
+                          rpm_infos["checksum_type"])
+            return None
+
+        return rpm_infos["checksum_data"]
+
+    def sh_sha256sum(self, fpath):
+        """
+        Calculate the sha256sum of a file
+        """
+        command = "sha256sum %s | awk '{print $1}'" % fpath
+        retval = self.sh_run(command)
+        if retval.cr_exit_status != 0:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command, self.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return None
+        return retval.cr_stdout.strip()

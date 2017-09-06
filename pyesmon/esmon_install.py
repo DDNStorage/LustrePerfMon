@@ -44,6 +44,12 @@ GRAFANA_DASHBOARDS["SFA Physical Disk"] = "SFA_physical_disk.json"
 GRAFANA_DASHBOARDS["SFA Virtual Disk"] = "SFA_virtual_disk.json"
 RPM_PATTERN_RHEL7 = r"^%s-\d.+(\.el7|).*\.(x86_64|noarch)\.rpm$"
 RPM_PATTERN_RHEL6 = r"^%s-\d.+(\.el6|).*\.(x86_64|noarch)\.rpm$"
+RPM_STRING = "RPMS"
+DEPENDENT_STRING = "dependent"
+COLLECTD_STRING = "collectd"
+RPM_TYPE_COLLECTD = COLLECTD_STRING
+RPM_TYPE_DEPENDENT = DEPENDENT_STRING
+RPM_TYPE_XML = "xml"
 
 def grafana_dashboard_check(name, dashboard):
     """
@@ -152,7 +158,8 @@ class EsmonServer(object):
             ret = self.es_host.sh_rpm_query(dependent_rpm)
             if ret == 0:
                 continue
-            ret = self.es_client.ec_rpm_install(dependent_rpm)
+            ret = self.es_client.ec_rpm_install(dependent_rpm,
+                                                RPM_TYPE_DEPENDENT)
             if ret:
                 logging.error("failed to install dependent RPM on ESMON "
                               "server [%s]", self.es_host.sh_hostname)
@@ -221,7 +228,7 @@ class EsmonServer(object):
                               retval.cr_stderr)
                 return -1
 
-        ret = self.es_client.ec_rpm_install("influxdb")
+        ret = self.es_client.ec_rpm_install("influxdb", RPM_TYPE_DEPENDENT)
         if ret:
             logging.error("failed to install Influxdb RPM on ESMON "
                           "server [%s]", self.es_host.sh_hostname)
@@ -581,7 +588,7 @@ class EsmonServer(object):
                               retval.cr_stderr)
                 return -1
 
-        ret = self.es_client.ec_rpm_install("grafana")
+        ret = self.es_client.ec_rpm_install("grafana", RPM_TYPE_DEPENDENT)
         if ret:
             logging.error("failed to install Influxdb RPM on ESMON "
                           "server [%s]", self.es_host.sh_hostname)
@@ -771,7 +778,11 @@ class EsmonClient(object):
         self.ec_influxdb_update_time = None
         self.ec_distro = None
         self.ec_rpm_pattern = None
+        self.ec_rpm_dependent_dir = None
+        self.ec_rpm_collectd_dir = None
         self.ec_rpm_dir = None
+        self.ec_rpm_dependent_fnames = None
+        self.ec_rpm_collectd_fnames = None
         self.ec_rpm_fnames = None
 
     def ec_check(self):
@@ -802,14 +813,21 @@ class EsmonClient(object):
             logging.error("distro of host [%s] is not RHEL6/CentOS6 or "
                           "RHEL7/CentOS7", self.ec_host.sh_hostname)
             return -1
-        self.ec_rpm_dir = self.ec_iso_dir + "/RPMS/" + distro
+        self.ec_rpm_dir = ("%s/%s" %
+                           (self.ec_iso_dir, RPM_STRING))
+        rpm_distro_dir = ("%s/%s" %
+                          (self.ec_rpm_dir, distro))
+        self.ec_rpm_dependent_dir = ("%s/%s" %
+                                     (rpm_distro_dir, DEPENDENT_STRING))
+        self.ec_rpm_collectd_dir = ("%s/%s" %
+                                    (rpm_distro_dir, COLLECTD_STRING))
         return 0
 
     def ec_dependent_rpms_install(self):
         """
         Install dependent RPMs
         """
-        existing_rpms = self.ec_rpm_fnames[:]
+        existing_rpms = self.ec_rpm_dependent_fnames[:]
         logging.debug("find following RPMs: %s", existing_rpms)
 
         # lm_sensors-libs might be installed with different version. So remove
@@ -838,7 +856,7 @@ class EsmonClient(object):
         for dependent_rpm in dependent_rpms:
             ret = self.ec_host.sh_rpm_query(dependent_rpm)
             if ret:
-                ret = self.ec_rpm_install(dependent_rpm)
+                ret = self.ec_rpm_install(dependent_rpm, RPM_TYPE_DEPENDENT)
                 if ret:
                     logging.error("failed to install RPM [%s] on ESMON client "
                                   "[%s]", dependent_rpm,
@@ -878,7 +896,7 @@ class EsmonClient(object):
                 return -1
         return 0
 
-    def ec_rpm_reinstall(self, rpm_name):
+    def ec_rpm_reinstall(self, rpm_name, rpm_type):
         """
         Reinstall a RPM
         """
@@ -887,7 +905,7 @@ class EsmonClient(object):
             logging.error("failed to reinstall collectd RPM")
             return -1
 
-        ret = self.ec_rpm_install(rpm_name)
+        ret = self.ec_rpm_install(rpm_name, rpm_type)
         if ret:
             logging.error("failed to install RPM [%s] on ESMON client "
                           "[%s]", rpm_name, self.ec_host.sh_hostname)
@@ -913,21 +931,34 @@ class EsmonClient(object):
             logging.error("failed to install collectd RPMs")
             return -1
 
-        ret = self.ec_rpm_reinstall("xml_definition")
+        ret = self.ec_rpm_reinstall("xml_definition", RPM_TYPE_XML)
         if ret:
             logging.error("failed to reinstall XML definition RPM")
             return -1
 
         return 0
 
-    def ec_rpm_install(self, name):
+    def ec_rpm_install(self, name, rpm_type):
         """
         Install a RPM in the ISO given the name of the RPM
         """
+        if rpm_type == RPM_TYPE_XML:
+            rpm_dir = self.ec_rpm_dir
+            fnames = self.ec_rpm_fnames
+        elif rpm_type == RPM_TYPE_COLLECTD:
+            rpm_dir = self.ec_rpm_collectd_dir
+            fnames = self.ec_rpm_collectd_fnames
+        elif rpm_type == RPM_TYPE_DEPENDENT:
+            rpm_dir = self.ec_rpm_dependent_dir
+            fnames = self.ec_rpm_dependent_fnames
+        else:
+            logging.error("unexpected RPM type [%s]", rpm_type)
+            return -1
+
         rpm_pattern = (self.ec_rpm_pattern % name)
         rpm_regular = re.compile(rpm_pattern)
         matched_fname = None
-        for filename in self.ec_rpm_fnames[:]:
+        for filename in fnames[:]:
             match = rpm_regular.match(filename)
             if match:
                 matched_fname = filename
@@ -937,11 +968,11 @@ class EsmonClient(object):
         if matched_fname is None:
             logging.error("failed to find RPM with pattern [%s] under "
                           "directory [%s] of host [%s]", rpm_pattern,
-                          self.ec_rpm_dir, self.ec_host.sh_hostname)
+                          rpm_dir, self.ec_host.sh_hostname)
             return -1
 
         command = ("cd %s && rpm -ivh %s" %
-                   (self.ec_rpm_dir, matched_fname))
+                   (rpm_dir, matched_fname))
         retval = self.ec_host.sh_run(command)
         if retval.cr_exit_status:
             logging.error("failed to run command [%s] on host [%s], "
@@ -959,7 +990,7 @@ class EsmonClient(object):
         Install collectd RPMs
         """
         for rpm_name in self.ec_needed_collectd_rpms:
-            ret = self.ec_rpm_install(rpm_name)
+            ret = self.ec_rpm_install(rpm_name, RPM_TYPE_COLLECTD)
             if ret:
                 logging.error("failed to install RPM [%s] on ESMON client "
                               "[%s]", rpm_name, self.ec_host.sh_hostname)
@@ -996,6 +1027,7 @@ class EsmonClient(object):
         """
         send RPMs to client
         """
+        # pylint: disable=too-many-return-statements
         if not no_copy:
             command = ("mkdir -p %s" % (self.ec_workspace))
             retval = self.ec_host.sh_run(command)
@@ -1033,6 +1065,19 @@ class EsmonClient(object):
                               retval.cr_stderr)
                 return -1
 
+        command = "ls %s" % self.ec_rpm_dependent_dir
+        retval = self.ec_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.ec_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        self.ec_rpm_dependent_fnames = retval.cr_stdout.split()
+
         command = "ls %s" % self.ec_rpm_dir
         retval = self.ec_host.sh_run(command)
         if retval.cr_exit_status:
@@ -1045,6 +1090,19 @@ class EsmonClient(object):
                           retval.cr_stderr)
             return -1
         self.ec_rpm_fnames = retval.cr_stdout.split()
+
+        command = "ls %s" % self.ec_rpm_collectd_dir
+        retval = self.ec_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.ec_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        self.ec_rpm_collectd_fnames = retval.cr_stdout.split()
         return 0
 
     def ec_collectd_start(self):
