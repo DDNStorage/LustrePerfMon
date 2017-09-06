@@ -30,6 +30,7 @@ COPYING_STRING = "copying"
 COLLECTD_RPM_NAMES = ["collectd", "collectd-disk", "collectd-filedata",
                       "collectd-ime", "collectd-sensors", "collectd-ssh",
                       "libcollectdclient"]
+SERVER_STRING = "server"
 
 def download_dependent_rpms(host, dependent_dir):
     """
@@ -141,6 +142,7 @@ def download_dependent_rpms(host, dependent_dir):
             return -1
 
     for fname in existing_rpm_fnames:
+        fpath = dependent_dir + "/" + fname
         logging.debug("found unnecessary file [%s] under directory [%s], "
                       "removing it", fname, dependent_dir)
         ret = host.sh_remove_file(fpath)
@@ -753,24 +755,16 @@ def esmon_do_build(workspace, config, config_fpath):
     ret = host_build(workspace, local_host, local_host, collectd_git_path,
                      iso_cached_dir, collectd_version_release,
                      ssh_host.DISTRO_RHEL7)
-    return -1
+    if ret:
+        logging.error("failed to prepare RPMs of CentOS7 on local host")
+        return -1
 
-    command = ("rpm -e zeromq-devel")
-    local_host.sh_run(command)
+    local_distro_rpm_dir = ("%s/%s/%s" %
+                            (iso_cached_dir, RPM_STRING, ssh_host.DISTRO_RHEL7))
+    local_server_rpm_dir = ("%s/%s" %
+                            (local_distro_rpm_dir, SERVER_STRING))
 
-    command = ("yum install libgcrypt-devel libtool-ltdl-devel curl-devel "
-               "libxml2-devel yajl-devel libdbi-devel libpcap-devel "
-               "OpenIPMI-devel iptables-devel libvirt-devel "
-               "libvirt-devel libmemcached-devel mysql-devel libnotify-devel "
-               "libesmtp-devel postgresql-devel rrdtool-devel "
-               "lm_sensors-devel net-snmp-devel libcap-devel "
-               "lvm2-devel libmodbus-devel libmnl-devel iproute-devel "
-               "hiredis-devel libatasmart-devel protobuf-c-devel "
-               "mosquitto-devel gtk2-devel openldap-devel "
-               "zeromq3-devel libssh2-devel rrdtool-devel rrdtool "
-               "createrepo mkisofs yum-utils redhat-lsb unzip "
-               "epel-release perl-Regexp-Common python-pep8 pylint "
-               "lua-devel byacc -y")
+    command = ("mkdir -p %s" % local_server_rpm_dir)
     retval = local_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
@@ -782,40 +776,35 @@ def esmon_do_build(workspace, config, config_fpath):
                       retval.cr_stderr)
         return -1
 
-    grafana_rpm_path = current_dir + "/../" + "grafana-4.4.1-1.x86_64.rpm"
-    command = "test -e %s" % grafana_rpm_path
-    retval = local_host.sh_run(command)
-    if retval.cr_exit_status:
-        command = ("cd %s/.. && wget --no-check-certificate "
-                   "https://s3-us-west-2.amazonaws.com/grafana-releases"
-                   "/release/grafana-4.4.1-1.x86_64.rpm" % workspace)
-        retval = local_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          local_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
+    server_rpms = {}
+    name = "grafana-4.4.1-1.x86_64.rpm"
+    url = ("https://s3-us-west-2.amazonaws.com/grafana-releases/release/"
+           "grafana-4.4.1-1.x86_64.rpm")
+    server_rpms[name] = url
 
-    influxdb_rpm_path = current_dir + "/../" + "influxdb-1.3.1.x86_64.rpm"
-    command = "test -e %s" % influxdb_rpm_path
-    retval = local_host.sh_run(command)
-    if retval.cr_exit_status:
-        command = ("cd %s/.. && curl -LO https://dl.influxdata.com/influxdb/"
-                   "releases/influxdb-1.3.1.x86_64.rpm" % current_dir)
+    name = "influxdb-1.3.1.x86_64.rpm"
+    url = ("https://dl.influxdata.com/influxdb/releases/"
+           "influxdb-1.3.1.x86_64.rpm")
+    server_rpms[name] = url
+
+    for name, url in server_rpms.iteritems():
+        fpath = ("%s/%s" % (local_server_rpm_dir, name))
+        command = "test -e %s" % fpath
         retval = local_host.sh_run(command)
         if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          local_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
+            logging.debug("file [%s] doesn't exist, downloading it", fpath)
+            command = ("cd %s && wget --no-check-certificate %s" %
+                       (local_server_rpm_dir, url))
+            retval = local_host.sh_run(command)
+            if retval.cr_exit_status:
+                logging.error("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              local_host.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
+                return -1
 
     python_library_dict = {}
     name = "certifi-2017.7.27.1.tar.gz"
@@ -963,15 +952,6 @@ def esmon_do_build(workspace, config, config_fpath):
                       python_library_dir, python_library_existing_files)
         return -1
 
-    local_distro_rpm_dir = ("%s/%s/%s" %
-                            (iso_cached_dir, RPM_STRING, ssh_host.DISTRO_RHEL7))
-    local_dependent_rpm_dir = ("%s/%s" %
-                               (local_distro_rpm_dir, DEPENDENT_STRING))
-    ret = download_dependent_rpms(local_host, local_dependent_rpm_dir)
-    if ret:
-        logging.error("failed to install depdendent RPMs")
-        return ret
-
     grafana_status_panel = "Grafana_Status_panel"
     grafana_status_panel_git_path = iso_cached_dir + "/" + grafana_status_panel
     command = "test -e %s" % grafana_status_panel_git_path
@@ -1024,11 +1004,9 @@ def esmon_do_build(workspace, config, config_fpath):
 
     command = ("cd %s && rm esmon-*.tar.bz2 esmon-*.tar.gz -f && "
                "sh autogen.sh && "
-               "./configure --with-collectd=%s --with-grafana=%s "
-               "--with-influxdb=%s --with-dependent-rpms=%s && "
+               "./configure --with-dependent-rpms=%s && "
                "make" %
-               (workspace, collectd_git_path, grafana_rpm_path,
-                influxdb_rpm_path, iso_cached_dir))
+               (current_dir, iso_cached_dir))
     retval = local_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "

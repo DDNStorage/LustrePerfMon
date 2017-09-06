@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT([esmon],[m4_esyscmd(./version-gen.sh)])
-AC_CONFIG_SRCDIR(./collectd/build.sh)
+AC_CONFIG_SRCDIR(./pyesmon/esmon_install.py)
 AC_CONFIG_HEADERS(config.h)
 
 AM_INIT_AUTOMAKE([tar-pax dist-bzip2 foreign])
@@ -120,87 +120,6 @@ AC_ARG_ENABLE([test],
 AC_MSG_RESULT([$enable_test])
 
 if [[[ $enable_xmlonly == 'no' ]]]; then
-	# -------- check for collectd sources --------
-	AC_MSG_CHECKING([for collectd sources])
-	AC_ARG_WITH([collectd],
-		AC_HELP_STRING([--with-collectd=path],
-			       [set path to collectd source]),
-		[MB_ARG_CANON_PATH([collectd], [COLLECTD])],
-		[])
-	AC_MSG_RESULT([$COLLECTD])
-	AC_SUBST(COLLECTD)
-
-	# -------- check for collectd --------
-	MB_CHECK_FILE([$COLLECTD], [],
-		[AC_MSG_ERROR([Collectd source $COLLECTD could not be found.])])
-
-	# -------- check for collectd version --------
-	AC_MSG_CHECKING([for collectd version])
-	git_version=$(git --git-dir=$COLLECTD/.git rev-parse --short HEAD)
-	if [[[ $? -ne 0 ]]]; then
-		AC_MSG_ERROR([$COLLECTD is not a git repository.])
-	fi
-	COLLECTD_VERSION=$(grep Version $COLLECTD/contrib/redhat/collectd.spec | \
-		grep -v \# | awk '{print $2}' | sed -e "s/%{?rev}/$git_version/g")
-	AC_MSG_RESULT([$COLLECTD_VERSION])
-	AC_SUBST(COLLECTD_VERSION)
-
-	# -------- check for collectd release --------
-	AC_MSG_CHECKING([for collectd release])
-	COLLECTD_RELEASE=$(grep Release $COLLECTD/contrib/redhat/collectd.spec | \
-		grep -v \# | awk '{print $2}' | sed -e "s/%{?dist}//g")
-	AC_MSG_RESULT([$COLLECTD_RELEASE])
-	AC_SUBST(COLLECTD_RELEASE)
-
-	# -------- check for collectd RPMs --------
-	AC_MSG_CHECKING([for collectd RPMs])
-	COLLECTD_RPM_SUBFIX=${COLLECTD_VERSION}-${COLLECTD_RELEASE}.el${DISTRO_RELEASE}.x86_64.rpm
-	bases="collectd libcollectdclient libcollectdclient-devel"
-	for base in ${bases}; do
-		COLLECTD_RPMS="${COLLECTD_RPMS} ${base}-${COLLECTD_RPM_SUBFIX}"
-	done
-	ddn_plugins="gpfs ime filedata stress zabbix ssh sensors disk"
-	# REHL7 does not hace ganglia support yet.
-	if [[[ "$DISTRO_RELEASE" != "7" ]]]; then
-		ddn_plugins="ganglia ${ddn_plugins}"
-		common_plugins="rrdtool"
-	fi
-	plugins="${ddn_plugins} ${common_plugins}"
-	for plugin in ${plugins}; do
-		COLLECTD_RPMS="${COLLECTD_RPMS} collectd-${plugin}-${COLLECTD_RPM_SUBFIX}"
-	done
-
-	AC_MSG_RESULT([$COLLECTD_RPMS])
-	AC_SUBST(COLLECTD_RPMS)
-
-	# -------- check for grafana RPM --------
-	AC_MSG_CHECKING([for grafana RPM])
-	AC_ARG_WITH([grafana],
-		AC_HELP_STRING([--with-grafana=path],
-			       [set path to grafana RPM]),
-		[MB_ARG_CANON_PATH([grafana], [GRAFANA_RPM_PATH])],
-		[])
-	AC_MSG_RESULT([$GRAFANA_RPM_PATH])
-	AC_SUBST(GRAFANA_RPM_PATH)
-
-	# -------- check for grafana --------
-	MB_CHECK_FILE([$GRAFANA_RPM_PATH], [],
-		[AC_MSG_ERROR([grafana RPM file $GRAFANA_RPM_PATH could not be found.])])
-
-	# -------- check for influxdb RPM --------
-	AC_MSG_CHECKING([for influxdb RPM])
-	AC_ARG_WITH([influxdb],
-		AC_HELP_STRING([--with-influxdb=path],
-			       [set path to influxdb RPM]),
-		[MB_ARG_CANON_PATH([influxdb], [INFLUXDB_RPM_PATH])],
-		[])
-	AC_MSG_RESULT([$INFLUXDB_RPM_PATH])
-	AC_SUBST(INFLUXDB_RPM_PATH)
-
-	# -------- check for influxdb --------
-	MB_CHECK_FILE([$INFLUXDB_RPM_PATH], [],
-		[AC_MSG_ERROR([influxdb RPM file $INFLUXDB_RPM_PATH could not be found.])])
-
 	# -------- check for opentsdb_web version --------
 	AC_MSG_CHECKING([for opentsdb_web version])
 	OPENTSDB_WEB_REV=$(git rev-parse --short HEAD)
@@ -303,6 +222,6 @@ ESMON_RELEASE="7"
 AC_DEFINE_UNQUOTED(RELEASE, "$ESMON_RELEASE", [release info] )
 AC_SUBST(ESMON_RELEASE)
 
-AC_CONFIG_FILES([Makefile collectd/Makefile esmon.spec xml_definition/Makefile
+AC_CONFIG_FILES([Makefile esmon.spec xml_definition/Makefile
 	opentsdb_web/Makefile])
 AC_OUTPUT

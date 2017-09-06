@@ -49,6 +49,8 @@ DEPENDENT_STRING = "dependent"
 COLLECTD_STRING = "collectd"
 RPM_TYPE_COLLECTD = COLLECTD_STRING
 RPM_TYPE_DEPENDENT = DEPENDENT_STRING
+SERVER_STRING = "server"
+RPM_TYPE_SERVER = SERVER_STRING
 RPM_TYPE_XML = "xml"
 
 def grafana_dashboard_check(name, dashboard):
@@ -228,7 +230,7 @@ class EsmonServer(object):
                               retval.cr_stderr)
                 return -1
 
-        ret = self.es_client.ec_rpm_install("influxdb", RPM_TYPE_DEPENDENT)
+        ret = self.es_client.ec_rpm_install("influxdb", RPM_TYPE_SERVER)
         if ret:
             logging.error("failed to install Influxdb RPM on ESMON "
                           "server [%s]", self.es_host.sh_hostname)
@@ -588,7 +590,7 @@ class EsmonServer(object):
                               retval.cr_stderr)
                 return -1
 
-        ret = self.es_client.ec_rpm_install("grafana", RPM_TYPE_DEPENDENT)
+        ret = self.es_client.ec_rpm_install("grafana", RPM_TYPE_SERVER)
         if ret:
             logging.error("failed to install Influxdb RPM on ESMON "
                           "server [%s]", self.es_host.sh_hostname)
@@ -784,6 +786,8 @@ class EsmonClient(object):
         self.ec_rpm_dependent_fnames = None
         self.ec_rpm_collectd_fnames = None
         self.ec_rpm_fnames = None
+        self.ec_rpm_server_dir = None
+        self.ec_rpm_server_fnames = None
 
     def ec_check(self):
         """
@@ -821,6 +825,8 @@ class EsmonClient(object):
                                      (rpm_distro_dir, DEPENDENT_STRING))
         self.ec_rpm_collectd_dir = ("%s/%s" %
                                     (rpm_distro_dir, COLLECTD_STRING))
+        self.ec_rpm_server_dir = ("%s/%s" %
+                                  (rpm_distro_dir, SERVER_STRING))
         return 0
 
     def ec_dependent_rpms_install(self):
@@ -951,6 +957,9 @@ class EsmonClient(object):
         elif rpm_type == RPM_TYPE_DEPENDENT:
             rpm_dir = self.ec_rpm_dependent_dir
             fnames = self.ec_rpm_dependent_fnames
+        elif rpm_type == RPM_TYPE_SERVER:
+            rpm_dir = self.ec_rpm_server_dir
+            fnames = self.ec_rpm_server_fnames
         else:
             logging.error("unexpected RPM type [%s]", rpm_type)
             return -1
@@ -1103,6 +1112,23 @@ class EsmonClient(object):
                           retval.cr_stderr)
             return -1
         self.ec_rpm_collectd_fnames = retval.cr_stdout.split()
+
+        if self.ec_host.sh_distro() == ssh_host.DISTRO_RHEL6:
+            self.ec_rpm_server_fnames = []
+            return 0
+
+        command = "ls %s" % self.ec_rpm_server_dir
+        retval = self.ec_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.ec_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        self.ec_rpm_server_fnames = retval.cr_stdout.split()
         return 0
 
     def ec_collectd_start(self):

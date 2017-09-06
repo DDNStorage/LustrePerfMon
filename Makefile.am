@@ -1,18 +1,15 @@
 if XMLONLY
 SUBDIRS = xml_definition
 else
-SUBDIRS = collectd xml_definition opentsdb_web .
+SUBDIRS = xml_definition opentsdb_web .
 endif
 
 DISTRO_RHEL6 = rhel6
 DISTRO_RHEL7 = rhel7
-ISO_RPM = BUILD_ISO/RPMS
+ISO_PATH = BUILD_ISO
+ISO_RPM = $(ISO_PATH)/RPMS
 ISO_RPM_RHEL7 = $(ISO_RPM)/$(DISTRO_RHEL7)
-ISO_RPM_RHEL6 = $(ISO_RPM)/$(DISTRO_RHEL6)
-ISO_RPM_RHEL7_COLLECTD = $(ISO_RPM_RHEL7)/collectd
-ISO_RPM_RHEL7_DEPENDENT = $(ISO_RPM_RHEL7)/dependent
-CACHED_RPM_RHEL7_DEPENDENT = $(DEPENDENT_RPMS_PATH)/RPMS/$(DISTRO_RHEL7)/dependent
-CACHED_RPM_RHEL6 = $(DEPENDENT_RPMS_PATH)/RPMS/$(DISTRO_RHEL6)
+ISO_RPM_RHEL7_SERVER = $(ISO_RPM_RHEL7)/server
 
 EXTRA_DIST = version-gen.sh autogen.sh detect-distro.sh esmon.spec \
 	esmon_install esmon_install.conf esmon_build.conf pyesmon/*.py man1/*
@@ -35,26 +32,21 @@ $(ESMON_RPM): esmon.spec dist
 
 esmon-$(MONSYSTEM_PKGVER).x86_64.iso: \
 		$(ESMON_RPM)
-	rm BUILD_ISO -fr
+	rm $(ISO_PATH) -fr
 	rm -f esmon-*.iso
 	rm -f esmon-*.md5
-	mkdir -p $(ISO_RPM_RHEL7_COLLECTD)
-	cp collectd/RPMS/x86_64/* $(ISO_RPM_RHEL7_COLLECTD)
-	cp -a $(CACHED_RPM_RHEL7_DEPENDENT) $(ISO_RPM_RHEL7_DEPENDENT)
-	cp $(GRAFANA_RPM_PATH) $(ISO_RPM_RHEL7_DEPENDENT)
-	cp $(INFLUXDB_RPM_PATH) $(ISO_RPM_RHEL7_DEPENDENT)
-	cp $(OPENTSDB_WEB_RPM_PATH) $(ISO_RPM_RHEL7_DEPENDENT)
-	cp -a $(CACHED_RPM_RHEL6) $(ISO_RPM)
+	cp -a $(DEPENDENT_RPMS_PATH) $(ISO_PATH)
 	cp $(XML_DEFINITION_RPM_PATH) $(ISO_RPM)
-	cp $(ESMON_RPM) $(ISO_RPM_RHEL7)
-	cp influxdb.conf.diff BUILD_ISO
-	cp -a dashboards BUILD_ISO
-	cp installesmon.sh BUILD_ISO
-	cp -a $(DEPENDENT_RPMS_PATH)/Grafana_Status_panel BUILD_ISO
-	cp -a $(DEPENDENT_RPMS_PATH)/python_library BUILD_ISO
-	cp DDN-Storage-RedBG.svg BUILD_ISO
-	cp DDN-Storage-RedBG.png BUILD_ISO
-	mkisofs -joliet-long -R -o esmon-$(MONSYSTEM_PKGVER).x86_64.iso BUILD_ISO
+	cp $(OPENTSDB_WEB_RPM_PATH) $(ISO_RPM_RHEL7_SERVER)
+	cp $(ESMON_RPM) $(ISO_RPM_RHEL7_SERVER)
+	cp influxdb.conf.diff $(ISO_PATH)
+	cp -a dashboards $(ISO_PATH)
+	cp installesmon.sh $(ISO_PATH)
+	cp -a $(DEPENDENT_RPMS_PATH)/Grafana_Status_panel $(ISO_PATH)
+	cp -a $(DEPENDENT_RPMS_PATH)/python_library $(ISO_PATH)
+	cp DDN-Storage-RedBG.svg $(ISO_PATH)
+	cp DDN-Storage-RedBG.png $(ISO_PATH)
+	mkisofs -joliet-long -R -o esmon-$(MONSYSTEM_PKGVER).x86_64.iso $(ISO_PATH)
 
 esmon-$(MONSYSTEM_PKGVER).x86_64.md5: \
 		esmon-$(MONSYSTEM_PKGVER).x86_64.iso
