@@ -38,6 +38,60 @@ def download_dependent_rpms(host, dependent_dir):
     """
     # pylint: disable=too-many-locals,too-many-return-statements
     # pylint: disable=too-many-branches,too-many-statements
+    # The DDN collectd might be installed, uninstall to avoid error of yum
+    # update
+    command = "rpm -qa | grep collectd"
+    retval = host.sh_run(command)
+    if retval.cr_exit_status and retval.cr_stderr != "":
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    collectd_rpms = retval.cr_stdout
+    if collectd_rpms != "":
+        command = "rpm -e %s" % collectd_rpms
+        retval = host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+    # Update to the latest distro release
+    command = "yum update -y"
+    retval = host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    # The yumdb might be broken, so sync
+    command = "yumdb sync"
+    retval = host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
     dependent_rpms = ["openpgm", "yajl", "zeromq3", "fontconfig", "glibc",
                       "glibc-common", "glibc-devel", "fontpackages-filesystem",
                       "glibc-headers", "glibc-static", "libfontenc", "libtool",
@@ -64,19 +118,6 @@ def download_dependent_rpms(host, dependent_dir):
         command += " " + rpm_name
 
     # Install the RPM to get the fullname and checksum in db
-    retval = host.sh_run(command)
-    if retval.cr_exit_status:
-        logging.error("failed to run command [%s] on host [%s], "
-                      "ret = [%d], stdout = [%s], stderr = [%s]",
-                      command,
-                      host.sh_hostname,
-                      retval.cr_exit_status,
-                      retval.cr_stdout,
-                      retval.cr_stderr)
-        return -1
-
-    # The yumdb might be broken, so sync
-    command = "yumdb sync"
     retval = host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
@@ -170,6 +211,12 @@ def collectd_build(workspace, build_host, local_host, collectd_git_path,
     Build Collectd on CentOS6 host
     """
     # pylint: disable=too-many-return-statements,too-many-arguments
+    if distro == ssh_host.DISTRO_RHEL6:
+        distro_number = "6"
+    elif distro == ssh_host.DISTRO_RHEL7:
+        distro_number = "7"
+    else:
+        return -1
     local_distro_rpm_dir = ("%s/%s/%s" %
                             (iso_cached_dir, RPM_STRING, distro))
     local_collectd_rpm_copying_dir = ("%s/%s" %
@@ -187,11 +234,8 @@ def collectd_build(workspace, build_host, local_host, collectd_git_path,
         return -1
 
     command = ("cd %s && mkdir -p libltdl/config && sh ./build.sh && "
-               "./configure --enable-write_tsdb --enable-dist --enable-nfs "
-               "--disable-java --disable-amqp --disable-gmond --disable-nut "
-               "--disable-pinba --disable-ping --disable-varnish "
-               "--disable-dpdkstat --disable-turbostat && "
-               "make && make dist-bzip2 && "
+               "./configure --enable-dist && "
+               "make dist-bzip2 && "
                "mkdir {BUILD,RPMS,SOURCES,SRPMS} && "
                "mv collectd-*.tar.bz2 SOURCES" % host_collectd_git_dir)
     retval = build_host.sh_run(command)
@@ -212,8 +256,9 @@ def collectd_build(workspace, build_host, local_host, collectd_git_path,
                '--without turbostat --without redis --without write_redis '
                '--without gps --define "_topdir %s" '
                '--define="rev $(git rev-parse --short HEAD)" '
+               '--define="dist .el%s" '
                'contrib/redhat/collectd.spec' %
-               (host_collectd_git_dir, host_collectd_git_dir))
+               (host_collectd_git_dir, host_collectd_git_dir, distro_number))
     retval = build_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
