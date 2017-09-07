@@ -54,7 +54,7 @@ def download_dependent_rpms(host, dependent_dir):
 
     collectd_rpms = retval.cr_stdout
     if collectd_rpms != "":
-        command = "rpm -e %s" % collectd_rpms
+        command = "rpm -e %s" % collectd_rpms.replace("\n", " ")
         retval = host.sh_run(command)
         if retval.cr_exit_status:
             logging.error("failed to run command [%s] on host [%s], "
