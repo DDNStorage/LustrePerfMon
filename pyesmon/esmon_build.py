@@ -468,12 +468,12 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
             return -1
     else:
         command = ("mkdir -p %s" % (host_dependent_rpm_dir))
-        retval = local_host.sh_run(command)
+        retval = build_host.sh_run(command)
         if retval.cr_exit_status:
             logging.error("failed to run command [%s] on host [%s], "
                           "ret = [%d], stdout = [%s], stderr = [%s]",
                           command,
-                          local_host.sh_hostname,
+                          build_host.sh_hostname,
                           retval.cr_exit_status,
                           retval.cr_stdout,
                           retval.cr_stderr)
@@ -509,7 +509,7 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
                 local_copying_dependent_rpm_dir,
                 local_dependent_rpm_dir,
                 local_copying_rpm_dir))
-    retval = build_host.sh_run(command)
+    retval = local_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
                       "ret = [%d], stdout = [%s], stderr = [%s]",
