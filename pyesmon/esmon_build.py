@@ -19,7 +19,6 @@ from pyesmon import ssh_host
 
 ESMON_BUILD_CONFIG_FNAME = "esmon_build.conf"
 ESMON_BUILD_CONFIG = "/etc/" + ESMON_BUILD_CONFIG_FNAME
-ESMON_BUILD_LOG_DIR = "/var/log/esmon_build"
 DEPENDENT_STRING = "dependent"
 COLLECTD_STRING = "collectd"
 COLLECT_GIT_STRING = COLLECTD_STRING + ".git"
@@ -31,6 +30,7 @@ COLLECTD_RPM_NAMES = ["collectd", "collectd-disk", "collectd-filedata",
                       "collectd-ime", "collectd-sensors", "collectd-ssh",
                       "libcollectdclient"]
 SERVER_STRING = "server"
+ESMON_BUILD_LOG_DIR = "/var/log"
 
 def download_dependent_rpms(host, dependent_dir):
     """
@@ -589,7 +589,7 @@ def config_value(config, key):
     return config[key]
 
 
-def esmon_do_build(workspace, config, config_fpath):
+def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
     """
     Build the ISO
     """
@@ -651,7 +651,6 @@ def esmon_do_build(workspace, config, config_fpath):
         logging.error("build can only be launched on RHEL7/CentOS7 host")
         return -1
 
-    current_dir = os.getcwd()
     iso_cached_dir = current_dir + "/../iso_cached_dir"
     collectd_git_path = current_dir + "/../" + "collectd.git"
     rpm_dir = iso_cached_dir + "/RPMS"
@@ -786,8 +785,8 @@ def esmon_do_build(workspace, config, config_fpath):
     collectd_release_string = retval.cr_stdout.strip()
     collectd_release = collectd_release_string.replace('%{?dist}', '')
     collectd_version_release = collectd_version + "-" + collectd_release
-
-    ret = host_build(workspace, centos6_host, local_host, collectd_git_path,
+    centos6_workspace = ESMON_BUILD_LOG_DIR + "/" + relative_workspace
+    ret = host_build(centos6_workspace, centos6_host, local_host, collectd_git_path,
                      iso_cached_dir, collectd_version_release,
                      ssh_host.DISTRO_RHEL6)
     if ret:
@@ -797,7 +796,8 @@ def esmon_do_build(workspace, config, config_fpath):
 
     # The build host of CentOS7 could potentially be another host, not local
     # host
-    ret = host_build(workspace, local_host, local_host, collectd_git_path,
+    local_workspace = current_dir + "/" + relative_workspace
+    ret = host_build(local_workspace, local_host, local_host, collectd_git_path,
                      iso_cached_dir, collectd_version_release,
                      ssh_host.DISTRO_RHEL7)
     if ret:
@@ -1063,10 +1063,21 @@ def esmon_do_build(workspace, config, config_fpath):
                       retval.cr_stderr)
         return -1
 
+    command = ("rm -fr %s" % (centos6_workspace))
+    retval = centos6_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      centos6_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
     return 0
 
 
-def esmon_build(workspace, config_fpath):
+def esmon_build(current_dir, relative_workspace, config_fpath):
     """
     Build the ISO
     """
@@ -1083,7 +1094,7 @@ def esmon_build(workspace, config_fpath):
     if ret:
         return -1
 
-    return esmon_do_build(workspace, config, config_fpath)
+    return esmon_do_build(current_dir, relative_workspace, config, config_fpath)
 
 
 def usage():
@@ -1110,34 +1121,39 @@ def main():
         sys.exit(-1)
 
     identity = utils.local_strftime(utils.utcnow(), "%Y-%m-%d-%H_%M_%S")
-    workspace = ESMON_BUILD_LOG_DIR + "/" + identity
 
-    if not os.path.exists(ESMON_BUILD_LOG_DIR):
-        os.mkdir(ESMON_BUILD_LOG_DIR)
-    elif not os.path.isdir(ESMON_BUILD_LOG_DIR):
-        logging.error("[%s] is not a directory", ESMON_BUILD_LOG_DIR)
+    current_dir = os.getcwd()
+    build_log_dir = "build_esmon"
+    relative_workspace = build_log_dir + "/" + identity
+
+    local_workspace = current_dir + "/" + relative_workspace
+    local_log_dir = current_dir + "/" + build_log_dir
+    if not os.path.exists(local_log_dir):
+        os.mkdir(local_log_dir)
+    elif not os.path.isdir(local_log_dir):
+        logging.error("[%s] is not a directory", local_log_dir)
         sys.exit(-1)
 
-    if not os.path.exists(workspace):
-        os.mkdir(workspace)
-    elif not os.path.isdir(workspace):
-        logging.error("[%s] is not a directory", workspace)
+    if not os.path.exists(local_workspace):
+        os.mkdir(local_workspace)
+    elif not os.path.isdir(local_workspace):
+        logging.error("[%s] is not a directory", local_workspace)
         sys.exit(-1)
 
     print("Started building Exascaler monitoring system using config [%s], "
           "please check [%s] for more log" %
-          (config_fpath, workspace))
-    utils.configure_logging(workspace)
+          (config_fpath, local_workspace))
+    utils.configure_logging(local_workspace)
 
     console_handler = utils.LOGGING_HANLDERS["console"]
     console_handler.setLevel(logging.DEBUG)
 
-    save_fpath = workspace + "/" + ESMON_BUILD_CONFIG_FNAME
+    save_fpath = local_workspace + "/" + ESMON_BUILD_CONFIG_FNAME
     logging.debug("copying config file from [%s] to [%s]", config_fpath,
                   save_fpath)
     shutil.copyfile(config_fpath, save_fpath)
 
-    ret = esmon_build(workspace, config_fpath)
+    ret = esmon_build(current_dir, relative_workspace, config_fpath)
     if ret:
         logging.error("build failed")
         sys.exit(ret)
