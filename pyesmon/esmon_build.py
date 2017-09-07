@@ -37,7 +37,7 @@ def download_dependent_rpms(host, dependent_dir):
     Download dependent RPMs
     """
     # pylint: disable=too-many-locals,too-many-return-statements
-    # pylint: disable=too-many-branches
+    # pylint: disable=too-many-branches,too-many-statements
     dependent_rpms = ["openpgm", "yajl", "zeromq3", "fontconfig", "glibc",
                       "glibc-common", "glibc-devel", "fontpackages-filesystem",
                       "glibc-headers", "glibc-static", "libfontenc", "libtool",
@@ -64,6 +64,19 @@ def download_dependent_rpms(host, dependent_dir):
         command += " " + rpm_name
 
     # Install the RPM to get the fullname and checksum in db
+    retval = host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    # The yumdb might be broken, so sync
+    command = "yumdb sync"
     retval = host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
@@ -514,7 +527,7 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
         logging.error("failed to run command [%s] on host [%s], "
                       "ret = [%d], stdout = [%s], stderr = [%s]",
                       command,
-                      build_host.sh_hostname,
+                      local_host.sh_hostname,
                       retval.cr_exit_status,
                       retval.cr_stdout,
                       retval.cr_stderr)
