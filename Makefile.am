@@ -35,15 +35,15 @@ esmon-$(MONSYSTEM_PKGVER).x86_64.iso: \
 	rm $(ISO_PATH) -fr
 	rm -f esmon-*.iso
 	rm -f esmon-*.md5
-	cp -a $(DEPENDENT_RPMS_PATH) $(ISO_PATH)
+	cp -a $(CACHED_ISO_PATH) $(ISO_PATH)
 	cp $(XML_DEFINITION_RPM_PATH) $(ISO_RPM)
 	cp $(OPENTSDB_WEB_RPM_PATH) $(ISO_RPM_RHEL7_SERVER)
 	cp $(ESMON_RPM) $(ISO_RPM_RHEL7_SERVER)
 	cp influxdb.conf.diff $(ISO_PATH)
 	cp -a dashboards $(ISO_PATH)
 	cp installesmon.sh $(ISO_PATH)
-	cp -a $(DEPENDENT_RPMS_PATH)/Grafana_Status_panel $(ISO_PATH)
-	cp -a $(DEPENDENT_RPMS_PATH)/python_library $(ISO_PATH)
+	cp -a $(CACHED_ISO_PATH)/Grafana_Status_panel $(ISO_PATH)
+	cp -a $(CACHED_ISO_PATH)/python_library $(ISO_PATH)
 	cp DDN-Storage-RedBG.svg $(ISO_PATH)
 	cp DDN-Storage-RedBG.png $(ISO_PATH)
 	mkisofs -joliet-long -R -o esmon-$(MONSYSTEM_PKGVER).x86_64.iso $(ISO_PATH)

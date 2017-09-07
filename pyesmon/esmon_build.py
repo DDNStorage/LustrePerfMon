@@ -1004,7 +1004,7 @@ def esmon_do_build(workspace, config, config_fpath):
 
     command = ("cd %s && rm esmon-*.tar.bz2 esmon-*.tar.gz -f && "
                "sh autogen.sh && "
-               "./configure --with-dependent-rpms=%s && "
+               "./configure --with-cached-iso=%s && "
                "make" %
                (current_dir, iso_cached_dir))
     retval = local_host.sh_run(command)

@@ -146,19 +146,18 @@ if [[[ $enable_xmlonly == 'no' ]]]; then
 	AC_MSG_RESULT([$OPENTSDB_WEB_RPM])
 	AC_SUBST(OPENTSDB_WEB_RPM)
 
-	# -------- check for dependent RPMs --------
-	AC_MSG_CHECKING([for dependent RPMs])
-	AC_ARG_WITH([dependent_rpms],
-		AC_HELP_STRING([--with-dependent-rpms=path],
-			       [set path to dependent RPMs]),
-		[MB_ARG_CANON_PATH([dependent-rpms], [DEPENDENT_RPMS_PATH])],
+	# -------- check for cached ISO --------
+	AC_MSG_CHECKING([for cached ISO])
+	AC_ARG_WITH([cached_iso],
+		AC_HELP_STRING([--with-cached-iso=path],
+			       [set path to cached ISO]),
+		[MB_ARG_CANON_PATH([cached-iso], [CACHED_ISO_PATH])],
 		[])
-	AC_MSG_RESULT([$DEPENDENT_RPMS_PATH])
-	AC_SUBST(DEPENDENT_RPMS_PATH)
+	AC_MSG_RESULT([$CACHED_ISO_PATH])
+	AC_SUBST(CACHED_ISO_PATH)
 
-	# -------- check for dependent --------
-	MB_CHECK_FILE([$DEPENDENT_RPMS_PATH], [],
-		[AC_MSG_ERROR([dependent RPMs dir $DEPENDENT_RPMS_PATH could not be found.])])
+	MB_CHECK_FILE([$CACHED_ISO_PATH], [],
+		[AC_MSG_ERROR([cached ISO dir $CACHED_ISO_PATH could not be found.])])
 fi
 
 # -------- check for xml_definition version --------
