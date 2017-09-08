@@ -23,6 +23,7 @@ import slugify
 from pyesmon import utils
 from pyesmon import ssh_host
 from pyesmon import collectd
+from pyesmon import grafana
 
 ESMON_INSTALL_CONFIG_FNAME = "esmon_install.conf"
 ESMON_INSTALL_CONFIG = "/etc/" + ESMON_INSTALL_CONFIG_FNAME
@@ -37,6 +38,7 @@ GRAFANA_DASHBOARD_DIR = "dashboards"
 GRAFANA_STATUS_PANEL = "Grafana_Status_panel"
 GRAFANA_PLUGIN_DIR = "/var/lib/grafana/plugins"
 GRAFANA_DASHBOARDS = {}
+GRAFANA_DASHBOARDS["Cluster Status"] = "cluster_status.json"
 GRAFANA_DASHBOARDS["Lustre Statistics"] = "lustre_statistics.json"
 GRAFANA_DASHBOARDS["Server Statistics"] = "server_statistics.json"
 GRAFANA_DASHBOARDS["Server Statistics"] = "server_statistics.json"
@@ -74,6 +76,7 @@ class EsmonServer(object):
     """
     ESMON server host has an object of this type
     """
+    # pylint: disable=too-many-public-methods
     def __init__(self, host, workspace):
         self.es_host = host
         self.es_workspace = workspace
@@ -425,16 +428,11 @@ class EsmonServer(object):
             return -1
         return 0
 
-    def es_grafana_dashboard_add(self, mnt_path, name, fname):
+    def es_grafana_dashboard_add(self, name, dashboard):
         """
         Add dashboard of grafana
         """
         # pylint: disable=bare-except
-        dashboard_json_fpath = (mnt_path + "/" + GRAFANA_DASHBOARD_DIR +
-                                "/" + fname)
-        with open(dashboard_json_fpath) as json_file:
-            dashboard = json.load(json_file)
-
         ret = grafana_dashboard_check(name, dashboard)
         if ret:
             return ret
@@ -506,6 +504,22 @@ class EsmonServer(object):
         logging.error("got grafana status [%d] when get dashboard",
                       response.status_code)
         return -1
+
+    def es_grafana_dashboard_replace(self, name, dashboard):
+        """
+        Replace a bashboard in grafana
+        """
+        ret = self.es_grafana_has_dashboard(name)
+        if ret < 0:
+            return -1
+        elif ret == 1:
+            ret = self.es_grafana_dashboard_delete(name)
+            if ret:
+                return ret
+
+        ret = self.es_grafana_dashboard_add(name, dashboard)
+        return ret
+
 
     def es_grafana_change_logo(self):
         """
@@ -628,15 +642,12 @@ class EsmonServer(object):
             return ret
 
         for name, fname in GRAFANA_DASHBOARDS.iteritems():
-            ret = self.es_grafana_has_dashboard(name)
-            if ret < 0:
-                return -1
-            elif ret == 1:
-                ret = self.es_grafana_dashboard_delete(name)
-                if ret:
-                    return ret
+            dashboard_json_fpath = (mnt_path + "/" + GRAFANA_DASHBOARD_DIR +
+                                    "/" + fname)
+            with open(dashboard_json_fpath) as json_file:
+                dashboard = json.load(json_file)
 
-            ret = self.es_grafana_dashboard_add(mnt_path, name, fname)
+            ret = self.es_grafana_dashboard_replace(name, dashboard)
             if ret:
                 return ret
 
