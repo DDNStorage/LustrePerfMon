@@ -1474,3 +1474,46 @@ class SSHHost(object):
                           retval.cr_stderr)
             return None
         return retval.cr_stdout.strip()
+
+    def sh_virsh_dominfo(self, hostname):
+        command = ("virsh dominfo %s" % hostname)
+        retval = self.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command, self.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return None
+
+        lines = retval.cr_stdout.splitlines()
+        output_pattern = (r"^(?P<key>.+): +(?P<value>.+)$")
+        output_regular = re.compile(output_pattern)
+        infos = {}
+        for line in lines:
+            match = output_regular.match(line)
+            if match:
+                logging.debug("matched pattern [%s] with line [%s]",
+                              output_pattern, line)
+                key = match.group("key")
+                value = match.group("value")
+                infos[key] = value
+
+        return infos
+
+    def sh_virsh_dominfo_state(self, hostname):
+        """
+        Get the state of a hostname
+        """
+        dominfos = self.sh_virsh_dominfo(hostname)
+        if dominfos is None:
+            logging.error("failed to get dominfo of [%s] on host [%s]",
+                          hostname, self.sh_hostname)
+            return None
+
+        if "State" not in dominfos:
+            logging.error("no [State] in dominfo of [%s] on host [%s]",
+                          hostname, self.sh_hostname)
+            return None
+        return  dominfos["State"]
