@@ -458,6 +458,7 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
     command = ("rpm -e zeromq-devel")
     build_host.sh_run(command)
 
+    # The RPMs needed by Collectd building
     command = ("yum install libgcrypt-devel libtool-ltdl-devel curl-devel "
                "libxml2-devel yajl-devel libdbi-devel libpcap-devel "
                "OpenIPMI-devel iptables-devel libvirt-devel "

@@ -30,8 +30,11 @@ $(ESMON_RPM): esmon.spec dist
 			--define="dist .el${DISTRO_RELEASE}" \
 		&& echo "RPM successfully generated in $(build_dir)/RPMS"
 
+doc/manual.pdf: doc/manual.md
+	pandoc --latex-engine=xelatex --toc doc/manual.md -o doc/manual.pdf
+
 esmon-$(MONSYSTEM_PKGVER).x86_64.iso: \
-		$(ESMON_RPM)
+		$(ESMON_RPM) doc/manual.pdf
 	rm $(ISO_PATH) -fr
 	rm -f esmon-*.iso
 	rm -f esmon-*.md5
@@ -46,6 +49,7 @@ esmon-$(MONSYSTEM_PKGVER).x86_64.iso: \
 	cp -a $(CACHED_ISO_PATH)/python_library $(ISO_PATH)
 	cp DDN-Storage-RedBG.svg $(ISO_PATH)
 	cp DDN-Storage-RedBG.png $(ISO_PATH)
+	cp doc/manual.pdf $(ISO_PATH)
 	mkisofs -joliet-long -R -o esmon-$(MONSYSTEM_PKGVER).x86_64.iso $(ISO_PATH)
 
 esmon-$(MONSYSTEM_PKGVER).x86_64.md5: \
