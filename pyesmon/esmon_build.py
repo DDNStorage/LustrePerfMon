@@ -170,6 +170,7 @@ def collectd_build(workspace, build_host, local_host, collectd_git_path,
     Build Collectd on CentOS6 host
     """
     # pylint: disable=too-many-return-statements,too-many-arguments
+     # pylint: disable=too-many-locals,too-many-branches,too-many-statements
     if distro == ssh_host.DISTRO_RHEL6:
         distro_number = "6"
     elif distro == ssh_host.DISTRO_RHEL7:
@@ -193,10 +194,67 @@ def collectd_build(workspace, build_host, local_host, collectd_git_path,
         return -1
 
     command = ("cd %s && mkdir -p libltdl/config && sh ./build.sh && "
-               "./configure --enable-dist && "
-               "make dist-bzip2 && "
-               "mkdir {BUILD,RPMS,SOURCES,SRPMS} && "
-               "mv collectd-*.tar.bz2 SOURCES/%s" %
+               "./configure && "
+               "make dist-bzip2"%
+               (host_collectd_git_dir))
+    retval = build_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      build_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    command = ("cd %s && ls collectd-*.tar.bz2" %
+               (host_collectd_git_dir))
+    retval = build_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      build_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    collectd_tarballs = retval.cr_stdout.split()
+    if len(collectd_tarballs) != 1:
+        logging.error("unexpected output of Collectd tarball: [%s]",
+                      retval.cr_stdout)
+        return -1
+
+    collectd_tarball_fname = collectd_tarballs[0]
+
+    if (not collectd_tarball_fname.endswith(".tar.bz2") or
+            len(collectd_tarball_fname) <= 8):
+        logging.error("unexpected Collectd tarball fname: [%s]",
+                      collectd_tarball_fname)
+        return -1
+
+    collectd_tarball_current_name = collectd_tarball_fname[:-8]
+
+    command = ("cd %s && tar jxf %s && "
+               "mv %s %s && tar cjf %s.tar.bz2 %s" %
+               (host_collectd_git_dir, collectd_tarball_fname,
+                collectd_tarball_current_name, collectd_tarball_name,
+                collectd_tarball_name, collectd_tarball_name))
+    retval = build_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      build_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    command = ("cd %s && mkdir {BUILD,RPMS,SOURCES,SRPMS} && "
+               "mv %s.tar.bz2 SOURCES" %
                (host_collectd_git_dir, collectd_tarball_name))
     retval = build_host.sh_run(command)
     if retval.cr_exit_status:
@@ -462,6 +520,7 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
     build_host.sh_run(command)
 
     # The RPMs needed by Collectd building
+    # riemann-c-client-devel is not available for RHEL6, but that is fine
     command = ("yum install libgcrypt-devel libtool-ltdl-devel curl-devel "
                "libxml2-devel yajl-devel libdbi-devel libpcap-devel "
                "OpenIPMI-devel iptables-devel libvirt-devel "
@@ -474,7 +533,8 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
                "zeromq3-devel libssh2-devel rrdtool-devel rrdtool "
                "createrepo mkisofs yum-utils redhat-lsb unzip "
                "epel-release perl-Regexp-Common python-pep8 pylint "
-               "lua-devel byacc ganglia-devel libmicrohttpd-devel -y")
+               "lua-devel byacc ganglia-devel libmicrohttpd-devel "
+               "riemann-c-client-devel xfsprogs-devel -y")
     retval = build_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
@@ -755,7 +815,7 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
         return -1
     collectd_version_string = retval.cr_stdout.strip()
     collectd_version = collectd_version_string.replace('%{?rev}', collectd_git_version)
-    collectd_tarball_name = "collectd-" + collectd_version_string + ".tar.bz2"
+    collectd_tarball_name = "collectd-" + collectd_version_string
 
     command = (r"cd %s && grep Release contrib/redhat/collectd.spec | "
                r"grep -v \# | awk '{print $2}'"  %
