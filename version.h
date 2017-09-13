@@ -1,1 +1,1 @@
-#define MONSYSTEM_VERSION "1.0"
+#define MONSYSTEM_VERSION "1.1"
