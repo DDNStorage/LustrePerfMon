@@ -475,34 +475,6 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
                                         DEPENDENT_STRING))
     host_dependent_rpm_dir = ("%s/%s" % (workspace, DEPENDENT_STRING))
 
-    # The DDN collectd might be installed, uninstall to avoid error of yum
-    # update
-    command = "rpm -qa | grep collectd"
-    retval = build_host.sh_run(command)
-    if retval.cr_exit_status and retval.cr_stderr != "":
-        logging.error("failed to run command [%s] on host [%s], "
-                      "ret = [%d], stdout = [%s], stderr = [%s]",
-                      command,
-                      build_host.sh_hostname,
-                      retval.cr_exit_status,
-                      retval.cr_stdout,
-                      retval.cr_stderr)
-        return -1
-
-    collectd_rpms = retval.cr_stdout
-    if collectd_rpms != "":
-        command = "rpm -e %s" % collectd_rpms.replace("\n", " ")
-        retval = build_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          build_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
-
     # Update to the latest distro release
     command = "yum update -y"
     retval = build_host.sh_run(command)
