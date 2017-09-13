@@ -165,7 +165,7 @@ def download_dependent_rpms(host, dependent_dir):
 
 
 def collectd_build(workspace, build_host, local_host, collectd_git_path,
-                   iso_cached_dir, distro):
+                   iso_cached_dir, collectd_tarball_name, distro):
     """
     Build Collectd on CentOS6 host
     """
@@ -196,7 +196,8 @@ def collectd_build(workspace, build_host, local_host, collectd_git_path,
                "./configure --enable-dist && "
                "make dist-bzip2 && "
                "mkdir {BUILD,RPMS,SOURCES,SRPMS} && "
-               "mv collectd-*.tar.bz2 SOURCES" % host_collectd_git_dir)
+               "mv collectd-*.tar.bz2 SOURCES/%s" %
+               (host_collectd_git_dir, collectd_tarball_name))
     retval = build_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
@@ -275,7 +276,7 @@ def collectd_build(workspace, build_host, local_host, collectd_git_path,
 
 def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
                          iso_cached_dir, collectd_version_release,
-                         distro):
+                         collectd_tarball_name, distro):
     """
     Check and build Collectd RPMs
     """
@@ -327,7 +328,8 @@ def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
 
     if not found:
         ret = collectd_build(workspace, build_host, local_host,
-                             collectd_git_path, iso_cached_dir, distro)
+                             collectd_git_path, iso_cached_dir,
+                             collectd_tarball_name, distro)
         if ret:
             logging.error("failed to build Collectd on host [%s]",
                           build_host.sh_hostname)
@@ -392,7 +394,8 @@ def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
     return 0
 
 def host_build(workspace, build_host, local_host, collectd_git_path,
-               iso_cached_dir, collectd_version_release, distro):
+               iso_cached_dir, collectd_version_release, collectd_tarball_name,
+               distro):
     """
     Build on host
     """
@@ -498,7 +501,7 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
     ret = collectd_build_check(workspace, build_host, local_host,
                                collectd_git_path, iso_cached_dir,
                                collectd_version_release,
-                               distro)
+                               collectd_tarball_name, distro)
     if ret:
         return -1
 
@@ -590,6 +593,42 @@ def config_value(config, key):
     return config[key]
 
 
+def clone_src_from_git(build_dir, git_url, branch,
+                       ssh_identity_file=None):
+    """
+    Get the Lustre soure codes from Git server.
+    """
+    command = ("rm -fr %s && mkdir -p %s && git init %s" %
+               (build_dir, build_dir, build_dir))
+    retval = utils.run(command)
+    if retval.cr_exit_status != 0:
+        logging.error("failed to run command [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command, retval.cr_exit_status, retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    command = ("cd %s && git config remote.origin.url %s && "
+               "GIT_SSH_COMMAND=\"ssh -i /root/.ssh/id_dsa\" "
+               "git fetch --tags --progress %s "
+               "+refs/heads/*:refs/remotes/origin/* && "
+               "git checkout origin/%s -f" %
+               (build_dir, git_url, git_url, branch))
+    if ssh_identity_file is not None:
+        # Git 2.3.0+ has GIT_SSH_COMMAND
+        command = ("ssh-agent sh -c 'ssh-add " + ssh_identity_file +
+                   " && " + command + "'")
+
+    retval = utils.run(command)
+    if retval.cr_exit_status != 0:
+        logging.error("failed to run command [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command, retval.cr_exit_status, retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+    return 0
+
+
 def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
     """
     Build the ISO
@@ -667,77 +706,24 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
                       retval.cr_stderr)
         return -1
 
-    command = "test -e %s" % collectd_git_path
-    retval = local_host.sh_run(command)
-    if retval.cr_exit_status:
-        collectd_git_url = config_value(config, "collectd_git_url")
-        if collectd_git_url is None:
-            logging.error("can NOT find [collectd_git_url] in the config, "
-                          "please correct file [%s]", config_fpath)
-            return -1
+    collectd_git_url = config_value(config, "collectd_git_url")
+    if collectd_git_url is None:
+        logging.error("can NOT find [collectd_git_url] in the config, "
+                      "please correct file [%s]", config_fpath)
+        return -1
 
-        command = "git clone %s %s" % (collectd_git_url, collectd_git_path)
-        retval = local_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          local_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
-    else:
-        command = ("cd %s && git checkout master" %
-                   collectd_git_path)
-        retval = local_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          local_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
+    collectd_git_branch = config_value(config, "collectd_git_branch")
+    if collectd_git_branch is None:
+        logging.error("can NOT find [collectd_git_branch] in the config, "
+                      "please correct file [%s]", config_fpath)
+        return -1
 
-        # The branch might already been deleted, so ignore the return failure
-        command = ("cd %s && git branch -D master-ddn" %
-                   collectd_git_path)
-        retval = local_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.warning("failed to run command [%s] on host [%s], "
-                            "ret = [%d], stdout = [%s], stderr = [%s]",
-                            command,
-                            local_host.sh_hostname,
-                            retval.cr_exit_status,
-                            retval.cr_stdout,
-                            retval.cr_stderr)
-
-        command = ("cd %s && git pull" %
-                   collectd_git_path)
-        retval = local_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          local_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
-
-    command = ("cd %s && git checkout master-ddn" %
-               collectd_git_path)
-    retval = local_host.sh_run(command)
-    if retval.cr_exit_status:
-        logging.error("failed to run command [%s] on host [%s], "
-                      "ret = [%d], stdout = [%s], stderr = [%s]",
-                      command,
-                      local_host.sh_hostname,
-                      retval.cr_exit_status,
-                      retval.cr_stdout,
-                      retval.cr_stderr)
+    ret = clone_src_from_git(collectd_git_path, collectd_git_url,
+                             collectd_git_branch)
+    if ret:
+        logging.error("failed to clone Collectd branch [%s] from [%s] to "
+                      "directory [%s]", collectd_git_branch,
+                      collectd_git_url, collectd_git_path)
         return -1
 
     command = ("cd %s && git rev-parse --short HEAD" %
@@ -769,6 +755,7 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
         return -1
     collectd_version_string = retval.cr_stdout.strip()
     collectd_version = collectd_version_string.replace('%{?rev}', collectd_git_version)
+    collectd_tarball_name = "collectd-" + collectd_version_string + ".tar.bz2"
 
     command = (r"cd %s && grep Release contrib/redhat/collectd.spec | "
                r"grep -v \# | awk '{print $2}'"  %
@@ -789,7 +776,7 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
     centos6_workspace = ESMON_BUILD_LOG_DIR + "/" + relative_workspace
     ret = host_build(centos6_workspace, centos6_host, local_host, collectd_git_path,
                      iso_cached_dir, collectd_version_release,
-                     ssh_host.DISTRO_RHEL6)
+                     collectd_tarball_name, ssh_host.DISTRO_RHEL6)
     if ret:
         logging.error("failed to prepare RPMs of CentOS6 on host [%s]",
                       centos6_host.sh_hostname)
@@ -800,7 +787,7 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
     local_workspace = current_dir + "/" + relative_workspace
     ret = host_build(local_workspace, local_host, local_host, collectd_git_path,
                      iso_cached_dir, collectd_version_release,
-                     ssh_host.DISTRO_RHEL7)
+                     collectd_tarball_name, ssh_host.DISTRO_RHEL7)
     if ret:
         logging.error("failed to prepare RPMs of CentOS7 on local host")
         return -1
