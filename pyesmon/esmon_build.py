@@ -787,7 +787,7 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
         return -1
     collectd_version_string = retval.cr_stdout.strip()
     collectd_version = collectd_version_string.replace('%{?rev}', collectd_git_version)
-    collectd_tarball_name = "collectd-" + collectd_version_string
+    collectd_tarball_name = "collectd-" + collectd_version
 
     command = (r"cd %s && grep Release contrib/redhat/collectd.spec | "
                r"grep -v \# | awk '{print $2}'"  %
