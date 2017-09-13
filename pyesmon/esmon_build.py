@@ -477,7 +477,7 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
 
     # Update to the latest distro release
     command = "yum update -y"
-    retval = build_host.sh_run(command)
+    retval = build_host.sh_run(command, timeout=600)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
                       "ret = [%d], stdout = [%s], stderr = [%s]",
