@@ -170,13 +170,9 @@ def vm_clone(workspace, server_host, hostname, host_ip, template_hostname,
                       retval.cr_stderr)
         return -1
 
-    if distro == ssh_host.DISTRO_RHEL6:
-        interface_name = "eth0"
-    elif distro == ssh_host.DISTRO_RHEL7:
-        interface_name = "ens3"
-    else:
-        logging.error("wrong distro [%s]", distro)
-        return -1
+    # net.ifnames=0 biosdevname=0 has been added to grub, so the interface
+    # name will always be eth0
+    interface_name = "eth0"
 
     ifcfg = 'DEVICE="%s"\n' % interface_name
     ifcfg += """BOOTPROTO="static"
@@ -204,6 +200,20 @@ TYPE="Ethernet"
                       ifcfg_fpath, workspace,
                       server_host.sh_hostname)
         return -1
+
+    ret = server_host.sh_run("which virt-copy-in")
+    if ret.cr_exit_status != 0:
+        command = ("yum install libguestfs-tools-c -y")
+        retval = server_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          server_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
 
     command = ("virt-copy-in -d %s %s "
                "/etc/sysconfig/network-scripts" % (hostname, host_ifcfg_fpath))
@@ -397,32 +407,48 @@ cdrom
 lang en_US.UTF-8
 keyboard us
 """
-    if distro == ssh_host.DISTRO_RHEL6:
-        interface_name = "eth0"
-        install_timeout = 300
-    elif distro == ssh_host.DISTRO_RHEL7:
-        interface_name = "ens3"
-        install_timeout = 600
-    else:
-        logging.error("wrong distro [%s]", distro)
-        return -1
-
-    ks_config += ("network --device %s --bootproto static --ip %s "
-                  "--netmask 255.255.252.0 --gateway 10.0.0.253 "
-                  "--hostname=%s\n" % (interface_name, host_ip, hostname))
-
     ks_config += """rootpw password
 firewall --disabled
 authconfig --enableshadow --passalgo=sha512
 selinux --disabled
-timezone --utc Asia/Tokyo
-bootloader --location=mbr --driveorder=sda --append="crashkernel=auto"
+timezone --utc Asia/Shanghai
+bootloader --location=mbr --driveorder=sda --append="crashkernel=auto net.ifnames=0 biosdevname=0"
 zerombr
 clearpart --all --initlabel
 part / --fstype=ext4 --grow --size=500 --ondisk=sda --asprimary
 repo --name="Media" --baseurl=file:///mnt/source --cost=100
 %packages
 @Core
+%end
+%post --log=/var/log/anaconda/post-install.log
+#!/bin/bash
+# Configure hostname, somehow virt-install --name doesn't work
+"""
+    if distro == ssh_host.DISTRO_RHEL6:
+        ks_config += 'echo NETWORKING=yes > /etc/sysconfig/network\n'
+        ks_config += ('echo HOSTNAME=%s >> /etc/sysconfig/network\n' %
+                      (hostname))
+    elif distro == ssh_host.DISTRO_RHEL7:
+        ks_config += "echo %s > /etc/hostname\n" % (hostname)
+    else:
+        logging.error("wrong distro [%s]", distro)
+        return -1
+    ks_config += """# Configure network
+rm -f /etc/sysconfig/network-scripts/ifcfg-ens3
+cat << EOF > /etc/sysconfig/network-scripts/ifcfg-eth0
+DEVICE=eth0
+ONBOOT=yes
+BOOTPROTO="static"
+TYPE=Ethernet
+GATEWAY="10.0.0.253"
+"""
+    # net.ifnames=0 biosdevname=0 will be added to GRUB_CMDLINE_LINUX, so the
+    # interface name will always be eth0
+    ks_config += 'IPADDR="%s"\n' % host_ip
+    ks_config += """NETMASK="255.255.252.0"
+IPV6INIT=no
+NM_CONTROLLED=no
+EOF
 %end
 """
     local_host_dir = workspace + "/" + hostname
@@ -452,6 +478,11 @@ repo --name="Media" --baseurl=file:///mnt/source --cost=100
     command += ("--extra-args='console=tty0 console=ttyS0,115200n8 "
                 "ks=file:/%s'" % (ks_fname))
 
+    if distro == ssh_host.DISTRO_RHEL6:
+        install_timeout = 300
+    elif distro == ssh_host.DISTRO_RHEL7:
+        install_timeout = 600
+
     retval = server_host.sh_run(command, timeout=install_timeout)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
@@ -465,7 +496,7 @@ repo --name="Media" --baseurl=file:///mnt/source --cost=100
 
     ret = server_host.sh_run("which sshpass")
     if ret.cr_exit_status != 0:
-        command = ("yum install sshpass")
+        command = ("yum install sshpass -y")
         retval = server_host.sh_run(command)
         if retval.cr_exit_status:
             logging.error("failed to run command [%s] on host [%s], "
