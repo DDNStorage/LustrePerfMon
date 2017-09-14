@@ -1479,7 +1479,7 @@ class SSHHost(object):
         command = ("virsh dominfo %s" % hostname)
         retval = self.sh_run(command)
         if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
+            logging.debug("failed to run command [%s] on host [%s], "
                           "ret = [%d], stdout = [%s], stderr = [%s]",
                           command, self.sh_hostname,
                           retval.cr_exit_status,
@@ -1508,12 +1508,12 @@ class SSHHost(object):
         """
         dominfos = self.sh_virsh_dominfo(hostname)
         if dominfos is None:
-            logging.error("failed to get dominfo of [%s] on host [%s]",
+            logging.debug("failed to get dominfo of [%s] on host [%s]",
                           hostname, self.sh_hostname)
             return None
 
         if "State" not in dominfos:
-            logging.error("no [State] in dominfo of [%s] on host [%s]",
+            logging.debug("no [State] in dominfo of [%s] on host [%s]",
                           hostname, self.sh_hostname)
             return None
-        return  dominfos["State"]
+        return dominfos["State"]
