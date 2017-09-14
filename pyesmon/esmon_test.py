@@ -467,7 +467,7 @@ EOF
                       server_host.sh_hostname)
         return -1
 
-    command = ("virt-install --vcpus=1 --ram=4096 --os-type=linux "
+    command = ("virt-install --vcpus=1 --ram=1024 --os-type=linux "
                "--hvm --connect=qemu:///system --network=bridge=br0 "
                "--accelerate --serial pty -v --nographics --noautoconsole --wait=-1 ")
     command += ("--name=%s " % (hostname))
@@ -736,6 +736,15 @@ def esmon_do_test(workspace, config, config_fpath):
                       "please correct file [%s]", config_fpath)
         return -1
 
+    if len(vm_host_configs) < 4:
+        logging.error("[vm_hosts] is less than 4 hosts, "
+                      "please correct file [%s]", config_fpath)
+        return -1
+
+    installation_server = None
+    esmon_server = None
+    esmon_rhel6_client = None
+    esmon_rhel7_clients = []
     for vm_host_config in vm_host_configs:
         hostname = config_value(vm_host_config, "hostname")
         if hostname is None:
@@ -749,28 +758,39 @@ def esmon_do_test(workspace, config, config_fpath):
                           "please correct file [%s]", config_fpath)
             return -1
 
-        distro = config_value(vm_host_config, "distro")
-        if distro is None:
-            logging.error("no [distro] is configured for a vm_host, "
-                          "please correct file [%s]", config_fpath)
-            return -1
+        reinstall = config_value(vm_host_config, "reinstall")
+        if reinstall is None:
+            reinstall = False
+
+        if installation_server is None:
+            logging.info("using [%s] as installation server", hostname)
+            installation_server = hostname
+            distro = ssh_host.DISTRO_RHEL7
+        elif esmon_server is None:
+            logging.info("using [%s] as esmon server", hostname)
+            esmon_server = hostname
+            distro = ssh_host.DISTRO_RHEL7
+        elif esmon_rhel6_client is None:
+            logging.info("using [%s] as RHEL6 esmon client", hostname)
+            esmon_server = hostname
+            distro = ssh_host.DISTRO_RHEL6
+        else:
+            logging.info("using [%s] as RHEL7 esmon client", hostname)
+            esmon_rhel7_clients.append(hostname)
+            distro = ssh_host.DISTRO_RHEL7
 
         if distro == ssh_host.DISTRO_RHEL6:
             template_hostname = rhel6_template_hostname
-        elif distro == ssh_host.DISTRO_RHEL7:
-            template_hostname = rhel7_template_hostname
         else:
-            logging.error("invalid [distro] value [%s] is configured for a "
-                          "vm_host, please correct file [%s]", distro,
-                          config_fpath)
-            return -1
+            template_hostname = rhel7_template_hostname
 
-        ret = vm_clone(workspace, server_host, hostname, host_ip,
-                       template_hostname, image_dir, distro)
-        if ret:
-            logging.error("failed to create virtual machine [%s] based on "
-                          "template [%s]", hostname, rhel7_template_hostname)
-            return -1
+        if reinstall:
+            ret = vm_clone(workspace, server_host, hostname, host_ip,
+                           template_hostname, image_dir, distro)
+            if ret:
+                logging.error("failed to create virtual machine [%s] based on "
+                              "template [%s]", hostname, rhel7_template_hostname)
+                return -1
 
     return 0
 
