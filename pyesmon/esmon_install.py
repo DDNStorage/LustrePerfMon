@@ -23,7 +23,6 @@ import slugify
 from pyesmon import utils
 from pyesmon import ssh_host
 from pyesmon import collectd
-from pyesmon import grafana
 
 ESMON_INSTALL_CONFIG_FNAME = "esmon_install.conf"
 ESMON_INSTALL_CONFIG = "/etc/" + ESMON_INSTALL_CONFIG_FNAME
@@ -268,6 +267,18 @@ class EsmonServer(object):
         ret = self.es_host.sh_wait_update(command, expect_exit_status=0)
         if ret:
             logging.error("failed to wait until influxdb starts")
+            return -1
+
+        command = ("chkconfig influxdb on")
+        retval = self.es_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.es_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
             return -1
 
         # Somehow the restart command won't be waited until finished, so wait
@@ -627,6 +638,18 @@ class EsmonServer(object):
             logging.error("cannot connect to grafana")
             return ret
         if self.es_grafana_failure:
+            return -1
+
+        command = ("chkconfig grafana-server on")
+        retval = self.es_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.es_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
             return -1
 
         ret = self.es_grafana_has_influxdb()
@@ -1170,13 +1193,8 @@ class EsmonClient(object):
                           retval.cr_stdout,
                           retval.cr_stderr)
             return -1
-        return 0
 
-    def ec_collectd_stop(self):
-        """
-        Stop collectd
-        """
-        command = ("service collectd stop")
+        command = ("chkconfig collectd on")
         retval = self.ec_host.sh_run(command)
         if retval.cr_exit_status:
             logging.error("failed to run command [%s] on host [%s], "
@@ -1508,6 +1526,12 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
             logging.error("failed to send file [%s] on local host to "
                           "directory [%s] on host [%s]",
                           mnt_path, esmon_client.ec_workspace,
+                          esmon_client.ec_host.sh_hostname)
+            return -1
+
+        ret = esmon_client.ec_host.sh_disable_selinux()
+        if ret:
+            logging.error("failed to disable SELinux on host [%s]",
                           esmon_client.ec_host.sh_hostname)
             return -1
 

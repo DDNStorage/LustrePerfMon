@@ -1476,6 +1476,9 @@ class SSHHost(object):
         return retval.cr_stdout.strip()
 
     def sh_virsh_dominfo(self, hostname):
+        """
+        Get the virsh dominfo of a domain
+        """
         command = ("virsh dominfo %s" % hostname)
         retval = self.sh_run(command)
         if retval.cr_exit_status:
@@ -1517,3 +1520,53 @@ class SSHHost(object):
                           hostname, self.sh_hostname)
             return None
         return dominfos["State"]
+
+    def sh_selinux_status(self):
+        """
+        Check the current status of SELinux
+        """
+        command = "getenforce"
+        retval = self.sh_run(command)
+        if retval.cr_exit_status != 0 or retval.cr_stderr != "":
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command, self.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return None
+
+        return retval.cr_stdout.strip()
+
+    def sh_disable_selinux(self):
+        """
+        Disable SELinux permanently
+        """
+        command = "sed -i 's/SELINUX=.*/SELINUX=disabled/' /etc/selinux/config"
+        retval = self.sh_run(command)
+        if retval.cr_exit_status != 0 or retval.cr_stderr != "":
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command, self.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        status = self.sh_selinux_status()
+        if status == "Disabled" or status == "Permissive":
+            logging.debug("SELinux is already [%s] on host [%s]",
+                          status, self.sh_hostname)
+            return 0
+
+        command = "setenforce 0"
+        retval = self.sh_run(command)
+        if retval.cr_exit_status != 0 or retval.cr_stderr != "":
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command, self.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        return -1

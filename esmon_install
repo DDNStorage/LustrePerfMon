@@ -9,4 +9,3 @@ from pyesmon import esmon_install
 
 if __name__ == "__main__":
     esmon_install.main()
-
