@@ -2,16 +2,38 @@
 
 ## Definitions
 
-+ **ESMON**: Abbreviation for *DDN Exascaler Monitoring System*.
-+ **DDN Exascaler**: *DDN Exascaler* is software stack developed by *DDN* to overcome the toughest storage and data management challenges in extreme, data-intensive environments.
-+ **Installation Server**: The server on which the installation process is triggered.
+- **ESMON**: Abbreviation for *DDN Exascaler Monitoring System*.
+- **DDN Exascaler**: *DDN Exascaler* is software stack developed by *DDN* to overcome the toughest storage and data management challenges in extreme, data-intensive environments.
+- **Installation Server**: The server on which the installation process is triggered.
+
 
 - **Monitoring Server**: The server on which the database (*Influxdb*) and web server (*Grafana*) of the monitoring system will run.
+
 - **Monitoring Client(s):**  The servers from which the monitor system will collect metrics from. The metrics includes information about CPU, memory, Lustre, SFA storage, etc. A *Collectd* daemon will run on each monitoring client.
+
 - **DDN IME**: *DDN’s Infinite Memory Engine (IME)* is a flash-native, software-defined, storage cache that streamlines application IO, eliminating system bottlenecks.
+
 - **Lustre**: The *Lustre* file system is an open-source, parallel file system that supports many requirements of leadership class HPC simulation environments.
 
-## Requirements
+##Introduction
+
+*ESMON* is a monitoring system which can collect system statistics of DDN Exascaler for performance monitoring and analyzing. It is based on multiple widely used open-source software. Some extra plugins and are developed by DDN for enhancemen.
+
+One of the main components of *ESMON* is *Collectd*. *Collectd* is a daemon which collects system performance statistics periodically and provides mechanisms to store the values in a variety of ways. *ESMON* is based on the open-source *Collectd*, yet includes more plugins, such as Lustre, GPFS, Ganglia, Nagios, Stress, Zabbix and so on.
+
+###Collectd plugins of DDN
+
+Several additional plugins are added to *Collectd* in *ESMON* to support various functions.
+
+- **Filedata plugin:** The *Filedata* plugin is able to collect data by reading and parsing a set of files. And definition file with XML format is needed for the *Filedata* plugin to understand which files to read and how to parse these files. The most common usage of *Filedata* plugin is to collect metrics through /proc interfaces of a running *Lustre* system. 
+- **Ganglia plugin:** The *Ganglia* plugin can send metrics collected by a *Collectd* client daemon to *Ganglia* server.
+- **GPFS plugin:** The *GPFS* plugin can collect performance information through "mmpmon" commands provided by *GPFS*. The *GPFS* plugin shares the same definition file format with *Filedata* plugin. The  configuration format of *GPFS* in *collectd.conf* is also similar with *Filedata* plugin.
+- **IME Plugin:** The *IME* plugin can collect performance information from *DDN IME*. Like *GPFS* plugin, the *IME* plugin shares the similar definition file format and configuration format with *Filedata* plugin.
+- **SSH plugin:** The *SSH* plugin is able to collect metrics by running commands on remote hosts by using SSH connections. The *SSH* plugin is used to collectd metrics from *DDN SFA* Storage. Like *GPFS* plugin and *IME* plugin, the *IME* plugin shares the similar definition file format and configuration format with *Filedata* plugin.
+- **Stress plugin:** The *Stress* plugin can push a large amount of metrics to server from *Collectd* client in order to benchmark the performance of the collecting system under high pressure.
+- **Zabbix plugin:** The *Zabbix* plugin is able to send metrics from *Collectd* to *Zabbix* system.
+
+##Installation Requirements
 
 ###Installation Server
 
@@ -32,34 +54,25 @@
 - Free disk space:  > 200M. The *installation server* will save necessary RPMs in directory */var/log/esmon_install*, which requires some free disk space.
 - Network: SSHD should be running on the *monitoring client* and it should be able to be connected by *installation server* without prompting for password.
 
-## Installation
+##Installation Process
 
 ###1. Prepare the *Installation Server*
 
-1. Grab the *ESMON* ISO image file to the *installation server*, e.g. /ISOs/esmon.iso.
+1. Grab the *ESMON* ISO image file to the *installation server*, for example: /ISOs/esmon.iso.
 
-2.    Mount the *ESMON* ISO image:
+2. Mount the *ESMON* ISO image:
 
       ```shell
       # mount -o loop /ISOs/esmon.iso /media
       ```
 
-
-3.    Start the install script:
+3. Start the install script:
 
       ```shell
       # cd /media && sh ./installesmon.sh
-      Updating / installing...
-      esmon-0.1.g16e2e3c-7.el7              ########################################
-      ******************************************************************************
-      *              ESMON package has been installed                              *
-      *Please set your servers' information into /etc/esmon_install.conf           *
-      *And please make sure you can access all these server by ssh with keyfile    *
-      *Then please run /usr/bin/esmon_install to continue                          *
-      ******************************************************************************
       ```
 
-### 2. Edit the Configuration File
+###2. Update the Configuration File
 
 The configuration file */etc/esmon_install.conf* includes all the necessary information for installation. Following is an example:
 
@@ -99,7 +112,7 @@ server_host:
 **host_id** in **server_host** is the host ID that *ESMON* server packages should be installed and configured. If **erase_influxdb** is true, all of the data and metadata of *Influxdb* will be erased completely. And if **drop_database** is true, the database of ESMON in *Influxdb* will be dropped. **erase_influxdb** and
 **drop_database** should only be when the data in *Influxdb* is not needed any more. By enabling **erage_influxdb**, some corruption problems of *Influxdb* could be fixed.
 
-### 3. Start the Installation on the Cluster
+###3. Start the Installation on the Cluster
 
 After the */etc/esmon_install.conf* file has been updated correctly on the *installation server*, following command could be run to start the installation on the cluster:
 
@@ -107,17 +120,37 @@ After the */etc/esmon_install.conf* file has been updated correctly on the *inst
 # esmon_install
 ```
 
- If the *ESMON* is installed successfully on the system,  following messages will be printed:
-
-```
-[2017/09/11-13:08:26][INFO] [esmon_install.py:1695] Exascaler monistoring system is installed, please check [/var/log/esmon_install/2017-09-11-13_07_01] for more log
-```
-
 All the logs which are useful for debugging are saved under */var/log/esmon_install* directory of the *installation server*.
 
-### 4. Access the Monitoring Web Page
+###4. Access the Monitoring Web Page
 
-The *Grafana* service is started on the *monitoring server* automatically. The default HTTP port is 3000, and default user and group is admin.
+The *Grafana* service is started on the *monitoring server* automatically. The default HTTP port is 3000An login web page will been shown through that port.  The default user and password are both "admin". 
+
+![Login Dashboard](pic/login.jpg)
+
+Different dashboards can be chosen to view different metrics collectd by *ESMON*.
+
+![Home Dashboard](pic/home.jpg)
+
+The *Cluster Status* dashboard shows a summarized status of the servers in the cluster.
+
+![Cluster Status Dashboard](pic/cluster_status.jpg "The summarized status of the servers in the cluster")
+
+The *Lustre Statistics* dashboard show metrics of *Lustre* file systems.
+
+![Lustre Statistics Dashboard](pic/lustre_statistics.jpg)
+
+The *Server Statistics* dashboard shows detailed information about a server.
+
+![Server Statistics Dashboard](pic/server_statistics.jpg)
+
+The *SFA Physical Disk* dashboard shows the information about the *DDN SFA* physical disks.
+
+![SFA Physical Disk Dashboard](pic/sfa_physical_disk.jpg)
+
+The *SFA Virtual Disk* dashboard shows the information about the *DDN SFA* virtual disks.
+
+![SFA Virtual Disk Dashboard](pic/sfa_virtual_disk.jpg)
 
 ## Troubleshooting
 

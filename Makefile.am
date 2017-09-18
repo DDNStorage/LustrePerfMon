@@ -31,8 +31,8 @@ $(ESMON_RPM): esmon.spec dist
 			--define="dist .el${DISTRO_RELEASE}" \
 		&& echo "RPM successfully generated in $(build_dir)/RPMS"
 
-doc/manual.pdf: doc/manual.md
-	pandoc --latex-engine=xelatex --toc doc/manual.md -o doc/manual.pdf
+doc/manual.pdf: doc/manual.md doc/pic
+	cd doc && pandoc --latex-engine=xelatex --toc manual.md -o manual.pdf
 
 esmon-$(MONSYSTEM_PKGVER).x86_64.iso: \
 		$(ESMON_RPM) doc/manual.pdf
