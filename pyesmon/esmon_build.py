@@ -101,7 +101,14 @@ def download_dependent_rpms(host, dependent_dir):
                           retval.cr_stderr)
             return -1
 
-        rpm_fullname = retval.cr_stdout.strip()
+        rpm_fullnames = retval.cr_stdout.split()
+        if len(rpm_fullnames) != 1:
+            logging.error("got multiple RPMs with query [%s] on host [%s], "
+                          "output = [%s]", command, host.sh_hostname,
+                          retval.cr_stdout)
+            return -1
+
+        rpm_fullname = rpm_fullnames[0]
         sha256sum = host.sh_yumdb_sha256(rpm_fullname)
         if sha256sum is None:
             logging.error("failed to get sha256 of RPM [%s] on host [%s]",
@@ -487,6 +494,23 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
                       retval.cr_stdout,
                       retval.cr_stderr)
         return -1
+
+    # Sometimes yum update install i686 RPMs which cause multiple RPMs for
+    # the same name. Uninstall i686 RPMs here.
+    command = "rpm -qa | grep i686"
+    retval = build_host.sh_run(command, timeout=600)
+    if retval.cr_exit_status == 0:
+        command = "rpm -qa | grep i686 | xargs rpm -e"
+        retval = build_host.sh_run(command, timeout=600)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          build_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
 
     command = ("rpm -e zeromq-devel")
     build_host.sh_run(command)
