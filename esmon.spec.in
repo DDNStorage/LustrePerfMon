@@ -53,7 +53,9 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %{_bindir}/esmon_install
+%{_bindir}/esmon_virt
 %{python_sitelib}/pyesmon
+%{_sysconfdir}/esmon_virt.conf
 %{_sysconfdir}/esmon_install.conf
 %{_mandir}/man1/esmon_install.1*
 

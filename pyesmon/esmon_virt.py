@@ -2,7 +2,7 @@
 # All Rights Reserved.
 # Author: lixi@ddn.com
 """
-Library for installing ESMON
+Library for installing virtual machines
 """
 # pylint: disable=too-many-lines
 import sys
@@ -808,7 +808,7 @@ def esmon_virt_locked(workspace, config_fpath):
 
 def esmon_virt(workspace, config_fpath):
     """
-    Start to test
+    Start to install virtual machines
     """
     # pylint: disable=bare-except
     lock_file = config_fpath + ".lock"
@@ -838,7 +838,7 @@ def usage():
 
 def main():
     """
-    Test Exascaler monitoring
+    Install virtual machines
     """
     # pylint: disable=unused-variable
     reload(sys)
@@ -880,7 +880,7 @@ def main():
     shutil.copyfile(config_fpath, save_fpath)
     ret = esmon_virt(workspace, config_fpath)
     if ret:
-        logging.error("test failed, please check [%s] for more log\n",
+        logging.error("installation failed, please check [%s] for more log\n",
                       workspace)
         sys.exit(ret)
     logging.info("Installed the virtual machines, please check [%s] "
