@@ -1,0 +1,12 @@
+#!/usr/bin/python -u
+# Copyright (c) 2017 DataDirect Networks, Inc.
+# All Rights Reserved.
+# Author: lixi@ddn.com
+"""
+Install virtual machines
+"""
+from pyesmon import esmon_virt
+
+if __name__ == "__main__":
+    esmon_virt.main()
+
