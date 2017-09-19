@@ -16,6 +16,7 @@ import filelock
 # Local libs
 from pyesmon import utils
 from pyesmon import esmon_virt
+from pyesmon import esmon_install
 from pyesmon import ssh_host
 
 ESMON_TEST_LOG_DIR = "/var/log/esmon_test"
@@ -30,12 +31,35 @@ def config_value(config, key):
     return config[key]
 
 
+def generate_client_host_config(host_id):
+    """
+    Generate the client host config of ESMON installation
+    """
+    client_host = {}
+    client_host[esmon_install.HOST_ID_STRING] = host_id
+    client_host[esmon_install.LUSTRE_OSS_STRING] = host_id
+    client_host[esmon_install.LUSTRE_MDS_STRING] = host_id
+    client_host[esmon_install.IME_STRING] = host_id
+    return client_host
+
+
+def generate_server_host_config(host_id):
+    """
+    Generate the server host config of ESMON installation
+    """
+    server_host = {}
+    server_host[esmon_install.HOST_ID_STRING] = host_id
+    server_host[esmon_install.DROP_DATABASE_STRING] = False
+    server_host[esmon_install.ERASE_INFLUXDB_STRING] = False
+    return server_host
+
+
 def esmon_do_test(workspace, config, config_fpath):
     """
     Run the tests
     """
-    # pylint: disable=too-many-return-statements
-    # pylint: disable=too-many-branches
+    # pylint: disable=too-many-return-statements,too-many-locals
+    # pylint: disable=too-many-branches,too-many-statements
     vm_host_configs = config_value(config, "vm_hosts")
     if vm_host_configs is None:
         logging.error("no [vm_hosts] is configured, "
@@ -69,40 +93,168 @@ def esmon_do_test(workspace, config, config_fpath):
         logging.error("failed to install the virtual machines")
         return -1
 
-    installation_server = None
-    esmon_server = None
-    esmon_clients = []
+    local_host = ssh_host.SSHHost("localhost", local=True)
+
+    hosts = []
+    install_server = None
+    server_host_config = None
+    client_host_configs = []
+    ssh_host_configs = []
+    hosts_string = """127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+"""
     for vm_host_config in vm_host_configs:
-        hostname = config_value(vm_host_config, "hostname")
+        hostname = config_value(vm_host_config, esmon_virt.STRING_HOSTNAME)
         if hostname is None:
-            logging.error("no [hostname] is configured for a vm_host, "
-                          "please correct file [%s]", config_fpath)
+            logging.error("no [%s] is configured for a vm_host, "
+                          "please correct file [%s]",
+                          esmon_virt.STRING_HOSTNAME, config_fpath)
             return -1
 
-        distro = config_value(vm_host_config, "distro")
+        distro = config_value(vm_host_config, esmon_virt.STRING_DISTRO)
         if distro is None:
-            logging.error("no [distro] is configured for a vm_host, "
-                          "please correct file [%s]", config_fpath)
+            logging.error("no [%s] is configured for a vm_host, "
+                          "please correct file [%s]", esmon_virt.STRING_DISTRO,
+                          config_fpath)
             return -1
 
+        host_ip = config_value(vm_host_config, esmon_virt.STRING_HOST_IP)
+        if host_ip is None:
+            logging.error("no [%s] is configured for a vm_host, "
+                          "please correct file [%s]",
+                          esmon_virt.STRING_HOST_IP, config_fpath)
+            return -1
+
+        # Remove the record in known_hosts, otherwise ssh will fail
+        command = ('sed -i "/%s /d" /root/.ssh/known_hosts' % (host_ip))
+        retval = local_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          local_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        # Remove the record in known_hosts, otherwise ssh will fail
+        command = ('sed -i "/%s /d" /root/.ssh/known_hosts' % (hostname))
+        retval = local_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          local_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        hosts_string += ("%s %s\n" % (host_ip, hostname))
         vm_host = ssh_host.SSHHost(hostname)
+        hosts.append(vm_host)
+        ssh_host_config = {}
+        ssh_host_config[esmon_install.HOST_ID_STRING] = hostname
+        ssh_host_config[esmon_install.HOSTNAME_STRING] = hostname
+        ssh_host_configs.append(ssh_host_config)
 
         if distro == ssh_host.DISTRO_RHEL6:
-            logging.info("using [%s] as RHEL6 esmon client", hostname)
-            esmon_clients.append(vm_host)
-        elif installation_server is None:
-            installation_server = vm_host
-            logging.info("using [%s] as installation server", hostname)
-        elif esmon_server is None:
-            esmon_server = vm_host
-            logging.info("using [%s] as esmon server", hostname)
+            client_host_configs.append(generate_client_host_config(hostname))
+            logging.info("using [%s] as a RHEL6 esmon client", hostname)
+        elif install_server is None:
+            install_server = vm_host
+            logging.info("using [%s] as the installation server", hostname)
+        elif server_host_config is None:
+            server_host_config = generate_server_host_config(hostname)
+            logging.info("using [%s] as the esmon server", hostname)
         else:
-            logging.info("using [%s] as RHEL7 esmon client", hostname)
-            esmon_clients.append(vm_host)
+            logging.info("using [%s] as a RHEL7 esmon client", hostname)
+            client_host_configs.append(generate_client_host_config(hostname))
 
-    # Check hosts
+    command = "ls esmon-*.iso"
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
 
-    return 0
+    current_dir = os.getcwd()
+    iso_names = retval.cr_stdout.split()
+    if len(iso_names) != 1:
+        logging.info("found unexpected ISOs [%s] under currect directory [%s]",
+                     iso_names, current_dir)
+        return -1
+
+    iso_name = iso_names[0]
+    iso_path = current_dir + "/" + iso_name
+
+    command = "mkdir -p %s" % workspace
+    retval = install_server.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      install_server.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    hosts_fpath = workspace + "/hosts"
+    with open(hosts_fpath, "wt") as hosts_file:
+        hosts_file.write(hosts_string)
+
+    for host in hosts:
+        ret = host.sh_enable_dns()
+        if ret:
+            logging.error("failed to enable dns on host [%s]",
+                          host.sh_hostname)
+            return -1
+
+        command = "yum install rsync -y"
+        retval = host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        ret = host.sh_send_file(hosts_fpath, "/etc")
+        if ret:
+            logging.error("failed to send hosts file [%s] on local host to "
+                          "directory [%s] on host [%s]",
+                          hosts_fpath, workspace,
+                          host.sh_hostname)
+            return -1
+
+    ret = install_server.sh_send_file(iso_path, workspace)
+    if ret:
+        logging.error("failed to send ESMON ISO [%s] on local host to "
+                      "directory [%s] on host [%s]",
+                      iso_path, workspace,
+                      install_server.sh_hostname)
+        return -1
+
+    host_iso_path = workspace + "/" + iso_name
+    install_config = {}
+    install_config[esmon_install.ISO_PATH_STRING] = host_iso_path
+    install_config[esmon_install.SSH_HOST_STRING] = ssh_host_configs
+    install_config[esmon_install.CLIENT_HOSTS_STRING] = client_host_configs
+    install_config[esmon_install.SERVER_HOST_STRING] = server_host_config
+    ret = esmon_install.esmon_mount_and_install(install_server, workspace,
+                                                install_config, "test config")
+
+    return ret
 
 
 def esmon_test_locked(workspace, config_fpath):

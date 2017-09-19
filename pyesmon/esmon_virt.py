@@ -21,7 +21,9 @@ from pyesmon import ssh_host
 ESMON_VIRT_CONFIG_FNAME = "esmon_virt.conf"
 ESMON_VIRT_CONFIG = "/etc/" + ESMON_VIRT_CONFIG_FNAME
 ESMON_VIRT_LOG_DIR = "/var/log/esmon_virt"
-
+STRING_DISTRO = "distro"
+STRING_HOSTNAME = "hostname"
+STRING_HOST_IP = "host_ip"
 
 def config_value(config, key):
     """
@@ -336,6 +338,19 @@ TYPE="Ethernet"
 
     # Remove the record in known_hosts, otherwise ssh will fail
     command = ('sed -i "/%s /d" /root/.ssh/known_hosts' % (host_ip))
+    retval = server_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      server_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    # Remove the record in known_hosts, otherwise ssh will fail
+    command = ('sed -i "/%s /d" /root/.ssh/known_hosts' % (hostname))
     retval = server_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
@@ -823,19 +838,19 @@ def esmon_vm_install(workspace, config, config_fpath):
         return -1
 
     for vm_host_config in vm_host_configs:
-        hostname = config_value(vm_host_config, "hostname")
+        hostname = config_value(vm_host_config, STRING_HOSTNAME)
         if hostname is None:
             logging.error("no [hostname] is configured for a vm_host, "
                           "please correct file [%s]", config_fpath)
             return -1
 
-        host_ip = config_value(vm_host_config, "host_ip")
+        host_ip = config_value(vm_host_config, STRING_HOST_IP)
         if hostname is None:
             logging.error("no [host_ip] is configured for a vm_host, "
                           "please correct file [%s]", config_fpath)
             return -1
 
-        distro = config_value(vm_host_config, "distro")
+        distro = config_value(vm_host_config, STRING_DISTRO)
         if distro is None:
             logging.error("no [distro] is configured for a vm_host, "
                           "please correct file [%s]", config_fpath)

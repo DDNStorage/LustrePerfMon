@@ -652,98 +652,41 @@ class SSHHost(object):
                           " ".join(sources), dest)
 
     def sh_send_file(self, source, dest, delete_dest=False,
-                     preserve_symlinks=False):
+                     preserve_symlinks=False,
+                     from_local=True,
+                     remote_host=None):
         """
-        Send file/dir from local host to remote host
+        Send file/dir from a host to another host
+        If from_local is True, the file will be sent from local host;
+        Otherwise, it will be sent from this host.
+        If remot_host is not none, the file will be sent to that host;
+        Otherwise, it will be sent to this host.
         """
-        # pylint: disable=too-many-return-statements,too-many-branches
-        # pylint: disable=too-many-statements
+        # pylint: disable=too-many-arguments
         if isinstance(source, basestring):
-            source_is_dir = os.path.isdir(source)
             source = [source]
-        remote_dest = self.sh_encode_remote_paths([dest], False)
+        if remote_host is None:
+            remote_host = self
+        remote_dest = remote_host.sh_encode_remote_paths([dest], False)
 
         local_sources = [sh_escape(path) for path in source]
-        rsync = self.sh_make_rsync_cmd(local_sources, remote_dest,
-                                       delete_dest, preserve_symlinks)
-        ret = utils.run(rsync)
-        if ret.cr_exit_status != 0:
-            logging.error("failed to send file [%s] on local host "
+        rsync = remote_host.sh_make_rsync_cmd(local_sources, remote_dest,
+                                              delete_dest, preserve_symlinks)
+        if from_local:
+            ret = utils.run(rsync)
+            from_host = self.sh_hostname
+        else:
+            from_host = "local"
+            ret = self.sh_run(rsync)
+        if ret.cr_exit_status:
+            logging.error("failed to send file [%s] on host [%s]  "
                           "to dest [%s] on host [%s] using rsync, "
                           "command = [%s], "
                           "ret = [%d], stdout = [%s], stderr = [%s]",
-                          source, dest, self.sh_hostname, rsync,
-                          ret.cr_exit_status, ret.cr_stdout,
+                          source, from_host, dest, remote_host.sh_hostname,
+                          rsync, ret.cr_exit_status, ret.cr_stdout,
                           ret.cr_stderr)
             return -1
-        else:
-            return 0
-
-        # preserve_symlinks is not supported by scp yet
-        if preserve_symlinks:
-            return -1
-
-        # scp has no equivalent to --delete, just drop the entire dest dir
-        if delete_dest:
-            command = "test -x %s" % dest
-            dest_exists = False
-            ret = self.sh_run(command)
-            if ret.cr_stdout == "" and ret.cr_stderr == "":
-                if ret.cr_exit_status:
-                    dest_exists = False
-                else:
-                    dest_exists = True
-            else:
-                logging.error("failed to run command [%s]", command)
-                return -1
-
-            dest_is_dir = False
-            if dest_exists:
-                command = "test -d %s" % dest
-                ret = self.sh_run(command)
-                if ret.cr_stdout == "" and ret.cr_stderr == "":
-                    if ret.cr_exit_status:
-                        dest_is_dir = False
-                    else:
-                        dest_is_dir = True
-                else:
-                    logging.error("failed to run command [%s]", command)
-                    return -1
-
-            # If there is a list of more than one path, destination *has*
-            # to be a dir. If there's a single path being transferred and
-            # it is a dir, the destination also has to be a dir. Therefore
-            # it has to be created on the remote machine in case it doesn't
-            # exist, otherwise we will have an scp failure.
-            if len(source) > 1 or source_is_dir:
-                dest_is_dir = True
-
-            if dest_exists and dest_is_dir:
-                command = "rm -rf %s && mkdir %s" % (dest, dest)
-                ret = self.sh_run(command)
-                if ret.cr_exit_status:
-                    logging.error("failed to run command [%s]", command)
-                    return -1
-            elif (not dest_exists) and dest_is_dir:
-                command = "mkdir %s" % dest
-                ret = self.sh_run(command)
-                if ret.cr_exit_status:
-                    logging.error("failed to run command [%s]", command)
-                    return -1
-
-        local_sources = self.sh_make_rsync_compatible_source(source, False)
-        if local_sources:
-            scp = self.sh_make_scp_cmd(local_sources, remote_dest)
-            ret = utils.run(scp)
-            if ret.cr_exit_status != 0:
-                logging.error("failed to send file [%s] on local host "
-                              "to dest [%s] on host [%s], command = [%s], "
-                              "ret = [%d], stdout = [%s], stderr = [%s]",
-                              source, dest, self.sh_hostname, scp,
-                              ret.cr_exit_status, ret.cr_stdout,
-                              ret.cr_stderr)
-                return -1
-
         return 0
 
     def sh_run(self, command, silent=False, login_name="root",
@@ -1565,7 +1508,7 @@ class SSHHost(object):
 
         command = "setenforce 0"
         retval = self.sh_run(command)
-        if retval.cr_exit_status != 0 or retval.cr_stderr != "":
+        if retval.cr_exit_status:
             logging.error("failed to run command [%s] on host [%s], "
                           "ret = [%d], stdout = [%s], stderr = [%s]",
                           command, self.sh_hostname,
@@ -1573,4 +1516,36 @@ class SSHHost(object):
                           retval.cr_stdout,
                           retval.cr_stderr)
             return -1
-        return -1
+        return 0
+
+    def sh_disable_dns(self):
+        """
+        Disable DNS
+        """
+        command = "> /etc/resolv.conf"
+        retval = self.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command, self.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        return 0
+
+    def sh_enable_dns(self):
+        """
+        Disable DNS
+        """
+        command = "echo 'nameserver 8.8.8.8' > /etc/resolv.conf"
+        retval = self.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command, self.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        return 0
