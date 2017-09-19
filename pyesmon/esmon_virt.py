@@ -18,9 +18,9 @@ import filelock
 from pyesmon import utils
 from pyesmon import ssh_host
 
-ESMON_TEST_CONFIG_FNAME = "esmon_test.conf"
-ESMON_TEST_CONFIG = "/etc/" + ESMON_TEST_CONFIG_FNAME
-ESMON_TEST_LOG_DIR = "/var/log/esmon_test"
+ESMON_VIRT_CONFIG_FNAME = "esmon_virt.conf"
+ESMON_VIRT_CONFIG = "/etc/" + ESMON_VIRT_CONFIG_FNAME
+ESMON_VIRT_LOG_DIR = "/var/log/esmon_virt"
 
 
 def config_value(config, key):
@@ -628,7 +628,7 @@ EOF
     return 0
 
 
-def esmon_do_test(workspace, config, config_fpath):
+def esmon_vm_install(workspace, config, config_fpath):
     """
     Start to test with ESMON
     """
@@ -736,15 +736,6 @@ def esmon_do_test(workspace, config, config_fpath):
                       "please correct file [%s]", config_fpath)
         return -1
 
-    if len(vm_host_configs) < 4:
-        logging.error("[vm_hosts] is less than 4 hosts, "
-                      "please correct file [%s]", config_fpath)
-        return -1
-
-    installation_server = None
-    esmon_server = None
-    esmon_rhel6_client = None
-    esmon_rhel7_clients = []
     for vm_host_config in vm_host_configs:
         hostname = config_value(vm_host_config, "hostname")
         if hostname is None:
@@ -758,31 +749,24 @@ def esmon_do_test(workspace, config, config_fpath):
                           "please correct file [%s]", config_fpath)
             return -1
 
-        reinstall = config_value(vm_host_config, "reinstall")
-        if reinstall is None:
-            reinstall = False
-
-        if installation_server is None:
-            logging.info("using [%s] as installation server", hostname)
-            installation_server = hostname
-            distro = ssh_host.DISTRO_RHEL7
-        elif esmon_server is None:
-            logging.info("using [%s] as esmon server", hostname)
-            esmon_server = hostname
-            distro = ssh_host.DISTRO_RHEL7
-        elif esmon_rhel6_client is None:
-            logging.info("using [%s] as RHEL6 esmon client", hostname)
-            esmon_server = hostname
-            distro = ssh_host.DISTRO_RHEL6
-        else:
-            logging.info("using [%s] as RHEL7 esmon client", hostname)
-            esmon_rhel7_clients.append(hostname)
-            distro = ssh_host.DISTRO_RHEL7
+        distro = config_value(vm_host_config, "distro")
+        if distro is None:
+            logging.error("no [distro] is configured for a vm_host, "
+                          "please correct file [%s]", config_fpath)
+            return -1
 
         if distro == ssh_host.DISTRO_RHEL6:
             template_hostname = rhel6_template_hostname
-        else:
+        elif distro == ssh_host.DISTRO_RHEL7:
             template_hostname = rhel7_template_hostname
+        else:
+            logging.error("invalid distro [%s] is configured for a vm_host, "
+                          "please correct file [%s]", distro, config_fpath)
+            return -1
+
+        reinstall = config_value(vm_host_config, "reinstall")
+        if reinstall is None:
+            reinstall = False
 
         if reinstall:
             ret = vm_clone(workspace, server_host, hostname, host_ip,
@@ -795,7 +779,7 @@ def esmon_do_test(workspace, config, config_fpath):
     return 0
 
 
-def esmon_test_locked(workspace, config_fpath):
+def esmon_virt_locked(workspace, config_fpath):
     """
     Start to test holding the confiure lock
     """
@@ -814,7 +798,7 @@ def esmon_test_locked(workspace, config_fpath):
         return -1
 
     try:
-        ret = esmon_do_test(workspace, config, config_fpath)
+        ret = esmon_vm_install(workspace, config, config_fpath)
     except:
         ret = -1
         logging.error("exception: %s", traceback.format_exc())
@@ -822,7 +806,7 @@ def esmon_test_locked(workspace, config_fpath):
     return ret
 
 
-def esmon_test(workspace, config_fpath):
+def esmon_virt(workspace, config_fpath):
     """
     Start to test
     """
@@ -832,7 +816,7 @@ def esmon_test(workspace, config_fpath):
     try:
         with lock.acquire(timeout=0):
             try:
-                ret = esmon_test_locked(workspace, config_fpath)
+                ret = esmon_virt_locked(workspace, config_fpath)
             except:
                 ret = -1
                 logging.error("exception: %s", traceback.format_exc())
@@ -859,7 +843,7 @@ def main():
     # pylint: disable=unused-variable
     reload(sys)
     sys.setdefaultencoding("utf-8")
-    config_fpath = ESMON_TEST_CONFIG
+    config_fpath = ESMON_VIRT_CONFIG
 
     if len(sys.argv) == 2:
         config_fpath = sys.argv[1]
@@ -868,12 +852,12 @@ def main():
         sys.exit(-1)
 
     identity = utils.local_strftime(utils.utcnow(), "%Y-%m-%d-%H_%M_%S")
-    workspace = ESMON_TEST_LOG_DIR + "/" + identity
+    workspace = ESMON_VIRT_LOG_DIR + "/" + identity
 
-    if not os.path.exists(ESMON_TEST_LOG_DIR):
-        os.mkdir(ESMON_TEST_LOG_DIR)
-    elif not os.path.isdir(ESMON_TEST_LOG_DIR):
-        logging.error("[%s] is not a directory", ESMON_TEST_LOG_DIR)
+    if not os.path.exists(ESMON_VIRT_LOG_DIR):
+        os.mkdir(ESMON_VIRT_LOG_DIR)
+    elif not os.path.isdir(ESMON_VIRT_LOG_DIR):
+        logging.error("[%s] is not a directory", ESMON_VIRT_LOG_DIR)
         sys.exit(-1)
 
     if not os.path.exists(workspace):
@@ -882,7 +866,7 @@ def main():
         logging.error("[%s] is not a directory", workspace)
         sys.exit(-1)
 
-    print("Started testing Exascaler monitoring system using config [%s], "
+    print("Started installing virtual machines using config [%s], "
           "please check [%s] for more log" %
           (config_fpath, workspace))
     utils.configure_logging(workspace)
@@ -890,15 +874,15 @@ def main():
     console_handler = utils.LOGGING_HANLDERS["console"]
     console_handler.setLevel(logging.DEBUG)
 
-    save_fpath = workspace + "/" + ESMON_TEST_CONFIG_FNAME
+    save_fpath = workspace + "/" + ESMON_VIRT_CONFIG_FNAME
     logging.debug("copying config file from [%s] to [%s]", config_fpath,
                   save_fpath)
     shutil.copyfile(config_fpath, save_fpath)
-    ret = esmon_test(workspace, config_fpath)
+    ret = esmon_virt(workspace, config_fpath)
     if ret:
         logging.error("test failed, please check [%s] for more log\n",
                       workspace)
         sys.exit(ret)
-    logging.info("Exascaler monistoring system tests passed, please check [%s] "
+    logging.info("Installed the virtual machines, please check [%s] "
                  "for more log", workspace)
     sys.exit(0)

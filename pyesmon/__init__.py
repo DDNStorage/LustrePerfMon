@@ -1,2 +1,2 @@
 __all__ = ["collectd", "daemon", "esmon_build", "esmon_install",
-           "esmon_test", "grafana", "ssh_host", "utils", "watched_io"]
+           "esmon_virt", "grafana", "ssh_host", "utils", "watched_io"]
