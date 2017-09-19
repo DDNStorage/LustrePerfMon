@@ -1581,6 +1581,11 @@ def esmon_install_locked(workspace, config_fpath):
     """
     # pylint: disable=too-many-branches,bare-except,too-many-locals
     # pylint: disable=too-many-statements
+    save_fpath = workspace + "/" + ESMON_INSTALL_CONFIG_FNAME
+    logging.debug("copying config file from [%s] to [%s]", config_fpath,
+                  save_fpath)
+    shutil.copyfile(config_fpath, save_fpath)
+
     config_fd = open(config_fpath)
     ret = 0
     try:
@@ -1707,10 +1712,6 @@ def main():
           (config_fpath, workspace))
     utils.configure_logging(workspace)
 
-    save_fpath = workspace + "/" + ESMON_INSTALL_CONFIG_FNAME
-    logging.debug("copying config file from [%s] to [%s]", config_fpath,
-                  save_fpath)
-    shutil.copyfile(config_fpath, save_fpath)
     ret = esmon_install(workspace, config_fpath)
     if ret:
         logging.error("installation failed, please check [%s] for more log\n",

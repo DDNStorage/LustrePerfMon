@@ -234,8 +234,10 @@ class SSHHost(object):
                 return None
             else:
                 if "el7" in ret.cr_stdout:
+                    self.sh_cached_distro = DISTRO_RHEL7
                     return DISTRO_RHEL7
                 elif "el6" in ret.cr_stdout:
+                    self.sh_cached_distro = DISTRO_RHEL6
                     return DISTRO_RHEL6
                 else:
                     return None
@@ -262,8 +264,10 @@ class SSHHost(object):
                 name == "ScientificSL" or
                 name == "CentOS"):
             if version.startswith("7"):
+                self.sh_cached_distro = DISTRO_RHEL7
                 return DISTRO_RHEL7
             elif version.startswith("6"):
+                self.sh_cached_distro = DISTRO_RHEL6
                 return DISTRO_RHEL6
             else:
                 logging.error("unsupported version [%s] of [%s] on host [%s]",

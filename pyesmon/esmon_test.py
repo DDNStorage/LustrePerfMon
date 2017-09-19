@@ -111,6 +111,11 @@ def esmon_test_locked(workspace, config_fpath):
     """
     # pylint: disable=too-many-branches,bare-except,too-many-locals
     # pylint: disable=too-many-statements
+    save_fpath = workspace + "/" + esmon_virt.ESMON_VIRT_CONFIG_FNAME
+    logging.debug("copying config file from [%s] to [%s]", config_fpath,
+                  save_fpath)
+    shutil.copyfile(config_fpath, save_fpath)
+
     config_fd = open(config_fpath)
     ret = 0
     try:
@@ -199,10 +204,6 @@ def main():
     console_handler = utils.LOGGING_HANLDERS["console"]
     console_handler.setLevel(logging.DEBUG)
 
-    save_fpath = workspace + "/" + esmon_virt.ESMON_VIRT_CONFIG_FNAME
-    logging.debug("copying config file from [%s] to [%s]", config_fpath,
-                  save_fpath)
-    shutil.copyfile(config_fpath, save_fpath)
     ret = esmon_test(workspace, config_fpath)
     if ret:
         logging.error("test failed, please check [%s] for more log\n",

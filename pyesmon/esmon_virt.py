@@ -44,18 +44,30 @@ def random_mac():
         mac_string += ":" + ("%02x" % mac_part)
     return mac_string
 
-def vm_is_shut_off(args):
+
+def vm_is_shut_off(server_host, hostname):
+    """
+    Check whether vm is shut off
+    """
+    state = server_host.sh_virsh_dominfo_state(hostname)
+    if state is None:
+        return False
+    elif state == "shut off":
+        return True
+    return False
+
+
+def vm_check_shut_off(args):
     """
     Check whether vm is shut off
     """
     server_host = args[0]
     hostname = args[1]
-    state = server_host.sh_virsh_dominfo_state(hostname)
-    if state is None:
-        return -1
-    elif state == "shut off":
+    off = vm_is_shut_off(server_host, hostname)
+    if off:
         return 0
     return -1
+
 
 def vm_delete(server_host, hostname):
     """
@@ -342,13 +354,24 @@ TYPE="Ethernet"
                       host_ip)
         return -1
 
+    ret = vm_check(hostname, host_ip, distro)
+    if ret:
+        return -1
+    return 0
+
+
+def vm_check(hostname, host_ip, distro):
+    """
+    Check whether virtual machine is up and fine
+    """
+    vm_host = ssh_host.SSHHost(host_ip)
     command = "hostname"
     retval = vm_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
                       "ret = [%d], stdout = [%s], stderr = [%s]",
                       command,
-                      server_host.sh_hostname,
+                      host_ip,
                       retval.cr_exit_status,
                       retval.cr_stdout,
                       retval.cr_stderr)
@@ -356,8 +379,71 @@ TYPE="Ethernet"
 
     current_hostname = retval.cr_stdout.strip()
     if current_hostname != hostname:
-        logging.error("wrong host name of the virtual machine, expected [%s], "
-                      "got [%s]", hostname, current_hostname)
+        logging.error("wrong host name of the virtual machine [%s], expected "
+                      "[%s], got [%s]", host_ip, hostname, current_hostname)
+        return -1
+
+    vm_host = ssh_host.SSHHost(hostname)
+    command = "hostname"
+    retval = vm_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    current_hostname = retval.cr_stdout.strip()
+    if current_hostname != hostname:
+        logging.error("wrong host name of the virtual machine [%s], expected "
+                      "[%s], got [%s]", hostname, hostname, current_hostname)
+        return -1
+
+    if vm_host.sh_distro() != distro:
+        logging.error("wrong distro of the virtual machine [%s], expected "
+                      "[%s], got [%s]", hostname, distro, vm_host.sh_distro())
+        return -1
+    return 0
+
+
+def vm_start(workspace, server_host, hostname, host_ip, template_hostname,
+             image_dir, distro):
+    """
+    Start virtual machine, if vm is bad, clone it
+    """
+    # pylint: disable=too-many-arguments
+    ret = vm_check(hostname, host_ip, distro)
+    if ret == 0:
+        return 0
+
+    if vm_is_shut_off(server_host, hostname):
+        command = ("virsh start %s" % (hostname))
+        retval = server_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          server_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+    vm_host = ssh_host.SSHHost(hostname)
+    ret = vm_host.sh_wait_up()
+    if ret == 0:
+        ret = vm_check(hostname, host_ip, distro)
+        if ret == 0:
+            return 0
+
+    ret = vm_clone(workspace, server_host, hostname, host_ip,
+                   template_hostname, image_dir, distro)
+    if ret:
+        logging.error("failed to create virtual machine [%s] based on "
+                      "template [%s]", hostname, template_hostname)
         return -1
     return 0
 
@@ -607,7 +693,7 @@ EOF
 
     # Need to wait until VM shut off, otherwise "virsh change-media" won't
     # change the XML file
-    ret = utils.wait_condition(vm_is_shut_off, [server_host, hostname])
+    ret = utils.wait_condition(vm_check_shut_off, [server_host, hostname])
     if ret:
         logging.error("failed when waiting host [%s] on [%s] shut off",
                       hostname, server_host.sh_hostname)
@@ -768,7 +854,14 @@ def esmon_vm_install(workspace, config, config_fpath):
         if reinstall is None:
             reinstall = False
 
-        if reinstall:
+        if not reinstall:
+            ret = vm_start(workspace, server_host, hostname, host_ip,
+                           template_hostname, image_dir, distro)
+            if ret:
+                logging.error("virtual machine [%s] can't be started",
+                              hostname)
+                return -1
+        else:
             ret = vm_clone(workspace, server_host, hostname, host_ip,
                            template_hostname, image_dir, distro)
             if ret:
