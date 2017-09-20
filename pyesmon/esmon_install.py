@@ -16,7 +16,6 @@ import json
 import requests
 import yaml
 import filelock
-import influxdb
 import slugify
 
 # Local libs
@@ -24,6 +23,7 @@ from pyesmon import utils
 from pyesmon import ssh_host
 from pyesmon import collectd
 from pyesmon import esmon_common
+from pyesmon import esmon_influxdb
 
 ESMON_INSTALL_CONFIG = "/etc/" + esmon_common.ESMON_INSTALL_CONFIG_FNAME
 ESMON_INSTALL_LOG_DIR = "/var/log/esmon_install"
@@ -93,8 +93,8 @@ class EsmonServer(object):
                            ssh_host.DISTRO_RHEL7)
         self.es_grafana_failure = False
         hostname = host.sh_hostname
-        self.es_influxdb_client = influxdb.InfluxDBClient(host=hostname,
-                                                          database=INFLUXDB_DATABASE_NAME)
+        self.es_influxdb_client = esmon_influxdb.InfluxdbClient(hostname,
+                                                                INFLUXDB_DATABASE_NAME)
         self.es_client = EsmonClient(host, workspace, self)
 
     def es_check(self):
@@ -733,12 +733,14 @@ class EsmonServer(object):
                  'END;' %
                  (cq_query, INFLUXDB_DATABASE_NAME, cq_measurement,
                   measurement, interval, group_string))
-        client = self.es_influxdb_client
-        try:
-            client.query(query)
-        except:
-            logging.debug("failed to create continuous query with query [%s]",
+        response = self.es_influxdb_client.ic_query(query)
+        if response is None:
+            logging.error("failed to create continuous query with query [%s]",
                           query)
+            return -1
+
+        if response.status_code != httplib.OK:
+            logging.error("got InfluxDB status [%d]", response.status_code)
             return -1
         return 0
 
@@ -750,12 +752,14 @@ class EsmonServer(object):
         cq_query = INFLUXDB_CQ_PREFIX + measurement
         query = ('DROP CONTINUOUS QUERY %s ON "%s";' %
                  (cq_query, INFLUXDB_DATABASE_NAME))
-        client = self.es_influxdb_client
-        try:
-            client.query(query)
-        except:
-            logging.error("failed to delete continuous query with query [%s]",
+        response = self.es_influxdb_client.ic_query(query)
+        if response is None:
+            logging.error("failed to drop continuous query with query [%s]",
                           query)
+            return -1
+
+        if response.status_code != httplib.OK:
+            logging.error("got InfluxDB status [%d]", response.status_code)
             return -1
         return 0
 
@@ -1229,9 +1233,10 @@ class EsmonClient(object):
         return 0
 
     def _ec_influxdb_measurement_check(self, args):
-        # pylint: disable=bare-except,unused-argument
+        # pylint: disable=bare-except,unused-argument,too-many-return-statements
+        # pylint: disable=too-many-locals,too-many-branches
         """
-        Check whether we can connect to Grafana
+        Check whether the datapoint is recieved by InfluxDB
         """
         measurement_name = args[0]
         fqdn = args[1]
@@ -1239,18 +1244,76 @@ class EsmonClient(object):
                  'WHERE fqdn = \'%s\' ORDER BY time DESC LIMIT 1;' %
                  (measurement_name, fqdn))
         client = self.ec_esmon_server.es_influxdb_client
-        try:
-            result = client.query(query, epoch="s")
-        except:
-            logging.debug("got exception with query [%s]", query)
+
+        response = client.ic_query(query, epoch="s")
+        if response is None:
+            logging.error("failed to drop continuous query with query [%s]",
+                          query)
             return -1
-        points = list(result.get_points())
-        if len(points) != 1:
-            logging.debug("got multiple points with query [%s]: %s", query,
-                          points)
+
+        if response.status_code != httplib.OK:
+            logging.error("got InfluxDB status [%d]", response.status_code)
             return -1
-        point = points[0]
-        timestamp = int(point["time"])
+
+        data = response.json()
+        json_string = json.dumps(data, indent=4, separators=(',', ': '))
+        logging.debug("data: [%s]", json_string)
+        if "results" not in data:
+            logging.error("got wrong InfluxDB data [%d], no [results]", json_string)
+            return -1
+        results = data["results"]
+
+        if len(results) != 1:
+            logging.error("got wrong InfluxDB data [%d], [results] is not a "
+                          "array with only one element", json_string)
+            return -1
+        result = results[0]
+
+        if "series" not in result:
+            logging.error("got wrong InfluxDB data [%d], no [series] in one "
+                          "of the result", json_string)
+            return -1
+
+        series = result["series"]
+        if len(series) != 1:
+            logging.error("got wrong InfluxDB data [%d], [series] is not a "
+                          "array with only one element", json_string)
+            return -1
+        serie = series[0]
+
+        if "columns" not in serie:
+            logging.error("got wrong InfluxDB data [%d], no [columns] in one "
+                          "of the series", json_string)
+            return -1
+        columns = serie["columns"]
+
+        if "values" not in serie:
+            logging.error("got wrong InfluxDB data [%d], no [values] in one "
+                          "of the series", json_string)
+            return -1
+        serie_values = serie["values"]
+
+        if len(serie_values) != 1:
+            logging.error("got wrong InfluxDB data [%d], [values] is not a "
+                          "array with only one element", json_string)
+            return -1
+        value = serie_values[0]
+
+        time_index = -1
+        i = 0
+        for column in columns:
+            if column == "time":
+                time_index = i
+                break
+            i += 1
+
+        if time_index == -1:
+            logging.error("got wrong InfluxDB data [%d], no [time] in "
+                          "the columns", json_string)
+            return -1
+
+        timestamp = int(value[time_index])
+
         if self.ec_influxdb_update_time is None:
             self.ec_influxdb_update_time = timestamp
         elif timestamp > self.ec_influxdb_update_time:
