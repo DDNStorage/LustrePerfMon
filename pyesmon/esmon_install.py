@@ -1596,7 +1596,32 @@ def esmon_mount_and_install(install_host, workspace, config,
     Mount the ISO and install the ESMON system
     """
     # pylint: disable=bare-except,global-statement
-    iso_path = config[ISO_PATH_STRING]
+    iso_path = config_value(config, ISO_PATH_STRING)
+    if iso_path is None:
+        logging.info("no [iso_path] is configured, check current directory")
+
+        command = "ls esmon-*.iso"
+        retval = install_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          local_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+    
+        current_dir = os.getcwd()
+        iso_names = retval.cr_stdout.split()
+        if len(iso_names) != 1:
+            logging.info("found unexpected ISOs [%s] under currect directory [%s]",
+                         iso_names, current_dir)
+            return -1
+    
+        iso_name = iso_names[0]
+        iso_path = current_dir + "/" + iso_name
+
     mnt_path = "/mnt/" + utils.random_word(8)
 
     command = ("mkdir -p %s && mount -o loop %s %s" %
