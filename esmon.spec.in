@@ -16,8 +16,6 @@ Group: Applications/System
 Source0: @PACKAGE@-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-Requires: python-pip
-
 %description
 ESMON(Exascaler Monitoring) is a monitoring system for DDN Exascaler.
 

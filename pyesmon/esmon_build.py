@@ -16,6 +16,7 @@ import yaml
 # Local libs
 from pyesmon import utils
 from pyesmon import ssh_host
+from pyesmon import esmon_common
 
 ESMON_BUILD_CONFIG_FNAME = "esmon_build.conf"
 ESMON_BUILD_CONFIG = "/etc/" + ESMON_BUILD_CONFIG_FNAME
@@ -32,7 +33,7 @@ COLLECTD_RPM_NAMES = ["collectd", "collectd-disk", "collectd-filedata",
 SERVER_STRING = "server"
 ESMON_BUILD_LOG_DIR = "/var/log"
 
-def download_dependent_rpms(host, dependent_dir):
+def download_dependent_rpms(host, dependent_dir, distro):
     """
     Download dependent RPMs
     """
@@ -51,14 +52,6 @@ def download_dependent_rpms(host, dependent_dir):
                       retval.cr_stderr)
         return -1
 
-    dependent_rpms = ["openpgm", "yajl", "zeromq3", "fontconfig", "glibc",
-                      "glibc-common", "glibc-devel", "fontpackages-filesystem",
-                      "glibc-headers", "glibc-static", "libfontenc", "libtool",
-                      "libtool-ltdl", "libtool-ltdl-devel", "libXfont", "libyaml",
-                      "patch", "PyYAML", "rsync", "urw-fonts",
-                      "xorg-x11-font-utils", "python-chardet",
-                      "lm_sensors-libs"]
-
     command = ("ls %s" % (dependent_dir))
     retval = host.sh_run(command)
     if retval.cr_exit_status:
@@ -71,6 +64,16 @@ def download_dependent_rpms(host, dependent_dir):
                       retval.cr_stderr)
         return -1
     existing_rpm_fnames = retval.cr_stdout.split()
+
+    dependent_rpms = esmon_common.ESMON_CLIENT_DEPENDENT_RPMS[:]
+    if distro == ssh_host.DISTRO_RHEL7:
+        for rpm_name in esmon_common.ESMON_SERVER_DEPENDENT_RPMS:
+            if rpm_name not in dependent_rpms:
+                dependent_rpms.append(rpm_name)
+
+        for rpm_name in esmon_common.ESMON_INSTALL_DEPENDENT_RPMS:
+            if rpm_name not in dependent_rpms:
+                dependent_rpms.append(rpm_name)
 
     command = "yum install -y"
     for rpm_name in dependent_rpms:
@@ -597,7 +600,7 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
                           retval.cr_stderr)
             return -1
 
-    ret = download_dependent_rpms(build_host, host_dependent_rpm_dir)
+    ret = download_dependent_rpms(build_host, host_dependent_rpm_dir, distro)
     if ret:
         logging.error("failed to download depdendent RPMs")
         return ret
@@ -639,59 +642,13 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
         return -1
     return 0
 
-
-def config_value(config, key):
-    """
-    Return value of a key in config
-    """
-    if key not in config:
-        return None
-    return config[key]
-
-
-def clone_src_from_git(build_dir, git_url, branch,
-                       ssh_identity_file=None):
-    """
-    Get the Lustre soure codes from Git server.
-    """
-    command = ("rm -fr %s && mkdir -p %s && git init %s" %
-               (build_dir, build_dir, build_dir))
-    retval = utils.run(command)
-    if retval.cr_exit_status != 0:
-        logging.error("failed to run command [%s], "
-                      "ret = [%d], stdout = [%s], stderr = [%s]",
-                      command, retval.cr_exit_status, retval.cr_stdout,
-                      retval.cr_stderr)
-        return -1
-
-    command = ("cd %s && git config remote.origin.url %s && "
-               "GIT_SSH_COMMAND=\"ssh -i /root/.ssh/id_dsa\" "
-               "git fetch --tags --progress %s "
-               "+refs/heads/*:refs/remotes/origin/* && "
-               "git checkout origin/%s -f" %
-               (build_dir, git_url, git_url, branch))
-    if ssh_identity_file is not None:
-        # Git 2.3.0+ has GIT_SSH_COMMAND
-        command = ("ssh-agent sh -c 'ssh-add " + ssh_identity_file +
-                   " && " + command + "'")
-
-    retval = utils.run(command)
-    if retval.cr_exit_status != 0:
-        logging.error("failed to run command [%s], "
-                      "ret = [%d], stdout = [%s], stderr = [%s]",
-                      command, retval.cr_exit_status, retval.cr_stdout,
-                      retval.cr_stderr)
-        return -1
-    return 0
-
-
 def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
     """
     Build the ISO
     """
     # pylint: disable=too-many-locals,too-many-return-statements
     # pylint: disable=too-many-branches,too-many-statements
-    host_configs = config_value(config, "ssh_hosts")
+    host_configs = esmon_common.config_value(config, "ssh_hosts")
     if host_configs is None:
         logging.error("can NOT find [ssh_hosts] in the config file, "
                       "please correct file [%s]", config_fpath)
@@ -706,14 +663,15 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
                           config_fpath)
             return -1
 
-        hostname = config_value(host_config, "hostname")
+        hostname = esmon_common.config_value(host_config, "hostname")
         if hostname is None:
             logging.error("can NOT find [hostname] in the config of SSH host "
                           "with ID [%s], please correct file [%s]",
                           host_id, config_fpath)
             return -1
 
-        ssh_identity_file = config_value(host_config, "ssh_identity_file")
+        ssh_identity_file = esmon_common.config_value(host_config,
+                                                      "ssh_identity_file")
 
         if host_id in hosts:
             logging.error("multiple SSH hosts with the same ID [%s], please "
@@ -722,13 +680,13 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
         host = ssh_host.SSHHost(hostname, ssh_identity_file)
         hosts[host_id] = host
 
-    centos6_host_config = config_value(config, "centos6_host")
+    centos6_host_config = esmon_common.config_value(config, "centos6_host")
     if hostname is None:
         logging.error("can NOT find [centos6_host] in the config file [%s], "
                       "please correct it", config_fpath)
         return -1
 
-    centos6_host_id = config_value(centos6_host_config, "host_id")
+    centos6_host_id = esmon_common.config_value(centos6_host_config, "host_id")
     if centos6_host_id is None:
         logging.error("can NOT find [host_id] in the config of [centos6_host], "
                       "please correct file [%s]", config_fpath)
@@ -762,20 +720,20 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
                       retval.cr_stderr)
         return -1
 
-    collectd_git_url = config_value(config, "collectd_git_url")
+    collectd_git_url = esmon_common.config_value(config, "collectd_git_url")
     if collectd_git_url is None:
         logging.error("can NOT find [collectd_git_url] in the config, "
                       "please correct file [%s]", config_fpath)
         return -1
 
-    collectd_git_branch = config_value(config, "collectd_git_branch")
+    collectd_git_branch = esmon_common.config_value(config, "collectd_git_branch")
     if collectd_git_branch is None:
         logging.error("can NOT find [collectd_git_branch] in the config, "
                       "please correct file [%s]", config_fpath)
         return -1
 
-    ret = clone_src_from_git(collectd_git_path, collectd_git_url,
-                             collectd_git_branch)
+    ret = esmon_common.clone_src_from_git(collectd_git_path, collectd_git_url,
+                                          collectd_git_branch)
     if ret:
         logging.error("failed to clone Collectd branch [%s] from [%s] to "
                       "directory [%s]", collectd_git_branch,

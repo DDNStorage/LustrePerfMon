@@ -12,7 +12,7 @@ import logging
 import traceback
 
 # local libs
-from pylipe import utils
+from pyesmon import utils
 
 
 def watched_io_open(fname, func, args):
@@ -65,3 +65,32 @@ class WatchedIO(io.TextIOWrapper):
             logging.error("failed to write the file [%s]: %s",
                           self.wi_fname, traceback.format_exc())
         self.wi_func(self.wi_args, data)
+
+def log_watcher_debug(args, new_log):
+    """
+    Watch log dump to logging.debug
+    """
+    if len(new_log) == 0:
+        return
+    logging.debug("log from host [%s]: [%s]",
+                  args["hostname"], new_log)
+
+
+def log_watcher_info(args, new_log):
+    """
+    Watch log dump to logging.info
+    """
+    if len(new_log) == 0:
+        return
+    logging.info("log from host [%s]: [%s]",
+                 args["hostname"], new_log)
+
+
+def log_watcher_error(args, new_log):
+    """
+    Watch log dump to logging.error
+    """
+    if len(new_log) == 0:
+        return
+    logging.error("log from host [%s]: [%s]",
+                  args["hostname"], new_log)

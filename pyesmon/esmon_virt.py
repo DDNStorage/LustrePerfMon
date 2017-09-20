@@ -17,6 +17,7 @@ import filelock
 # Local libs
 from pyesmon import utils
 from pyesmon import ssh_host
+from pyesmon import esmon_common
 
 ESMON_VIRT_CONFIG_FNAME = "esmon_virt.conf"
 ESMON_VIRT_CONFIG = "/etc/" + ESMON_VIRT_CONFIG_FNAME
@@ -24,14 +25,6 @@ ESMON_VIRT_LOG_DIR = "/var/log/esmon_virt"
 STRING_DISTRO = "distro"
 STRING_HOSTNAME = "hostname"
 STRING_HOST_IP = "host_ip"
-
-def config_value(config, key):
-    """
-    Return value of a key in config
-    """
-    if key not in config:
-        return None
-    return config[key]
 
 
 def random_mac():
@@ -735,7 +728,7 @@ def esmon_vm_install(workspace, config, config_fpath):
     """
     # pylint: disable=too-many-return-statements,too-many-locals
     # pylint: disable=too-many-branches,too-many-statements
-    server_host_config = config_value(config, "server_host")
+    server_host_config = esmon_common.config_value(config, "server_host")
     if server_host_config is None:
         logging.error("no [server_host] is configured, "
                       "please correct file [%s]", config_fpath)
@@ -743,33 +736,34 @@ def esmon_vm_install(workspace, config, config_fpath):
 
     server_host = ssh_host.SSHHost("localhost", local=True)
 
-    image_dir = config_value(server_host_config, "image_dir")
+    image_dir = esmon_common.config_value(server_host_config, "image_dir")
     if image_dir is None:
         logging.error("no [image_dir] is configured, "
                       "please correct file [%s]", config_fpath)
         return -1
 
-    rhel6_template_hostname = config_value(server_host_config,
-                                           "rhel6_template_hostname")
+    rhel6_template_hostname = esmon_common.config_value(server_host_config,
+                                                        "rhel6_template_hostname")
     if rhel6_template_hostname is None:
         logging.error("no [rhel6_template_hostname] is configured, "
                       "please correct file [%s]", config_fpath)
         return -1
 
-    rhel6_template_reinstall = config_value(server_host_config,
-                                            "rhel6_template_reinstall")
+    rhel6_template_reinstall = esmon_common.config_value(server_host_config,
+                                                         "rhel6_template_reinstall")
     if rhel6_template_reinstall is None:
         logging.error("no [rhel6_template_reinstall] is configured, "
                       "please correct file [%s]", config_fpath)
         return -1
 
-    rhel6_template_ip = config_value(server_host_config, "rhel6_template_ip")
+    rhel6_template_ip = esmon_common.config_value(server_host_config,
+                                                  "rhel6_template_ip")
     if rhel6_template_ip is None:
         logging.error("no [rhel6_template_ip] is configured, "
                       "please correct file [%s]", config_fpath)
         return -1
 
-    rhel6_iso = config_value(server_host_config, "rhel6_iso")
+    rhel6_iso = esmon_common.config_value(server_host_config, "rhel6_iso")
     if rhel6_iso is None:
         logging.error("no [rhel6_iso] is configured, "
                       "please correct file [%s]", config_fpath)
@@ -796,27 +790,28 @@ def esmon_vm_install(workspace, config, config_fpath):
                           rhel6_template_hostname)
             return -1
 
-    rhel7_template_hostname = config_value(server_host_config,
-                                           "rhel7_template_hostname")
+    rhel7_template_hostname = esmon_common.config_value(server_host_config,
+                                                        "rhel7_template_hostname")
     if rhel7_template_hostname is None:
         logging.error("no [rhel7_template_hostname] is configured, "
                       "please correct file [%s]", config_fpath)
         return -1
 
-    rhel7_template_reinstall = config_value(server_host_config,
-                                            "rhel7_template_reinstall")
+    rhel7_template_reinstall = esmon_common.config_value(server_host_config,
+                                                         "rhel7_template_reinstall")
     if rhel7_template_reinstall is None:
         logging.error("no [rhel7_template_reinstall] is configured, "
                       "please correct file [%s]", config_fpath)
         return -1
 
-    rhel7_template_ip = config_value(server_host_config, "rhel7_template_ip")
+    rhel7_template_ip = esmon_common.config_value(server_host_config,
+                                                  "rhel7_template_ip")
     if rhel7_template_ip is None:
         logging.error("no [rhel7_template_ip] is configured, "
                       "please correct file [%s]", config_fpath)
         return -1
 
-    rhel7_iso = config_value(server_host_config, "rhel7_iso")
+    rhel7_iso = esmon_common.config_value(server_host_config, "rhel7_iso")
     if rhel7_iso is None:
         logging.error("no [rhel7_iso] is configured, "
                       "please correct file [%s]", config_fpath)
@@ -831,26 +826,26 @@ def esmon_vm_install(workspace, config, config_fpath):
                           rhel7_template_hostname)
             return -1
 
-    vm_host_configs = config_value(config, "vm_hosts")
+    vm_host_configs = esmon_common.config_value(config, "vm_hosts")
     if vm_host_configs is None:
         logging.error("no [vm_hosts] is configured, "
                       "please correct file [%s]", config_fpath)
         return -1
 
     for vm_host_config in vm_host_configs:
-        hostname = config_value(vm_host_config, STRING_HOSTNAME)
+        hostname = esmon_common.config_value(vm_host_config, STRING_HOSTNAME)
         if hostname is None:
             logging.error("no [hostname] is configured for a vm_host, "
                           "please correct file [%s]", config_fpath)
             return -1
 
-        host_ip = config_value(vm_host_config, STRING_HOST_IP)
+        host_ip = esmon_common.config_value(vm_host_config, STRING_HOST_IP)
         if hostname is None:
             logging.error("no [host_ip] is configured for a vm_host, "
                           "please correct file [%s]", config_fpath)
             return -1
 
-        distro = config_value(vm_host_config, STRING_DISTRO)
+        distro = esmon_common.config_value(vm_host_config, STRING_DISTRO)
         if distro is None:
             logging.error("no [distro] is configured for a vm_host, "
                           "please correct file [%s]", config_fpath)
@@ -865,7 +860,7 @@ def esmon_vm_install(workspace, config, config_fpath):
                           "please correct file [%s]", distro, config_fpath)
             return -1
 
-        reinstall = config_value(vm_host_config, "reinstall")
+        reinstall = esmon_common.config_value(vm_host_config, "reinstall")
         if reinstall is None:
             reinstall = False
 

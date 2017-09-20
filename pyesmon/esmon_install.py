@@ -23,9 +23,9 @@ import slugify
 from pyesmon import utils
 from pyesmon import ssh_host
 from pyesmon import collectd
+from pyesmon import esmon_common
 
-ESMON_INSTALL_CONFIG_FNAME = "esmon_install.conf"
-ESMON_INSTALL_CONFIG = "/etc/" + ESMON_INSTALL_CONFIG_FNAME
+ESMON_INSTALL_CONFIG = "/etc/" + esmon_common.ESMON_INSTALL_CONFIG_FNAME
 ESMON_INSTALL_LOG_DIR = "/var/log/esmon_install"
 INFLUXDB_CONFIG_FPATH = "/etc/influxdb/influxdb.conf"
 INFLUXDB_CONFIG_DIFF = "influxdb.conf.diff"
@@ -43,8 +43,6 @@ GRAFANA_DASHBOARDS["Server Statistics"] = "server_statistics.json"
 GRAFANA_DASHBOARDS["Server Statistics"] = "server_statistics.json"
 GRAFANA_DASHBOARDS["SFA Physical Disk"] = "SFA_physical_disk.json"
 GRAFANA_DASHBOARDS["SFA Virtual Disk"] = "SFA_virtual_disk.json"
-RPM_PATTERN_RHEL7 = r"^%s-\d.+(\.el7|).*\.(x86_64|noarch)\.rpm$"
-RPM_PATTERN_RHEL6 = r"^%s-\d.+(\.el6|).*\.(x86_64|noarch)\.rpm$"
 RPM_STRING = "RPMS"
 DEPENDENT_STRING = "dependent"
 COLLECTD_STRING = "collectd"
@@ -64,7 +62,6 @@ ERASE_INFLUXDB_STRING = "erase_influxdb"
 LUSTRE_OSS_STRING = "lustre_oss"
 LUSTRE_MDS_STRING = "lustre_mds"
 IME_STRING = "ime"
-INSTALL_HOST = None
 
 def grafana_dashboard_check(name, dashboard):
     """
@@ -166,11 +163,7 @@ class EsmonServer(object):
         """
         Install dependent RPMs
         """
-        dependent_rpms = ["yajl", "openpgm", "zeromq3", "glibc", "patch",
-                          "fontpackages-filesystem", "libfontenc",
-                          "libtool-ltdl", "libtool", "fontconfig", "libXfont",
-                          "rsync", "xorg-x11-font-utils", "urw-fonts"]
-        for dependent_rpm in dependent_rpms:
+        for dependent_rpm in esmon_common.ESMON_SERVER_DEPENDENT_RPMS:
             ret = self.es_host.sh_rpm_query(dependent_rpm)
             if ret == 0:
                 continue
@@ -679,6 +672,7 @@ class EsmonServer(object):
         for name, fname in GRAFANA_DASHBOARDS.iteritems():
             dashboard_json_fpath = (mnt_path + "/" + GRAFANA_DASHBOARD_DIR +
                                     "/" + fname)
+
             with open(dashboard_json_fpath) as json_file:
                 dashboard = json.load(json_file)
 
@@ -699,7 +693,6 @@ class EsmonServer(object):
         """
         Reinstall RPMs
         """
-
         ret = self.es_dependent_rpms_install()
         if ret:
             logging.error("failed to install dependent RPMs to server")
@@ -856,9 +849,9 @@ class EsmonClient(object):
         distro = self.ec_host.sh_distro()
         self.ec_distro = distro
         if distro == ssh_host.DISTRO_RHEL6:
-            self.ec_rpm_pattern = RPM_PATTERN_RHEL6
+            self.ec_rpm_pattern = esmon_common.RPM_PATTERN_RHEL6
         elif distro == ssh_host.DISTRO_RHEL7:
-            self.ec_rpm_pattern = RPM_PATTERN_RHEL7
+            self.ec_rpm_pattern = esmon_common.RPM_PATTERN_RHEL7
         else:
             logging.error("distro of host [%s] is not RHEL6/CentOS6 or "
                           "RHEL7/CentOS7", self.ec_host.sh_hostname)
@@ -1068,8 +1061,7 @@ class EsmonClient(object):
         config.cc_dump(fpath)
 
         etc_path = "/etc/collectd.conf"
-        ret = INSTALL_HOST.sh_send_file(fpath, etc_path, from_local=False,
-                                        remote_host=self.ec_host)
+        ret = self.ec_host.sh_send_file(fpath, etc_path)
         if ret:
             logging.error("failed to send file [%s] on local host to "
                           "directory [%s] on host [%s]",
@@ -1097,9 +1089,7 @@ class EsmonClient(object):
                               retval.cr_stderr)
                 return -1
 
-            ret = INSTALL_HOST.sh_send_file(mnt_path, self.ec_workspace,
-                                            from_local=False,
-                                            remote_host=self.ec_host)
+            ret = self.ec_host.sh_send_file(mnt_path, self.ec_workspace)
             if ret:
                 logging.error("failed to send file [%s] on local host to "
                               "directory [%s] on host [%s]",
@@ -1282,15 +1272,6 @@ class EsmonClient(object):
         return ret
 
 
-def config_value(config, key):
-    """
-    Return value of a key in config
-    """
-    if key not in config:
-        return None
-    return config[key]
-
-
 def esmon_do_install(workspace, config, config_fpath, mnt_path):
     """
     Start to install with the ISO mounted
@@ -1298,7 +1279,7 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
     # pylint: disable=too-many-return-statements
     # pylint: disable=too-many-branches,bare-except, too-many-locals
     # pylint: disable=too-many-statements
-    host_configs = config_value(config, SSH_HOST_STRING)
+    host_configs = esmon_common.config_value(config, SSH_HOST_STRING)
     if host_configs is None:
         logging.error("can NOT find [ssh_hosts] in the config file, "
                       "please correct file [%s]", config_fpath)
@@ -1313,14 +1294,14 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
                           config_fpath)
             return -1
 
-        hostname = config_value(host_config, "hostname")
+        hostname = esmon_common.config_value(host_config, "hostname")
         if hostname is None:
             logging.error("can NOT find [hostname] in the config of SSH host "
                           "with ID [%s], please correct file [%s]",
                           host_id, config_fpath)
             return -1
 
-        ssh_identity_file = config_value(host_config, "ssh_identity_file")
+        ssh_identity_file = esmon_common.config_value(host_config, "ssh_identity_file")
 
         if host_id in hosts:
             logging.error("multiple SSH hosts with the same ID [%s], please "
@@ -1329,25 +1310,25 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
         host = ssh_host.SSHHost(hostname, ssh_identity_file)
         hosts[host_id] = host
 
-    server_host_config = config_value(config, SERVER_HOST_STRING)
+    server_host_config = esmon_common.config_value(config, SERVER_HOST_STRING)
     if hostname is None:
         logging.error("can NOT find [server_host] in the config file [%s], "
                       "please correct it", config_fpath)
         return -1
 
-    host_id = config_value(server_host_config, "host_id")
+    host_id = esmon_common.config_value(server_host_config, "host_id")
     if host_id is None:
         logging.error("can NOT find [host_id] in the config of [server_host], "
                       "please correct file [%s]", config_fpath)
         return -1
 
-    erase_influxdb = config_value(server_host_config, ERASE_INFLUXDB_STRING)
+    erase_influxdb = esmon_common.config_value(server_host_config, ERASE_INFLUXDB_STRING)
     if erase_influxdb is None:
         erase_influxdb = False
     logging.info("Influxdb will %sbe erased according to the config",
                  "" if erase_influxdb else "NOT ")
 
-    drop_database = config_value(server_host_config, DROP_DATABASE_STRING)
+    drop_database = esmon_common.config_value(server_host_config, DROP_DATABASE_STRING)
     if drop_database is None:
         drop_database = False
     logging.info("database [%s] of Influxdb will %sbe dropped "
@@ -1368,7 +1349,7 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
                       "problem", esmon_server.es_host.sh_hostname)
         return -1
 
-    client_host_configs = config_value(config, CLIENT_HOSTS_STRING)
+    client_host_configs = esmon_common.config_value(config, CLIENT_HOSTS_STRING)
     if client_host_configs is None:
         logging.error("can NOT find [client_hosts] in the config file, "
                       "please correct file [%s]", config_fpath)
@@ -1376,7 +1357,7 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
 
     esmon_clients = {}
     for client_host_config in client_host_configs:
-        host_id = config_value(client_host_config, "host_id")
+        host_id = esmon_common.config_value(client_host_config, "host_id")
         if host_id is None:
             logging.error("can NOT find [host_id] in the config of a "
                           "ESMON client host, please correct file [%s]",
@@ -1393,30 +1374,30 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
                            "users")
 
         host = hosts[host_id]
-        lustre_oss = config_value(client_host_config, LUSTRE_OSS_STRING)
+        lustre_oss = esmon_common.config_value(client_host_config, LUSTRE_OSS_STRING)
         if lustre_oss is None:
             lustre_oss = False
         if lustre_oss:
             enabled_plugins += ", Lustre OSS"
 
-        lustre_mds = config_value(client_host_config, "lustre_mds")
+        lustre_mds = esmon_common.config_value(client_host_config, "lustre_mds")
         if lustre_mds is None:
             lustre_mds = False
         if lustre_mds:
             enabled_plugins += ", Lustre MDS"
 
-        ime = config_value(client_host_config, IME_STRING)
+        ime = esmon_common.config_value(client_host_config, IME_STRING)
         if ime is None:
             ime = False
         if ime:
             enabled_plugins += ", DDN IME"
 
-        sfas = config_value(client_host_config, "sfas")
+        sfas = esmon_common.config_value(client_host_config, "sfas")
         sfa_names = []
         sfa_hosts = []
         if sfas is not None:
             for sfa in sfas:
-                name = config_value(sfa, "name")
+                name = esmon_common.config_value(sfa, "name")
                 if name is None:
                     logging.error("can NOT find [name] in the SFA config of a "
                                   "ESMON client host, please correct file "
@@ -1430,7 +1411,7 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
                     return -1
                 sfa_names.append(name)
 
-                controller0_host = config_value(sfa, "controller0_host")
+                controller0_host = esmon_common.config_value(sfa, "controller0_host")
                 if controller0_host is None:
                     logging.error("can NOT find [controller0_host] in the SFA "
                                   "config of a ESMON client host, please "
@@ -1445,7 +1426,7 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
                     return -1
                 sfa_hosts.append(controller0_host)
 
-                controller1_host = config_value(sfa, "controller1_host")
+                controller1_host = esmon_common.config_value(sfa, "controller1_host")
                 if controller1_host is None:
                     logging.error("can NOT find [controller1_host] in the SFA "
                                   "config of a ESMON client host, please "
@@ -1590,18 +1571,18 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
     return ret
 
 
-def esmon_mount_and_install(install_host, workspace, config,
-                            config_fpath):
+def esmon_mount_and_install(workspace, config, config_fpath):
     """
     Mount the ISO and install the ESMON system
     """
     # pylint: disable=bare-except,global-statement
-    iso_path = config_value(config, ISO_PATH_STRING)
+    local_host = ssh_host.SSHHost("localhost", local=True)
+    iso_path = esmon_common.config_value(config, ISO_PATH_STRING)
     if iso_path is None:
         logging.info("no [iso_path] is configured, check current directory")
 
         command = "ls esmon-*.iso"
-        retval = install_host.sh_run(command)
+        retval = local_host.sh_run(command)
         if retval.cr_exit_status:
             logging.error("failed to run command [%s] on host [%s], "
                           "ret = [%d], stdout = [%s], stderr = [%s]",
@@ -1611,14 +1592,14 @@ def esmon_mount_and_install(install_host, workspace, config,
                           retval.cr_stdout,
                           retval.cr_stderr)
             return -1
-    
+
         current_dir = os.getcwd()
         iso_names = retval.cr_stdout.split()
         if len(iso_names) != 1:
             logging.info("found unexpected ISOs [%s] under currect directory [%s]",
                          iso_names, current_dir)
             return -1
-    
+
         iso_name = iso_names[0]
         iso_path = current_dir + "/" + iso_name
 
@@ -1626,19 +1607,17 @@ def esmon_mount_and_install(install_host, workspace, config,
 
     command = ("mkdir -p %s && mount -o loop %s %s" %
                (mnt_path, iso_path, mnt_path))
-    retval = install_host.sh_run(command)
+    retval = local_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
                       "ret = [%d], stdout = [%s], stderr = [%s]",
                       command,
-                      install_host.sh_hostname,
+                      local_host.sh_hostname,
                       retval.cr_exit_status,
                       retval.cr_stdout,
                       retval.cr_stderr)
         return -1
 
-    global INSTALL_HOST
-    INSTALL_HOST = install_host
     try:
         ret = esmon_do_install(workspace, config, config_fpath, mnt_path)
     except:
@@ -1646,24 +1625,24 @@ def esmon_mount_and_install(install_host, workspace, config,
         logging.error("exception: %s", traceback.format_exc())
 
     command = ("umount %s" % (mnt_path))
-    retval = install_host.sh_run(command)
+    retval = local_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
                       "ret = [%d], stdout = [%s], stderr = [%s]",
                       command,
-                      install_host.sh_hostname,
+                      local_host.sh_hostname,
                       retval.cr_exit_status,
                       retval.cr_stdout,
                       retval.cr_stderr)
         ret = -1
 
     command = ("rmdir %s" % (mnt_path))
-    retval = install_host.sh_run(command)
+    retval = local_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
                       "ret = [%d], stdout = [%s], stderr = [%s]",
                       command,
-                      install_host.sh_hostname,
+                      local_host.sh_hostname,
                       retval.cr_exit_status,
                       retval.cr_stdout,
                       retval.cr_stderr)
@@ -1677,7 +1656,7 @@ def esmon_install_locked(workspace, config_fpath):
     """
     # pylint: disable=too-many-branches,bare-except,too-many-locals
     # pylint: disable=too-many-statements
-    save_fpath = workspace + "/" + ESMON_INSTALL_CONFIG_FNAME
+    save_fpath = workspace + "/" + esmon_common.ESMON_INSTALL_CONFIG_FNAME
     logging.debug("copying config file from [%s] to [%s]", config_fpath,
                   save_fpath)
     shutil.copyfile(config_fpath, save_fpath)
@@ -1694,8 +1673,7 @@ def esmon_install_locked(workspace, config_fpath):
     if ret:
         return -1
 
-    local_host = ssh_host.SSHHost("localhost", local=True)
-    return esmon_mount_and_install(local_host, workspace, config, config_fpath)
+    return esmon_mount_and_install(workspace, config, config_fpath)
 
 
 def esmon_install(workspace, config_fpath):
