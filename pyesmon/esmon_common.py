@@ -58,13 +58,12 @@ def clone_src_from_git(build_dir, git_url, branch,
         return -1
     return 0
 
-# python-requests, PyYAML, python2-filelock, python-slugify are needed by esmon_install.
+# python-requests, PyYAML, python2-filelock, python-slugify, pytz,
+# python-dateutil are needed by esmon_install.
 # python-chardet and python-urllib3 are needed by python-requests.
 # python-backports-ssl_match_hostname and python-six are needed by python-urllib3.
 # python-backports is needed by python-backports-ssl_match_hostname.
-# libyaml is needed by PyYAML
-# python-setuptools is needed by all python libaries that needs to be setuped in
-# ESMON_INSTALL_PYTHON_LIBS
+# libyaml is needed by PyYAML.
 ESMON_INSTALL_DEPENDENT_RPMS = ["python-chardet", 
                                 "python-backports",
                                 "python-backports-ssl_match_hostname", "python-six",
@@ -74,9 +73,8 @@ ESMON_INSTALL_DEPENDENT_RPMS = ["python-chardet",
                                 "python-requests",
                                 "python2-filelock",
                                 "python-slugify",
-                                "python-setuptools"]
-
-ESMON_INSTALL_PYTHON_LIBS = ["influxdb"]
+                                "pytz",
+                                "python-dateutil"]
 
 # patch is needed to patch /etc/influxdb/influxdb.conf file
 # fontconfig and urw-fonts are needed by grafana-4.4.1-1.x86_64.rpm

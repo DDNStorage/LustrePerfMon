@@ -653,6 +653,18 @@ EOF
         return -1
 
     vm_host = ssh_host.SSHHost(host_ip)
+    command = "> /root/.ssh/known_hosts"
+    retval = vm_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      vm_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
     command = "hostname"
     retval = vm_host.sh_run(command)
     if retval.cr_exit_status:

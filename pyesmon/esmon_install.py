@@ -483,7 +483,7 @@ class EsmonServer(object):
                    "Accept": "application/json"}
 
         url = self.es_grafana_url("/api/dashboards/db/%s" %
-                                  slugify.slugify(name))
+                                  slugify.slugify(name.decode('unicode-escape')))
         try:
             response = requests.delete(url, headers=headers)
         except:
@@ -506,7 +506,7 @@ class EsmonServer(object):
                    "Accept": "application/json"}
 
         url = self.es_grafana_url("/api/dashboards/db/%s" %
-                                  slugify.slugify(name))
+                                  slugify.slugify(name.decode('unicode-escape')))
         try:
             response = requests.get(url, headers=headers)
         except:

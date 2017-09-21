@@ -59,10 +59,8 @@ class EsmonInstallServer(object):
         self.eis_rpm_dir = (iso_dir + "/" + "RPMS/" +
                             ssh_host.DISTRO_RHEL7)
         self.eis_rpm_dependent_dir = self.eis_rpm_dir + "/dependent"
-        self.eis_python_library_dir = iso_dir + "/python_library"
         self.eis_rpm_dependent_fnames = None
         self.eis_workspace = workspace
-        self.eis_python_library_fnames = None
 
     def eis_rpm_install(self, name):
         """
@@ -113,76 +111,6 @@ class EsmonInstallServer(object):
             return -1
         return 0
 
-    def eis_python_library_install(self, name):
-        """
-        Install a python library in the ISO given the name
-        """
-        workspace = self.eis_workspace
-        command = ('python -c "import %s"' % (name))
-        retval = self.eis_host.sh_run(command)
-        if retval.cr_exit_status == 0:
-            logging.debug("python libaray already [%s] installed", name)
-            return 0
-        if self.eis_python_library_fnames is None:
-            command = "ls %s" % self.eis_python_library_dir
-            retval = self.eis_host.sh_run(command)
-            if retval.cr_exit_status:
-                logging.error("failed to run command [%s] on host [%s], "
-                              "ret = [%d], stdout = [%s], stderr = [%s]",
-                              command,
-                              self.eis_host.sh_hostname,
-                              retval.cr_exit_status,
-                              retval.cr_stdout,
-                              retval.cr_stderr)
-                return -1
-            self.eis_python_library_fnames = retval.cr_stdout.split()
-
-        library_pattern = (esmon_common.PATTERN_PYTHON_LIBRARY % name)
-        library_regular = re.compile(library_pattern)
-        matched_fname = None
-        for filename in self.eis_python_library_fnames[:]:
-            match = library_regular.match(filename)
-            if match:
-                matched_fname = filename
-                logging.debug("matched pattern [%s] with fname [%s]",
-                              library_pattern, filename)
-                break
-        if matched_fname is None:
-            logging.error("failed to find python library with pattern [%s] "
-                          "under directory [%s] of host [%s]", library_pattern,
-                          self.eis_python_library_dir,
-                          self.eis_host.sh_hostname)
-            return -1
-
-        # remove .tar.gz suffix
-        library_dirname = matched_fname[:-7]
-
-        command = ("cp %s/python_library/%s %s" %
-                   (self.eis_iso_dir, matched_fname, workspace))
-        retval = self.eis_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          self.eis_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
-
-        command = ("cd %s && tar -xf %s && cd %s "
-                   "&& python setup.py install" %
-                   (workspace, matched_fname, library_dirname))
-        retval = self.eis_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          self.eis_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
 
 def esmon_do_test_install(workspace, install_server, mnt_path):
     """
@@ -224,13 +152,6 @@ def esmon_do_test_install(workspace, install_server, mnt_path):
         if ret:
             logging.error("failed to install rpm [%s] on host [%s]",
                           dependent_rpm, install_server.sh_hostname)
-            return -1
-
-    for python_lib in esmon_common.ESMON_INSTALL_PYTHON_LIBS:
-        ret = esmon_installer.eis_python_library_install(python_lib)
-        if ret:
-            logging.error("failed to install python library [%s] on host [%s]",
-                          python_lib, install_server.sh_hostname)
             return -1
 
     install_config_fpath = (workspace + "/" +
@@ -416,8 +337,20 @@ def esmon_do_test(workspace, config, config_fpath):
                           retval.cr_stderr)
             return -1
 
-        hosts_string += ("%s %s\n" % (host_ip, hostname))
         vm_host = ssh_host.SSHHost(hostname)
+        command = "> /root/.ssh/known_hosts"
+        retval = vm_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          vm_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        hosts_string += ("%s %s\n" % (host_ip, hostname))
         hosts.append(vm_host)
         ssh_host_config = {}
         ssh_host_config[esmon_install.HOST_ID_STRING] = hostname

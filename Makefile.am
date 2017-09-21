@@ -47,7 +47,6 @@ esmon-$(MONSYSTEM_PKGVER).x86_64.iso: \
 	cp -a dashboards $(ISO_PATH)
 	cp installesmon.sh $(ISO_PATH)
 	cp -a $(CACHED_ISO_PATH)/Grafana_Status_panel $(ISO_PATH)
-	cp -a $(CACHED_ISO_PATH)/python_library $(ISO_PATH)
 	cp DDN-Storage-RedBG.svg $(ISO_PATH)
 	cp DDN-Storage-RedBG.png $(ISO_PATH)
 	cp doc/manual.pdf $(ISO_PATH)
