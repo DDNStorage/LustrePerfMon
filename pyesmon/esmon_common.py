@@ -64,7 +64,8 @@ def clone_src_from_git(build_dir, git_url, branch,
 # python-backports-ssl_match_hostname and python-six are needed by python-urllib3.
 # python-backports is needed by python-backports-ssl_match_hostname.
 # libyaml is needed by PyYAML.
-ESMON_INSTALL_DEPENDENT_RPMS = ["python-chardet", 
+ESMON_INSTALL_DEPENDENT_RPMS = ["rsync", 
+                                "python-chardet", 
                                 "python-backports",
                                 "python-backports-ssl_match_hostname", "python-six",
                                 "python-urllib3",
@@ -80,13 +81,15 @@ ESMON_INSTALL_DEPENDENT_RPMS = ["python-chardet",
 # fontconfig and urw-fonts are needed by grafana-4.4.1-1.x86_64.rpm
 # fontpackages-filesystem, bitmap-console-fonts(font(:lang=en)) are
 # needed by fontconfig
-ESMON_SERVER_DEPENDENT_RPMS = ["patch", "fontpackages-filesystem",
-                               "bitmap-console-fonts", "fontconfig", "urw-fonts"]
+# xorg-x11-font-utils is needed by urw-fonts
+# libXfont is needed by xorg-x11-font-utils
+# libfontenc is needed by libXfont
+ESMON_SERVER_DEPENDENT_RPMS = ["rsync", "patch", "fontpackages-filesystem",
+                               "bitmap-console-fonts", "fontconfig",
+                               "libfontenc", "libXfont",
+                               "xorg-x11-font-utils", "urw-fonts"]
 
-ESMON_CLIENT_DEPENDENT_RPMS = ["openpgm", "yajl", "zeromq3", "fontconfig", "glibc",
-                               "glibc-common", "glibc-devel", "fontpackages-filesystem",
-                               "glibc-headers", "glibc-static", "libfontenc", "libtool",
-                               "libtool-ltdl", "libtool-ltdl-devel", "libXfont", "libyaml",
-                               "patch", "PyYAML", "rsync", "urw-fonts",
-                               "xorg-x11-font-utils", "python-chardet",
-                               "lm_sensors-libs"]
+
+# yajl is needed by collectd
+# lm_sensors-libs is needed by collectd-sensors
+ESMON_CLIENT_DEPENDENT_RPMS = ["rsync", "yajl", "lm_sensors-libs"]

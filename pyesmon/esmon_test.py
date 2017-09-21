@@ -122,14 +122,13 @@ def esmon_do_test_install(workspace, install_server, mnt_path):
     command = ("rpm -e esmon")
     retval = install_server.sh_run(command)
     if retval.cr_exit_status:
-        logging.error("failed to run command [%s] on host [%s], "
+        logging.debug("failed to run command [%s] on host [%s], "
                       "ret = [%d], stdout = [%s], stderr = [%s]",
                       command,
                       install_server.sh_hostname,
                       retval.cr_exit_status,
                       retval.cr_stdout,
                       retval.cr_stderr)
-        return -1
 
     command = ("rpm -ivh %s/RPMS/rhel7/esmon-*.el7.x86_64.rpm" %
                (mnt_path))

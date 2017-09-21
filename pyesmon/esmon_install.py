@@ -897,12 +897,7 @@ class EsmonClient(object):
                                   retval.cr_stderr)
                     return -1
 
-        dependent_rpms = ["yajl", "openpgm", "zeromq3", "glibc", "patch",
-                          "fontpackages-filesystem", "libfontenc", "libtool-ltdl",
-                          "libtool", "fontconfig", "libXfont", "rsync",
-                          "xorg-x11-font-utils", "urw-fonts",
-                          "lm_sensors-libs", "lm_sensors"]
-        for dependent_rpm in dependent_rpms:
+        for dependent_rpm in esmon_common.ESMON_CLIENT_DEPENDENT_RPMS:
             ret = self.ec_host.sh_rpm_query(dependent_rpm)
             if ret:
                 ret = self.ec_rpm_install(dependent_rpm, RPM_TYPE_DEPENDENT)
@@ -1259,42 +1254,42 @@ class EsmonClient(object):
         json_string = json.dumps(data, indent=4, separators=(',', ': '))
         logging.debug("data: [%s]", json_string)
         if "results" not in data:
-            logging.error("got wrong InfluxDB data [%d], no [results]", json_string)
+            logging.error("got wrong InfluxDB data [%s], no [results]", json_string)
             return -1
         results = data["results"]
 
         if len(results) != 1:
-            logging.error("got wrong InfluxDB data [%d], [results] is not a "
+            logging.error("got wrong InfluxDB data [%s], [results] is not a "
                           "array with only one element", json_string)
             return -1
         result = results[0]
 
         if "series" not in result:
-            logging.error("got wrong InfluxDB data [%d], no [series] in one "
+            logging.error("got wrong InfluxDB data [%s], no [series] in one "
                           "of the result", json_string)
             return -1
 
         series = result["series"]
         if len(series) != 1:
-            logging.error("got wrong InfluxDB data [%d], [series] is not a "
+            logging.error("got wrong InfluxDB data [%s], [series] is not a "
                           "array with only one element", json_string)
             return -1
         serie = series[0]
 
         if "columns" not in serie:
-            logging.error("got wrong InfluxDB data [%d], no [columns] in one "
+            logging.error("got wrong InfluxDB data [%s], no [columns] in one "
                           "of the series", json_string)
             return -1
         columns = serie["columns"]
 
         if "values" not in serie:
-            logging.error("got wrong InfluxDB data [%d], no [values] in one "
+            logging.error("got wrong InfluxDB data [%s], no [values] in one "
                           "of the series", json_string)
             return -1
         serie_values = serie["values"]
 
         if len(serie_values) != 1:
-            logging.error("got wrong InfluxDB data [%d], [values] is not a "
+            logging.error("got wrong InfluxDB data [%s], [values] is not a "
                           "array with only one element", json_string)
             return -1
         value = serie_values[0]
@@ -1308,7 +1303,7 @@ class EsmonClient(object):
             i += 1
 
         if time_index == -1:
-            logging.error("got wrong InfluxDB data [%d], no [time] in "
+            logging.error("got wrong InfluxDB data [%s], no [time] in "
                           "the columns", json_string)
             return -1
 
