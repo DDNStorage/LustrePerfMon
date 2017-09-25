@@ -62,6 +62,8 @@ ERASE_INFLUXDB_STRING = "erase_influxdb"
 LUSTRE_OSS_STRING = "lustre_oss"
 LUSTRE_MDS_STRING = "lustre_mds"
 IME_STRING = "ime"
+STRING_REINSTALL = "reinstall"
+STRING_CLIENTS_REINSTALL = "clients_reinstall"
 
 def grafana_dashboard_check(name, dashboard):
     """
@@ -693,6 +695,15 @@ class EsmonServer(object):
         """
         Reinstall RPMs
         """
+        # pylint: disable=too-many-return-statements,too-many-branches
+        ret = self.es_client.ec_send_iso_files(mnt_path)
+        if ret:
+            logging.error("failed to send file [%s] on local host to "
+                          "directory [%s] on host [%s]",
+                          mnt_path, self.es_workspace,
+                          self.es_host.sh_hostname)
+            return -1
+
         ret = self.es_dependent_rpms_install()
         if ret:
             logging.error("failed to install dependent RPMs to server")
@@ -714,6 +725,47 @@ class EsmonServer(object):
         if ret:
             logging.error("failed to reinstall grafana on host [%s]",
                           self.es_host.sh_hostname)
+            return -1
+
+        ret = self.es_influxdb_cq_create("mdt_jobstats_samples",
+                                         ["job_id", "optype", "fs_name"])
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("ost_jobstats_samples",
+                                         ["job_id", "optype", "fs_name"])
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("ost_brw_stats_rpc_bulk_samples",
+                                         ["size", "field", "fs_name"])
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("ost_stats_bytes",
+                                         ["optype", "fs_name"])
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("md_stats",
+                                         ["optype", "fs_name"])
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("mdt_acctuser_samples",
+                                         ["user_id", "optype", "fs_name"])
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("ost_acctuser_samples",
+                                         ["user_id", "optype", "fs_name"])
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("ost_kbytesinfo_used",
+                                         ["user_id", "optype", "fs_name"],
+                                         interval="10m")
+        if ret:
             return -1
         return 0
 
@@ -1329,6 +1381,63 @@ class EsmonClient(object):
             logging.error("failed to check measurement [%s]", measurement_name)
         return ret
 
+    def ec_reinstall(self, mnt_path, no_copy=False):
+        """
+        Reinstall the ESMON client
+        """
+        # pylint: disable=too-many-return-statements
+        ret = self.ec_send_iso_files(mnt_path, no_copy=no_copy)
+        if ret:
+            logging.error("failed to send file [%s] on local host to "
+                          "directory [%s] on host [%s]",
+                          mnt_path, self.ec_workspace,
+                          self.ec_host.sh_hostname)
+            return -1
+
+        ret = self.ec_host.sh_disable_selinux()
+        if ret:
+            logging.error("failed to disable SELinux on host [%s]",
+                          self.ec_host.sh_hostname)
+            return -1
+
+        ret = self.ec_collectd_reinstall()
+        if ret:
+            logging.error("failed to install esmon client on host [%s]",
+                          self.ec_host.sh_hostname)
+            return -1
+
+        ret = self.ec_collectd_send_config(True)
+        if ret:
+            logging.error("failed to send test config to esmon client on host [%s]",
+                          self.ec_host.sh_hostname)
+            return -1
+
+        ret = self.ec_collectd_start()
+        if ret:
+            logging.error("failed to start esmon client on host [%s]",
+                          self.ec_host.sh_hostname)
+            return -1
+
+        ret = self.ec_collectd_config_test.cc_check()
+        if ret:
+            logging.error("Influxdb doesn't have expected datapoints from "
+                          "host [%s]", self.ec_host.sh_hostname)
+            return -1
+
+        ret = self.ec_collectd_send_config(False)
+        if ret:
+            logging.error("failed to send final config to esmon client on host [%s]",
+                          self.ec_host.sh_hostname)
+            return -1
+
+        ret = self.ec_collectd_restart()
+        if ret:
+            logging.error("failed to start esmon client on host [%s]",
+                          self.ec_host.sh_hostname)
+            return -1
+
+        return 0
+
 
 def esmon_do_install(workspace, config, config_fpath, mnt_path):
     """
@@ -1342,6 +1451,11 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
         logging.error("can NOT find [ssh_hosts] in the config file, "
                       "please correct file [%s]", config_fpath)
         return -1
+
+    clients_reinstall = esmon_common.config_value(config,
+                                                  STRING_CLIENTS_REINSTALL)
+    if clients_reinstall is None:
+        clients_reinstall = False
 
     hosts = {}
     for host_config in host_configs:
@@ -1383,15 +1497,25 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
     erase_influxdb = esmon_common.config_value(server_host_config, ERASE_INFLUXDB_STRING)
     if erase_influxdb is None:
         erase_influxdb = False
-    logging.info("Influxdb will %sbe erased according to the config",
-                 "" if erase_influxdb else "NOT ")
 
     drop_database = esmon_common.config_value(server_host_config, DROP_DATABASE_STRING)
     if drop_database is None:
         drop_database = False
-    logging.info("database [%s] of Influxdb will %sbe dropped "
-                 "according to the config", INFLUXDB_DATABASE_NAME,
-                 "" if drop_database else "NOT ")
+
+    server_reinstall = esmon_common.config_value(server_host_config,
+                                                 STRING_REINSTALL)
+    if server_reinstall is None:
+        server_reinstall = False
+
+    if not server_reinstall:
+        logging.info("ESMON server won't be reinstalled according to the "
+                     "config")
+    else:
+        logging.info("Influxdb will %sbe erased according to the config",
+                     "" if erase_influxdb else "NOT ")
+        logging.info("database [%s] of Influxdb will %sbe dropped "
+                     "according to the config", INFLUXDB_DATABASE_NAME,
+                     "" if drop_database else "NOT ")
 
     if host_id not in hosts:
         logging.error("SSH host with ID [%s] is NOT configured in "
@@ -1500,9 +1624,10 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
                 sfa_hosts.append(controller1_host)
             enabled_plugins += ", SFA"
 
-        logging.info("support for metrics of [%s] will be enabled on ESMON "
-                     "client [%s] according to the config",
-                     enabled_plugins, host.sh_hostname)
+        if clients_reinstall:
+            logging.info("support for metrics of [%s] will be enabled on "
+                         "ESMON client [%s] according to the config",
+                         enabled_plugins, host.sh_hostname)
 
         esmon_client = EsmonClient(host, workspace, esmon_server,
                                    lustre_oss=lustre_oss,
@@ -1516,117 +1641,32 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
                           esmon_client.ec_host.sh_hostname)
             return -1
 
-    ret = esmon_server.es_client.ec_send_iso_files(mnt_path)
-    if ret:
-        logging.error("failed to send file [%s] on local host to "
-                      "directory [%s] on host [%s]",
-                      mnt_path, esmon_server.es_workspace,
-                      esmon_server.es_host.sh_hostname)
-        return -1
-
-    ret = esmon_server.es_reinstall(erase_influxdb, drop_database, mnt_path)
-    if ret:
-        logging.error("failed to reinstall esmon server on host [%s]",
-                      esmon_server.es_host.sh_hostname)
-        return -1
-
-    ret = esmon_server.es_influxdb_cq_create("mdt_jobstats_samples",
-                                             ["job_id", "optype", "fs_name"])
-    if ret:
-        return -1
-
-    ret = esmon_server.es_influxdb_cq_create("ost_jobstats_samples",
-                                             ["job_id", "optype", "fs_name"])
-    if ret:
-        return -1
-
-    ret = esmon_server.es_influxdb_cq_create("ost_brw_stats_rpc_bulk_samples",
-                                             ["size", "field", "fs_name"])
-    if ret:
-        return -1
-
-    ret = esmon_server.es_influxdb_cq_create("ost_stats_bytes",
-                                             ["optype", "fs_name"])
-    if ret:
-        return -1
-
-    ret = esmon_server.es_influxdb_cq_create("md_stats",
-                                             ["optype", "fs_name"])
-    if ret:
-        return -1
-
-    ret = esmon_server.es_influxdb_cq_create("mdt_acctuser_samples",
-                                             ["user_id", "optype", "fs_name"])
-    if ret:
-        return -1
-
-    ret = esmon_server.es_influxdb_cq_create("ost_acctuser_samples",
-                                             ["user_id", "optype", "fs_name"])
-    if ret:
-        return -1
-
-    ret = esmon_server.es_influxdb_cq_create("ost_kbytesinfo_used",
-                                             ["user_id", "optype", "fs_name"],
-                                             interval="10m")
-    if ret:
-        return -1
-
-    for esmon_client in esmon_clients.values():
-        no_copy = (esmon_server.es_host.sh_hostname ==
-                   esmon_client.ec_host.sh_hostname)
-        ret = esmon_client.ec_send_iso_files(mnt_path, no_copy=no_copy)
+    if server_reinstall:
+        ret = esmon_server.es_reinstall(erase_influxdb, drop_database, mnt_path)
         if ret:
-            logging.error("failed to send file [%s] on local host to "
-                          "directory [%s] on host [%s]",
-                          mnt_path, esmon_client.ec_workspace,
-                          esmon_client.ec_host.sh_hostname)
+            logging.error("failed to reinstall ESMON server on host [%s]",
+                          esmon_server.es_host.sh_hostname)
             return -1
 
-        ret = esmon_client.ec_host.sh_disable_selinux()
-        if ret:
-            logging.error("failed to disable SELinux on host [%s]",
-                          esmon_client.ec_host.sh_hostname)
-            return -1
-
-        ret = esmon_client.ec_collectd_reinstall()
-        if ret:
-            logging.error("failed to install esmon client on host [%s]",
-                          esmon_client.ec_host.sh_hostname)
-            return -1
-
-        ret = esmon_client.ec_collectd_send_config(True)
-        if ret:
-            logging.error("failed to send test config to esmon client on host [%s]",
-                          esmon_client.ec_host.sh_hostname)
-            return -1
-
-        ret = esmon_client.ec_collectd_start()
-        if ret:
-            logging.error("failed to start esmon client on host [%s]",
-                          esmon_client.ec_host.sh_hostname)
-            return -1
-
-    for esmon_client in esmon_clients.values():
-        ret = esmon_client.ec_collectd_config_test.cc_check()
-        if ret:
-            logging.error("Influxdb doesn't have expected datapoints from "
-                          "host [%s]",
-                          esmon_client.ec_host.sh_hostname)
-            return -1
-
-    for esmon_client in esmon_clients.values():
-        ret = esmon_client.ec_collectd_send_config(False)
-        if ret:
-            logging.error("failed to send final config to esmon client on host [%s]",
-                          esmon_client.ec_host.sh_hostname)
-            return -1
-
-        ret = esmon_client.ec_collectd_restart()
-        if ret:
-            logging.error("failed to start esmon client on host [%s]",
-                          esmon_client.ec_host.sh_hostname)
-            return -1
-    return ret
+    if clients_reinstall:
+        for esmon_client in esmon_clients.values():
+            no_copy = (esmon_server.es_host.sh_hostname ==
+                       esmon_client.ec_host.sh_hostname)
+            ret = esmon_client.ec_reinstall(mnt_path, no_copy=no_copy)
+            if ret:
+                logging.error("failed to reinstall ESMON client on host [%s]",
+                              esmon_client.ec_host.sh_hostname)
+                return -1
+    else:
+        logging.info("ESMON clients won't be reinstalled according to the "
+                     "config, restarting ESMON client instead")
+        for esmon_client in esmon_clients.values():
+            ret = esmon_client.ec_collectd_restart()
+            if ret:
+                logging.error("failed to start esmon client on host [%s]",
+                              esmon_client.ec_host.sh_hostname)
+                return -1
+    return 0
 
 
 def esmon_mount_and_install(workspace, config, config_fpath):
@@ -1637,8 +1677,6 @@ def esmon_mount_and_install(workspace, config, config_fpath):
     local_host = ssh_host.SSHHost("localhost", local=True)
     iso_path = esmon_common.config_value(config, ISO_PATH_STRING)
     if iso_path is None:
-        logging.info("no [iso_path] is configured, check current directory")
-
         command = "ls esmon-*.iso"
         retval = local_host.sh_run(command)
         if retval.cr_exit_status:
@@ -1660,6 +1698,8 @@ def esmon_mount_and_install(workspace, config, config_fpath):
 
         iso_name = iso_names[0]
         iso_path = current_dir + "/" + iso_name
+        logging.info("no [iso_path] is configured, use [%s] under current "
+                     "directory", iso_path)
 
     mnt_path = "/mnt/" + utils.random_word(8)
 
