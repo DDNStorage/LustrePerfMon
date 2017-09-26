@@ -124,124 +124,154 @@ All the logs which are useful for debugging are saved under */var/log/esmon_inst
 
 ###4. Access the Monitoring Web Page
 
-The *Grafana* service is started on the *monitoring server* automatically. The default HTTP port is 3000An login web page will been shown through that port.  The default user and password are both "admin". 
+The *Grafana* service is started on the *monitoring server* automatically. The default HTTP port is 3000. A login web page will been shown through that port.  The default user and password are both "admin". 
 
-| ![Login Dashboard](pic/login.jpg)
+![Login Dashboard](pic/login.jpg)
 
-| Different dashboards can be chosen to view different metrics collectd by *ESMON*.
+##Dashboards
 
-| ![Home Dashboard](pic/home.jpg)
+By selection dashboards, different metrics collectd by *ESMON* can be shown.
 
-| The *Cluster Status* dashboard shows a summarized status of the servers in the cluster.
+Different dashboards can be chosen to view different metrics collectd by *ESMON*.
 
-| ![Cluster Status Dashboard](pic/cluster_status.jpg "The summarized status of the servers in the cluster")
+![Home Dashboard](pic/home.jpg)
 
-| The *Lustre Statistics* dashboard show metrics of *Lustre* file systems.
+###Cluster Status Dashboard
+The *Cluster Status* dashboard shows a summarized status of the servers in the cluster.
 
-| ![Lustre Statistics Dashboard](pic/lustre_statistics.jpg)
+![Cluster Status Dashboard](pic/cluster_status.jpg)
 
-| **Following pictures are some of the panels in *Lustre Statistics* Dashboard**
+###Lustre Status Dashboard
 
-| Free Inode Number* will show how many inodes remained in the system.
+The *Lustre Statistics* dashboard show metrics of *Lustre* file systems. TODO: copy the markdown introduction from Grafana dashboard discription.
 
-| ![Lustre Statistics Dashboard panel free idle: Free Inode Number](pic/lustre_statistics_inode.jpg)
+![Lustre Statistics Dashboard](pic/lustre_statistics.jpg)
 
-| *Lustre Aggregated CPU Usage* will show the proportion of system and users usage of CPU
+Following pictures are some of the panels in *Lustre Statistics* Dashboard
 
-| ![Lustre Statistics Dashboard panel cpu: Lustre Aggregated CPU Usage](pic/lustre_statistics_cpu.jpg)
+- *Free Inode Number Panel* shows how many inodes remained in the system.
 
+![Free Inode Number Panel of Lustre Statistics Dashboard](pic/lustre_statistics_inode.jpg)
 
+- *Lustre Aggregated CPU Usage Panel* shows the proportion of system and users usage of CPU
 
+![Lustre Aggregated CPU Usage Panel of Lustre Statistics Dashboard](pic/lustre_statistics_cpu.jpg)
 
-| *Quota Accounting(Capacity)* will show the Capacity of quota.
-| ![Lustre Statistics Dashboard panel quota: Capacity](pic/lustre_statistics_quota1.jpg)
+- *Quota Accounting(Capacity) Panel* shows the capacity usages of users.
 
+![Quota Accounting(Capacity) Panel of Lustre Statistics Dashboard](pic/lustre_statistics_quota1.jpg)
 
+- *Quota Accounting(Inode) Panel* shows the inode usages of users.
 
+![Quota Accounting(Inode) Panel of Lustre Statistics Dashboard](pic/lustre_statistics_quota2.jpg)
 
-| *Quota Accounting(inode)* will show the Inode of quota.
-| ![Lustre Statistics Dashboard panel quota: inode](pic/lustre_statistics_quota2.jpg)
+###Server Statistics
 
-| The *Server Statistics* dashboard shows detailed information about a server.
+The *Server Statistics* dashboard shows detailed information about a server.
 
-| ![Server Statistics Dashboard](pic/server_statistics.jpg)
+![Server Statistics Dashboard](pic/server_statistics.jpg)
 
-| **Following pictures are some of the panels in *Server Statistics* Dashboard**
+Following pictures are some of the panels in *Server Statistics Dashboard*
 
-| *CPU Usage* panel will show the proportion of CPU usage.
-| ![Server Statistics Dashboard panel cpu: CPU Usage](pic/server_statistics_cpu.jpg)
+- *CPU Usage Panel* shows the proportion of CPU usage on each server.
 
-| *Memory Usage* panel will show how much memory has been used.
-| ![Server Statistics Dashboard panel Memory: Memory Usage](pic/server_statistics_memory.jpg)
+![CPU Usage Panel of Server Statistics Dashboard](pic/server_statistics_cpu.jpg)
 
-| *Disk Write* panel will show the disk write rate of the server.
-| ![Server Statistics Dashboard panel Write: Disk Write Rate](pic/server_statistics_write.jpg)
+- *Memory Usage Panel* shows how much memory has been used.
 
-| *Disk Read* panel will show the disk read rate of the server.
-| ![Server Statistics Dashboard panel Read: Disk Read Rate](pic/server_statistics_read.jpg)
+![Memory Usage Panel of Server Statistics Dashboard](pic/server_statistics_memory.jpg)
 
-| *Disk Usage* panel will show free space, used space and reserved space on the disk.
-| ![Server Statistics Dashboard panel Disk: Disk Usage](pic/server_statistics_disk.jpg)
+- *Disk Write Panel* shows the disk write rate of the server.
 
-| *Load* panel will show how many jobs are running.
-| ![Server Statistics Dashboard panel Load: Load](pic/server_statistics_load.jpg)
+![Disk Write Panel of Server Statistics Dashboard](pic/server_statistics_write.jpg)
 
-| *Uptime* panel will show how long the server is working.
-| ![Server Statistics Dashboard panel Uptime: Uptime](pic/server_statistics_uptime.jpg)
+- *Disk Read Panel* shows the disk read rate of the server.
 
-| *User* panel will show the user number logon the server.
-| ![Server Statistics Dashboard panel User: User](pic/server_statistics_user.jpg)
+![Server Statistics Dashboard panel Read: Disk Read Rate](pic/server_statistics_read.jpg)
 
-| *Temperature* panel will show the temperature collected from sensors.
-| ![Server Statistics Dashboard panel temperature: Temperature](pic/server_statistics_temperature.jpg)
+- *Disk Usage Panel* shows free space, used space and reserved space on the disk.
 
-| The *SFA Physical Disk* dashboard shows the information about the *DDN SFA* physical disks.
+![Server Statistics Dashboard panel Disk: Disk Usage](pic/server_statistics_disk.jpg)
 
-| ![SFA Physical Disk Dashboard](pic/sfa_physical_disk.jpg)
+- *Load Panel* shows the load on the server. The system load is defined as the number of runnable tasks in the run-queue and is provided by many operating systems as a one minute average.
 
-| **Following pictures are some of the panels in *SFA Physical Disk* dashboard**
+![Server Statistics Dashboard panel Load: Load](pic/server_statistics_load.jpg)
 
-| *I/O Performance* panel will show the I/O speed at the time.
+- *Uptime Panel* shows how long the server is working.
 
-| ![SFA Physical Disk Dashboard panel 1: I/O Performance](pic/sfa_physical_disk_p1.jpg)
+![Server Statistics Dashboard panel Uptime: Uptime](pic/server_statistics_uptime.jpg)
 
-| *IOPS* panel will show the I/O operations per second on Physical Disk.
-| ![SFA Physical Disk Dashboard panel 2: IOPS on Physical Disk](pic/sfa_physical_disk_p2.jpg)
+- *User Panel* shows the number of users currently logged into the system.
 
-| *Bytes per I/O* panel will show the I/O bytes per second on each controller.
-| ![SFA Physical Disk Dashboard panel 3: Bytes per I/O on Physical Disk](pic/sfa_physical_disk_p3.jpg)
+![Server Statistics Dashboard panel User: User](pic/server_statistics_user.jpg)
 
-| *Write Performance* panel will show the write performance on each controller.
-| ![SFA Physical Disk Dashboard panel 4: Write Performance on Physical Disk](pic/sfa_physical_disk_p4.jpg)
+- *Temperature Panel* shows the temperature collected from sensors.
 
-| *Write I/O size* panel will show the account of writting operation on each size.
-| ![SFA Physical Disk Dashboard panel 6: Write I/O size on Physical Disk](pic/sfa_physical_disk_p6.jpg)
+![Server Statistics Dashboard panel temperature: Temperature](pic/server_statistics_temperature.jpg)
 
-| *Write Latency Samples* panel will show the account of writting operation on each latency.
-| ![SFA Physical Disk Dashboard panel 8: Write Latency Samples on Physical Disk](pic/sfa_physical_disk_p8.jpg)
+### SFA Physical Disk Dashboard
 
-| The *SFA Virtual Disk* dashboard shows the information about the *DDN SFA* virtual disks.
-| ![SFA Virtual Disk Dashboard](pic/sfa_virtual_disk.jpg)
+The *SFA Physical Disk* dashboard shows the information about the *DDN SFA* physical disks.
 
-**Following pictures are some of the panels in *SFA Viatual Disk* dashboard**
+![SFA Physical Disk Dashboard](pic/sfa_physical_disk.jpg)
 
-| *I/O Performance* panel will show the I/O speed at the time.
-| ![SFA Virtual Disk Dashboard panel 1: I/O Performance](pic/sfa_virtual_disk_p1.jpg)
+Following pictures are some of the panels in *SFA Physical Disk* dashboard
 
-| *IOPS* panel will show the I/O operations per second on Physical Disk.
-| ![SFA Virtual Disk Dashboard panel 2: IOPS on Virtual Disk](pic/sfa_virtual_disk_p2.jpg)
+*I/O Performance Panel* shows the I/O speed at the time.
 
-| *Bytes per I/O* panel will show the I/O bytes per second on each controller.
-| ![SFA Virtual Disk Dashboard panel 3: Bytes per I/O on Virtual Disk](pic/sfa_virtual_disk_p3.jpg)
+![I/O Performance Panel of SFA Physical Disk Dashboard](pic/sfa_physical_disk_p1.jpg)
 
-| *Write Performance* panel will show the write performance on each controller.
-| ![SFA Virtual Disk Dashboard panel 4: Write Performance on Virtual Disk](pic/sfa_virtual_disk_p4.jpg)
+*IOPS Panel* shows the I/O operations per second on Physical Disk.
 
-| *Write I/O size* panel will show the account of writting operation on each size.
-| ![SFA Virtual Disk Dashboard panel 6: Write I/O size on Virtual Disk](pic/sfa_virtual_disk_p6.jpg)
+![IOPS Panel of SFA Physical Disk Dashboard](pic/sfa_physical_disk_p2.jpg)
 
-| *Write Latency Samples* panel will show the account of writting operation on each latency.
-| ![SFA Virtual Disk Dashboard panel 8: Write Latency Samples on Virtual Disk](pic/sfa_virtual_disk_p8.jpg)
+*Bytes per I/O Panel* shows the I/O bytes per second on each controller.
+
+![Bytes per I/O Panel of SFA Physical Disk Dashboard](pic/sfa_physical_disk_p3.jpg)
+
+*Write Performance Panel* shows the write performance on each controller.
+
+![Write Performance Panel of SFA Physical Disk Dashboard](pic/sfa_physical_disk_p4.jpg)
+
+*Write I/O size Panel* shows the account of writting operation on each size.
+
+![Write Performance Panel of SFA Physical Disk Dashboard](pic/sfa_physical_disk_p6.jpg)
+
+*Write Latency Samples Panel* shows the account of writting operation on each latency.
+
+![Write Latency Samples Panel of SFA Physical Disk Dashboard](pic/sfa_physical_disk_p8.jpg)
+
+### SFA Virtual Disk Dashboard
+
+The *SFA Virtual Disk* dashboard shows the information about the *DDN SFA* virtual disks.
+
+![SFA Virtual Disk Dashboard](pic/sfa_virtual_disk.jpg)
+
+Following pictures are some of the panels in *SFA Viatual Disk* dashboard
+
+- *I/O Performance Panel* shows the I/O speed at the time.
+
+![I/O Performance Panel of SFA Virtual Disk Dashboard](pic/sfa_virtual_disk_p1.jpg)
+
+- *IOPS Panel* shows the I/O operations per second on Physical Disk.
+
+![IOPS Panel of SFA Virtual Disk Dashboard](pic/sfa_virtual_disk_p2.jpg)
+
+- *Bytes per I/O Panel* shows the I/O bytes per second on each controller.
+
+![Bytes per I/O Panel of SFA Virtual Disk Dashboard](pic/sfa_virtual_disk_p3.jpg)
+
+- *Write Performance Panel* shows the write performance on each controller.
+
+![Write Performance Panel of SFA Virtual Disk Dashboard](pic/sfa_virtual_disk_p4.jpg)
+
+- *Write I/O Size Panel* shows the account of writting operation on each size.
+
+![Write I/O Size Panel of SFA Virtual Disk Dashboard](pic/sfa_virtual_disk_p6.jpg)
+
+- *Write Latency Samples Panel* shows the account of writting operation on each latency.
+
+![Write Latency Samples Panel of SFA Virtual Disk Dashboard](pic/sfa_virtual_disk_p8.jpg)
 
 ## Troubleshooting
 

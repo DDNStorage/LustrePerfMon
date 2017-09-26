@@ -32,10 +32,10 @@ $(ESMON_RPM): esmon.spec dist
 		&& echo "RPM successfully generated in $(build_dir)/RPMS"
 
 doc/manual.pdf: doc/manual.md doc/pic
-	cd doc && pandoc --template=ddntemplate.latex --latex-engine=xelatex --toc manual.md -o manual.pdf
+	cd doc && pandoc --template=ddntemplate.latex --toc manual.md -o manual.pdf
 
 esmon-$(MONSYSTEM_PKGVER).x86_64.iso: \
-		$(ESMON_RPM) doc/manual.pdf
+		doc/manual.pdf $(ESMON_RPM)
 	rm $(ISO_PATH) -fr
 	rm -f esmon-*.iso
 	rm -f esmon-*.md5
