@@ -66,6 +66,7 @@ class WatchedIO(io.TextIOWrapper):
                           self.wi_fname, traceback.format_exc())
         self.wi_func(self.wi_args, data)
 
+
 def log_watcher_debug(args, new_log):
     """
     Watch log dump to logging.debug

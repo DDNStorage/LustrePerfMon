@@ -25,6 +25,11 @@ Generated using options: @ac_configure_args@
 %setup -q -n @PACKAGE@-%{version}
 
 %build
+PYESMON_FILES=$(ls pyesmon/*.py)
+for PYESMON_FILE in $PYESMON_FILES; do
+    pylint --disable=I $PYESMON_FILE
+    pep8 --ignore=E501 $PYESMON_FILE
+done
 python -m py_compile pyesmon/*.py
 rm -f pyesmon/*.py
 

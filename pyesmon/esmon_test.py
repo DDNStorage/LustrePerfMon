@@ -513,6 +513,7 @@ def esmon_test(workspace, config_fpath):
                       "to prevent conflicts", lock_file)
     return ret
 
+
 def usage():
     """
     Print usage string

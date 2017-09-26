@@ -9,6 +9,7 @@ http://docs.grafana.org/reference/dashboard/
 """
 import json
 
+
 class GrafanaTimePicker(object):
     """
     Each Grafana Timepicker has an object of this type
@@ -40,6 +41,7 @@ class GrafanaTimePicker(object):
                 "time_options": self.gtp_time_options,
                 "type": self.gtp_type}
 
+
 class GrafanaTemplating(object):
     """
     Each Grafana Templating has an object of this type
@@ -50,12 +52,14 @@ class GrafanaTemplating(object):
         self.gt_enable = False
         # an array of objects representing, each representing one template variable
         self.gt_list = []
+
     def gt_json_encoder(self):
         """
         Json encoder
         """
         return {"enable": self.gt_enable,
                 "list": self.gt_list}
+
 
 class GrafanaAnnotations(object):
     """
@@ -66,6 +70,7 @@ class GrafanaAnnotations(object):
         # whether annotations is enabled or not
         self.ga_enable = False
         self.ga_list = []
+
     def ga_json_encoder(self):
         """
         Json encoder

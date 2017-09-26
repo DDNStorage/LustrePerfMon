@@ -65,6 +65,7 @@ IME_STRING = "ime"
 STRING_REINSTALL = "reinstall"
 STRING_CLIENTS_REINSTALL = "clients_reinstall"
 
+
 def grafana_dashboard_check(name, dashboard):
     """
     Check whether the dashboard is legal or not
@@ -376,7 +377,6 @@ class EsmonServer(object):
             return -1
         return 0
 
-
     def es_grafana_influxdb_delete(self):
         """
         Delete influxdb source from grafana
@@ -398,7 +398,6 @@ class EsmonServer(object):
                           response.status_code)
             return -1
         return 0
-
 
     def es_grafana_has_influxdb(self):
         """
@@ -537,7 +536,6 @@ class EsmonServer(object):
 
         ret = self.es_grafana_dashboard_add(name, dashboard)
         return ret
-
 
     def es_grafana_change_logo(self):
         """
@@ -1455,7 +1453,7 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
     clients_reinstall = esmon_common.config_value(config,
                                                   STRING_CLIENTS_REINSTALL)
     if clients_reinstall is None:
-        clients_reinstall = False
+        clients_reinstall = True
 
     hosts = {}
     for host_config in host_configs:
@@ -1505,7 +1503,7 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
     server_reinstall = esmon_common.config_value(server_host_config,
                                                  STRING_REINSTALL)
     if server_reinstall is None:
-        server_reinstall = False
+        server_reinstall = True
 
     if not server_reinstall:
         logging.info("ESMON server won't be reinstalled according to the "
@@ -1652,6 +1650,8 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
         for esmon_client in esmon_clients.values():
             no_copy = (esmon_server.es_host.sh_hostname ==
                        esmon_client.ec_host.sh_hostname)
+            if not server_reinstall:
+                no_copy = False
             ret = esmon_client.ec_reinstall(mnt_path, no_copy=no_copy)
             if ret:
                 logging.error("failed to reinstall ESMON client on host [%s]",

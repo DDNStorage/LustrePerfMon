@@ -8,6 +8,7 @@ import logging
 import traceback
 import requests
 
+
 class InfluxdbClient(object):
     """
     The :class:`~.InfluxDBClient` object holds information necessary to

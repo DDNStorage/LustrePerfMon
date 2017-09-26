@@ -13,6 +13,7 @@ COLLECTD_CONFIG_FINAL_FNAME = "collectd.conf.final"
 COLLECTD_INTERVAL_TEST = 1
 COLLECTD_INTERVAL_FINAL = 60
 
+
 class CollectdConfig(object):
     """
     Each collectd config has an object of this type
@@ -86,35 +87,34 @@ PostCacheChain "PostCache"
             if any(self.cc_sfas):
                 config = 'LoadPlugin ssh\n'
                 fout.write(config)
-                for sfa in self.cc_sfas.values():
-                    config = '<Plugin "ssh">\n'
-                    config += '    <Common>\n'
-                    config += '        DefinitionFile "/etc/sfa-3.0_definition.xml"\n'
-                    config += '        Extra_tags "extrahost=%s"\n' % sfa["name"]
-                    config += '        <ServerHost>\n'
-                    config += '            HostName "%s"\n' % sfa["controller0_host"]
-                    config += '            UserName "user"\n'
-                    config += '            UserPassword "user"\n'
-                    config += '            SshTerminator "RAID[0]$ "\n'
-                    config += '            IpcDir "/tmp"\n'
-                    config += '            #KnownhostsFile "/root/.ssh/known_hosts"\n'
-                    config += '            #PublicKeyfile "/root/.ssh/id_dsa.pub"\n'
-                    config += '            #PrivateKeyfile "/root/.ssh/id_dsa"\n'
-                    config += '            #SshKeyPassphrase "passphrase"\n'
-                    config += '        </ServerHost>\n'
-                    config += '        <ServerHost>\n'
-                    config += '            HostName "%s"\n' % sfa["controller1_host"]
-                    config += '            UserName "user"\n'
-                    config += '            UserPassword "user"\n'
-                    config += '            SshTerminator "RAID[1]$ "\n'
-                    config += '            IpcDir "/tmp"\n'
-                    config += '            #KnownhostsFile "/root/.ssh/known_hosts"\n'
-                    config += '            #PublicKeyfile "/root/.ssh/id_dsa.pub"\n'
-                    config += '            #PrivateKeyfile "/root/.ssh/id_dsa"\n'
-                    config += '            #SshKeyPassphrase "passphrase"\n'
-                    config += '        </ServerHost>\n'
-                    config += '    </Common>\n'
-                    config += """    <Item>
+                template = """<Plugin "ssh">
+    <Common>
+        DefinitionFile "/etc/sfa-3.0_definition.xml"
+        Extra_tags "extrahost=%s"
+        <ServerHost>
+            HostName "%s"
+            UserName "user"
+            UserPassword "user"
+            SshTerminator "RAID[0]$ "
+            IpcDir "/tmp"
+            #KnownhostsFile "/root/.ssh/known_hosts"
+            #PublicKeyfile "/root/.ssh/id_dsa.pub"
+            #PrivateKeyfile "/root/.ssh/id_dsa"
+            #SshKeyPassphrase "passphrase"
+        </ServerHost>
+        <ServerHost>
+            HostName "%s"
+            UserName "user"
+            UserPassword "user"
+            SshTerminator "RAID[1]$ "
+            IpcDir "/tmp"
+            #KnownhostsFile "/root/.ssh/known_hosts"
+            #PublicKeyfile "/root/.ssh/id_dsa.pub"
+            #PrivateKeyfile "/root/.ssh/id_dsa"
+            #SshKeyPassphrase "passphrase"
+        </ServerHost>
+    </Common>
+    <Item>
         Type "vd_c_rates"
     </Item>
     <Item>
@@ -144,8 +144,13 @@ PostCacheChain "PostCache"
     <Item>
         Type "pd_write_iosize"
     </Item>
+</Plugin>
+
 """
-                    config += '</Plugin>\n\n'
+                for sfa in self.cc_sfas.values():
+                    config = (template % (sfa["name"],
+                                          sfa["controller0_host"],
+                                          sfa["controller1_host"]))
                     fout.write(config)
 
             for plugin_name, plugin_config in self.cc_plugins.iteritems():
@@ -179,7 +184,8 @@ PostCacheChain "PostCache"
         """
         Check the memory plugin
         """
-        return self.cc_esmon_client.ec_influxdb_measurement_check("memory.buffered.memory")
+        name = "memory.buffered.memory"
+        return self.cc_esmon_client.ec_influxdb_measurement_check(name)
 
     def cc_plugin_memory(self):
         """

@@ -10,6 +10,7 @@ import logging
 SHUTTING_DOWN = False
 EXIT_REASON = "unkown reason"
 
+
 def signal_handler(signum, frame):
     """
     Singal hander

@@ -33,6 +33,7 @@ COLLECTD_RPM_NAMES = ["collectd", "collectd-disk", "collectd-filedata",
 SERVER_STRING = "server"
 ESMON_BUILD_LOG_DIR = "/var/log"
 
+
 def download_dependent_rpms(host, dependent_dir, distro):
     """
     Download dependent RPMs
@@ -205,7 +206,7 @@ def collectd_build(workspace, build_host, local_host, collectd_git_path,
 
     command = ("cd %s && mkdir -p libltdl/config && sh ./build.sh && "
                "./configure && "
-               "make dist-bzip2"%
+               "make dist-bzip2" %
                (host_collectd_git_dir))
     retval = build_host.sh_run(command)
     if retval.cr_exit_status:
@@ -342,6 +343,7 @@ def collectd_build(workspace, build_host, local_host, collectd_git_path,
         return -1
     return 0
 
+
 def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
                          iso_cached_dir, collectd_version_release,
                          collectd_tarball_name, distro):
@@ -460,6 +462,7 @@ def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
                                   retval.cr_stderr)
                     return -1
     return 0
+
 
 def host_build(workspace, build_host, local_host, collectd_git_path,
                iso_cached_dir, collectd_version_release, collectd_tarball_name,
@@ -642,6 +645,7 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
         return -1
     return 0
 
+
 def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
     """
     Build the ISO
@@ -755,7 +759,7 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
     collectd_git_version = retval.cr_stdout.strip()
 
     command = (r"cd %s && grep Version contrib/redhat/collectd.spec | "
-               r"grep -v \# | awk '{print $2}'"  %
+               r"grep -v \# | awk '{print $2}'" %
                collectd_git_path)
     retval = local_host.sh_run(command)
     if retval.cr_exit_status:
@@ -772,7 +776,7 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
     collectd_tarball_name = "collectd-" + collectd_version
 
     command = (r"cd %s && grep Release contrib/redhat/collectd.spec | "
-               r"grep -v \# | awk '{print $2}'"  %
+               r"grep -v \# | awk '{print $2}'" %
                collectd_git_path)
     retval = local_host.sh_run(command)
     if retval.cr_exit_status:

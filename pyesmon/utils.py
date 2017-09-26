@@ -25,6 +25,7 @@ import dateutil.tz
 LOG_INFO_FNAME = "info.log"
 LOGGING_HANLDERS = {}
 
+
 def eprint(*args, **kwargs):
     """
     Print to stderr
@@ -457,6 +458,7 @@ def which(program):
                 return exe_file
 
     return None
+
 
 def wait_condition(condition_func, args, timeout=90, sleep_interval=1):
     # pylint: disable=too-many-arguments

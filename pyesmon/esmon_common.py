@@ -14,6 +14,7 @@ RPM_PATTERN_RHEL7 = r"^%s-\d.+(\.el7|).*\.(x86_64|noarch)\.rpm$"
 RPM_PATTERN_RHEL6 = r"^%s-\d.+(\.el6|).*\.(x86_64|noarch)\.rpm$"
 PATTERN_PYTHON_LIBRARY = r"^%s-\d+\.\d+\.\d+\.tar\.gz$"
 
+
 def config_value(config, key):
     """
     Return value of a key in config
@@ -61,13 +62,15 @@ def clone_src_from_git(build_dir, git_url, branch,
 # python-requests, PyYAML, python2-filelock, python-slugify, pytz,
 # python-dateutil are needed by esmon_install.
 # python-chardet and python-urllib3 are needed by python-requests.
-# python-backports-ssl_match_hostname and python-six are needed by python-urllib3.
+# python-backports-ssl_match_hostname and python-six are needed by
+# python-urllib3.
 # python-backports is needed by python-backports-ssl_match_hostname.
 # libyaml is needed by PyYAML.
-ESMON_INSTALL_DEPENDENT_RPMS = ["rsync", 
-                                "python-chardet", 
+ESMON_INSTALL_DEPENDENT_RPMS = ["rsync",
+                                "python-chardet",
                                 "python-backports",
-                                "python-backports-ssl_match_hostname", "python-six",
+                                "python-backports-ssl_match_hostname",
+                                "python-six",
                                 "python-urllib3",
                                 "libyaml",
                                 "PyYAML",
