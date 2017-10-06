@@ -64,6 +64,7 @@ LUSTRE_MDS_STRING = "lustre_mds"
 IME_STRING = "ime"
 STRING_REINSTALL = "reinstall"
 STRING_CLIENTS_REINSTALL = "clients_reinstall"
+STRING_INFINIBAND = "infiniband"
 
 
 def grafana_dashboard_check(name, dashboard):
@@ -839,7 +840,7 @@ class EsmonClient(object):
     # pylint: disable=too-few-public-methods,too-many-instance-attributes
     # pylint: disable=too-many-arguments
     def __init__(self, host, workspace, esmon_server, lustre_oss=False,
-                 lustre_mds=False, ime=False, sfas=None):
+                 lustre_mds=False, ime=False, infiniband=False, sfas=None):
         self.ec_host = host
         self.ec_workspace = workspace
         self.ec_iso_basename = "ISO"
@@ -856,6 +857,8 @@ class EsmonClient(object):
         if sfas is not None:
             for sfa in sfas:
                 config.cc_plugin_sfa(sfa)
+        if infiniband:
+            config.cc_plugin_infiniband()
         self.ec_collectd_config_test = config
 
         config = collectd.CollectdConfig(self)
@@ -868,6 +871,8 @@ class EsmonClient(object):
         if sfas is not None:
             for sfa in sfas:
                 config.cc_plugin_sfa(sfa)
+        if infiniband:
+            config.cc_plugin_infiniband()
         self.ec_collectd_config_final = config
 
         self.ec_influxdb_update_time = None
@@ -1572,6 +1577,12 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
         if ime:
             enabled_plugins += ", DDN IME"
 
+        infiniband = esmon_common.config_value(client_host_config, STRING_INFINIBAND)
+        if infiniband is None:
+            infiniband = False
+        if infiniband:
+            enabled_plugins += ", IB"
+
         sfas = esmon_common.config_value(client_host_config, "sfas")
         sfa_names = []
         sfa_hosts = []
@@ -1630,6 +1641,7 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
         esmon_client = EsmonClient(host, workspace, esmon_server,
                                    lustre_oss=lustre_oss,
                                    lustre_mds=lustre_mds, ime=ime,
+                                   infiniband=infiniband,
                                    sfas=sfas)
         esmon_clients[host_id] = esmon_client
         ret = esmon_client.ec_check()

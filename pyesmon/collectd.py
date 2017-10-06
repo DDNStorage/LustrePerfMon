@@ -18,10 +18,11 @@ class CollectdConfig(object):
     """
     Each collectd config has an object of this type
     """
-    # pylint: disable=too-many-public-methods
+    # pylint: disable=too-many-public-methods,too-many-instance-attributes
     def __init__(self, esmon_client):
         self.cc_configs = collections.OrderedDict()
         self.cc_plugins = collections.OrderedDict()
+        self.cc_filedatas = collections.OrderedDict()
         self.cc_aggregations = collections.OrderedDict()
         self.cc_post_cache_chain_rules = collections.OrderedDict()
         self.cc_sfas = collections.OrderedDict()
@@ -151,6 +152,13 @@ PostCacheChain "PostCache"
                     config = (template % (sfa["name"],
                                           sfa["controller0_host"],
                                           sfa["controller1_host"]))
+                    fout.write(config)
+
+            if any(self.cc_filedatas):
+                config = """LoadPlugin filedata
+"""
+                fout.write(config)
+                for config in self.cc_filedatas.values():
                     fout.write(config)
 
             for plugin_name, plugin_config in self.cc_plugins.iteritems():
@@ -407,7 +415,7 @@ PostCacheChain "PostCache"
 #   </ItemType>
 """
         config += "</Plugin>\n\n"
-        self.cc_plugins["filedata"] = config
+        self.cc_filedatas["lustre"] = config
         client = self.cc_esmon_client
         rpm_name = "collectd-filedata"
         if rpm_name not in client.ec_needed_collectd_rpms:
@@ -626,3 +634,68 @@ PostCacheChain "PostCache"
         if rpm_name not in client.ec_needed_collectd_rpms:
             client.ec_needed_collectd_rpms.append(rpm_name)
         return 0
+
+    def cc_plugin_infiniband(self):
+        """
+        Add IB configuration
+        """
+        config = """<Plugin "filedata">
+    <Common>
+        DefinitionFile "/etc/infiniband-0.1_definition.xml"
+    </Common>
+    <Item>
+        Type "excessive_buffer_overrun_errors"
+    </Item>
+    <Item>
+        Type "link_downed"
+    </Item>
+    <Item>
+        Type "link_error_recovery"
+    </Item>
+    <Item>
+        Type "local_link_integrity_errors"
+    </Item>
+    <Item>
+        Type "port_rcv_constraint_errors"
+    </Item>
+    <Item>
+        Type "port_rcv_data"
+    </Item>
+    <Item>
+        Type "port_rcv_errors"
+    </Item>
+    <Item>
+        Type "port_rcv_packets"
+    </Item>
+    <Item>
+        Type "port_rcv_remote_physical_errors"
+    </Item>
+    <Item>
+        Type "port_xmit_constraint_errors"
+    </Item>
+    <Item>
+        Type "port_xmit_data"
+    </Item>
+    <Item>
+        Type "port_xmit_discards"
+    </Item>
+    <Item>
+        Type "port_xmit_packets"
+    </Item>
+    <Item>
+        Type "symbol_error"
+    </Item>
+    <Item>
+        Type "VL15_dropped"
+    </Item>
+    <Item>
+        Type "port_rcv_switch_relay_errors"
+    </Item>
+</Plugin>
+
+"""
+        self.cc_filedatas["infiniband"] = config
+        client = self.cc_esmon_client
+        rpm_name = "collectd-filedata"
+        if rpm_name not in client.ec_needed_collectd_rpms:
+            client.ec_needed_collectd_rpms.append(rpm_name)
