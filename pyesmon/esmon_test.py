@@ -303,12 +303,13 @@ def esmon_do_test(workspace, config, config_fpath):
                           config_fpath)
             return -1
 
-        host_ip = esmon_common.config_value(vm_host_config, esmon_virt.STRING_HOST_IP)
-        if host_ip is None:
+        ips = esmon_common.config_value(vm_host_config, esmon_virt.STRING_HOST_IPS)
+        if ips is None:
             logging.error("no [%s] is configured for a vm_host, "
                           "please correct file [%s]",
-                          esmon_virt.STRING_HOST_IP, config_fpath)
+                          esmon_virt.STRING_HOST_IPS, config_fpath)
             return -1
+        host_ip = ips[0]
 
         # Remove the record in known_hosts, otherwise ssh will fail
         command = ('sed -i "/%s /d" /root/.ssh/known_hosts' % (host_ip))

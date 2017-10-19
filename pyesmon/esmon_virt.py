@@ -24,7 +24,7 @@ ESMON_VIRT_CONFIG = "/etc/" + ESMON_VIRT_CONFIG_FNAME
 ESMON_VIRT_LOG_DIR = "/var/log/esmon_virt"
 STRING_DISTRO = "distro"
 STRING_HOSTNAME = "hostname"
-STRING_HOST_IP = "host_ip"
+STRING_HOST_IPS = "ips"
 
 
 def random_mac():
@@ -106,13 +106,14 @@ def vm_delete(server_host, hostname):
     return 0
 
 
-def vm_clone(workspace, server_host, hostname, host_ip, template_hostname,
-             image_dir, distro):
+def vm_clone(workspace, server_host, hostname, network_configs, ips,
+             template_hostname, image_dir, distro):
     """
     Create virtual machine
     """
     # pylint: disable=too-many-arguments,too-many-locals,too-many-return-statements
     # pylint: disable=too-many-branches,too-many-statements
+    host_ip = ips[0]
     ret = vm_delete(server_host, hostname)
     if ret:
         return -1
@@ -177,40 +178,55 @@ def vm_clone(workspace, server_host, hostname, host_ip, template_hostname,
                       retval.cr_stderr)
         return -1
 
-    # net.ifnames=0 biosdevname=0 has been added to grub, so the interface
-    # name will always be eth0
-    interface_name = "eth0"
-
-    ifcfg = 'DEVICE="%s"\n' % interface_name
-    ifcfg += """BOOTPROTO="static"
-GATEWAY="10.0.0.253"
-"""
-    ifcfg += 'IPADDR="%s"\n' % host_ip
-    ifcfg += """IPV6INIT="no"
-NETMASK="255.255.252.0"
-NM_CONTROLLED="yes"
-ONBOOT="yes"
-TYPE="Ethernet"
-"""
     local_host_dir = workspace + "/" + hostname
     os.mkdir(local_host_dir)
-    ifcfg_fname = "ifcfg-%s" % interface_name
-    ifcfg_fpath = local_host_dir + "/" + ifcfg_fname
-    with open(ifcfg_fpath, "wt") as fout:
-        fout.write(ifcfg)
+    # net.ifnames=0 biosdevname=0 has been added to grub, so the interface
+    # name will always be eth*
+    eth_number = 0
+    for eth_ip in ips:
+        network_config = network_configs[eth_number]
+        ifcfg = 'DEVICE="eth%d"\n' % eth_number
+        ifcfg += 'GATEWAY=\"%s"\n' % network_config["gateway"]
+        ifcfg += 'IPADDR="%s"\n' % eth_ip
+        ifcfg += 'NETMASK="%s"\n' % network_config["netmask"]
+        ifcfg += """
+ONBOOT=yes
+BOOTPROTO="static"
+TYPE=Ethernet
+IPV6INIT=no
+NM_CONTROLLED=no
+"""
 
-    host_ifcfg_fpath = workspace + "/" + ifcfg_fname
-    ret = server_host.sh_send_file(ifcfg_fpath, workspace)
-    if ret:
-        logging.error("failed to send file [%s] on local host to "
-                      "directory [%s] on host [%s]",
-                      ifcfg_fpath, workspace,
-                      server_host.sh_hostname)
-        return -1
+        ifcfg_fname = "ifcfg-eth%d" % eth_number
+        ifcfg_fpath = local_host_dir + "/" + ifcfg_fname
+        with open(ifcfg_fpath, "wt") as fout:
+            fout.write(ifcfg)
 
-    ret = server_host.sh_run("which virt-copy-in")
-    if ret.cr_exit_status != 0:
-        command = ("yum install libguestfs-tools-c -y")
+        host_ifcfg_fpath = workspace + "/" + ifcfg_fname
+        ret = server_host.sh_send_file(ifcfg_fpath, workspace)
+        if ret:
+            logging.error("failed to send file [%s] on local host to "
+                          "directory [%s] on host [%s]",
+                          ifcfg_fpath, workspace,
+                          server_host.sh_hostname)
+            return -1
+
+        ret = server_host.sh_run("which virt-copy-in")
+        if ret.cr_exit_status != 0:
+            command = ("yum install libguestfs-tools-c -y")
+            retval = server_host.sh_run(command)
+            if retval.cr_exit_status:
+                logging.error("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              server_host.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
+                return -1
+
+        command = ("virt-copy-in -d %s %s "
+                   "/etc/sysconfig/network-scripts" % (hostname, host_ifcfg_fpath))
         retval = server_host.sh_run(command)
         if retval.cr_exit_status:
             logging.error("failed to run command [%s] on host [%s], "
@@ -221,19 +237,7 @@ TYPE="Ethernet"
                           retval.cr_stdout,
                           retval.cr_stderr)
             return -1
-
-    command = ("virt-copy-in -d %s %s "
-               "/etc/sysconfig/network-scripts" % (hostname, host_ifcfg_fpath))
-    retval = server_host.sh_run(command)
-    if retval.cr_exit_status:
-        logging.error("failed to run command [%s] on host [%s], "
-                      "ret = [%d], stdout = [%s], stderr = [%s]",
-                      command,
-                      server_host.sh_hostname,
-                      retval.cr_exit_status,
-                      retval.cr_stdout,
-                      retval.cr_stderr)
-        return -1
+        eth_number += 1
 
     host_rules_fpath = workspace + "/70-persistent-net.rules"
     command = ("> %s" % host_rules_fpath)
@@ -417,12 +421,13 @@ def vm_check(hostname, host_ip, distro):
     return 0
 
 
-def vm_start(workspace, server_host, hostname, host_ip, template_hostname,
-             image_dir, distro):
+def vm_start(workspace, server_host, hostname, network_configs, ips,
+             template_hostname, image_dir, distro):
     """
     Start virtual machine, if vm is bad, clone it
     """
     # pylint: disable=too-many-arguments
+    host_ip = ips[0]
     ret = vm_check(hostname, host_ip, distro)
     if ret == 0:
         return 0
@@ -447,7 +452,7 @@ def vm_start(workspace, server_host, hostname, host_ip, template_hostname,
         if ret == 0:
             return 0
 
-    ret = vm_clone(workspace, server_host, hostname, host_ip,
+    ret = vm_clone(workspace, server_host, hostname, network_configs, ips,
                    template_hostname, image_dir, distro)
     if ret:
         logging.error("failed to create virtual machine [%s] based on "
@@ -457,7 +462,7 @@ def vm_start(workspace, server_host, hostname, host_ip, template_hostname,
 
 
 def vm_install(workspace, server_host, iso_path, hostname,
-               host_ip, bridge, image_dir, distro):
+               host_ip, network_configs, image_dir, distro):
     """
     Install virtual machine from ISO
     """
@@ -527,24 +532,32 @@ repo --name="Media" --baseurl=file:///mnt/source --cost=100
     else:
         logging.error("wrong distro [%s]", distro)
         return -1
-    ks_config += """# Configure network
-rm -f /etc/sysconfig/network-scripts/ifcfg-ens3
-cat << EOF > /etc/sysconfig/network-scripts/ifcfg-eth0
-DEVICE=eth0
-ONBOOT=yes
+    ks_config += "# Configure network\n"
+    eth_number = 0
+    ens_number = 3
+    for network_config in network_configs:
+        # net.ifnames=0 biosdevname=0 will be added to GRUB_CMDLINE_LINUX, so the
+        # interface name will always be eth*
+        ks_config += "# Network eth%d\n" % eth_number
+        ks_config += ("rm -f /etc/sysconfig/network-scripts/ifcfg-ens%d\n" %
+                      ens_number)
+        ks_config += ("cat << EOF > /etc/sysconfig/network-scripts/ifcfg-eth%d\n" %
+                      eth_number)
+        ks_config += "DEVICE=eth%d\n" % eth_number
+        ks_config += 'GATEWAY=\"%s"\n' % network_config["gateway"]
+        ks_config += 'IPADDR="%s"\n' % network_config["ip"]
+        ks_config += 'NETMASK="%s"\n' % network_config["netmask"]
+        ks_config += """ONBOOT=yes
 BOOTPROTO="static"
 TYPE=Ethernet
-GATEWAY="10.0.0.253"
-"""
-    # net.ifnames=0 biosdevname=0 will be added to GRUB_CMDLINE_LINUX, so the
-    # interface name will always be eth0
-    ks_config += 'IPADDR="%s"\n' % host_ip
-    ks_config += """NETMASK="255.255.252.0"
 IPV6INIT=no
 NM_CONTROLLED=no
 EOF
-%end
 """
+        eth_number += 1
+        ens_number += 1
+
+    ks_config += "%end\n"
     local_host_dir = workspace + "/" + hostname
     os.mkdir(local_host_dir)
     ks_fname = "%s.ks" % hostname
@@ -564,7 +577,8 @@ EOF
     command = ("virt-install --vcpus=1 --ram=1024 --os-type=linux "
                "--hvm --connect=qemu:///system "
                "--accelerate --serial pty -v --nographics --noautoconsole --wait=-1 ")
-    command += ("--network=bridge=%s " % (bridge))
+    for network_config in network_configs:
+        command += ("--network=%s " % (network_config["virt_install_option"]))
     command += ("--name=%s " % (hostname))
     command += ("--initrd-inject=%s " % (host_ks_fpath))
     command += ("--disk path=%s/%s.img,size=5 " % (image_dir, hostname))
@@ -776,15 +790,16 @@ def esmon_vm_install(workspace, config, config_fpath):
                       "please correct file [%s]", config_fpath)
         return -1
 
-    rhel6_iso = esmon_common.config_value(server_host_config, "rhel6_iso")
-    if rhel6_iso is None:
-        logging.error("no [rhel6_iso] is configured, "
+    rhel6_network_configs = esmon_common.config_value(server_host_config,
+                                                      "rhel6_network_configs")
+    if rhel6_network_configs is None:
+        logging.error("no [rhel6_network_configs] is configured, "
                       "please correct file [%s]", config_fpath)
         return -1
 
-    bridge = esmon_common.config_value(server_host_config, "network_bridge")
-    if bridge is None:
-        logging.error("no [network_bridge] is configured, "
+    rhel6_iso = esmon_common.config_value(server_host_config, "rhel6_iso")
+    if rhel6_iso is None:
+        logging.error("no [rhel6_iso] is configured, "
                       "please correct file [%s]", config_fpath)
         return -1
 
@@ -802,8 +817,9 @@ def esmon_vm_install(workspace, config, config_fpath):
 
     if rhel6_template_reinstall:
         ret = vm_install(workspace, server_host, rhel6_iso,
-                         rhel6_template_hostname, rhel6_template_ip, bridge,
-                         image_dir, ssh_host.DISTRO_RHEL6)
+                         rhel6_template_hostname, rhel6_template_ip,
+                         rhel6_network_configs, image_dir,
+                         ssh_host.DISTRO_RHEL6)
         if ret:
             logging.error("failed to create virtual machine template [%s]",
                           rhel6_template_hostname)
@@ -830,6 +846,13 @@ def esmon_vm_install(workspace, config, config_fpath):
                       "please correct file [%s]", config_fpath)
         return -1
 
+    rhel7_network_configs = esmon_common.config_value(server_host_config,
+                                                      "rhel7_network_configs")
+    if rhel7_network_configs is None:
+        logging.error("no [rhel7_network_configs] is configured, "
+                      "please correct file [%s]", config_fpath)
+        return -1
+
     rhel7_iso = esmon_common.config_value(server_host_config, "rhel7_iso")
     if rhel7_iso is None:
         logging.error("no [rhel7_iso] is configured, "
@@ -838,8 +861,9 @@ def esmon_vm_install(workspace, config, config_fpath):
 
     if rhel7_template_reinstall:
         ret = vm_install(workspace, server_host, rhel7_iso,
-                         rhel7_template_hostname, rhel7_template_ip, bridge,
-                         image_dir, ssh_host.DISTRO_RHEL7)
+                         rhel7_template_hostname, rhel7_template_ip,
+                         rhel7_network_configs, image_dir,
+                         ssh_host.DISTRO_RHEL7)
         if ret:
             logging.error("failed to create virtual machine template [%s]",
                           rhel7_template_hostname)
@@ -858,10 +882,11 @@ def esmon_vm_install(workspace, config, config_fpath):
                           "please correct file [%s]", config_fpath)
             return -1
 
-        host_ip = esmon_common.config_value(vm_host_config, STRING_HOST_IP)
-        if hostname is None:
-            logging.error("no [host_ip] is configured for a vm_host, "
-                          "please correct file [%s]", config_fpath)
+        ips = esmon_common.config_value(vm_host_config, STRING_HOST_IPS)
+        if ips is None:
+            logging.error("no [%s] is configured for a vm_host, "
+                          "please correct file [%s]", STRING_HOST_IPS,
+                          config_fpath)
             return -1
 
         distro = esmon_common.config_value(vm_host_config, STRING_DISTRO)
@@ -872,8 +897,10 @@ def esmon_vm_install(workspace, config, config_fpath):
 
         if distro == ssh_host.DISTRO_RHEL6:
             template_hostname = rhel6_template_hostname
+            network_configs = rhel6_network_configs
         elif distro == ssh_host.DISTRO_RHEL7:
             template_hostname = rhel7_template_hostname
+            network_configs = rhel7_network_configs
         else:
             logging.error("invalid distro [%s] is configured for a vm_host, "
                           "please correct file [%s]", distro, config_fpath)
@@ -884,15 +911,15 @@ def esmon_vm_install(workspace, config, config_fpath):
             reinstall = False
 
         if not reinstall:
-            ret = vm_start(workspace, server_host, hostname, host_ip,
-                           template_hostname, image_dir, distro)
+            ret = vm_start(workspace, server_host, hostname, network_configs,
+                           ips, template_hostname, image_dir, distro)
             if ret:
                 logging.error("virtual machine [%s] can't be started",
                               hostname)
                 return -1
         else:
-            ret = vm_clone(workspace, server_host, hostname, host_ip,
-                           template_hostname, image_dir, distro)
+            ret = vm_clone(workspace, server_host, hostname, network_configs,
+                           ips, template_hostname, image_dir, distro)
             if ret:
                 logging.error("failed to create virtual machine [%s] based on "
                               "template [%s]", hostname, rhel7_template_hostname)
