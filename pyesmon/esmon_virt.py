@@ -457,7 +457,7 @@ def vm_start(workspace, server_host, hostname, host_ip, template_hostname,
 
 
 def vm_install(workspace, server_host, iso_path, hostname,
-               host_ip, image_dir, distro):
+               host_ip, bridge, image_dir, distro):
     """
     Install virtual machine from ISO
     """
@@ -562,8 +562,9 @@ EOF
         return -1
 
     command = ("virt-install --vcpus=1 --ram=1024 --os-type=linux "
-               "--hvm --connect=qemu:///system --network=bridge=br0 "
+               "--hvm --connect=qemu:///system "
                "--accelerate --serial pty -v --nographics --noautoconsole --wait=-1 ")
+    command += ("--network=bridge=%s " % (bridge))
     command += ("--name=%s " % (hostname))
     command += ("--initrd-inject=%s " % (host_ks_fpath))
     command += ("--disk path=%s/%s.img,size=5 " % (image_dir, hostname))
@@ -781,6 +782,12 @@ def esmon_vm_install(workspace, config, config_fpath):
                       "please correct file [%s]", config_fpath)
         return -1
 
+    bridge = esmon_common.config_value(server_host_config, "network_bridge")
+    if bridge is None:
+        logging.error("no [network_bridge] is configured, "
+                      "please correct file [%s]", config_fpath)
+        return -1
+
     command = "mkdir -p %s" % workspace
     retval = server_host.sh_run(command)
     if retval.cr_exit_status:
@@ -795,8 +802,8 @@ def esmon_vm_install(workspace, config, config_fpath):
 
     if rhel6_template_reinstall:
         ret = vm_install(workspace, server_host, rhel6_iso,
-                         rhel6_template_hostname, rhel6_template_ip, image_dir,
-                         ssh_host.DISTRO_RHEL6)
+                         rhel6_template_hostname, rhel6_template_ip, bridge,
+                         image_dir, ssh_host.DISTRO_RHEL6)
         if ret:
             logging.error("failed to create virtual machine template [%s]",
                           rhel6_template_hostname)
@@ -831,8 +838,8 @@ def esmon_vm_install(workspace, config, config_fpath):
 
     if rhel7_template_reinstall:
         ret = vm_install(workspace, server_host, rhel7_iso,
-                         rhel7_template_hostname, rhel7_template_ip, image_dir,
-                         ssh_host.DISTRO_RHEL7)
+                         rhel7_template_hostname, rhel7_template_ip, bridge,
+                         image_dir, ssh_host.DISTRO_RHEL7)
         if ret:
             logging.error("failed to create virtual machine template [%s]",
                           rhel7_template_hostname)
