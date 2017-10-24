@@ -107,7 +107,7 @@ def vm_delete(server_host, hostname):
 
 
 def vm_clone(workspace, server_host, hostname, network_configs, ips,
-             template_hostname, image_dir, distro, internet):
+             template_hostname, image_dir, distro, internet, disk_number):
     """
     Create virtual machine
     """
@@ -165,8 +165,13 @@ def vm_clone(workspace, server_host, hostname, network_configs, ips,
                       retval.cr_stderr)
         return -1
 
-    command = ("virt-clone --original %s --name %s --file %s/%s.img" %
-               (template_hostname, hostname, image_dir, hostname))
+    file_options = ""
+    for disk_index in range(disk_number):
+        file_options += (" --file %s/%s_%d.img" %
+                         (image_dir, hostname, disk_index))
+
+    command = ("virt-clone --original %s --name %s%s" %
+               (template_hostname, hostname, file_options))
     retval = server_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
@@ -429,7 +434,7 @@ def vm_check(hostname, host_ip, distro, internet):
 
 
 def vm_start(workspace, server_host, hostname, network_configs, ips,
-             template_hostname, image_dir, distro, internet):
+             template_hostname, image_dir, distro, internet, disk_number):
     """
     Start virtual machine, if vm is bad, clone it
     """
@@ -460,7 +465,7 @@ def vm_start(workspace, server_host, hostname, network_configs, ips,
             return 0
 
     ret = vm_clone(workspace, server_host, hostname, network_configs, ips,
-                   template_hostname, image_dir, distro, internet)
+                   template_hostname, image_dir, distro, internet, disk_number)
     if ret:
         logging.error("failed to create virtual machine [%s] based on "
                       "template [%s]", hostname, template_hostname)
@@ -469,7 +474,8 @@ def vm_start(workspace, server_host, hostname, network_configs, ips,
 
 
 def vm_install(workspace, server_host, iso_path, hostname,
-               internet, network_configs, image_dir, distro):
+               internet, network_configs, image_dir, distro,
+               ram_size, disk_sizes):
     """
     Install virtual machine from ISO
     """
@@ -584,14 +590,19 @@ EOF
                       server_host.sh_hostname)
         return -1
 
-    command = ("virt-install --vcpus=1 --ram=1024 --os-type=linux "
+    command = ("virt-install --vcpus=1 --os-type=linux "
                "--hvm --connect=qemu:///system "
                "--accelerate --serial pty -v --nographics --noautoconsole --wait=-1 ")
+    command += "--ram=%s " % ram_size
     for network_config in network_configs:
         command += ("--network=%s " % (network_config["virt_install_option"]))
     command += ("--name=%s " % (hostname))
     command += ("--initrd-inject=%s " % (host_ks_fpath))
-    command += ("--disk path=%s/%s.img,size=5 " % (image_dir, hostname))
+    disk_index = 0
+    for disk_size in disk_sizes:
+        command += ("--disk path=%s/%s_%d.img,size=%s " %
+                    (image_dir, hostname, disk_index, disk_size))
+        disk_index += 1
     command += ("--location %s " % (mnt_path))
     command += ("--disk=%s,device=cdrom,perms=ro " % (iso_path))
     command += ("--extra-args='console=tty0 console=ttyS0,115200n8 "
@@ -750,7 +761,27 @@ EOF
                       hostname, server_host.sh_hostname)
         return ret
 
-    command = ("virsh change-media %s hdb --eject" % (hostname))
+    # Find the CDROM device
+    command = ("virsh domblklist %s --details | grep cdrom | "
+               "awk '{print $3}'" % (hostname))
+    retval = server_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      server_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+    cdroms = retval.cr_stdout.splitlines()
+    if len(cdroms) != 1:
+        logging.error("unexpected cdroms: [%s]",
+                      retval.cr_stdout)
+        return -1
+    cdrom = cdroms[0]
+
+    command = ("virsh change-media %s %s --eject" % (hostname, cdrom))
     retval = server_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
@@ -805,6 +836,18 @@ def esmon_vm_install(workspace, config, config_fpath):
         internet = False
         return -1
 
+    ram_size = esmon_common.config_value(server_host_config, "ram_size")
+    if ram_size is None:
+        logging.error("no [ram_size] is configured, "
+                      "please correct file [%s]", config_fpath)
+        return -1
+
+    disk_sizes = esmon_common.config_value(server_host_config, "disk_sizes")
+    if disk_sizes is None:
+        logging.error("no [disk_sizes] is configured, "
+                      "please correct file [%s]", config_fpath)
+        return -1
+
     rhel6_network_configs = esmon_common.config_value(server_host_config,
                                                       "rhel6_network_configs")
     if rhel6_network_configs is None:
@@ -834,7 +877,8 @@ def esmon_vm_install(workspace, config, config_fpath):
         ret = vm_install(workspace, server_host, rhel6_iso,
                          rhel6_template_hostname, internet,
                          rhel6_network_configs, image_dir,
-                         ssh_host.DISTRO_RHEL6)
+                         ssh_host.DISTRO_RHEL6, ram_size,
+                         disk_sizes)
         if ret:
             logging.error("failed to create virtual machine template [%s]",
                           rhel6_template_hostname)
@@ -871,7 +915,8 @@ def esmon_vm_install(workspace, config, config_fpath):
         ret = vm_install(workspace, server_host, rhel7_iso,
                          rhel7_template_hostname, internet,
                          rhel7_network_configs, image_dir,
-                         ssh_host.DISTRO_RHEL7)
+                         ssh_host.DISTRO_RHEL7, ram_size,
+                         disk_sizes)
         if ret:
             logging.error("failed to create virtual machine template [%s]",
                           rhel7_template_hostname)
@@ -920,14 +965,16 @@ def esmon_vm_install(workspace, config, config_fpath):
 
         if not reinstall:
             ret = vm_start(workspace, server_host, hostname, network_configs,
-                           ips, template_hostname, image_dir, distro, internet)
+                           ips, template_hostname, image_dir, distro, internet,
+                           len(disk_sizes))
             if ret:
                 logging.error("virtual machine [%s] can't be started",
                               hostname)
                 return -1
         else:
             ret = vm_clone(workspace, server_host, hostname, network_configs,
-                           ips, template_hostname, image_dir, distro, internet)
+                           ips, template_hostname, image_dir, distro, internet,
+                           len(disk_sizes))
             if ret:
                 logging.error("failed to create virtual machine [%s] based on "
                               "template [%s]", hostname, rhel7_template_hostname)
