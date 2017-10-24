@@ -107,7 +107,7 @@ def vm_delete(server_host, hostname):
 
 
 def vm_clone(workspace, server_host, hostname, network_configs, ips,
-             template_hostname, image_dir, distro):
+             template_hostname, image_dir, distro, internet):
     """
     Create virtual machine
     """
@@ -186,11 +186,11 @@ def vm_clone(workspace, server_host, hostname, network_configs, ips,
     for eth_ip in ips:
         network_config = network_configs[eth_number]
         ifcfg = 'DEVICE="eth%d"\n' % eth_number
-        ifcfg += 'GATEWAY=\"%s"\n' % network_config["gateway"]
         ifcfg += 'IPADDR="%s"\n' % eth_ip
         ifcfg += 'NETMASK="%s"\n' % network_config["netmask"]
-        ifcfg += """
-ONBOOT=yes
+        if "gateway" in network_config:
+            ifcfg += 'GATEWAY=\"%s"\n' % network_config["gateway"]
+        ifcfg += """ONBOOT=yes
 BOOTPROTO="static"
 TYPE=Ethernet
 IPV6INIT=no
@@ -366,16 +366,17 @@ NM_CONTROLLED=no
                       host_ip)
         return -1
 
-    ret = vm_check(hostname, host_ip, distro)
+    ret = vm_check(hostname, host_ip, distro, internet)
     if ret:
         return -1
     return 0
 
 
-def vm_check(hostname, host_ip, distro):
+def vm_check(hostname, host_ip, distro, internet):
     """
     Check whether virtual machine is up and fine
     """
+    # pylint: disable=too-many-return-statements
     vm_host = ssh_host.SSHHost(host_ip)
     command = "hostname"
     retval = vm_host.sh_run(command)
@@ -418,17 +419,23 @@ def vm_check(hostname, host_ip, distro):
         logging.error("wrong distro of the virtual machine [%s], expected "
                       "[%s], got [%s]", hostname, distro, vm_host.sh_distro())
         return -1
+
+    if internet:
+        if vm_host.sh_check_internet():
+            logging.error("virtual machine [%s] can not access Internet",
+                          hostname)
+            return -1
     return 0
 
 
 def vm_start(workspace, server_host, hostname, network_configs, ips,
-             template_hostname, image_dir, distro):
+             template_hostname, image_dir, distro, internet):
     """
     Start virtual machine, if vm is bad, clone it
     """
     # pylint: disable=too-many-arguments
     host_ip = ips[0]
-    ret = vm_check(hostname, host_ip, distro)
+    ret = vm_check(hostname, host_ip, distro, internet)
     if ret == 0:
         return 0
 
@@ -448,12 +455,12 @@ def vm_start(workspace, server_host, hostname, network_configs, ips,
     vm_host = ssh_host.SSHHost(hostname)
     ret = vm_host.sh_wait_up()
     if ret == 0:
-        ret = vm_check(hostname, host_ip, distro)
+        ret = vm_check(hostname, host_ip, distro, internet)
         if ret == 0:
             return 0
 
     ret = vm_clone(workspace, server_host, hostname, network_configs, ips,
-                   template_hostname, image_dir, distro)
+                   template_hostname, image_dir, distro, internet)
     if ret:
         logging.error("failed to create virtual machine [%s] based on "
                       "template [%s]", hostname, template_hostname)
@@ -462,7 +469,7 @@ def vm_start(workspace, server_host, hostname, network_configs, ips,
 
 
 def vm_install(workspace, server_host, iso_path, hostname,
-               host_ip, network_configs, image_dir, distro):
+               internet, network_configs, image_dir, distro):
     """
     Install virtual machine from ISO
     """
@@ -473,6 +480,8 @@ def vm_install(workspace, server_host, iso_path, hostname,
     if ret:
         return -1
 
+    network_config = network_configs[0]
+    host_ip = network_config["ip"]
     command = ("ping -c 1 %s" % host_ip)
     retval = server_host.sh_run(command)
     if retval.cr_exit_status == 0:
@@ -544,9 +553,10 @@ repo --name="Media" --baseurl=file:///mnt/source --cost=100
         ks_config += ("cat << EOF > /etc/sysconfig/network-scripts/ifcfg-eth%d\n" %
                       eth_number)
         ks_config += "DEVICE=eth%d\n" % eth_number
-        ks_config += 'GATEWAY=\"%s"\n' % network_config["gateway"]
         ks_config += 'IPADDR="%s"\n' % network_config["ip"]
         ks_config += 'NETMASK="%s"\n' % network_config["netmask"]
+        if "gateway" in network_config:
+            ks_config += 'GATEWAY=\"%s"\n' % network_config["gateway"]
         ks_config += """ONBOOT=yes
 BOOTPROTO="static"
 TYPE=Ethernet
@@ -692,6 +702,12 @@ EOF
                       retval.cr_stderr)
         return -1
 
+    if internet:
+        ret = vm_host.sh_enable_dns()
+        if ret:
+            logging.error("failed to enable dns on host [%s]")
+            return -1
+
     real_hostname = retval.cr_stdout.strip()
     if real_hostname != hostname:
         logging.error("wrong hostname, expected [%s], got [%s]",
@@ -783,11 +799,10 @@ def esmon_vm_install(workspace, config, config_fpath):
                       "please correct file [%s]", config_fpath)
         return -1
 
-    rhel6_template_ip = esmon_common.config_value(server_host_config,
-                                                  "rhel6_template_ip")
-    if rhel6_template_ip is None:
-        logging.error("no [rhel6_template_ip] is configured, "
-                      "please correct file [%s]", config_fpath)
+    internet = esmon_common.config_value(server_host_config,
+                                         "internet")
+    if internet is None:
+        internet = False
         return -1
 
     rhel6_network_configs = esmon_common.config_value(server_host_config,
@@ -817,7 +832,7 @@ def esmon_vm_install(workspace, config, config_fpath):
 
     if rhel6_template_reinstall:
         ret = vm_install(workspace, server_host, rhel6_iso,
-                         rhel6_template_hostname, rhel6_template_ip,
+                         rhel6_template_hostname, internet,
                          rhel6_network_configs, image_dir,
                          ssh_host.DISTRO_RHEL6)
         if ret:
@@ -839,13 +854,6 @@ def esmon_vm_install(workspace, config, config_fpath):
                       "please correct file [%s]", config_fpath)
         return -1
 
-    rhel7_template_ip = esmon_common.config_value(server_host_config,
-                                                  "rhel7_template_ip")
-    if rhel7_template_ip is None:
-        logging.error("no [rhel7_template_ip] is configured, "
-                      "please correct file [%s]", config_fpath)
-        return -1
-
     rhel7_network_configs = esmon_common.config_value(server_host_config,
                                                       "rhel7_network_configs")
     if rhel7_network_configs is None:
@@ -861,7 +869,7 @@ def esmon_vm_install(workspace, config, config_fpath):
 
     if rhel7_template_reinstall:
         ret = vm_install(workspace, server_host, rhel7_iso,
-                         rhel7_template_hostname, rhel7_template_ip,
+                         rhel7_template_hostname, internet,
                          rhel7_network_configs, image_dir,
                          ssh_host.DISTRO_RHEL7)
         if ret:
@@ -912,14 +920,14 @@ def esmon_vm_install(workspace, config, config_fpath):
 
         if not reinstall:
             ret = vm_start(workspace, server_host, hostname, network_configs,
-                           ips, template_hostname, image_dir, distro)
+                           ips, template_hostname, image_dir, distro, internet)
             if ret:
                 logging.error("virtual machine [%s] can't be started",
                               hostname)
                 return -1
         else:
             ret = vm_clone(workspace, server_host, hostname, network_configs,
-                           ips, template_hostname, image_dir, distro)
+                           ips, template_hostname, image_dir, distro, internet)
             if ret:
                 logging.error("failed to create virtual machine [%s] based on "
                               "template [%s]", hostname, rhel7_template_hostname)

@@ -1549,3 +1549,19 @@ class SSHHost(object):
                           retval.cr_stderr)
             return -1
         return 0
+
+    def sh_check_internet(self):
+        """
+        Check whether the Internet connection works well
+        """
+        command = "ping -c 1 www.bing.com"
+        retval = self.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command, self.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        return 0
