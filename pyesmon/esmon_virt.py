@@ -834,7 +834,7 @@ def esmon_vm_install(workspace, config, config_fpath):
                                          "internet")
     if internet is None:
         internet = False
-        return -1
+        logging.debug("no [internet] is configured, disable internet")
 
     ram_size = esmon_common.config_value(server_host_config, "ram_size")
     if ram_size is None:
