@@ -153,23 +153,23 @@ def vm_clone(workspace, server_host, hostname, network_configs, ips,
                           retval.cr_stderr)
             return -1
 
-    command = ("rm -f %s/%s.img" %
-               (image_dir, hostname))
-    retval = server_host.sh_run(command)
-    if retval.cr_exit_status:
-        logging.error("failed to run command [%s] on host [%s], "
-                      "ret = [%d], stdout = [%s], stderr = [%s]",
-                      command,
-                      server_host.sh_hostname,
-                      retval.cr_exit_status,
-                      retval.cr_stdout,
-                      retval.cr_stderr)
-        return -1
-
     file_options = ""
     for disk_index in range(disk_number):
         file_options += (" --file %s/%s_%d.img" %
                          (image_dir, hostname, disk_index))
+
+        command = ("rm -f %s/%s_%d.img" %
+                   (image_dir, hostname, disk_index))
+        retval = server_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          server_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
 
     command = ("virt-clone --original %s --name %s%s" %
                (template_hostname, hostname, file_options))
