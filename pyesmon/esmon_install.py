@@ -13,17 +13,35 @@ import shutil
 import httplib
 import re
 import json
-import requests
-import yaml
-import filelock
-import slugify
 
 # Local libs
 from pyesmon import utils
+from pyesmon import time_util
 from pyesmon import ssh_host
 from pyesmon import collectd
 from pyesmon import esmon_common
 from pyesmon import esmon_influxdb
+
+try:
+    import requests
+except ImportError:
+    utils.module_bootstrap("requests", "python-requests")
+
+try:
+    import yaml
+except ImportError:
+    utils.module_bootstrap("yaml", "PyYAML")
+
+try:
+    import filelock
+except ImportError:
+    utils.module_bootstrap("filelock", "python2-filelock")
+
+try:
+    import slugify
+except ImportError:
+    utils.module_bootstrap("slugify", "python-slugify")
+
 
 ESMON_INSTALL_CONFIG = "/etc/" + esmon_common.ESMON_INSTALL_CONFIG_FNAME
 ESMON_INSTALL_LOG_DIR = "/var/log/esmon_install"
@@ -1831,7 +1849,7 @@ def main():
         usage()
         sys.exit(-1)
 
-    identity = utils.local_strftime(utils.utcnow(), "%Y-%m-%d-%H_%M_%S")
+    identity = time_util.local_strftime(time_util.utcnow(), "%Y-%m-%d-%H_%M_%S")
     workspace = ESMON_INSTALL_LOG_DIR + "/" + identity
 
     if not os.path.exists(ESMON_INSTALL_LOG_DIR):

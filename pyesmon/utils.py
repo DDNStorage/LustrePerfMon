@@ -14,13 +14,11 @@ import StringIO
 import select
 import logging
 import logging.handlers
-import datetime
 import threading
 import traceback
 import sys
 import random
 import string
-import dateutil.tz
 
 LOG_INFO_FNAME = "info.log"
 LOGGING_HANLDERS = {}
@@ -388,22 +386,6 @@ def configure_logging(resultsdir):
     LOGGING_HANLDERS["error"] = error_handler
 
 
-def utcnow():
-    """
-    Get the current UTC time which has the time zone info.
-    """
-    return datetime.datetime.now(dateutil.tz.tzutc())
-
-
-def local_strftime(utc_datetime, fmt):
-    """
-    Return a string representing the date of timezone from the datetime of
-    local timezone
-    """
-    local_datetime = utc_datetime.astimezone(dateutil.tz.tzlocal())
-    return local_datetime.strftime(fmt)
-
-
 def thread_start(target, args):
     """
     Wrap the target function and start a thread to run it
@@ -477,3 +459,22 @@ def wait_condition(condition_func, args, timeout=90, sleep_interval=1):
             return -1
         return 0
     return -1
+
+
+def module_bootstrap(module_name, rpm_name):
+    """
+    Try to import module, if failure, install by itself
+    """
+    logging.error("exception when importing module [%s], trying to install "
+                  "using yum", module_name)
+    command = "yum install -y %s" % rpm_name
+    retval = run(command)
+    if retval.cr_exit_status != 0:
+        logging.error("failed to run command [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command, retval.cr_exit_status, retval.cr_stdout,
+                      retval.cr_stderr)
+        raise ImportError
+
+    module = __import__(module_name)
+    globals()[module_name] = module

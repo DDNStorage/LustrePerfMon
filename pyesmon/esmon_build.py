@@ -15,6 +15,7 @@ import yaml
 
 # Local libs
 from pyesmon import utils
+from pyesmon import time_util
 from pyesmon import ssh_host
 from pyesmon import esmon_common
 
@@ -979,7 +980,7 @@ def main():
         usage()
         sys.exit(-1)
 
-    identity = utils.local_strftime(utils.utcnow(), "%Y-%m-%d-%H_%M_%S")
+    identity = time_util.local_strftime(time_util.utcnow(), "%Y-%m-%d-%H_%M_%S")
 
     current_dir = os.getcwd()
     build_log_dir = "build_esmon"

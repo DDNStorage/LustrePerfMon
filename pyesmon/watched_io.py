@@ -13,6 +13,7 @@ import traceback
 
 # local libs
 from pyesmon import utils
+from pyesmon import time_util
 
 
 def watched_io_open(fname, func, args):
@@ -44,7 +45,7 @@ class WatchedIO(io.TextIOWrapper):
     # pylint: disable=too-few-public-methods
     def __init__(self, buffered_io, fname, func, args):
         super(WatchedIO, self).__init__(buffered_io)
-        self.wi_check_time = utils.utcnow()
+        self.wi_check_time = time_util.utcnow()
         self.wi_func = func
         self.wi_args = args
         self.wi_fname = fname
@@ -57,7 +58,7 @@ class WatchedIO(io.TextIOWrapper):
         there will be some error, so need to ignore it.
         """
         #pylint: disable=bare-except
-        self.wi_check_time = utils.utcnow()
+        self.wi_check_time = time_util.utcnow()
         data = unicode(data, encoding='utf-8', errors='ignore')
         try:
             super(WatchedIO, self).write(data)
