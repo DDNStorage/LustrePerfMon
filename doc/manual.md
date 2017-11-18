@@ -56,7 +56,7 @@ Several additional plugins are added to *Collectd* in *ESMON* to support various
 
 ##Installation Process
 
-###1. Prepare the *Installation Server*
+###1. Install the *ESMON* RPM on *Installation Server*
 
 1. Grab the *ESMON* ISO image file to the *installation server*, for example: /ISOs/esmon.iso.
 
@@ -66,13 +66,13 @@ Several additional plugins are added to *Collectd* in *ESMON* to support various
       # mount -o loop /ISOs/esmon.iso /media
       ```
 
-3. Start the install script:
+3. Install the *ESMON* RPM on *installation server*:
 
       ```shell
-      # cd /media && sh ./installesmon.sh
+      # rpm -ivh /media/RPMS/rhel7/esmon*.rpm
       ```
 
-###2. Update the Configuration File
+###2. Update the Configuration File on *Installation Server*
 
 The configuration file */etc/esmon_install.conf* includes all the necessary information for installation. Following is an example:
 

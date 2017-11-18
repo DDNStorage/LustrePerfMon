@@ -216,8 +216,9 @@ def main():
     if len(missing_dependencies):
         ret = dependency_install(local_host)
         if ret:
-            logging.error("not able to install ESMON because some depdendency"
-                          "RPMs are missing and not able to be installed: %s")
+            logging.error("not able to install ESMON because some depdendency "
+                          "RPMs are missing and not able to be installed: %s",
+                          missing_dependencies)
             return
     from pyesmon import esmon_install_nodeps
     esmon_install_nodeps.main()
