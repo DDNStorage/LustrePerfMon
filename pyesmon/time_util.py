@@ -5,15 +5,6 @@
 Time utility library
 """
 import datetime
-
-# Local libs
-from pyesmon import utils
-
-try:
-    import dateutil
-except ImportError:
-    utils.module_bootstrap("dateutil", "python-dateutil")
-
 import dateutil.tz
 
 

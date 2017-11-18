@@ -12,7 +12,6 @@ import logging
 import traceback
 
 # local libs
-from pyesmon import utils
 from pyesmon import time_util
 
 

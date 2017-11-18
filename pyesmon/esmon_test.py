@@ -9,7 +9,6 @@ import sys
 import logging
 import traceback
 import os
-import re
 import shutil
 import yaml
 import filelock
@@ -19,7 +18,7 @@ from pyesmon import utils
 from pyesmon import time_util
 from pyesmon import esmon_common
 from pyesmon import esmon_virt
-from pyesmon import esmon_install
+from pyesmon import esmon_install_nodeps
 from pyesmon import ssh_host
 from pyesmon import watched_io
 
@@ -31,10 +30,10 @@ def generate_client_host_config(host_id):
     Generate the client host config of ESMON installation
     """
     client_host = {}
-    client_host[esmon_install.HOST_ID_STRING] = host_id
-    client_host[esmon_install.LUSTRE_OSS_STRING] = host_id
-    client_host[esmon_install.LUSTRE_MDS_STRING] = host_id
-    client_host[esmon_install.IME_STRING] = host_id
+    client_host[esmon_install_nodeps.HOST_ID_STRING] = host_id
+    client_host[esmon_install_nodeps.LUSTRE_OSS_STRING] = host_id
+    client_host[esmon_install_nodeps.LUSTRE_MDS_STRING] = host_id
+    client_host[esmon_install_nodeps.IME_STRING] = host_id
     return client_host
 
 
@@ -43,74 +42,10 @@ def generate_server_host_config(host_id):
     Generate the server host config of ESMON installation
     """
     server_host = {}
-    server_host[esmon_install.HOST_ID_STRING] = host_id
-    server_host[esmon_install.DROP_DATABASE_STRING] = False
-    server_host[esmon_install.ERASE_INFLUXDB_STRING] = False
+    server_host[esmon_install_nodeps.HOST_ID_STRING] = host_id
+    server_host[esmon_install_nodeps.DROP_DATABASE_STRING] = False
+    server_host[esmon_install_nodeps.ERASE_INFLUXDB_STRING] = False
     return server_host
-
-
-class EsmonInstallServer(object):
-    """
-    ESMON server host has an object of this type
-    """
-    # pylint: disable=too-few-public-methods,too-many-instance-attributes
-    def __init__(self, workspace, host, iso_dir):
-        self.eis_host = host
-        self.eis_iso_dir = iso_dir
-        self.eis_rpm_dir = (iso_dir + "/" + "RPMS/" +
-                            ssh_host.DISTRO_RHEL7)
-        self.eis_rpm_dependent_dir = self.eis_rpm_dir + "/dependent"
-        self.eis_rpm_dependent_fnames = None
-        self.eis_workspace = workspace
-
-    def eis_rpm_install(self, name):
-        """
-        Install a RPM in the ISO given the name of the RPM
-        """
-        if self.eis_rpm_dependent_fnames is None:
-            command = "ls %s" % self.eis_rpm_dependent_dir
-            retval = self.eis_host.sh_run(command)
-            if retval.cr_exit_status:
-                logging.error("failed to run command [%s] on host [%s], "
-                              "ret = [%d], stdout = [%s], stderr = [%s]",
-                              command,
-                              self.eis_host.sh_hostname,
-                              retval.cr_exit_status,
-                              retval.cr_stdout,
-                              retval.cr_stderr)
-                return -1
-            self.eis_rpm_dependent_fnames = retval.cr_stdout.split()
-
-        rpm_dir = self.eis_rpm_dependent_dir
-        rpm_pattern = (esmon_common.RPM_PATTERN_RHEL7 % name)
-        rpm_regular = re.compile(rpm_pattern)
-        matched_fname = None
-        for filename in self.eis_rpm_dependent_fnames[:]:
-            match = rpm_regular.match(filename)
-            if match:
-                matched_fname = filename
-                logging.debug("matched pattern [%s] with fname [%s]",
-                              rpm_pattern, filename)
-                break
-        if matched_fname is None:
-            logging.error("failed to find RPM with pattern [%s] under "
-                          "directory [%s] of host [%s]", rpm_pattern,
-                          rpm_dir, self.eis_host.sh_hostname)
-            return -1
-
-        command = ("cd %s && rpm -ivh %s" %
-                   (rpm_dir, matched_fname))
-        retval = self.eis_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          self.eis_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
-        return 0
 
 
 def esmon_do_test_install(workspace, install_server, mnt_path):
@@ -118,8 +53,6 @@ def esmon_do_test_install(workspace, install_server, mnt_path):
     Run the install test
     """
     # pylint: disable=too-many-return-statements
-    esmon_installer = EsmonInstallServer(workspace, install_server, mnt_path)
-
     command = ("rpm -e esmon")
     retval = install_server.sh_run(command)
     if retval.cr_exit_status:
@@ -144,16 +77,6 @@ def esmon_do_test_install(workspace, install_server, mnt_path):
                       retval.cr_stderr)
         return -1
 
-    for dependent_rpm in esmon_common.ESMON_INSTALL_DEPENDENT_RPMS:
-        ret = install_server.sh_rpm_query(dependent_rpm)
-        if ret == 0:
-            continue
-        ret = esmon_installer.eis_rpm_install(dependent_rpm)
-        if ret:
-            logging.error("failed to install rpm [%s] on host [%s]",
-                          dependent_rpm, install_server.sh_hostname)
-            return -1
-
     install_config_fpath = (workspace + "/" +
                             esmon_common.ESMON_INSTALL_CONFIG_FNAME)
     ret = install_server.sh_send_file(install_config_fpath, "/etc")
@@ -165,8 +88,8 @@ def esmon_do_test_install(workspace, install_server, mnt_path):
 
     args = {}
     args["hostname"] = install_server.sh_hostname
-    stdout_file = (workspace + "/" + "esmon_install.stdout")
-    stderr_file = (workspace + "/" + "esmon_install.stderr")
+    stdout_file = (workspace + "/" + "esmon_install_nodeps.stdout")
+    stderr_file = (workspace + "/" + "esmon_install_nodeps.stderr")
     stdout_fd = watched_io.watched_io_open(stdout_file,
                                            watched_io.log_watcher_debug, args)
     stderr_fd = watched_io.watched_io_open(stderr_file,
@@ -354,8 +277,8 @@ def esmon_do_test(workspace, config, config_fpath):
         hosts_string += ("%s %s\n" % (host_ip, hostname))
         hosts.append(vm_host)
         ssh_host_config = {}
-        ssh_host_config[esmon_install.HOST_ID_STRING] = hostname
-        ssh_host_config[esmon_install.HOSTNAME_STRING] = hostname
+        ssh_host_config[esmon_install_nodeps.HOST_ID_STRING] = hostname
+        ssh_host_config[esmon_install_nodeps.HOSTNAME_STRING] = hostname
         ssh_host_configs.append(ssh_host_config)
 
         if distro == ssh_host.DISTRO_RHEL6:
@@ -446,10 +369,10 @@ def esmon_do_test(workspace, config, config_fpath):
 
     host_iso_path = workspace + "/" + iso_name
     install_config = {}
-    install_config[esmon_install.ISO_PATH_STRING] = host_iso_path
-    install_config[esmon_install.SSH_HOST_STRING] = ssh_host_configs
-    install_config[esmon_install.CLIENT_HOSTS_STRING] = client_host_configs
-    install_config[esmon_install.SERVER_HOST_STRING] = server_host_config
+    install_config[esmon_install_nodeps.ISO_PATH_STRING] = host_iso_path
+    install_config[esmon_install_nodeps.SSH_HOST_STRING] = ssh_host_configs
+    install_config[esmon_install_nodeps.CLIENT_HOSTS_STRING] = client_host_configs
+    install_config[esmon_install_nodeps.SERVER_HOST_STRING] = server_host_config
     install_config_string = yaml.dump(install_config, default_flow_style=False)
     install_config_fpath = workspace + "/" + esmon_common.ESMON_INSTALL_CONFIG_FNAME
     with open(install_config_fpath, "wt") as install_config_file:

@@ -6,13 +6,7 @@ Library for access Influxdb through HTTP API
 """
 import logging
 import traceback
-
-from pyesmon import utils
-
-try:
-    import requests
-except ImportError:
-    utils.module_bootstrap("requests", "python-requests")
+import requests
 
 
 class InfluxdbClient(object):
