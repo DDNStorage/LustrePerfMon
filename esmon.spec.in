@@ -41,10 +41,12 @@ mkdir -p $RPM_BUILD_ROOT%{python_sitelib}
 mkdir -p $RPM_BUILD_ROOT%{_mandir}/man1/
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/pyesmon/*.py
 cp -a esmon_install $RPM_BUILD_ROOT%{_bindir}
+cp -a esmon_test $RPM_BUILD_ROOT%{_bindir}
 cp -a esmon_virt $RPM_BUILD_ROOT%{_bindir}
 cp -a pyesmon $RPM_BUILD_ROOT%{python_sitelib}
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
 cp -a esmon_install.conf $RPM_BUILD_ROOT%{_sysconfdir}
+cp -a esmon_test.conf $RPM_BUILD_ROOT%{_sysconfdir}
 cp -a esmon_virt.conf $RPM_BUILD_ROOT%{_sysconfdir}
 install -g 0 -o 0 -m 0644 man1/esmon_install.1 $RPM_BUILD_ROOT%{_mandir}/man1/
 
@@ -56,10 +58,12 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %{_bindir}/esmon_install
+%{_bindir}/esmon_test
 %{_bindir}/esmon_virt
 %{python_sitelib}/pyesmon
-%{_sysconfdir}/esmon_virt.conf
 %{_sysconfdir}/esmon_install.conf
+%{_sysconfdir}/esmon_test.conf
+%{_sysconfdir}/esmon_virt.conf
 %{_mandir}/man1/esmon_install.1*
 
 %changelog

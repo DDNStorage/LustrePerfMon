@@ -929,6 +929,10 @@ def esmon_vm_install(workspace, config, config_fpath):
                       "please correct file [%s]", config_fpath)
         return -1
 
+    hosts = []
+    hosts_string = """127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+"""
     for vm_host_config in vm_host_configs:
         hostname = esmon_common.config_value(vm_host_config, STRING_HOSTNAME)
         if hostname is None:
@@ -980,6 +984,42 @@ def esmon_vm_install(workspace, config, config_fpath):
                 logging.error("failed to create virtual machine [%s] based on "
                               "template [%s]", hostname, rhel7_template_hostname)
                 return -1
+
+        host_ip = ips[0]
+        vm_host = ssh_host.SSHHost(hostname)
+        hosts_string += ("%s %s\n" % (host_ip, hostname))
+        hosts.append(vm_host)
+
+    hosts_fpath = workspace + "/hosts"
+    with open(hosts_fpath, "wt") as hosts_file:
+        hosts_file.write(hosts_string)
+
+    for host in hosts:
+        ret = host.sh_enable_dns()
+        if ret:
+            logging.error("failed to enable dns on host [%s]",
+                          host.sh_hostname)
+            return -1
+
+        command = "yum install rsync -y"
+        retval = host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        ret = host.sh_send_file(hosts_fpath, "/etc")
+        if ret:
+            logging.error("failed to send hosts file [%s] on local host to "
+                          "directory [%s] on host [%s]",
+                          hosts_fpath, workspace,
+                          host.sh_hostname)
+            return -1
 
     return 0
 

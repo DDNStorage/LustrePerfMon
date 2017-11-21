@@ -1489,7 +1489,7 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
         hosts[host_id] = host
 
     server_host_config = esmon_common.config_value(config, SERVER_HOST_STRING)
-    if hostname is None:
+    if server_host_config is None:
         logging.error("can NOT find [server_host] in the config file [%s], "
                       "please correct it", config_fpath)
         return -1

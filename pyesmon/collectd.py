@@ -618,7 +618,10 @@ PostCacheChain "PostCache"
             if host_dead:
                 continue
 
-            return client.ec_influxdb_measurement_check(measurement, fqdn=fqdn)
+            ret = client.ec_influxdb_measurement_check(measurement, fqdn=fqdn)
+            if ret:
+                return ret
+        return 0
 
     def cc_plugin_sfa(self, sfa):
         """

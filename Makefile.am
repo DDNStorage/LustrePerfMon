@@ -11,9 +11,10 @@ ISO_RPM = $(ISO_PATH)/RPMS
 ISO_RPM_RHEL7 = $(ISO_RPM)/$(DISTRO_RHEL7)
 ISO_RPM_RHEL7_SERVER = $(ISO_RPM_RHEL7)/server
 
-EXTRA_DIST = version-gen.sh autogen.sh detect-distro.sh esmon.spec \
-	esmon_install esmon_install.conf esmon_build esmon_build.conf \
-	esmon_virt esmon_virt.conf pyesmon/*.py man1/*
+EXTRA_DIST = autogen.sh detect-distro.sh esmon.spec esmon_build \
+	esmon_build.conf esmon_install esmon_install.conf esmon_test \
+	esmon_test.conf esmon_virt esmon_virt.conf pyesmon/*.py man1/* \
+	version-gen.sh 
 
 XML_DEFINITION_RPM_PATH = $(addprefix xml_definition/RPMS/noarch/, $(XML_DEFINITION_RPM))
 OPENTSDB_WEB_RPM_PATH = $(addprefix opentsdb_web/RPMS/x86_64/, $(OPENTSDB_WEB_RPM))
