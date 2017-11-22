@@ -21,10 +21,23 @@ from pyesmon import esmon_virt
 from pyesmon import esmon_install_nodeps
 from pyesmon import ssh_host
 from pyesmon import watched_io
+from pyesmon import lustre
 
 ESMON_TEST_LOG_DIR = "/var/log/esmon_test"
 ESMON_TEST_CONFIG_FNAME = "esmon_test.conf"
 ESMON_TEST_CONFIG = "/etc/" + ESMON_TEST_CONFIG_FNAME
+STRING_LUSTRES = "lustres"
+STRING_FSNAME = "fsname"
+STRING_MGS_NID = "mgs_nid"
+STRING_MDTS = "mdts"
+STRING_OSTS = "osts"
+STRING_HOST_ID = "host_id"
+STRING_DEVICE = "device"
+STRING_NID = "nid"
+STRING_IS_MGS = "is_mgs"
+STRING_INDEX = "index"
+STRING_LUSTRE_RPM_DIR = "lustre_rpm_dir"
+STRING_E2FSPROGS_RPM_DIR = "e2fsprogs_rpm_dir"
 
 
 def esmon_do_test_install(workspace, install_server, mnt_path):
@@ -142,6 +155,153 @@ def esmon_test_install(workspace, install_server, host_iso_path):
     return ret
 
 
+def esmon_test_lustre(workspace, hosts, config, config_fpath):
+    """
+    Run Lustre tests
+    """
+    # pylint: disable=too-many-branches,too-many-return-statements
+    # pylint: disable=too-many-statements,too-many-locals
+    lustre_rpm_dir = esmon_common.config_value(config, STRING_LUSTRE_RPM_DIR)
+    if lustre_rpm_dir is None:
+        logging.error("no [%s] is configured, please correct file [%s]",
+                      STRING_LUSTRE_RPM_DIR, config_fpath)
+        return -1
+
+    e2fsprogs_rpm_dir = esmon_common.config_value(config, STRING_E2FSPROGS_RPM_DIR)
+    if e2fsprogs_rpm_dir is None:
+        logging.error("no [%s] is configured, please correct file [%s]",
+                      STRING_E2FSPROGS_RPM_DIR, config_fpath)
+        return -1
+
+    lustre_rpms = lustre.LustreRPMs(lustre_rpm_dir)
+    ret = lustre_rpms.lr_prepare()
+    if ret:
+        logging.error("failed to prepare Lustre RPMs")
+        return -1
+
+    lustre_configs = esmon_common.config_value(config, STRING_LUSTRES)
+    if lustre_configs is None:
+        logging.error("no [%s] is configured, please correct file [%s]",
+                      STRING_LUSTRES, config_fpath)
+        return -1
+
+    for lustre_config in lustre_configs:
+        # Parse general configs of Lustre file system
+        fsname = esmon_common.config_value(lustre_config, STRING_FSNAME)
+        if fsname is None:
+            logging.error("no [%s] is configured, please correct file [%s]",
+                          STRING_FSNAME, config_fpath)
+            return -1
+
+        mgs_nid = esmon_common.config_value(lustre_config, STRING_MGS_NID)
+        if mgs_nid is None:
+            logging.error("no [%s] is configured, please correct file [%s]",
+                          STRING_MGS_NID, config_fpath)
+            return -1
+
+        lustre_fs = lustre.LustreFilesystem(fsname, mgs_nid)
+
+        # Parse MDT configs
+        mdt_configs = esmon_common.config_value(lustre_config, STRING_MDTS)
+        if mdt_configs is None:
+            logging.error("no [%s] is configured, please correct file [%s]",
+                          STRING_MDTS, config_fpath)
+            return -1
+
+        mdts = {}
+        lustre_hosts = {}
+        for mdt_config in mdt_configs:
+            mdt_index = esmon_common.config_value(mdt_config, STRING_INDEX)
+            if mdt_index is None:
+                logging.error("no [%s] is configured, please correct file [%s]",
+                              STRING_INDEX, config_fpath)
+                return -1
+
+            host_id = esmon_common.config_value(mdt_config, STRING_HOST_ID)
+            if host_id is None:
+                logging.error("no [%s] is configured, please correct file [%s]",
+                              STRING_HOST_ID, config_fpath)
+                return -1
+
+            if host_id not in hosts:
+                logging.error("no host with [%s] is configured in hosts, "
+                              "please correct file [%s]",
+                              host_id, config_fpath)
+                return -1
+
+            device = esmon_common.config_value(mdt_config, STRING_DEVICE)
+            if device is None:
+                logging.error("no [%s] is configured, please correct file [%s]",
+                              STRING_DEVICE, config_fpath)
+                return -1
+
+            is_mgs = esmon_common.config_value(mdt_config, STRING_IS_MGS)
+            if is_mgs is None:
+                logging.error("no [%s] is configured, please correct file [%s]",
+                              STRING_IS_MGS, config_fpath)
+                return -1
+
+            host = hosts[host_id]
+            if host_id not in lustre_hosts:
+                lustre_hosts[host_id] = host
+
+            mdt = lustre.LustreMDT(lustre_fs, mdt_index, host, device,
+                                   is_mgs=is_mgs)
+            mdts[mdt_index] = mdt
+
+        # Parse OST configs
+        ost_configs = esmon_common.config_value(lustre_config, STRING_OSTS)
+        if ost_configs is None:
+            logging.error("no [%s] is configured, please correct file [%s]",
+                          STRING_OSTS, config_fpath)
+            return -1
+
+        osts = {}
+        for ost_config in ost_configs:
+            ost_index = esmon_common.config_value(ost_config, STRING_INDEX)
+            if ost_index is None:
+                logging.error("no [%s] is configured, please correct file [%s]",
+                              STRING_INDEX, config_fpath)
+                return -1
+
+            host_id = esmon_common.config_value(ost_config, STRING_HOST_ID)
+            if host_id is None:
+                logging.error("no [%s] is configured, please correct file [%s]",
+                              STRING_HOST_ID, config_fpath)
+                return -1
+
+            if host_id not in hosts:
+                logging.error("no host with [%s] is configured in hosts, "
+                              "please correct file [%s]",
+                              host_id, config_fpath)
+                return -1
+
+            device = esmon_common.config_value(ost_config, STRING_DEVICE)
+            if device is None:
+                logging.error("no [%s] is configured, please correct file [%s]",
+                              STRING_DEVICE, config_fpath)
+                return -1
+
+            host = hosts[host_id]
+            if host_id not in lustre_hosts:
+                lustre_hosts[host_id] = host
+
+            ost = lustre.LustreOST(lustre_fs, ost_index, host, device)
+            osts[ost_index] = ost
+
+        # Install RPMs on MDS and OSS
+        for host_id, lustre_host in lustre_hosts.iteritems():
+            logging.debug("trying to install Lustre RPMs on host [%s] with host_id [%s]",
+                          lustre_host.sh_hostname, host_id)
+            ret = lustre.install_lustre_rpms(workspace, lustre_host, lustre_rpms)
+            if ret:
+                logging.error("failed to install Lustre RPMs on host [%s]",
+                              lustre_host.sh_hostname)
+                return -1
+
+    return 0
+
+
 def esmon_do_test(workspace, config, config_fpath):
     """
     Run the tests
@@ -234,11 +394,16 @@ def esmon_do_test(workspace, config, config_fpath):
                       retval.cr_stderr)
         return -1
 
+    ret = esmon_test_lustre(workspace, hosts, config, config_fpath)
+    if ret:
+        logging.error("failed to test Lustre")
+        return -1
+
     current_dir = os.getcwd()
     iso_names = retval.cr_stdout.split()
     if len(iso_names) != 1:
-        logging.info("found unexpected ISOs [%s] under currect directory [%s]",
-                     iso_names, current_dir)
+        logging.error("found unexpected ISOs [%s] under currect directory [%s]",
+                      iso_names, current_dir)
         return -1
 
     iso_name = iso_names[0]

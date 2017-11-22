@@ -32,7 +32,8 @@ LONGEST_SIMPLE_COMMAND_TIME = 600
 LONGEST_TIME_YUM_INSTALL = LONGEST_SIMPLE_COMMAND_TIME * 2
 # RPM install is slow, so use a larger timeout value
 LONGEST_TIME_RPM_INSTALL = LONGEST_SIMPLE_COMMAND_TIME * 2
-
+# The longest time that a issue reboot would stop the SSH server
+LONGEST_TIME_ISSUE_REBOOT = 10
 
 def sh_escape(command):
     """
@@ -134,6 +135,8 @@ class SSHHost(object):
         self.sh_identity_file = identity_file
         self.sh_local = local
         self.sh_cached_distro = None
+        self.sh_uptime_before_reboot = 0
+        self.sh_reboot_issued = False
 
     def sh_is_up(self, timeout=60):
         """
@@ -1564,4 +1567,165 @@ class SSHHost(object):
                           retval.cr_stdout,
                           retval.cr_stderr)
             return -1
+        return 0
+
+    def sh_kernel_set_default(self, kernel):
+        """
+        Set the default boot kernel
+        Example of kernel string:
+        /boot/vmlinuz-2.6.32-573.22.1.el6_lustre.2.7.15.3.x86_64
+        """
+        if self.sh_distro() == DISTRO_RHEL7:
+            # This is not necessary for normal cases, but just in case of
+            # broken grubenv file caused by repair
+            command = ("grub2-editenv create")
+            ret = self.sh_run(command)
+            if ret.cr_exit_status != 0:
+                logging.error("failed to run command [%s] on host [%s]"
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              self.sh_hostname,
+                              ret.cr_exit_status,
+                              ret.cr_stdout,
+                              ret.cr_stderr)
+                return -1
+        command = ("grubby --set-default=%s" % (kernel))
+        ret = self.sh_run(command)
+        if ret.cr_exit_status != 0 or ret.cr_stderr != "":
+            logging.error("failed to choose default kernel on host [%s] "
+                          "because command [%s] failed, "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          self.sh_hostname,
+                          command,
+                          ret.cr_exit_status,
+                          ret.cr_stdout,
+                          ret.cr_stderr)
+            return -1
+        return 0
+
+    def __sh_reboot_issue(self, force=False):
+        """
+        Issuing the reboot command on host
+        """
+        logging.info("issuing rebooting of host [%s]",
+                     self.sh_hostname)
+        uptime = self.sh_get_uptime()
+        if uptime < 0:
+            logging.error("can't get uptime on host [%s]",
+                          self.sh_hostname)
+            return -1
+        self.sh_uptime_before_reboot = uptime
+
+        force_reboot = force
+        ret = self.sh_run("sync", timeout=120)
+        if ret.cr_exit_status != 0:
+            logging.error("failed to sync on host [%s], go on reboot anyway",
+                          self.sh_hostname)
+            force_reboot = True
+
+        if force_reboot:
+            ret = self.sh_run("echo b > /proc/sysrq-trigger &")
+        else:
+            ret = self.sh_run("reboot &")
+        # Sometimes the reboot is so quick that the ssh connection breaks
+        # immediately
+        if ret.cr_exit_status == 0:
+            pass
+        elif (ret.cr_exit_status == 255 and
+              ret.cr_stderr == "Write failed: Broken pipe\n"):
+            pass
+        else:
+            logging.error("failed to reboot on host [%s]",
+                          self.sh_hostname)
+            return -1
+
+        logging.info("issued rebooting of host [%s]",
+                     self.sh_hostname)
+        return 0
+
+    def sh_wait_reboot_issue(self):
+        """
+        Wait until the reboot command issued
+        """
+        wait_time = LONGEST_TIME_ISSUE_REBOOT
+        while wait_time > 0:
+            if not self.sh_is_up():
+                return 0
+            time.sleep(1)
+            wait_time -= 1
+        return -1
+
+    def sh_reboot_issue(self):
+        """
+        Issue reboot in different ways in case of failure
+        """
+        ret = self.__sh_reboot_issue(force=False)
+        if ret != 0:
+            return -1
+
+        if self.sh_wait_reboot_issue() == 0:
+            return 0
+
+        ret = self.__sh_reboot_issue(force=True)
+        if ret != 0:
+            return -1
+
+        return self.sh_wait_reboot_issue()
+
+    def sh_rebooted(self):
+        """
+        Check whether the host rebooted
+        """
+        if self.sh_uptime_before_reboot == 0:
+            logging.debug("host [%s] does not even start rebooting",
+                          self.sh_hostname)
+            return False
+
+        if not self.sh_reboot_issued:
+            return False
+
+        if not self.sh_is_up():
+            logging.debug("host [%s] is not up yet",
+                          self.sh_hostname)
+            return False
+
+        uptime = self.sh_get_uptime()
+        if uptime < 0:
+            return False
+
+        if (self.sh_uptime_before_reboot + SHORTEST_TIME_REBOOT >
+                uptime):
+            logging.debug("the uptime of host [%s] doesn't look "
+                          "like rebooted, uptime now: [%d], uptime "
+                          "before reboot: [%d], keep on waiting",
+                          self.sh_hostname, uptime,
+                          self.sh_uptime_before_reboot)
+            return False
+        return True
+
+    def sh_reboot(self):
+        """
+        Reboot the host
+        """
+        if self.sh_local:
+            logging.error("rebooting local host is not allowed")
+            return -1
+
+        self.sh_reboot_issued = False
+        ret = self.sh_reboot_issue()
+        if ret:
+            logging.error("failed to issue reboot of host [%s]", self.sh_hostname)
+            return -1
+        self.sh_reboot_issued = True
+
+        wait_time = LONGEST_TIME_REBOOT
+        while not self.sh_rebooted():
+            if wait_time <= 0:
+                reason = ("booting of host [%s] takes too long" %
+                          (self.sh_hostname))
+                logging.error(reason)
+                return -1
+            time.sleep(10)
+            wait_time -= 10
+
         return 0
