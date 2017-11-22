@@ -26,6 +26,36 @@ ESMON_VIRT_LOG_DIR = "/var/log/esmon_virt"
 STRING_DISTRO = "distro"
 STRING_HOSTNAME = "hostname"
 STRING_HOST_IPS = "ips"
+SSH_HOST_STRING = "ssh_hosts"
+STRING_TEMPLATES = "templates"
+STRING_REINSTALL = "reinstall"
+STRING_INTERNET = "internet"
+STRING_RAM_SIZE = "ram_size"
+STRING_DISK_SIZES = "disk_sizes"
+STRING_NETWORK_CONFIGS = "network_configs"
+STRING_ISO = "iso"
+STRING_SERVER_HOST_ID = "server_host_id"
+STRING_IMAGE_DIR = "image_dir"
+STRING_TEMPLATE_HOSTNAME = "template_hostname"
+
+
+class VirtTemplate(object):
+    """
+    Each virtual machine template has an object of this type
+    """
+    # pylint: disable=too-few-public-methods,too-many-instance-attributes
+    # pylint: disable=too-many-arguments
+    def __init__(self, server_host, iso, template_hostname, internet,
+                 network_configs, image_dir, distro, ram_size, disk_sizes):
+        self.vt_server_host = server_host
+        self.vt_iso = iso
+        self.vt_template_hostname = template_hostname
+        self.vt_internet = internet
+        self.vt_network_configs = network_configs
+        self.vt_image_dir = image_dir
+        self.vt_distro = distro
+        self.vt_ram_size = ram_size
+        self.vt_disk_sizes = disk_sizes
 
 
 def random_mac():
@@ -803,124 +833,151 @@ def esmon_vm_install(workspace, config, config_fpath):
     """
     # pylint: disable=too-many-return-statements,too-many-locals
     # pylint: disable=too-many-branches,too-many-statements
-    server_host_config = esmon_common.config_value(config, "server_host")
-    if server_host_config is None:
-        logging.error("no [server_host] is configured, "
-                      "please correct file [%s]", config_fpath)
+    ssh_host_configs = esmon_common.config_value(config, SSH_HOST_STRING)
+    if ssh_host_configs is None:
+        logging.error("can NOT find [%s] in the config file, "
+                      "please correct file [%s]",
+                      SSH_HOST_STRING, config_fpath)
         return -1
 
-    server_host = ssh_host.SSHHost("localhost", local=True)
-
-    image_dir = esmon_common.config_value(server_host_config, "image_dir")
-    if image_dir is None:
-        logging.error("no [image_dir] is configured, "
-                      "please correct file [%s]", config_fpath)
-        return -1
-
-    rhel6_template_hostname = esmon_common.config_value(server_host_config,
-                                                        "rhel6_template_hostname")
-    if rhel6_template_hostname is None:
-        logging.error("no [rhel6_template_hostname] is configured, "
-                      "please correct file [%s]", config_fpath)
-        return -1
-
-    rhel6_template_reinstall = esmon_common.config_value(server_host_config,
-                                                         "rhel6_template_reinstall")
-    if rhel6_template_reinstall is None:
-        logging.error("no [rhel6_template_reinstall] is configured, "
-                      "please correct file [%s]", config_fpath)
-        return -1
-
-    internet = esmon_common.config_value(server_host_config,
-                                         "internet")
-    if internet is None:
-        internet = False
-        logging.debug("no [internet] is configured, disable internet")
-
-    ram_size = esmon_common.config_value(server_host_config, "ram_size")
-    if ram_size is None:
-        logging.error("no [ram_size] is configured, "
-                      "please correct file [%s]", config_fpath)
-        return -1
-
-    disk_sizes = esmon_common.config_value(server_host_config, "disk_sizes")
-    if disk_sizes is None:
-        logging.error("no [disk_sizes] is configured, "
-                      "please correct file [%s]", config_fpath)
-        return -1
-
-    rhel6_network_configs = esmon_common.config_value(server_host_config,
-                                                      "rhel6_network_configs")
-    if rhel6_network_configs is None:
-        logging.error("no [rhel6_network_configs] is configured, "
-                      "please correct file [%s]", config_fpath)
-        return -1
-
-    rhel6_iso = esmon_common.config_value(server_host_config, "rhel6_iso")
-    if rhel6_iso is None:
-        logging.error("no [rhel6_iso] is configured, "
-                      "please correct file [%s]", config_fpath)
-        return -1
-
-    command = "mkdir -p %s" % workspace
-    retval = server_host.sh_run(command)
-    if retval.cr_exit_status:
-        logging.error("failed to run command [%s] on host [%s], "
-                      "ret = [%d], stdout = [%s], stderr = [%s]",
-                      command,
-                      server_host.sh_hostname,
-                      retval.cr_exit_status,
-                      retval.cr_stdout,
-                      retval.cr_stderr)
-        return -1
-
-    if rhel6_template_reinstall:
-        ret = vm_install(workspace, server_host, rhel6_iso,
-                         rhel6_template_hostname, internet,
-                         rhel6_network_configs, image_dir,
-                         ssh_host.DISTRO_RHEL6, ram_size,
-                         disk_sizes)
-        if ret:
-            logging.error("failed to create virtual machine template [%s]",
-                          rhel6_template_hostname)
+    hosts = {}
+    for host_config in ssh_host_configs:
+        host_id = host_config["host_id"]
+        if host_id is None:
+            logging.error("can NOT find [host_id] in the config of a "
+                          "SSH host, please correct file [%s]",
+                          config_fpath)
             return -1
 
-    rhel7_template_hostname = esmon_common.config_value(server_host_config,
-                                                        "rhel7_template_hostname")
-    if rhel7_template_hostname is None:
-        logging.error("no [rhel7_template_hostname] is configured, "
-                      "please correct file [%s]", config_fpath)
+        hostname = esmon_common.config_value(host_config, "hostname")
+        if hostname is None:
+            logging.error("can NOT find [hostname] in the config of SSH host "
+                          "with ID [%s], please correct file [%s]",
+                          host_id, config_fpath)
+            return -1
+
+        ssh_identity_file = esmon_common.config_value(host_config, "ssh_identity_file")
+
+        if host_id in hosts:
+            logging.error("multiple SSH hosts with the same ID [%s], please "
+                          "correct file [%s]", host_id, config_fpath)
+            return -1
+        host = ssh_host.SSHHost(hostname, ssh_identity_file)
+        hosts[host_id] = host
+
+    template_configs = esmon_common.config_value(config, STRING_TEMPLATES)
+    if template_configs is None:
+        logging.error("can NOT find [%s] in the config file, "
+                      "please correct file [%s]",
+                      STRING_TEMPLATES, config_fpath)
         return -1
 
-    rhel7_template_reinstall = esmon_common.config_value(server_host_config,
-                                                         "rhel7_template_reinstall")
-    if rhel7_template_reinstall is None:
-        logging.error("no [rhel7_template_reinstall] is configured, "
-                      "please correct file [%s]", config_fpath)
-        return -1
+    templates = {}
+    for template_config in template_configs:
+        template_hostname = esmon_common.config_value(template_config,
+                                                      STRING_HOSTNAME)
+        if template_hostname is None:
+            logging.error("can NOT find [%s] in the config of a "
+                          "SSH host, please correct file [%s]",
+                          STRING_HOSTNAME, config_fpath)
+            return -1
 
-    rhel7_network_configs = esmon_common.config_value(server_host_config,
-                                                      "rhel7_network_configs")
-    if rhel7_network_configs is None:
-        logging.error("no [rhel7_network_configs] is configured, "
-                      "please correct file [%s]", config_fpath)
-        return -1
+        reinstall = esmon_common.config_value(template_config,
+                                              STRING_REINSTALL)
+        if reinstall is None:
+            logging.error("no [%s] is configured, please correct file [%s]",
+                          STRING_REINSTALL, config_fpath)
+            return -1
 
-    rhel7_iso = esmon_common.config_value(server_host_config, "rhel7_iso")
-    if rhel7_iso is None:
-        logging.error("no [rhel7_iso] is configured, "
-                      "please correct file [%s]", config_fpath)
-        return -1
+        internet = esmon_common.config_value(template_config,
+                                             STRING_INTERNET)
+        if internet is None:
+            internet = False
+            logging.debug("no [%s] is configured, will "
+                          "not add internet support", STRING_INTERNET)
 
-    if rhel7_template_reinstall:
-        ret = vm_install(workspace, server_host, rhel7_iso,
-                         rhel7_template_hostname, internet,
-                         rhel7_network_configs, image_dir,
-                         ssh_host.DISTRO_RHEL7, ram_size,
-                         disk_sizes)
+        ram_size = esmon_common.config_value(template_config, STRING_RAM_SIZE)
+        if ram_size is None:
+            logging.error("no [%s] is configured, please correct file [%s]",
+                          STRING_RAM_SIZE, config_fpath)
+            return -1
+
+        disk_sizes = esmon_common.config_value(template_config,
+                                               STRING_DISK_SIZES)
+        if disk_sizes is None:
+            logging.error("no [%s] is configured, please correct file [%s]",
+                          STRING_DISK_SIZES, config_fpath)
+            return -1
+
+        network_configs = esmon_common.config_value(template_config,
+                                                    STRING_NETWORK_CONFIGS)
+        if network_configs is None:
+            logging.error("no [%s] is configured, please correct file [%s]",
+                          STRING_NETWORK_CONFIGS, config_fpath)
+            return -1
+
+        iso = esmon_common.config_value(template_config, STRING_ISO)
+        if iso is None:
+            logging.error("no [%s] is configured, please correct file [%s]",
+                          STRING_ISO, config_fpath)
+            return -1
+
+        distro = esmon_common.config_value(template_config, STRING_DISTRO)
+        if distro is None:
+            logging.error("no [%s] is configured, please correct file [%s]",
+                          STRING_DISTRO, config_fpath)
+            return -1
+
+        image_dir = esmon_common.config_value(template_config, STRING_IMAGE_DIR)
+        if image_dir is None:
+            logging.error("no [%s] is configured, please correct file [%s]",
+                          STRING_IMAGE_DIR, config_fpath)
+            return -1
+
+        server_host_id = esmon_common.config_value(template_config,
+                                                   STRING_SERVER_HOST_ID)
+        if server_host_id is None:
+            logging.error("no [%s] is configured, please correct file [%s]",
+                          STRING_SERVER_HOST_ID, config_fpath)
+            return -1
+
+        if server_host_id not in hosts:
+            logging.error("SSH host with ID [%s] is NOT configured in "
+                          "[%s], please correct file [%s]",
+                          STRING_SERVER_HOST_ID, SSH_HOST_STRING,
+                          config_fpath)
+            return -1
+
+        server_host = hosts[server_host_id]
+        command = "mkdir -p %s" % workspace
+        retval = server_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          server_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        template = VirtTemplate(server_host, iso, template_hostname, internet,
+                                network_configs, image_dir, distro, ram_size,
+                                disk_sizes)
+        templates[template_hostname] = template
+
+        if not reinstall:
+            logging.debug("skipping reinstall of template [%s] according to config",
+                          template_hostname)
+            continue
+
+        ret = vm_install(workspace, server_host, iso,
+                         template_hostname, internet,
+                         network_configs, image_dir,
+                         distro, ram_size, disk_sizes)
         if ret:
             logging.error("failed to create virtual machine template [%s]",
-                          rhel7_template_hostname)
+                          template_hostname)
             return -1
 
     vm_host_configs = esmon_common.config_value(config, "vm_hosts")
@@ -929,7 +986,7 @@ def esmon_vm_install(workspace, config, config_fpath):
                       "please correct file [%s]", config_fpath)
         return -1
 
-    hosts = []
+    vm_hosts = []
     hosts_string = """127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
 ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
 """
@@ -947,54 +1004,68 @@ def esmon_vm_install(workspace, config, config_fpath):
                           config_fpath)
             return -1
 
-        distro = esmon_common.config_value(vm_host_config, STRING_DISTRO)
-        if distro is None:
-            logging.error("no [distro] is configured for a vm_host, "
-                          "please correct file [%s]", config_fpath)
+        template_hostname = esmon_common.config_value(vm_host_config,
+                                                      STRING_TEMPLATE_HOSTNAME)
+        if template_hostname is None:
+            logging.error("can NOT find [%s] in the config of a "
+                          "SSH host, please correct file [%s]",
+                          STRING_TEMPLATE_HOSTNAME, config_fpath)
             return -1
 
-        if distro == ssh_host.DISTRO_RHEL6:
-            template_hostname = rhel6_template_hostname
-            network_configs = rhel6_network_configs
-        elif distro == ssh_host.DISTRO_RHEL7:
-            template_hostname = rhel7_template_hostname
-            network_configs = rhel7_network_configs
-        else:
-            logging.error("invalid distro [%s] is configured for a vm_host, "
-                          "please correct file [%s]", distro, config_fpath)
+        if template_hostname not in templates:
+            logging.error("template with hostname [%s] is NOT configured in "
+                          "[%s], please correct file [%s]",
+                          template_hostname, STRING_TEMPLATES, config_fpath)
             return -1
+
+        template = templates[template_hostname]
 
         reinstall = esmon_common.config_value(vm_host_config, "reinstall")
         if reinstall is None:
             reinstall = False
 
         if not reinstall:
-            ret = vm_start(workspace, server_host, hostname, network_configs,
-                           ips, template_hostname, image_dir, distro, internet,
-                           len(disk_sizes))
+            ret = vm_start(workspace,
+                           template.vt_server_host,
+                           hostname,
+                           template.vt_network_configs,
+                           ips,
+                           template.vt_template_hostname,
+                           template.vt_image_dir,
+                           template.vt_distro,
+                           template.vt_internet,
+                           len(template.vt_disk_sizes))
             if ret:
                 logging.error("virtual machine [%s] can't be started",
                               hostname)
                 return -1
         else:
-            ret = vm_clone(workspace, server_host, hostname, network_configs,
-                           ips, template_hostname, image_dir, distro, internet,
-                           len(disk_sizes))
+            ret = vm_clone(workspace,
+                           template.vt_server_host,
+                           hostname,
+                           template.vt_network_configs,
+                           ips,
+                           template.vt_template_hostname,
+                           template.vt_image_dir,
+                           template.vt_distro,
+                           template.vt_internet,
+                           len(template.vt_disk_sizes))
             if ret:
                 logging.error("failed to create virtual machine [%s] based on "
-                              "template [%s]", hostname, rhel7_template_hostname)
+                              "template [%s]", hostname,
+                              template.vt_template_hostname)
                 return -1
 
         host_ip = ips[0]
         vm_host = ssh_host.SSHHost(hostname)
         hosts_string += ("%s %s\n" % (host_ip, hostname))
-        hosts.append(vm_host)
+        vm_hosts.append(vm_host)
 
     hosts_fpath = workspace + "/hosts"
     with open(hosts_fpath, "wt") as hosts_file:
         hosts_file.write(hosts_string)
 
-    for host in hosts:
+    for host in vm_hosts:
         ret = host.sh_enable_dns()
         if ret:
             logging.error("failed to enable dns on host [%s]",

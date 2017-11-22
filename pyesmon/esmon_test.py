@@ -27,29 +27,6 @@ ESMON_TEST_CONFIG_FNAME = "esmon_test.conf"
 ESMON_TEST_CONFIG = "/etc/" + ESMON_TEST_CONFIG_FNAME
 
 
-def generate_client_host_config(host_id):
-    """
-    Generate the client host config of ESMON installation
-    """
-    client_host = {}
-    client_host[esmon_install_nodeps.HOST_ID_STRING] = host_id
-    client_host[esmon_install_nodeps.LUSTRE_OSS_STRING] = True
-    client_host[esmon_install_nodeps.LUSTRE_MDS_STRING] = True
-    client_host[esmon_install_nodeps.IME_STRING] = False
-    return client_host
-
-
-def generate_server_host_config(host_id):
-    """
-    Generate the server host config of ESMON installation
-    """
-    server_host = {}
-    server_host[esmon_install_nodeps.HOST_ID_STRING] = host_id
-    server_host[esmon_install_nodeps.DROP_DATABASE_STRING] = False
-    server_host[esmon_install_nodeps.ERASE_INFLUXDB_STRING] = False
-    return server_host
-
-
 def esmon_do_test_install(workspace, install_server, mnt_path):
     """
     Run the install test
