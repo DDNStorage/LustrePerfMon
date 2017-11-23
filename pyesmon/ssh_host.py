@@ -35,6 +35,7 @@ LONGEST_TIME_RPM_INSTALL = LONGEST_SIMPLE_COMMAND_TIME * 2
 # The longest time that a issue reboot would stop the SSH server
 LONGEST_TIME_ISSUE_REBOOT = 10
 
+
 def sh_escape(command):
     """
     Escape special characters from a command so that it can be passed
@@ -364,34 +365,6 @@ class SSHHost(object):
                               device, self.sh_hostname)
                 return -1
         return 0
-
-    def sh_lustre_umount(self):
-        """
-        Umount all file systems of Lustre
-        """
-        retval = self.sh_run("mount | grep 'type lustre' | awk '{print $1}'")
-        if retval.cr_exit_status != 0:
-            logging.error("failed to get lustre mount points on host "
-                          "[%s]",
-                          self.sh_hostname)
-            return -1
-
-        ret = 0
-        devices = retval.cr_stdout.splitlines()
-        # Umount client first, so as to prevent dependency
-        for device in devices[:]:
-            if device.startswith("/dev"):
-                continue
-            ret = self.sh_umount(device)
-            if ret:
-                break
-            devices.remove(device)
-        if ret == 0:
-            for device in devices:
-                ret = self.sh_umount(device)
-                if ret:
-                    break
-        return ret
 
     def sh_get_uptime(self):
         """
@@ -1729,3 +1702,31 @@ class SSHHost(object):
             wait_time -= 10
 
         return 0
+
+    def sh_lustre_umount(self):
+        """
+        Umount all file systems of Lustre
+        """
+        retval = self.sh_run("mount | grep 'type lustre' | awk '{print $1}'")
+        if retval.cr_exit_status != 0:
+            logging.error("failed to get lustre mount points on host "
+                          "[%s]",
+                          self.sh_hostname)
+            return -1
+
+        ret = 0
+        devices = retval.cr_stdout.splitlines()
+        # Umount client first, so as to prevent dependency
+        for device in devices[:]:
+            if device.startswith("/dev"):
+                continue
+            ret = self.sh_umount(device)
+            if ret:
+                break
+            devices.remove(device)
+        if ret == 0:
+            for device in devices:
+                ret = self.sh_umount(device)
+                if ret:
+                    break
+        return ret

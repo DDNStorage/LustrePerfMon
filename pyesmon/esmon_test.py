@@ -290,10 +290,14 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath):
             osts[ost_index] = ost
 
         # Install RPMs on MDS and OSS
-        for host_id, lustre_host in lustre_hosts.iteritems():
+        for host_id, host in lustre_hosts.iteritems():
+            lustre_host = lustre.LustreServerHost(host.sh_hostname,
+                                                  identity_file=host.sh_identity_file,
+                                                  local=host.sh_local)
             logging.debug("trying to install Lustre RPMs on host [%s] with host_id [%s]",
                           lustre_host.sh_hostname, host_id)
-            ret = lustre.install_lustre_rpms(workspace, lustre_host, lustre_rpms)
+            ret = lustre_host.lsh_lustre_reinstall(workspace, lustre_rpms,
+                                                   e2fsprogs_rpm_dir)
             if ret:
                 logging.error("failed to install Lustre RPMs on host [%s]",
                               lustre_host.sh_hostname)
