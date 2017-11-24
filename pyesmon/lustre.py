@@ -443,12 +443,20 @@ class LustreServerHost(ssh_host.SSHHost):
                               self.sh_hostname)
                 return -1
 
+        command = "yum install -y"
         for rpm in dependent_rpms:
-            retval = self.sh_run("yum install %s -y" % rpm)
-            if retval.cr_exit_status != 0:
-                logging.error("failed to install [%s] on host [%s]",
-                              rpm, self.sh_hostname)
-                return -1
+            command += " " + rpm
+
+        retval = self.sh_run(command)
+        if retval.cr_exit_status != 0:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
 
         host_key_config = "StrictHostKeyChecking no"
         retval = self.sh_run(r"grep StrictHostKeyChecking /etc/ssh/ssh_config "
@@ -797,4 +805,93 @@ class LustreServerHost(ssh_host.SSHHost):
             return -1
 
         logging.info("reinstalled Lustre RPMs on host [%s]", self.sh_hostname)
+        return 0
+
+    def sh_can_skip_install(self, lustre_rpms):
+        """
+        Check whether the install of Lustre RPMs could be skipped
+        """
+        for rpm_name in lustre_rpms.lr_rpm_names.values():
+            logging.debug("checking whether RPM [%s] is installed on "
+                          "host [%s]", rpm_name, self.sh_hostname)
+            name, ext = os.path.splitext(rpm_name)
+            if ext != ".rpm":
+                logging.debug("RPM [%s] does not have .rpm subfix,"
+                              "go on anyway", rpm_name)
+            retval = self.sh_run("rpm -qi %s" % name)
+            if retval.cr_exit_status != 0:
+                logging.info("RPM [%s] is not installed on host [%s], "
+                             "will not skip install",
+                             rpm_name, self.sh_hostname)
+                return False
+        return True
+
+    def lsh_lustre_check_after_reboot(self, kernel_version):
+        """
+        Check whether the host is ready for running Lustre after reboot
+        """
+        logging.info("checking for Lustre after on host [%s]", self.sh_hostname)
+        # Check whether kernel is installed kernel
+        if not self.sh_is_up():
+            logging.error("host [%s] is not up", self.sh_hostname)
+            return -1
+
+        if kernel_version != self.sh_get_kernel_ver():
+            logging.error("host [%s] has a wrong kernel version, expected "
+                          "[%s], got [%s]", self.sh_hostname, kernel_version,
+                          self.sh_get_kernel_ver())
+            return -1
+
+        # Run some fundamental command to check Lustre is installed correctly
+        check_commands = ["lustre_rmmod", "modprobe lustre"]
+        for command in check_commands:
+            retval = self.sh_run(command)
+            if retval.cr_exit_status != 0:
+                logging.error("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              self.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
+                return -1
+        logging.info("checked for Lustre after reboot on host [%s]",
+                     self.sh_hostname)
+        return 0
+
+    def lsh_lustre_prepare(self, workspace, lustre_rpms, e2fsprogs_rpm_dir,
+                           lazy_install=False):
+        """
+        Prepare the host for running Lustre
+        """
+        logging.info("starting preparing host [%s] for Lustre", self.sh_hostname)
+        if lazy_install and self.sh_can_skip_install:
+            logging.info("skipping installation of Lustre RPMs on host [%s]",
+                         self.sh_hostname)
+        else:
+            ret = self.lsh_lustre_reinstall(workspace, lustre_rpms,
+                                            e2fsprogs_rpm_dir)
+            if ret:
+                logging.error("failed to reinstall Lustre RPMs on host [%s]",
+                              self.sh_hostname)
+                return -1
+
+        ret = self.sh_kernel_set_default(lustre_rpms.lr_kernel_version)
+        if ret:
+            logging.error("failed to set default kernel of host [%s] to [%s]",
+                          self.sh_hostname, lustre_rpms.lr_kernel_version)
+            return -1
+
+        ret = self.sh_reboot()
+        if ret:
+            logging.error("failed to reboot host [%s]", self.sh_hostname)
+            return -1
+
+        ret = self.lsh_lustre_check_after_reboot(lustre_rpms.lr_kernel_version)
+        if ret:
+            logging.error("failed to check Lustre status after reboot on host [%s]",
+                          self.sh_hostname)
+            return -1
+
+        logging.info("prepared host [%s] for Lustre", self.sh_hostname)
         return 0

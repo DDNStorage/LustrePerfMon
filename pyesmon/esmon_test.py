@@ -296,8 +296,9 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath):
                                                   local=host.sh_local)
             logging.debug("trying to install Lustre RPMs on host [%s] with host_id [%s]",
                           lustre_host.sh_hostname, host_id)
-            ret = lustre_host.lsh_lustre_reinstall(workspace, lustre_rpms,
-                                                   e2fsprogs_rpm_dir)
+            ret = lustre_host.lsh_lustre_prepare(workspace, lustre_rpms,
+                                                 e2fsprogs_rpm_dir,
+                                                 lazy_install=True)
             if ret:
                 logging.error("failed to install Lustre RPMs on host [%s]",
                               lustre_host.sh_hostname)
