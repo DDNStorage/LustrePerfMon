@@ -312,6 +312,24 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath):
                               lustre_host.sh_hostname)
                 return -1
 
+        ret = lustre_fs.lf_format()
+        if ret:
+            logging.error("failed to format file system [%s]",
+                          lustre_fs.lf_fsname)
+            return -1
+
+        ret = lustre_fs.lf_mount()
+        if ret:
+            logging.error("failed to mount file system [%s]",
+                          lustre_fs.lf_fsname)
+            return -1
+
+        ret = lustre_fs.lf_umount()
+        if ret:
+            logging.error("failed to umount file system [%s]",
+                          lustre_fs.lf_fsname)
+            return -1
+
     return 0
 
 

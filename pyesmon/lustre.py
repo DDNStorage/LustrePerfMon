@@ -4,6 +4,7 @@
 """
 Library for Lustre file system management
 """
+# pylint: disable=too-many-lines
 import logging
 import os
 import re
@@ -26,6 +27,65 @@ class LustreFilesystem(object):
     def __init__(self, fsname, mgs_nid):
         self.lf_fsname = fsname
         self.lf_mgs_nid = mgs_nid
+        self.lf_osts = {}
+        self.lf_mdts = {}
+
+    def lf_format(self):
+        """
+        Format the whole file system
+        """
+        for mdt_index, mdt in self.lf_mdts.iteritems():
+            ret = mdt.lmdt_format()
+            if ret:
+                logging.error("failed to format MDT [%d] of Lustre file "
+                              "system [%s]", mdt_index, self.lf_fsname)
+                return -1
+
+        for ost_index, ost in self.lf_osts.iteritems():
+            ret = ost.lost_format()
+            if ret:
+                logging.error("failed to format OST [%d] of Lustre file "
+                              "system [%s]", ost_index, self.lf_fsname)
+                return -1
+        return 0
+
+    def lf_mount(self):
+        """
+        Mount the whole file system
+        """
+        for mdt_index, mdt in self.lf_mdts.iteritems():
+            ret = mdt.lmdt_mount()
+            if ret:
+                logging.error("failed to mount MDT [%d] of Lustre file "
+                              "system [%s]", mdt_index, self.lf_fsname)
+                return -1
+
+        for ost_index, ost in self.lf_osts.iteritems():
+            ret = ost.lost_mount()
+            if ret:
+                logging.error("failed to mount OST [%d] of Lustre file "
+                              "system [%s]", ost_index, self.lf_fsname)
+                return -1
+        return 0
+
+    def lf_umount(self):
+        """
+        Umount the whole file system
+        """
+        for mdt_index, mdt in self.lf_mdts.iteritems():
+            ret = mdt.lmdt_umount()
+            if ret:
+                logging.error("failed to umount MDT [%d] of Lustre file "
+                              "system [%s]", mdt_index, self.lf_fsname)
+                return -1
+
+        for ost_index, ost in self.lf_osts.iteritems():
+            ret = ost.lost_umount()
+            if ret:
+                logging.error("failed to umount OST [%d] of Lustre file "
+                              "system [%s]", ost_index, self.lf_fsname)
+                return -1
+        return 0
 
 
 class LustreMDT(object):
@@ -42,6 +102,12 @@ class LustreMDT(object):
         self.lmdt_host = host
         self.lmdt_device = device
         self.lmdt_is_mgs = is_mgs
+        self.lmdt_mnt = ("/mnt/%s_mdt_%s" % (lustre_fs.lf_fsname, index))
+        if index in lustre_fs.lf_mdts:
+            reason = ("MDT [%d] already exists in file system [%s]",
+                      (index, lustre_fs.lf_fsname))
+            raise Exception(reason)
+        lustre_fs.lf_mdts[index] = self
 
     def lmdt_format(self):
         """
@@ -67,7 +133,41 @@ class LustreMDT(object):
                           retval.cr_stdout,
                           retval.cr_stderr)
             return -1
+        return 0
 
+    def lmdt_mount(self):
+        """
+        Mount this MDT
+        """
+        command = ("mkdir -p %s && mount -t lustre %s %s" %
+                   (self.lmdt_mnt, self.lmdt_device, self.lmdt_mnt))
+        retval = self.lmdt_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.debug("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.lmdt_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        return 0
+
+    def lmdt_umount(self):
+        """
+        Umount this MDT
+        """
+        command = ("umount %s" % (self.lmdt_mnt))
+        retval = self.lmdt_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.debug("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.lmdt_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
         return 0
 
 
@@ -83,6 +183,12 @@ class LustreOST(object):
         self.lost_index = index
         self.lost_host = host
         self.lost_device = device
+        self.lost_mnt = ("/mnt/%s_ost_%s" % (lustre_fs.lf_fsname, index))
+        if index in lustre_fs.lf_osts:
+            reason = ("OST [%d] already exists in file system [%s]",
+                      (index, lustre_fs.lf_fsname))
+            raise Exception(reason)
+        lustre_fs.lf_osts[index] = self
 
     def lost_format(self):
         """
@@ -90,8 +196,8 @@ class LustreOST(object):
         """
         command = ("mkfs.lustre --fsname %s --ost "
                    "--reformat --mgsnode=%s --index=%s %s" %
-                   (self.lost_lustre_fs.li_fsname,
-                    self.lost_lustre_fs.li_mgs_nid,
+                   (self.lost_lustre_fs.lf_fsname,
+                    self.lost_lustre_fs.lf_mgs_nid,
                     self.lost_index,
                     self.lost_device))
 
@@ -105,7 +211,41 @@ class LustreOST(object):
                           retval.cr_stdout,
                           retval.cr_stderr)
             return -1
+        return 0
 
+    def lost_mount(self):
+        """
+        Mount this OST
+        """
+        command = ("mkdir -p %s && mount -t lustre %s %s" %
+                   (self.lost_mnt, self.lost_device, self.lost_mnt))
+        retval = self.lost_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.debug("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.lost_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        return 0
+
+    def lost_umount(self):
+        """
+        Umount this OST
+        """
+        command = ("umount %s" % (self.lost_mnt))
+        retval = self.lost_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.debug("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.lost_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
         return 0
 
 
@@ -178,16 +318,14 @@ def match_rpm_patterns(data, rpm_dict, possible_versions):
             if match:
                 value = match.group(1)
                 if rpm_type is not None and rpm_type != key:
-                    reason = ("RPM [%s] can be matched to both type [%s] "
-                              "and [%s]" % (value, rpm_type, key))
-                    logging.error(reason)
-                    raise Exception(reason)
+                    logging.error("RPM [%s] can be matched to both type [%s] "
+                                  "and [%s]", value, rpm_type, key)
+                    return -1
 
                 if rpm_name is not None and rpm_name != value:
-                    reason = ("RPM [%s] can be matched as both name [%s] "
-                              "and [%s]" % (value, rpm_name, value))
-                    logging.error(reason)
-                    raise Exception(reason)
+                    logging.error("RPM [%s] can be matched as both name [%s] "
+                                  "and [%s]", value, rpm_name, value)
+                    return -1
 
                 rpm_type = key
                 rpm_name = value
@@ -199,15 +337,15 @@ def match_rpm_patterns(data, rpm_dict, possible_versions):
 
     if len(matched_versions) != 0:
         if rpm_type in rpm_dict:
-            reason = ("Multiple match of RPM type [%s], both from [%s] "
-                      "and [%s]" %
-                      (rpm_type, rpm_name, rpm_dict[rpm_type]))
-            logging.error(reason)
-            raise Exception(reason)
+            logging.error("multiple match of RPM type [%s], both from [%s] "
+                          "and [%s]", rpm_type, rpm_name, rpm_dict[rpm_type])
+            return -1
         for version in possible_versions[:]:
             if version not in matched_versions:
                 possible_versions.remove(version)
         rpm_dict[rpm_type] = rpm_name
+
+    return 0
 
 
 class LustreRPMs(object):
@@ -231,11 +369,15 @@ class LustreRPMs(object):
         for rpm_file in rpm_files:
             logging.debug("found file [%s] in directory [%s]",
                           rpm_file, self.lr_rpm_dir)
-            match_rpm_patterns(rpm_file, self.lr_rpm_names,
-                               possible_versions)
+            ret = match_rpm_patterns(rpm_file, self.lr_rpm_names,
+                                     possible_versions)
+            if ret:
+                logging.error("failed to match pattern for file [%s]",
+                              rpm_file)
+                return -1
 
         if len(possible_versions) != 1:
-            logging.error("The possible RPM version is %d, should be 1",
+            logging.error("the possible RPM version is %d, should be 1",
                           len(possible_versions))
             return -1
         self.lr_lustre_version = possible_versions[0]
