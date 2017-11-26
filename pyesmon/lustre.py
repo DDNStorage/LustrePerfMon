@@ -29,6 +29,7 @@ class LustreFilesystem(object):
         self.lf_mgs_nid = mgs_nid
         self.lf_osts = {}
         self.lf_mdts = {}
+        self.lf_clients = {}
 
     def lf_format(self):
         """
@@ -66,12 +67,26 @@ class LustreFilesystem(object):
                 logging.error("failed to mount OST [%d] of Lustre file "
                               "system [%s]", ost_index, self.lf_fsname)
                 return -1
+
+        for client_index, client in self.lf_clients.iteritems():
+            ret = client.lc_mount()
+            if ret:
+                logging.error("failed to mount client [%d] of Lustre file "
+                              "system [%s]", client_index, self.lf_fsname)
+                return -1
         return 0
 
     def lf_umount(self):
         """
         Umount the whole file system
         """
+        for client_index, client in self.lf_clients.iteritems():
+            ret = client.lc_umount()
+            if ret:
+                logging.error("failed to umount client [%d] of Lustre file "
+                              "system [%s]", client_index, self.lf_fsname)
+                return -1
+
         for mdt_index, mdt in self.lf_mdts.iteritems():
             ret = mdt.lmdt_umount()
             if ret:
@@ -242,6 +257,60 @@ class LustreOST(object):
                           "ret = [%d], stdout = [%s], stderr = [%s]",
                           command,
                           self.lost_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        return 0
+
+
+class LustreClient(object):
+    """
+    Lustre client
+    """
+    # pylint: disable=too-few-public-methods
+    def __init__(self, lustre_fs, host, mnt):
+        # pylint: disable=too-many-arguments
+        self.lc_lustre_fs = lustre_fs
+        self.lc_host = host
+        self.lc_mnt = mnt
+        index = ("%s:%s" % (host.sh_hostname, mnt))
+        if index in lustre_fs.lf_clients:
+            reason = ("client [%d] already exists in file system [%s]",
+                      (index, lustre_fs.lf_fsname))
+            raise Exception(reason)
+        lustre_fs.lf_clients[index] = self
+
+    def lc_mount(self):
+        """
+        Mount this client
+        """
+        command = ("mkdir -p %s && mount -t lustre %s:/%s %s" %
+                   (self.lc_mnt, self.lc_lustre_fs.lf_mgs_nid,
+                    self.lc_lustre_fs.lf_fsname, self.lc_mnt))
+        retval = self.lc_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.debug("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.lc_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        return 0
+
+    def lc_umount(self):
+        """
+        Umount this client
+        """
+        command = ("umount %s" % (self.lc_mnt))
+        retval = self.lc_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.debug("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.lc_host.sh_hostname,
                           retval.cr_exit_status,
                           retval.cr_stdout,
                           retval.cr_stderr)

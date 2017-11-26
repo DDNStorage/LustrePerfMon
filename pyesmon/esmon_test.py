@@ -39,6 +39,8 @@ STRING_INDEX = "index"
 STRING_LUSTRE_RPM_DIR = "lustre_rpm_dir"
 STRING_E2FSPROGS_RPM_DIR = "e2fsprogs_rpm_dir"
 STRING_LAZY_INSTALL = "lazy_install"
+STRING_CLIENTS = "clients"
+STRING_MNT = "mnt"
 
 
 def esmon_do_test_install(workspace, install_server, mnt_path):
@@ -216,7 +218,6 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath):
                           STRING_MDTS, config_fpath)
             return -1
 
-        mdts = {}
         lustre_hosts = {}
         for mdt_config in mdt_configs:
             mdt_index = esmon_common.config_value(mdt_config, STRING_INDEX)
@@ -253,9 +254,8 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath):
             if host_id not in lustre_hosts:
                 lustre_hosts[host_id] = host
 
-            mdt = lustre.LustreMDT(lustre_fs, mdt_index, host, device,
-                                   is_mgs=is_mgs)
-            mdts[mdt_index] = mdt
+            lustre.LustreMDT(lustre_fs, mdt_index, host, device,
+                             is_mgs=is_mgs)
 
         # Parse OST configs
         ost_configs = esmon_common.config_value(lustre_config, STRING_OSTS)
@@ -264,7 +264,6 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath):
                           STRING_OSTS, config_fpath)
             return -1
 
-        osts = {}
         for ost_config in ost_configs:
             ost_index = esmon_common.config_value(ost_config, STRING_INDEX)
             if ost_index is None:
@@ -294,10 +293,42 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath):
             if host_id not in lustre_hosts:
                 lustre_hosts[host_id] = host
 
-            ost = lustre.LustreOST(lustre_fs, ost_index, host, device)
-            osts[ost_index] = ost
+            lustre.LustreOST(lustre_fs, ost_index, host, device)
 
-        # Install RPMs on MDS and OSS
+        # Parse client configs
+        client_configs = esmon_common.config_value(lustre_config,
+                                                   STRING_CLIENTS)
+        if client_configs is None:
+            logging.error("no [%s] is configured, please correct file [%s]",
+                          STRING_CLIENTS, config_fpath)
+            return -1
+
+        for client_config in client_configs:
+            host_id = esmon_common.config_value(client_config, STRING_HOST_ID)
+            if host_id is None:
+                logging.error("no [%s] is configured, please correct file [%s]",
+                              STRING_HOST_ID, config_fpath)
+                return -1
+
+            if host_id not in hosts:
+                logging.error("no host with [%s] is configured in hosts, "
+                              "please correct file [%s]",
+                              host_id, config_fpath)
+                return -1
+
+            mnt = esmon_common.config_value(client_config, STRING_MNT)
+            if mnt is None:
+                logging.error("no [%s] is configured, please correct file [%s]",
+                              STRING_MNT, config_fpath)
+                return -1
+
+            host = hosts[host_id]
+            if host_id not in lustre_hosts:
+                lustre_hosts[host_id] = host
+
+            lustre.LustreClient(lustre_fs, host, mnt)
+
+        # Install RPMs on MDS, OSS and clients
         for host_id, host in lustre_hosts.iteritems():
             lustre_host = lustre.LustreServerHost(host.sh_hostname,
                                                   identity_file=host.sh_identity_file,
@@ -329,7 +360,6 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath):
             logging.error("failed to umount file system [%s]",
                           lustre_fs.lf_fsname)
             return -1
-
     return 0
 
 
