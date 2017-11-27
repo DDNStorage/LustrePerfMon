@@ -110,7 +110,8 @@ class EsmonServer(object):
         """
         distro = self.es_host.sh_distro()
         if distro != ssh_host.DISTRO_RHEL7:
-            logging.error("ESMON server should be RHEL7/CentOS7 host")
+            logging.error("ESMON server should be RHEL7/CentOS7 host, but got "
+                          "[%s]", distro)
             return -1
 
         ret = self.es_client.ec_check()

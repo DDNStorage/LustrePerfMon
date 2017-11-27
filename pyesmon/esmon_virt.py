@@ -37,6 +37,8 @@ STRING_ISO = "iso"
 STRING_SERVER_HOST_ID = "server_host_id"
 STRING_IMAGE_DIR = "image_dir"
 STRING_TEMPLATE_HOSTNAME = "template_hostname"
+STRING_IP = "ip"
+STRING_HOSTS = "hosts"
 
 
 class VirtTemplate(object):
@@ -1060,6 +1062,29 @@ def esmon_vm_install(workspace, config, config_fpath):
         vm_host = ssh_host.SSHHost(hostname)
         hosts_string += ("%s %s\n" % (host_ip, hostname))
         vm_hosts.append(vm_host)
+
+    host_configs = esmon_common.config_value(config, STRING_HOSTS)
+    if host_configs is None:
+        logging.error("can NOT find [%s] in the config file, "
+                      "please correct file [%s]",
+                      STRING_HOSTS, config_fpath)
+        return -1
+
+    for host_config in host_configs:
+        hostname = esmon_common.config_value(host_config, STRING_HOSTNAME)
+        if hostname is None:
+            logging.error("can NOT find [%s] in the config file, "
+                          "please correct file [%s]",
+                          STRING_HOSTNAME, config_fpath)
+            return -1
+
+        host_ip = esmon_common.config_value(host_config, STRING_IP)
+        if host_ip is None:
+            logging.error("can NOT find [%s] in the config file, "
+                          "please correct file [%s]",
+                          STRING_IP, config_fpath)
+            return -1
+        hosts_string += ("%s %s\n" % (host_ip, hostname))
 
     hosts_fpath = workspace + "/hosts"
     with open(hosts_fpath, "wt") as hosts_file:
