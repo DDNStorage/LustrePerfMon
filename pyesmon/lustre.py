@@ -1071,12 +1071,12 @@ class LustreServerHost(ssh_host.SSHHost):
         return 0
 
     def lsh_lustre_prepare(self, workspace, lustre_rpms, e2fsprogs_rpm_dir,
-                           lazy_install=False):
+                           lazy_prepare=False):
         """
         Prepare the host for running Lustre
         """
         logging.info("starting preparing host [%s] for Lustre", self.sh_hostname)
-        if lazy_install and self.sh_can_skip_install:
+        if lazy_prepare and self.sh_can_skip_install(lustre_rpms):
             logging.info("skipping installation of Lustre RPMs on host [%s]",
                          self.sh_hostname)
         else:
@@ -1087,22 +1087,32 @@ class LustreServerHost(ssh_host.SSHHost):
                               self.sh_hostname)
                 return -1
 
-        ret = self.sh_kernel_set_default(lustre_rpms.lr_kernel_version)
-        if ret:
-            logging.error("failed to set default kernel of host [%s] to [%s]",
-                          self.sh_hostname, lustre_rpms.lr_kernel_version)
-            return -1
+        need_reboot = True
+        if lazy_prepare:
+            ret = self.lsh_lustre_check_after_reboot(lustre_rpms.lr_kernel_version)
+            if ret:
+                logging.debug("host [%s] need a reboot to change the kernel",
+                              self.sh_hostname)
+            else:
+                need_reboot = False
 
-        ret = self.sh_reboot()
-        if ret:
-            logging.error("failed to reboot host [%s]", self.sh_hostname)
-            return -1
+        if need_reboot:
+            ret = self.sh_kernel_set_default(lustre_rpms.lr_kernel_version)
+            if ret:
+                logging.error("failed to set default kernel of host [%s] to [%s]",
+                              self.sh_hostname, lustre_rpms.lr_kernel_version)
+                return -1
 
-        ret = self.lsh_lustre_check_after_reboot(lustre_rpms.lr_kernel_version)
-        if ret:
-            logging.error("failed to check Lustre status after reboot on host [%s]",
-                          self.sh_hostname)
-            return -1
+            ret = self.sh_reboot()
+            if ret:
+                logging.error("failed to reboot host [%s]", self.sh_hostname)
+                return -1
+    
+            ret = self.lsh_lustre_check_after_reboot(lustre_rpms.lr_kernel_version)
+            if ret:
+                logging.error("failed to check Lustre status after reboot on host [%s]",
+                              self.sh_hostname)
+                return -1
 
         logging.info("prepared host [%s] for Lustre", self.sh_hostname)
         return 0

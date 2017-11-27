@@ -38,7 +38,7 @@ STRING_IS_MGS = "is_mgs"
 STRING_INDEX = "index"
 STRING_LUSTRE_RPM_DIR = "lustre_rpm_dir"
 STRING_E2FSPROGS_RPM_DIR = "e2fsprogs_rpm_dir"
-STRING_LAZY_INSTALL = "lazy_install"
+STRING_LAZY_PREPARE = "lazy_prepare"
 STRING_CLIENTS = "clients"
 STRING_MNT = "mnt"
 
@@ -202,11 +202,11 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath):
                           STRING_MGS_NID, config_fpath)
             return -1
 
-        lazy_install = esmon_common.config_value(lustre_config, STRING_LAZY_INSTALL)
-        if lazy_install is None:
-            lazy_install = False
+        lazy_prepare = esmon_common.config_value(lustre_config, STRING_LAZY_PREPARE)
+        if lazy_prepare is None:
+            lazy_prepare = False
             logging.info("no [%s] is configured for fs [%s], using default value false",
-                         STRING_LAZY_INSTALL, fsname)
+                         STRING_LAZY_PREPARE, fsname)
             return -1
 
         lustre_fs = lustre.LustreFilesystem(fsname, mgs_nid)
@@ -337,7 +337,7 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath):
                           lustre_host.sh_hostname, host_id)
             ret = lustre_host.lsh_lustre_prepare(workspace, lustre_rpms,
                                                  e2fsprogs_rpm_dir,
-                                                 lazy_install=lazy_install)
+                                                 lazy_prepare=lazy_prepare)
             if ret:
                 logging.error("failed to install Lustre RPMs on host [%s]",
                               lustre_host.sh_hostname)
@@ -455,11 +455,6 @@ def esmon_do_test(workspace, config, config_fpath):
                       retval.cr_stderr)
         return -1
 
-    ret = esmon_test_lustre(workspace, hosts, config, config_fpath)
-    if ret:
-        logging.error("failed to test Lustre")
-        return -1
-
     current_dir = os.getcwd()
     iso_names = retval.cr_stdout.split()
     if len(iso_names) != 1:
@@ -503,6 +498,11 @@ def esmon_do_test(workspace, config, config_fpath):
 
     ret = esmon_test_install(workspace, install_server, host_iso_path)
     if ret:
+        return -1
+
+    ret = esmon_test_lustre(workspace, hosts, config, config_fpath)
+    if ret:
+        logging.error("failed to test Lustre")
         return -1
 
     return 0
