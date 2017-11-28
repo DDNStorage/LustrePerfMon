@@ -17,6 +17,7 @@ import filelock
 from pyesmon import utils
 from pyesmon import time_util
 from pyesmon import esmon_common
+from pyesmon import esmon_install_nodeps
 from pyesmon import esmon_virt
 from pyesmon import ssh_host
 from pyesmon import watched_io
@@ -142,12 +143,13 @@ def esmon_test_install(workspace, install_server, host_iso_path):
     return ret
 
 
-def esmon_test_lustre(workspace, hosts, config, config_fpath):
+def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
+                      install_config_fpath):
     """
     Run Lustre tests
     """
     # pylint: disable=too-many-branches,too-many-return-statements
-    # pylint: disable=too-many-statements,too-many-locals
+    # pylint: disable=too-many-statements,too-many-locals,too-many-arguments
     lustre_rpm_dir = esmon_common.config_value(config, esmon_common.CSTR_LUSTRE_RPM_DIR)
     if lustre_rpm_dir is None:
         logging.error("no [%s] is configured, please correct file [%s]",
@@ -339,6 +341,45 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath):
                           lustre_fs.lf_fsname)
             return -1
 
+        ret, esmon_server, esmon_clients = \
+            esmon_install_nodeps.esmon_install_parse_config(workspace,
+                                                            install_config,
+                                                            install_config_fpath)
+        if ret:
+            logging.error("failed to parse config [%s]", config_fpath)
+            return -1
+
+        for esmon_client in esmon_clients.values():
+            ret = esmon_client.ec_collectd_send_config(True)
+            if ret:
+                logging.error("failed to send test config to esmon client on host [%s]",
+                              esmon_client.ec_host.sh_hostname)
+                return -1
+
+            ret = esmon_client.ec_collectd_restart()
+            if ret:
+                logging.error("failed to start esmon client on host [%s]",
+                              esmon_client.ec_host.sh_hostname)
+                return -1
+
+            ret = esmon_client.ec_collectd_config_test.cc_check()
+            if ret:
+                logging.error("Influxdb doesn't have expected datapoints from "
+                              "host [%s]", esmon_client.ec_host.sh_hostname)
+                return -1
+
+            ret = esmon_client.ec_collectd_send_config(False)
+            if ret:
+                logging.error("failed to send final config to esmon client on host [%s]",
+                              esmon_client.ec_host.sh_hostname)
+                return -1
+
+            ret = esmon_client.ec_collectd_restart()
+            if ret:
+                logging.error("failed to start esmon client on host [%s]",
+                              esmon_client.ec_host.sh_hostname)
+                return -1
+
         ret = lustre_fs.lf_umount()
         if ret:
             logging.error("failed to umount file system [%s]",
@@ -484,7 +525,8 @@ def esmon_do_test(workspace, config, config_fpath):
     if ret:
         return -1
 
-    ret = esmon_test_lustre(workspace, hosts, config, config_fpath)
+    ret = esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
+                            install_config_fpath)
     if ret:
         logging.error("failed to test Lustre")
         return -1
