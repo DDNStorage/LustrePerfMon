@@ -150,6 +150,7 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
     """
     # pylint: disable=too-many-branches,too-many-return-statements
     # pylint: disable=too-many-statements,too-many-locals,too-many-arguments
+    # pylint: disable=unused-variable
     lustre_rpm_dir = esmon_common.config_value(config, esmon_common.CSTR_LUSTRE_RPM_DIR)
     if lustre_rpm_dir is None:
         logging.error("no [%s] is configured, please correct file [%s]",

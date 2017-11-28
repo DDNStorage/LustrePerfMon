@@ -1289,54 +1289,54 @@ class EsmonClient(object):
 
         response = client.ic_query(query, epoch="s")
         if response is None:
-            logging.error("failed to drop continuous query with query [%s]",
+            logging.debug("failed to drop continuous query with query [%s]",
                           query)
             return -1
 
         if response.status_code != httplib.OK:
-            logging.error("got InfluxDB status [%d]", response.status_code)
+            logging.debug("got InfluxDB status [%d]", response.status_code)
             return -1
 
         data = response.json()
         json_string = json.dumps(data, indent=4, separators=(',', ': '))
         logging.debug("data: [%s]", json_string)
         if "results" not in data:
-            logging.error("got wrong InfluxDB data [%s], no [results]", json_string)
+            logging.debug("got wrong InfluxDB data [%s], no [results]", json_string)
             return -1
         results = data["results"]
 
         if len(results) != 1:
-            logging.error("got wrong InfluxDB data [%s], [results] is not a "
+            logging.debug("got wrong InfluxDB data [%s], [results] is not a "
                           "array with only one element", json_string)
             return -1
         result = results[0]
 
         if "series" not in result:
-            logging.error("got wrong InfluxDB data [%s], no [series] in one "
+            logging.debug("got wrong InfluxDB data [%s], no [series] in one "
                           "of the result", json_string)
             return -1
 
         series = result["series"]
         if len(series) != 1:
-            logging.error("got wrong InfluxDB data [%s], [series] is not a "
+            logging.debug("got wrong InfluxDB data [%s], [series] is not a "
                           "array with only one element", json_string)
             return -1
         serie = series[0]
 
         if "columns" not in serie:
-            logging.error("got wrong InfluxDB data [%s], no [columns] in one "
+            logging.debug("got wrong InfluxDB data [%s], no [columns] in one "
                           "of the series", json_string)
             return -1
         columns = serie["columns"]
 
         if "values" not in serie:
-            logging.error("got wrong InfluxDB data [%s], no [values] in one "
+            logging.debug("got wrong InfluxDB data [%s], no [values] in one "
                           "of the series", json_string)
             return -1
         serie_values = serie["values"]
 
         if len(serie_values) != 1:
-            logging.error("got wrong InfluxDB data [%s], [values] is not a "
+            logging.debug("got wrong InfluxDB data [%s], [values] is not a "
                           "array with only one element", json_string)
             return -1
         value = serie_values[0]
@@ -1350,7 +1350,7 @@ class EsmonClient(object):
             i += 1
 
         if time_index == -1:
-            logging.error("got wrong InfluxDB data [%s], no [time] in "
+            logging.debug("got wrong InfluxDB data [%s], no [time] in "
                           "the columns", json_string)
             return -1
 
