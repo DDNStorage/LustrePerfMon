@@ -18,7 +18,6 @@ from pyesmon import utils
 from pyesmon import time_util
 from pyesmon import esmon_common
 from pyesmon import esmon_virt
-from pyesmon import esmon_install_nodeps
 from pyesmon import ssh_host
 from pyesmon import watched_io
 from pyesmon import lustre
@@ -26,21 +25,6 @@ from pyesmon import lustre
 ESMON_TEST_LOG_DIR = "/var/log/esmon_test"
 ESMON_TEST_CONFIG_FNAME = "esmon_test.conf"
 ESMON_TEST_CONFIG = "/etc/" + ESMON_TEST_CONFIG_FNAME
-STRING_LUSTRES = "lustres"
-STRING_FSNAME = "fsname"
-STRING_MGS_NID = "mgs_nid"
-STRING_MDTS = "mdts"
-STRING_OSTS = "osts"
-STRING_HOST_ID = "host_id"
-STRING_DEVICE = "device"
-STRING_NID = "nid"
-STRING_IS_MGS = "is_mgs"
-STRING_INDEX = "index"
-STRING_LUSTRE_RPM_DIR = "lustre_rpm_dir"
-STRING_E2FSPROGS_RPM_DIR = "e2fsprogs_rpm_dir"
-STRING_LAZY_PREPARE = "lazy_prepare"
-STRING_CLIENTS = "clients"
-STRING_MNT = "mnt"
 
 
 def esmon_do_test_install(workspace, install_server, mnt_path):
@@ -164,16 +148,16 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath):
     """
     # pylint: disable=too-many-branches,too-many-return-statements
     # pylint: disable=too-many-statements,too-many-locals
-    lustre_rpm_dir = esmon_common.config_value(config, STRING_LUSTRE_RPM_DIR)
+    lustre_rpm_dir = esmon_common.config_value(config, esmon_common.CSTR_LUSTRE_RPM_DIR)
     if lustre_rpm_dir is None:
         logging.error("no [%s] is configured, please correct file [%s]",
-                      STRING_LUSTRE_RPM_DIR, config_fpath)
+                      esmon_common.CSTR_LUSTRE_RPM_DIR, config_fpath)
         return -1
 
-    e2fsprogs_rpm_dir = esmon_common.config_value(config, STRING_E2FSPROGS_RPM_DIR)
+    e2fsprogs_rpm_dir = esmon_common.config_value(config, esmon_common.CSTR_E2FSPROGS_RPM_DIR)
     if e2fsprogs_rpm_dir is None:
         logging.error("no [%s] is configured, please correct file [%s]",
-                      STRING_E2FSPROGS_RPM_DIR, config_fpath)
+                      esmon_common.CSTR_E2FSPROGS_RPM_DIR, config_fpath)
         return -1
 
     lustre_rpms = lustre.LustreRPMs(lustre_rpm_dir)
@@ -182,54 +166,54 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath):
         logging.error("failed to prepare Lustre RPMs")
         return -1
 
-    lustre_configs = esmon_common.config_value(config, STRING_LUSTRES)
+    lustre_configs = esmon_common.config_value(config, esmon_common.CSTR_LUSTRES)
     if lustre_configs is None:
         logging.error("no [%s] is configured, please correct file [%s]",
-                      STRING_LUSTRES, config_fpath)
+                      esmon_common.CSTR_LUSTRES, config_fpath)
         return -1
 
     for lustre_config in lustre_configs:
         # Parse general configs of Lustre file system
-        fsname = esmon_common.config_value(lustre_config, STRING_FSNAME)
+        fsname = esmon_common.config_value(lustre_config, esmon_common.CSTR_FSNAME)
         if fsname is None:
             logging.error("no [%s] is configured, please correct file [%s]",
-                          STRING_FSNAME, config_fpath)
+                          esmon_common.CSTR_FSNAME, config_fpath)
             return -1
 
-        mgs_nid = esmon_common.config_value(lustre_config, STRING_MGS_NID)
+        mgs_nid = esmon_common.config_value(lustre_config, esmon_common.CSTR_MGS_NID)
         if mgs_nid is None:
             logging.error("no [%s] is configured, please correct file [%s]",
-                          STRING_MGS_NID, config_fpath)
+                          esmon_common.CSTR_MGS_NID, config_fpath)
             return -1
 
-        lazy_prepare = esmon_common.config_value(lustre_config, STRING_LAZY_PREPARE)
+        lazy_prepare = esmon_common.config_value(lustre_config, esmon_common.CSTR_LAZY_PREPARE)
         if lazy_prepare is None:
             lazy_prepare = False
             logging.info("no [%s] is configured for fs [%s], using default value false",
-                         STRING_LAZY_PREPARE, fsname)
+                         esmon_common.CSTR_LAZY_PREPARE, fsname)
             return -1
 
         lustre_fs = lustre.LustreFilesystem(fsname, mgs_nid)
 
         # Parse MDT configs
-        mdt_configs = esmon_common.config_value(lustre_config, STRING_MDTS)
+        mdt_configs = esmon_common.config_value(lustre_config, esmon_common.CSTR_MDTS)
         if mdt_configs is None:
             logging.error("no [%s] is configured, please correct file [%s]",
-                          STRING_MDTS, config_fpath)
+                          esmon_common.CSTR_MDTS, config_fpath)
             return -1
 
         lustre_hosts = {}
         for mdt_config in mdt_configs:
-            mdt_index = esmon_common.config_value(mdt_config, STRING_INDEX)
+            mdt_index = esmon_common.config_value(mdt_config, esmon_common.CSTR_INDEX)
             if mdt_index is None:
                 logging.error("no [%s] is configured, please correct file [%s]",
-                              STRING_INDEX, config_fpath)
+                              esmon_common.CSTR_INDEX, config_fpath)
                 return -1
 
-            host_id = esmon_common.config_value(mdt_config, STRING_HOST_ID)
+            host_id = esmon_common.config_value(mdt_config, esmon_common.CSTR_HOST_ID)
             if host_id is None:
                 logging.error("no [%s] is configured, please correct file [%s]",
-                              STRING_HOST_ID, config_fpath)
+                              esmon_common.CSTR_HOST_ID, config_fpath)
                 return -1
 
             if host_id not in hosts:
@@ -238,16 +222,16 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath):
                               host_id, config_fpath)
                 return -1
 
-            device = esmon_common.config_value(mdt_config, STRING_DEVICE)
+            device = esmon_common.config_value(mdt_config, esmon_common.CSTR_DEVICE)
             if device is None:
                 logging.error("no [%s] is configured, please correct file [%s]",
-                              STRING_DEVICE, config_fpath)
+                              esmon_common.CSTR_DEVICE, config_fpath)
                 return -1
 
-            is_mgs = esmon_common.config_value(mdt_config, STRING_IS_MGS)
+            is_mgs = esmon_common.config_value(mdt_config, esmon_common.CSTR_IS_MGS)
             if is_mgs is None:
                 logging.error("no [%s] is configured, please correct file [%s]",
-                              STRING_IS_MGS, config_fpath)
+                              esmon_common.CSTR_IS_MGS, config_fpath)
                 return -1
 
             host = hosts[host_id]
@@ -258,23 +242,23 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath):
                              is_mgs=is_mgs)
 
         # Parse OST configs
-        ost_configs = esmon_common.config_value(lustre_config, STRING_OSTS)
+        ost_configs = esmon_common.config_value(lustre_config, esmon_common.CSTR_OSTS)
         if ost_configs is None:
             logging.error("no [%s] is configured, please correct file [%s]",
-                          STRING_OSTS, config_fpath)
+                          esmon_common.CSTR_OSTS, config_fpath)
             return -1
 
         for ost_config in ost_configs:
-            ost_index = esmon_common.config_value(ost_config, STRING_INDEX)
+            ost_index = esmon_common.config_value(ost_config, esmon_common.CSTR_INDEX)
             if ost_index is None:
                 logging.error("no [%s] is configured, please correct file [%s]",
-                              STRING_INDEX, config_fpath)
+                              esmon_common.CSTR_INDEX, config_fpath)
                 return -1
 
-            host_id = esmon_common.config_value(ost_config, STRING_HOST_ID)
+            host_id = esmon_common.config_value(ost_config, esmon_common.CSTR_HOST_ID)
             if host_id is None:
                 logging.error("no [%s] is configured, please correct file [%s]",
-                              STRING_HOST_ID, config_fpath)
+                              esmon_common.CSTR_HOST_ID, config_fpath)
                 return -1
 
             if host_id not in hosts:
@@ -283,10 +267,10 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath):
                               host_id, config_fpath)
                 return -1
 
-            device = esmon_common.config_value(ost_config, STRING_DEVICE)
+            device = esmon_common.config_value(ost_config, esmon_common.CSTR_DEVICE)
             if device is None:
                 logging.error("no [%s] is configured, please correct file [%s]",
-                              STRING_DEVICE, config_fpath)
+                              esmon_common.CSTR_DEVICE, config_fpath)
                 return -1
 
             host = hosts[host_id]
@@ -297,17 +281,17 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath):
 
         # Parse client configs
         client_configs = esmon_common.config_value(lustre_config,
-                                                   STRING_CLIENTS)
+                                                   esmon_common.CSTR_CLIENTS)
         if client_configs is None:
             logging.error("no [%s] is configured, please correct file [%s]",
-                          STRING_CLIENTS, config_fpath)
+                          esmon_common.CSTR_CLIENTS, config_fpath)
             return -1
 
         for client_config in client_configs:
-            host_id = esmon_common.config_value(client_config, STRING_HOST_ID)
+            host_id = esmon_common.config_value(client_config, esmon_common.CSTR_HOST_ID)
             if host_id is None:
                 logging.error("no [%s] is configured, please correct file [%s]",
-                              STRING_HOST_ID, config_fpath)
+                              esmon_common.CSTR_HOST_ID, config_fpath)
                 return -1
 
             if host_id not in hosts:
@@ -316,10 +300,10 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath):
                               host_id, config_fpath)
                 return -1
 
-            mnt = esmon_common.config_value(client_config, STRING_MNT)
+            mnt = esmon_common.config_value(client_config, esmon_common.CSTR_MNT)
             if mnt is None:
                 logging.error("no [%s] is configured, please correct file [%s]",
-                              STRING_MNT, config_fpath)
+                              esmon_common.CSTR_MNT, config_fpath)
                 return -1
 
             host = hosts[host_id]
@@ -380,11 +364,11 @@ def esmon_do_test(workspace, config, config_fpath):
         logging.error("failed to install the virtual machines")
         return -1
 
-    ssh_host_configs = esmon_common.config_value(config, esmon_install_nodeps.SSH_HOST_STRING)
+    ssh_host_configs = esmon_common.config_value(config, esmon_common.CSTR_SSH_HOST)
     if ssh_host_configs is None:
         logging.error("can NOT find [%s] in the config file, "
                       "please correct file [%s]",
-                      esmon_install_nodeps.SSH_HOST_STRING, config_fpath)
+                      esmon_common.CSTR_SSH_HOST, config_fpath)
         return -1
 
     hosts = {}
@@ -425,20 +409,20 @@ def esmon_do_test(workspace, config, config_fpath):
         return -1
     install_server = hosts[install_server_hostid]
 
-    server_host_config = esmon_common.config_value(config, esmon_install_nodeps.SERVER_HOST_STRING)
+    server_host_config = esmon_common.config_value(config, esmon_common.CSTR_SERVER_HOST)
     if server_host_config is None:
         logging.error("can NOT find [%s] in the config file, "
                       "please correct file [%s]",
-                      esmon_install_nodeps.SERVER_HOST_STRING,
+                      esmon_common.CSTR_SERVER_HOST,
                       config_fpath)
         return -1
 
     client_host_configs = esmon_common.config_value(config,
-                                                    esmon_install_nodeps.CLIENT_HOSTS_STRING)
+                                                    esmon_common.CSTR_CLIENT_HOSTS)
     if client_host_configs is None:
         logging.error("can NOT find [%s] in the config file, "
                       "please correct file [%s]",
-                      esmon_install_nodeps.CLIENT_HOSTS_STRING,
+                      esmon_common.CSTR_CLIENT_HOSTS,
                       config_fpath)
         return -1
 
@@ -487,10 +471,10 @@ def esmon_do_test(workspace, config, config_fpath):
 
     host_iso_path = workspace + "/" + iso_name
     install_config = {}
-    install_config[esmon_install_nodeps.ISO_PATH_STRING] = host_iso_path
-    install_config[esmon_install_nodeps.SSH_HOST_STRING] = ssh_host_configs
-    install_config[esmon_install_nodeps.CLIENT_HOSTS_STRING] = client_host_configs
-    install_config[esmon_install_nodeps.SERVER_HOST_STRING] = server_host_config
+    install_config[esmon_common.CSTR_ISO_PATH] = host_iso_path
+    install_config[esmon_common.CSTR_SSH_HOST] = ssh_host_configs
+    install_config[esmon_common.CSTR_CLIENT_HOSTS] = client_host_configs
+    install_config[esmon_common.CSTR_SERVER_HOST] = server_host_config
     install_config_string = yaml.dump(install_config, default_flow_style=False)
     install_config_fpath = workspace + "/" + esmon_common.ESMON_INSTALL_CONFIG_FNAME
     with open(install_config_fpath, "wt") as install_config_file:

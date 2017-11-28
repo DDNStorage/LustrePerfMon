@@ -54,20 +54,6 @@ RPM_TYPE_DEPENDENT = DEPENDENT_STRING
 SERVER_STRING = "server"
 RPM_TYPE_SERVER = SERVER_STRING
 RPM_TYPE_XML = "xml"
-ISO_PATH_STRING = "iso_path"
-SSH_HOST_STRING = "ssh_hosts"
-CLIENT_HOSTS_STRING = "client_hosts"
-SERVER_HOST_STRING = "server_host"
-HOST_ID_STRING = "host_id"
-HOSTNAME_STRING = "hostname"
-DROP_DATABASE_STRING = "drop_database"
-ERASE_INFLUXDB_STRING = "erase_influxdb"
-LUSTRE_OSS_STRING = "lustre_oss"
-LUSTRE_MDS_STRING = "lustre_mds"
-IME_STRING = "ime"
-STRING_REINSTALL = "reinstall"
-STRING_CLIENTS_REINSTALL = "clients_reinstall"
-STRING_INFINIBAND = "infiniband"
 
 
 def grafana_dashboard_check(name, dashboard):
@@ -1453,27 +1439,27 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
     # pylint: disable=too-many-return-statements
     # pylint: disable=too-many-branches,bare-except, too-many-locals
     # pylint: disable=too-many-statements
-    host_configs = esmon_common.config_value(config, SSH_HOST_STRING)
+    host_configs = esmon_common.config_value(config, esmon_common.CSTR_SSH_HOST)
     if host_configs is None:
         logging.error("can NOT find [ssh_hosts] in the config file, "
                       "please correct file [%s]", config_fpath)
         return -1
 
     clients_reinstall = esmon_common.config_value(config,
-                                                  STRING_CLIENTS_REINSTALL)
+                                                  esmon_common.CSTR_CLIENTS_REINSTALL)
     if clients_reinstall is None:
         clients_reinstall = True
 
     hosts = {}
     for host_config in host_configs:
-        host_id = host_config["host_id"]
+        host_id = host_config[esmon_common.CSTR_HOST_ID]
         if host_id is None:
             logging.error("can NOT find [host_id] in the config of a "
                           "SSH host, please correct file [%s]",
                           config_fpath)
             return -1
 
-        hostname = esmon_common.config_value(host_config, "hostname")
+        hostname = esmon_common.config_value(host_config, esmon_common.CSTR_HOSTNAME)
         if hostname is None:
             logging.error("can NOT find [hostname] in the config of SSH host "
                           "with ID [%s], please correct file [%s]",
@@ -1489,28 +1475,28 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
         host = ssh_host.SSHHost(hostname, ssh_identity_file)
         hosts[host_id] = host
 
-    server_host_config = esmon_common.config_value(config, SERVER_HOST_STRING)
+    server_host_config = esmon_common.config_value(config, esmon_common.CSTR_SERVER_HOST)
     if server_host_config is None:
         logging.error("can NOT find [server_host] in the config file [%s], "
                       "please correct it", config_fpath)
         return -1
 
-    host_id = esmon_common.config_value(server_host_config, "host_id")
+    host_id = esmon_common.config_value(server_host_config, esmon_common.CSTR_HOST_ID)
     if host_id is None:
         logging.error("can NOT find [host_id] in the config of [server_host], "
                       "please correct file [%s]", config_fpath)
         return -1
 
-    erase_influxdb = esmon_common.config_value(server_host_config, ERASE_INFLUXDB_STRING)
+    erase_influxdb = esmon_common.config_value(server_host_config, esmon_common.CSTR_ERASE_INFLUXDB)
     if erase_influxdb is None:
         erase_influxdb = False
 
-    drop_database = esmon_common.config_value(server_host_config, DROP_DATABASE_STRING)
+    drop_database = esmon_common.config_value(server_host_config, esmon_common.CSTR_DROP_DATABASE)
     if drop_database is None:
         drop_database = False
 
     server_reinstall = esmon_common.config_value(server_host_config,
-                                                 STRING_REINSTALL)
+                                                 esmon_common.CSTR_REINSTALL)
     if server_reinstall is None:
         server_reinstall = True
 
@@ -1538,7 +1524,7 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
                       "problem", esmon_server.es_host.sh_hostname)
         return -1
 
-    client_host_configs = esmon_common.config_value(config, CLIENT_HOSTS_STRING)
+    client_host_configs = esmon_common.config_value(config, esmon_common.CSTR_CLIENT_HOSTS)
     if client_host_configs is None:
         logging.error("can NOT find [client_hosts] in the config file, "
                       "please correct file [%s]", config_fpath)
@@ -1546,7 +1532,7 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
 
     esmon_clients = {}
     for client_host_config in client_host_configs:
-        host_id = esmon_common.config_value(client_host_config, "host_id")
+        host_id = esmon_common.config_value(client_host_config, esmon_common.CSTR_HOST_ID)
         if host_id is None:
             logging.error("can NOT find [host_id] in the config of a "
                           "ESMON client host, please correct file [%s]",
@@ -1563,31 +1549,31 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
                            "users")
 
         host = hosts[host_id]
-        lustre_oss = esmon_common.config_value(client_host_config, LUSTRE_OSS_STRING)
+        lustre_oss = esmon_common.config_value(client_host_config, esmon_common.CSTR_LUSTRE_OSS)
         if lustre_oss is None:
             lustre_oss = False
         if lustre_oss:
             enabled_plugins += ", Lustre OSS"
 
-        lustre_mds = esmon_common.config_value(client_host_config, "lustre_mds")
+        lustre_mds = esmon_common.config_value(client_host_config, esmon_common.CSTR_LUSTRE_MDS)
         if lustre_mds is None:
             lustre_mds = False
         if lustre_mds:
             enabled_plugins += ", Lustre MDS"
 
-        ime = esmon_common.config_value(client_host_config, IME_STRING)
+        ime = esmon_common.config_value(client_host_config, esmon_common.CSTR_IME)
         if ime is None:
             ime = False
         if ime:
             enabled_plugins += ", DDN IME"
 
-        infiniband = esmon_common.config_value(client_host_config, STRING_INFINIBAND)
+        infiniband = esmon_common.config_value(client_host_config, esmon_common.CSTR_INFINIBAND)
         if infiniband is None:
             infiniband = False
         if infiniband:
             enabled_plugins += ", IB"
 
-        sfas = esmon_common.config_value(client_host_config, "sfas")
+        sfas = esmon_common.config_value(client_host_config, esmon_common.CSTR_SFAS)
         sfa_names = []
         sfa_hosts = []
         if sfas is not None:
@@ -1691,7 +1677,7 @@ def esmon_mount_and_install(workspace, config, config_fpath):
     """
     # pylint: disable=bare-except,global-statement
     local_host = ssh_host.SSHHost("localhost", local=True)
-    iso_path = esmon_common.config_value(config, ISO_PATH_STRING)
+    iso_path = esmon_common.config_value(config, esmon_common.CSTR_ISO_PATH)
     if iso_path is None:
         iso_path = esmon_install_common.find_iso_path_in_cwd(local_host)
         if iso_path is None:

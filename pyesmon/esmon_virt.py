@@ -23,22 +23,6 @@ from pyesmon import esmon_common
 ESMON_VIRT_CONFIG_FNAME = "esmon_virt.conf"
 ESMON_VIRT_CONFIG = "/etc/" + ESMON_VIRT_CONFIG_FNAME
 ESMON_VIRT_LOG_DIR = "/var/log/esmon_virt"
-STRING_DISTRO = "distro"
-STRING_HOSTNAME = "hostname"
-STRING_HOST_IPS = "ips"
-SSH_HOST_STRING = "ssh_hosts"
-STRING_TEMPLATES = "templates"
-STRING_REINSTALL = "reinstall"
-STRING_INTERNET = "internet"
-STRING_RAM_SIZE = "ram_size"
-STRING_DISK_SIZES = "disk_sizes"
-STRING_NETWORK_CONFIGS = "network_configs"
-STRING_ISO = "iso"
-STRING_SERVER_HOST_ID = "server_host_id"
-STRING_IMAGE_DIR = "image_dir"
-STRING_TEMPLATE_HOSTNAME = "template_hostname"
-STRING_IP = "ip"
-STRING_HOSTS = "hosts"
 
 
 class VirtTemplate(object):
@@ -835,11 +819,11 @@ def esmon_vm_install(workspace, config, config_fpath):
     """
     # pylint: disable=too-many-return-statements,too-many-locals
     # pylint: disable=too-many-branches,too-many-statements
-    ssh_host_configs = esmon_common.config_value(config, SSH_HOST_STRING)
+    ssh_host_configs = esmon_common.config_value(config, esmon_common.CSTR_SSH_HOST)
     if ssh_host_configs is None:
         logging.error("can NOT find [%s] in the config file, "
                       "please correct file [%s]",
-                      SSH_HOST_STRING, config_fpath)
+                      esmon_common.CSTR_SSH_HOST, config_fpath)
         return -1
 
     hosts = {}
@@ -867,86 +851,86 @@ def esmon_vm_install(workspace, config, config_fpath):
         host = ssh_host.SSHHost(hostname, ssh_identity_file)
         hosts[host_id] = host
 
-    template_configs = esmon_common.config_value(config, STRING_TEMPLATES)
+    template_configs = esmon_common.config_value(config, esmon_common.CSTR_TEMPLATES)
     if template_configs is None:
         logging.error("can NOT find [%s] in the config file, "
                       "please correct file [%s]",
-                      STRING_TEMPLATES, config_fpath)
+                      esmon_common.CSTR_TEMPLATES, config_fpath)
         return -1
 
     templates = {}
     for template_config in template_configs:
         template_hostname = esmon_common.config_value(template_config,
-                                                      STRING_HOSTNAME)
+                                                      esmon_common.CSTR_HOSTNAME)
         if template_hostname is None:
             logging.error("can NOT find [%s] in the config of a "
                           "SSH host, please correct file [%s]",
-                          STRING_HOSTNAME, config_fpath)
+                          esmon_common.CSTR_HOSTNAME, config_fpath)
             return -1
 
         reinstall = esmon_common.config_value(template_config,
-                                              STRING_REINSTALL)
+                                              esmon_common.CSTR_REINSTALL)
         if reinstall is None:
             logging.error("no [%s] is configured, please correct file [%s]",
-                          STRING_REINSTALL, config_fpath)
+                          esmon_common.CSTR_REINSTALL, config_fpath)
             return -1
 
         internet = esmon_common.config_value(template_config,
-                                             STRING_INTERNET)
+                                             esmon_common.CSTR_INTERNET)
         if internet is None:
             internet = False
             logging.debug("no [%s] is configured, will "
-                          "not add internet support", STRING_INTERNET)
+                          "not add internet support", esmon_common.CSTR_INTERNET)
 
-        ram_size = esmon_common.config_value(template_config, STRING_RAM_SIZE)
+        ram_size = esmon_common.config_value(template_config, esmon_common.CSTR_RAM_SIZE)
         if ram_size is None:
             logging.error("no [%s] is configured, please correct file [%s]",
-                          STRING_RAM_SIZE, config_fpath)
+                          esmon_common.CSTR_RAM_SIZE, config_fpath)
             return -1
 
         disk_sizes = esmon_common.config_value(template_config,
-                                               STRING_DISK_SIZES)
+                                               esmon_common.CSTR_DISK_SIZES)
         if disk_sizes is None:
             logging.error("no [%s] is configured, please correct file [%s]",
-                          STRING_DISK_SIZES, config_fpath)
+                          esmon_common.CSTR_DISK_SIZES, config_fpath)
             return -1
 
         network_configs = esmon_common.config_value(template_config,
-                                                    STRING_NETWORK_CONFIGS)
+                                                    esmon_common.CSTR_NETWORK_CONFIGS)
         if network_configs is None:
             logging.error("no [%s] is configured, please correct file [%s]",
-                          STRING_NETWORK_CONFIGS, config_fpath)
+                          esmon_common.CSTR_NETWORK_CONFIGS, config_fpath)
             return -1
 
-        iso = esmon_common.config_value(template_config, STRING_ISO)
+        iso = esmon_common.config_value(template_config, esmon_common.CSTR_ISO)
         if iso is None:
             logging.error("no [%s] is configured, please correct file [%s]",
-                          STRING_ISO, config_fpath)
+                          esmon_common.CSTR_ISO, config_fpath)
             return -1
 
-        distro = esmon_common.config_value(template_config, STRING_DISTRO)
+        distro = esmon_common.config_value(template_config, esmon_common.CSTR_DISTRO)
         if distro is None:
             logging.error("no [%s] is configured, please correct file [%s]",
-                          STRING_DISTRO, config_fpath)
+                          esmon_common.CSTR_DISTRO, config_fpath)
             return -1
 
-        image_dir = esmon_common.config_value(template_config, STRING_IMAGE_DIR)
+        image_dir = esmon_common.config_value(template_config, esmon_common.CSTR_IMAGE_DIR)
         if image_dir is None:
             logging.error("no [%s] is configured, please correct file [%s]",
-                          STRING_IMAGE_DIR, config_fpath)
+                          esmon_common.CSTR_IMAGE_DIR, config_fpath)
             return -1
 
         server_host_id = esmon_common.config_value(template_config,
-                                                   STRING_SERVER_HOST_ID)
+                                                   esmon_common.CSTR_SERVER_HOST_ID)
         if server_host_id is None:
             logging.error("no [%s] is configured, please correct file [%s]",
-                          STRING_SERVER_HOST_ID, config_fpath)
+                          esmon_common.CSTR_SERVER_HOST_ID, config_fpath)
             return -1
 
         if server_host_id not in hosts:
             logging.error("SSH host with ID [%s] is NOT configured in "
                           "[%s], please correct file [%s]",
-                          STRING_SERVER_HOST_ID, SSH_HOST_STRING,
+                          esmon_common.CSTR_SERVER_HOST_ID, esmon_common.CSTR_SSH_HOST,
                           config_fpath)
             return -1
 
@@ -993,31 +977,31 @@ def esmon_vm_install(workspace, config, config_fpath):
 ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
 """
     for vm_host_config in vm_host_configs:
-        hostname = esmon_common.config_value(vm_host_config, STRING_HOSTNAME)
+        hostname = esmon_common.config_value(vm_host_config, esmon_common.CSTR_HOSTNAME)
         if hostname is None:
             logging.error("no [hostname] is configured for a vm_host, "
                           "please correct file [%s]", config_fpath)
             return -1
 
-        ips = esmon_common.config_value(vm_host_config, STRING_HOST_IPS)
+        ips = esmon_common.config_value(vm_host_config, esmon_common.CSTR_HOST_IPS)
         if ips is None:
             logging.error("no [%s] is configured for a vm_host, "
-                          "please correct file [%s]", STRING_HOST_IPS,
+                          "please correct file [%s]", esmon_common.CSTR_HOST_IPS,
                           config_fpath)
             return -1
 
         template_hostname = esmon_common.config_value(vm_host_config,
-                                                      STRING_TEMPLATE_HOSTNAME)
+                                                      esmon_common.CSTR_TEMPLATE_HOSTNAME)
         if template_hostname is None:
             logging.error("can NOT find [%s] in the config of a "
                           "SSH host, please correct file [%s]",
-                          STRING_TEMPLATE_HOSTNAME, config_fpath)
+                          esmon_common.CSTR_TEMPLATE_HOSTNAME, config_fpath)
             return -1
 
         if template_hostname not in templates:
             logging.error("template with hostname [%s] is NOT configured in "
                           "[%s], please correct file [%s]",
-                          template_hostname, STRING_TEMPLATES, config_fpath)
+                          template_hostname, esmon_common.CSTR_TEMPLATES, config_fpath)
             return -1
 
         template = templates[template_hostname]
@@ -1063,26 +1047,26 @@ def esmon_vm_install(workspace, config, config_fpath):
         hosts_string += ("%s %s\n" % (host_ip, hostname))
         vm_hosts.append(vm_host)
 
-    host_configs = esmon_common.config_value(config, STRING_HOSTS)
+    host_configs = esmon_common.config_value(config, esmon_common.CSTR_HOSTS)
     if host_configs is None:
         logging.error("can NOT find [%s] in the config file, "
                       "please correct file [%s]",
-                      STRING_HOSTS, config_fpath)
+                      esmon_common.CSTR_HOSTS, config_fpath)
         return -1
 
     for host_config in host_configs:
-        hostname = esmon_common.config_value(host_config, STRING_HOSTNAME)
+        hostname = esmon_common.config_value(host_config, esmon_common.CSTR_HOSTNAME)
         if hostname is None:
             logging.error("can NOT find [%s] in the config file, "
                           "please correct file [%s]",
-                          STRING_HOSTNAME, config_fpath)
+                          esmon_common.CSTR_HOSTNAME, config_fpath)
             return -1
 
-        host_ip = esmon_common.config_value(host_config, STRING_IP)
+        host_ip = esmon_common.config_value(host_config, esmon_common.CSTR_IP)
         if host_ip is None:
             logging.error("can NOT find [%s] in the config file, "
                           "please correct file [%s]",
-                          STRING_IP, config_fpath)
+                          esmon_common.CSTR_IP, config_fpath)
             return -1
         hosts_string += ("%s %s\n" % (host_ip, hostname))
 

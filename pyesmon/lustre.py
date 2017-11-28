@@ -1107,7 +1107,7 @@ class LustreServerHost(ssh_host.SSHHost):
             if ret:
                 logging.error("failed to reboot host [%s]", self.sh_hostname)
                 return -1
-    
+
             ret = self.lsh_lustre_check_after_reboot(lustre_rpms.lr_kernel_version)
             if ret:
                 logging.error("failed to check Lustre status after reboot on host [%s]",
