@@ -1091,7 +1091,8 @@ class LustreServerHost(ssh_host.SSHHost):
         if lazy_prepare:
             ret = self.lsh_lustre_check_after_reboot(lustre_rpms.lr_kernel_version)
             if ret:
-                logging.debug("host [%s] need a reboot to change the kernel",
+                logging.debug("host [%s] need a reboot to change the kernel "
+                              "or cleanup the status of Lustre",
                               self.sh_hostname)
             else:
                 need_reboot = False

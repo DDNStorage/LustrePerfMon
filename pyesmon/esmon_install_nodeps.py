@@ -830,13 +830,15 @@ class EsmonClient(object):
     # pylint: disable=too-few-public-methods,too-many-instance-attributes
     # pylint: disable=too-many-arguments
     def __init__(self, host, workspace, esmon_server, lustre_oss=False,
-                 lustre_mds=False, ime=False, infiniband=False, sfas=None):
+                 lustre_mds=False, ime=False, infiniband=False, sfas=None,
+                 enabled_plugins=""):
         self.ec_host = host
         self.ec_workspace = workspace
         self.ec_iso_basename = "ISO"
         self.ec_iso_dir = self.ec_workspace + "/" + self.ec_iso_basename
         self.ec_esmon_server = esmon_server
         self.ec_needed_collectd_rpms = ["libcollectdclient", "collectd"]
+        self.ec_enabled_plugins = enabled_plugins
         config = collectd.CollectdConfig(self)
         config.cc_configs["Interval"] = collectd.COLLECTD_INTERVAL_TEST
         if lustre_oss or lustre_mds:
@@ -1432,23 +1434,21 @@ class EsmonClient(object):
         return 0
 
 
-def esmon_do_install(workspace, config, config_fpath, mnt_path):
+def esmon_install_parse_config(workspace, config, config_fpath):
     """
     Start to install with the ISO mounted
     """
     # pylint: disable=too-many-return-statements
     # pylint: disable=too-many-branches,bare-except, too-many-locals
     # pylint: disable=too-many-statements
+    esmon_clients = {}
+    esmon_server = None
+
     host_configs = esmon_common.config_value(config, esmon_common.CSTR_SSH_HOST)
     if host_configs is None:
         logging.error("can NOT find [ssh_hosts] in the config file, "
                       "please correct file [%s]", config_fpath)
-        return -1
-
-    clients_reinstall = esmon_common.config_value(config,
-                                                  esmon_common.CSTR_CLIENTS_REINSTALL)
-    if clients_reinstall is None:
-        clients_reinstall = True
+        return -1, esmon_server, esmon_clients
 
     hosts = {}
     for host_config in host_configs:
@@ -1457,21 +1457,21 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
             logging.error("can NOT find [host_id] in the config of a "
                           "SSH host, please correct file [%s]",
                           config_fpath)
-            return -1
+            return -1, esmon_server, esmon_clients
 
         hostname = esmon_common.config_value(host_config, esmon_common.CSTR_HOSTNAME)
         if hostname is None:
             logging.error("can NOT find [hostname] in the config of SSH host "
                           "with ID [%s], please correct file [%s]",
                           host_id, config_fpath)
-            return -1
+            return -1, esmon_server, esmon_clients
 
         ssh_identity_file = esmon_common.config_value(host_config, "ssh_identity_file")
 
         if host_id in hosts:
             logging.error("multiple SSH hosts with the same ID [%s], please "
                           "correct file [%s]", host_id, config_fpath)
-            return -1
+            return -1, esmon_server, esmon_clients
         host = ssh_host.SSHHost(hostname, ssh_identity_file)
         hosts[host_id] = host
 
@@ -1479,42 +1479,19 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
     if server_host_config is None:
         logging.error("can NOT find [server_host] in the config file [%s], "
                       "please correct it", config_fpath)
-        return -1
+        return -1, esmon_server, esmon_clients
 
     host_id = esmon_common.config_value(server_host_config, esmon_common.CSTR_HOST_ID)
     if host_id is None:
         logging.error("can NOT find [host_id] in the config of [server_host], "
                       "please correct file [%s]", config_fpath)
-        return -1
-
-    erase_influxdb = esmon_common.config_value(server_host_config, esmon_common.CSTR_ERASE_INFLUXDB)
-    if erase_influxdb is None:
-        erase_influxdb = False
-
-    drop_database = esmon_common.config_value(server_host_config, esmon_common.CSTR_DROP_DATABASE)
-    if drop_database is None:
-        drop_database = False
-
-    server_reinstall = esmon_common.config_value(server_host_config,
-                                                 esmon_common.CSTR_REINSTALL)
-    if server_reinstall is None:
-        server_reinstall = True
-
-    if not server_reinstall:
-        logging.info("ESMON server won't be reinstalled according to the "
-                     "config")
-    else:
-        logging.info("Influxdb will %sbe erased according to the config",
-                     "" if erase_influxdb else "NOT ")
-        logging.info("database [%s] of Influxdb will %sbe dropped "
-                     "according to the config", INFLUXDB_DATABASE_NAME,
-                     "" if drop_database else "NOT ")
+        return -1, esmon_server, esmon_clients
 
     if host_id not in hosts:
         logging.error("SSH host with ID [%s] is NOT configured in "
                       "[ssh_hosts], please correct file [%s]",
                       host_id, config_fpath)
-        return -1
+        return -1, esmon_server, esmon_clients
 
     host = hosts[host_id]
     esmon_server = EsmonServer(host, workspace)
@@ -1522,28 +1499,28 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
     if ret:
         logging.error("checking of ESMON server [%s] failed, please fix the "
                       "problem", esmon_server.es_host.sh_hostname)
-        return -1
+        return -1, esmon_server, esmon_clients
 
     client_host_configs = esmon_common.config_value(config, esmon_common.CSTR_CLIENT_HOSTS)
     if client_host_configs is None:
-        logging.error("can NOT find [client_hosts] in the config file, "
-                      "please correct file [%s]", config_fpath)
-        return -1
+        logging.error("can NOT find [%s] in the config file, "
+                      "please correct file [%s]",
+                      esmon_common.CSTR_CLIENT_HOSTS, config_fpath)
+        return -1, esmon_server, esmon_clients
 
-    esmon_clients = {}
     for client_host_config in client_host_configs:
         host_id = esmon_common.config_value(client_host_config, esmon_common.CSTR_HOST_ID)
         if host_id is None:
-            logging.error("can NOT find [host_id] in the config of a "
+            logging.error("can NOT find [%s] in the config of a "
                           "ESMON client host, please correct file [%s]",
-                          config_fpath)
-            return -1
+                          esmon_common.CSTR_HOST_ID, config_fpath)
+            return -1, esmon_server, esmon_clients
 
         if host_id not in hosts:
             logging.error("ESMON client with ID [%s] is NOT configured in "
                           "[ssh_hosts], please correct file [%s]",
                           host_id, config_fpath)
-            return -1
+            return -1, esmon_server, esmon_clients
 
         enabled_plugins = ("memory, CPU, df(/), load, sensors, disk, uptime, "
                            "users")
@@ -1578,68 +1555,132 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
         sfa_hosts = []
         if sfas is not None:
             for sfa in sfas:
-                name = esmon_common.config_value(sfa, "name")
+                name = esmon_common.config_value(sfa, esmon_common.CSTR_NAME)
                 if name is None:
-                    logging.error("can NOT find [name] in the SFA config of a "
+                    logging.error("can NOT find [%s] in the SFA config of a "
                                   "ESMON client host, please correct file "
-                                  "[%s]", config_fpath)
-                    return -1
+                                  "[%s]", esmon_common.CSTR_NAME, config_fpath)
+                    return -1, esmon_server, esmon_clients
 
                 if name in sfa_names:
                     logging.error("multiple SFAs with the same name [%s], "
                                   "please correct file [%s]", name,
                                   config_fpath)
-                    return -1
+                    return -1, esmon_server, esmon_clients
                 sfa_names.append(name)
 
-                controller0_host = esmon_common.config_value(sfa, "controller0_host")
+                controller0_host = esmon_common.config_value(sfa,
+                                                             esmon_common.CSTR_CONTROLLER0_HOST)
                 if controller0_host is None:
-                    logging.error("can NOT find [controller0_host] in the SFA "
+                    logging.error("can NOT find [%s] in the SFA "
                                   "config of a ESMON client host, please "
-                                  "correct file [%s]", config_fpath)
-                    return -1
+                                  "correct file [%s]",
+                                  esmon_common.CSTR_CONTROLLER0_HOST, config_fpath)
+                    return -1, esmon_server, esmon_clients
 
                 if controller0_host in sfa_hosts:
                     logging.error("multiple SFAs with the same controller "
                                   "host [%s], please correct file [%s]",
                                   controller0_host,
                                   config_fpath)
-                    return -1
+                    return -1, esmon_server, esmon_clients
                 sfa_hosts.append(controller0_host)
 
-                controller1_host = esmon_common.config_value(sfa, "controller1_host")
+                controller1_host = esmon_common.config_value(sfa,
+                                                             esmon_common.CSTR_CONTROLLER1_HOST)
                 if controller1_host is None:
-                    logging.error("can NOT find [controller1_host] in the SFA "
+                    logging.error("can NOT find [%s] in the SFA "
                                   "config of a ESMON client host, please "
-                                  "correct file [%s]", config_fpath)
-                    return -1
+                                  "correct file [%s]",
+                                  esmon_common.CSTR_CONTROLLER1_HOST, config_fpath)
+                    return -1, esmon_server, esmon_clients
 
                 if controller1_host in sfa_hosts:
                     logging.error("multiple SFAs with the same controller "
                                   "host [%s], please correct file [%s]",
                                   controller1_host,
                                   config_fpath)
-                    return -1
+                    return -1, esmon_server, esmon_clients
                 sfa_hosts.append(controller1_host)
             enabled_plugins += ", SFA"
-
-        if clients_reinstall:
-            logging.info("support for metrics of [%s] will be enabled on "
-                         "ESMON client [%s] according to the config",
-                         enabled_plugins, host.sh_hostname)
 
         esmon_client = EsmonClient(host, workspace, esmon_server,
                                    lustre_oss=lustre_oss,
                                    lustre_mds=lustre_mds, ime=ime,
                                    infiniband=infiniband,
-                                   sfas=sfas)
+                                   sfas=sfas,
+                                   enabled_plugins=enabled_plugins)
         esmon_clients[host_id] = esmon_client
         ret = esmon_client.ec_check()
         if ret:
             logging.error("checking of ESMON client [%s] failed, please fix "
                           "the problem",
                           esmon_client.ec_host.sh_hostname)
-            return -1
+            return -1, esmon_server, esmon_clients
+
+    return 0, esmon_server, esmon_clients
+
+
+def esmon_do_install(workspace, config, config_fpath, mnt_path):
+    """
+    Start to install with the ISO mounted
+    """
+    # pylint: disable=too-many-return-statements
+    # pylint: disable=too-many-branches,bare-except, too-many-locals
+    # pylint: disable=too-many-statements
+    ret, esmon_server, esmon_clients = esmon_install_parse_config(workspace, config, config_fpath)
+    if ret:
+        logging.error("failed to parse config [%s]", config_fpath)
+        return -1
+
+    clients_reinstall = esmon_common.config_value(config,
+                                                  esmon_common.CSTR_CLIENTS_REINSTALL)
+    if clients_reinstall is None:
+        logging.info("[%s] is not configured in file [%s], use True as default",
+                     esmon_common.CSTR_CLIENTS_REINSTALL, config_fpath)
+        clients_reinstall = True
+
+    server_host_config = esmon_common.config_value(config, esmon_common.CSTR_SERVER_HOST)
+    if server_host_config is None:
+        logging.error("can NOT find [server_host] in the config file [%s], "
+                      "please correct it", config_fpath)
+        return -1
+
+    erase_influxdb = esmon_common.config_value(server_host_config, esmon_common.CSTR_ERASE_INFLUXDB)
+    if erase_influxdb is None:
+        logging.info("[%s] is not configured in file [%s], use False as default",
+                     esmon_common.CSTR_ERASE_INFLUXDB, config_fpath)
+        erase_influxdb = False
+
+    drop_database = esmon_common.config_value(server_host_config, esmon_common.CSTR_DROP_DATABASE)
+    if drop_database is None:
+        logging.info("[%s] is not configured in file [%s], use False as default",
+                     esmon_common.CSTR_DROP_DATABASE, config_fpath)
+        drop_database = False
+
+    server_reinstall = esmon_common.config_value(server_host_config,
+                                                 esmon_common.CSTR_REINSTALL)
+    if server_reinstall is None:
+        logging.info("[%s] is not configured in file [%s], use True as default",
+                     esmon_common.CSTR_REINSTALL, config_fpath)
+        server_reinstall = True
+
+    if not server_reinstall:
+        logging.info("ESMON server won't be reinstalled according to the "
+                     "config")
+    else:
+        logging.info("Influxdb will %sbe erased according to the config",
+                     "" if erase_influxdb else "NOT ")
+        logging.info("database [%s] of Influxdb will %sbe dropped "
+                     "according to the config", INFLUXDB_DATABASE_NAME,
+                     "" if drop_database else "NOT ")
+
+    if clients_reinstall:
+        for esmon_client in esmon_clients.values():
+            logging.info("support for metrics of [%s] will be enabled on "
+                         "ESMON client [%s] according to the config",
+                         esmon_client.ec_enabled_plugins,
+                         esmon_client.ec_host.sh_hostname)
 
     if server_reinstall:
         ret = esmon_server.es_reinstall(erase_influxdb, drop_database, mnt_path)

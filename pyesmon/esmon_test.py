@@ -67,8 +67,8 @@ def esmon_do_test_install(workspace, install_server, mnt_path):
 
     args = {}
     args["hostname"] = install_server.sh_hostname
-    stdout_file = (workspace + "/" + "esmon_install_nodeps.stdout")
-    stderr_file = (workspace + "/" + "esmon_install_nodeps.stderr")
+    stdout_file = (workspace + "/" + "esmon_install.stdout")
+    stderr_file = (workspace + "/" + "esmon_install.stderr")
     stdout_fd = watched_io.watched_io_open(stdout_file,
                                            watched_io.log_watcher_debug, args)
     stderr_fd = watched_io.watched_io_open(stderr_file,
