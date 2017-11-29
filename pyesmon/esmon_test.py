@@ -183,12 +183,6 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
                           esmon_common.CSTR_FSNAME, config_fpath)
             return -1
 
-        mgs_nid = esmon_common.config_value(lustre_config, esmon_common.CSTR_MGS_NID)
-        if mgs_nid is None:
-            logging.error("no [%s] is configured, please correct file [%s]",
-                          esmon_common.CSTR_MGS_NID, config_fpath)
-            return -1
-
         lazy_prepare = esmon_common.config_value(lustre_config, esmon_common.CSTR_LAZY_PREPARE)
         if lazy_prepare is None:
             lazy_prepare = False
@@ -196,7 +190,7 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
                          esmon_common.CSTR_LAZY_PREPARE, fsname)
             return -1
 
-        lustre_fs = lustre.LustreFilesystem(fsname, mgs_nid)
+        lustre_fs = lustre.LustreFilesystem(fsname)
 
         # Parse MDT configs
         mdt_configs = esmon_common.config_value(lustre_config, esmon_common.CSTR_MDTS)
@@ -231,11 +225,25 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
                               esmon_common.CSTR_DEVICE, config_fpath)
                 return -1
 
+            nid = esmon_common.config_value(mdt_config, esmon_common.CSTR_NID)
+            if nid is None:
+                logging.error("no [%s] is configured, please correct file [%s]",
+                              esmon_common.CSTR_NID, config_fpath)
+                return -1
+
             is_mgs = esmon_common.config_value(mdt_config, esmon_common.CSTR_IS_MGS)
             if is_mgs is None:
-                logging.error("no [%s] is configured, please correct file [%s]",
-                              esmon_common.CSTR_IS_MGS, config_fpath)
-                return -1
+                logging.debug("no [%s] is configured, use default value [False]",
+                              esmon_common.CSTR_IS_MGS)
+                is_mgs = False
+
+            if is_mgs:
+                if lustre_fs.lf_mgs_nid is not None:
+                    logging.error("multiple MDTs with [%s] configured to "
+                                  "[True], please correct file [%s]",
+                                  esmon_common.CSTR_IS_MGS, config_fpath)
+                    return -1
+                lustre_fs.lf_mgs_nid = nid
 
             host = hosts[host_id]
             if host_id not in lustre_hosts:
@@ -243,6 +251,12 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
 
             lustre.LustreMDT(lustre_fs, mdt_index, host, device,
                              is_mgs=is_mgs)
+
+        if lustre_fs.lf_mgs_nid is None:
+            logging.error("None MDT is configured with [%s], "
+                          "please correct file [%s]",
+                          esmon_common.CSTR_IS_MGS, config_fpath)
+            return -1
 
         # Parse OST configs
         ost_configs = esmon_common.config_value(lustre_config, esmon_common.CSTR_OSTS)

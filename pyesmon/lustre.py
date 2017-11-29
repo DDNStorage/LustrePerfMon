@@ -24,9 +24,9 @@ class LustreFilesystem(object):
     """
     # pylint: disable=too-few-public-methods
     # mgs_nid: 10.0.0.1@tcp
-    def __init__(self, fsname, mgs_nid):
+    def __init__(self, fsname):
         self.lf_fsname = fsname
-        self.lf_mgs_nid = mgs_nid
+        self.lf_mgs_nid = None
         self.lf_osts = {}
         self.lf_mdts = {}
         self.lf_clients = {}
@@ -35,6 +35,11 @@ class LustreFilesystem(object):
         """
         Format the whole file system
         """
+        if self.lf_mgs_nid is None:
+            logging.error("the MGS nid of Lustre file system [%s] is not "
+                          "configured, not able to format", self.lf_fsname)
+            return -1
+
         for mdt_index, mdt in self.lf_mdts.iteritems():
             ret = mdt.lmdt_format()
             if ret:
