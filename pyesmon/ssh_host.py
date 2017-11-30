@@ -138,6 +138,7 @@ class SSHHost(object):
         self.sh_cached_distro = None
         self.sh_uptime_before_reboot = 0
         self.sh_reboot_issued = False
+        self.sh_cached_has_rsync = None
 
     def sh_is_up(self, timeout=60):
         """
@@ -627,6 +628,21 @@ class SSHHost(object):
         return command % (symlink_flag, delete_flag, ssh_cmd,
                           " ".join(sources), dest)
 
+    def sh_has_rsync(self):
+        """
+        Check whether host has rsync
+        """
+        # pylint: disable=too-many-return-statements,too-many-branches
+        if self.sh_cached_has_rsync is not None:
+            return self.sh_cached_has_rsync
+
+        ret = self.sh_run("which rsync")
+        if ret.cr_exit_status != 0:
+            self.sh_cached_has_rsync = False
+        else:
+            self.sh_cached_has_rsync = True
+        return self.sh_cached_has_rsync
+
     def sh_send_file(self, source, dest, delete_dest=False,
                      preserve_symlinks=False,
                      from_local=True,
@@ -639,6 +655,15 @@ class SSHHost(object):
         Otherwise, it will be sent to this host.
         """
         # pylint: disable=too-many-arguments
+        if not self.sh_has_rsync():
+            logging.debug("host [%s] doesnot have rsync, trying to install",
+                          self.sh_hostname)
+            ret = self.sh_run("yum install rsync -y")
+            if ret.cr_exit_status:
+                logging.error("failed to install rsync")
+                return -1
+            self.sh_cached_has_rsync = True
+
         if isinstance(source, basestring):
             source = [source]
         if remote_host is None:
@@ -650,9 +675,9 @@ class SSHHost(object):
                                               delete_dest, preserve_symlinks)
         if from_local:
             ret = utils.run(rsync)
-            from_host = self.sh_hostname
-        else:
             from_host = "local"
+        else:
+            from_host = self.sh_hostname
             ret = self.sh_run(rsync)
         if ret.cr_exit_status:
             logging.error("failed to send file [%s] on host [%s]  "
