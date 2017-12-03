@@ -1281,10 +1281,12 @@ class EsmonClient(object):
         Check whether the datapoint is recieved by InfluxDB
         """
         measurement_name = args[0]
-        fqdn = args[1]
-        query = ('SELECT * FROM "%s" '
-                 'WHERE fqdn = \'%s\' ORDER BY time DESC LIMIT 1;' %
-                 (measurement_name, fqdn))
+        tags = args[1]
+        tag_string = ""
+        for key, value in tags.iteritems():
+            tag_string += (" %s = '%s'" % (key, value))
+        query = ('SELECT * FROM "%s" WHERE%s ORDER BY time DESC LIMIT 1;' %
+                 (measurement_name, tag_string))
         client = self.ec_esmon_server.es_influxdb_client
 
         response = client.ic_query(query, epoch="s")
@@ -1364,14 +1366,14 @@ class EsmonClient(object):
                       timestamp, query)
         return -1
 
-    def ec_influxdb_measurement_check(self, measurement_name, fqdn=None):
+    def ec_influxdb_measurement_check(self, measurement_name, **tags):
         """
         Check whether influxdb has datapoint
         """
-        if fqdn is None:
-            fqdn = self.ec_host.sh_hostname
+        if "fqdn" not in tags:
+            tags["fqdn"] = self.ec_host.sh_hostname
         ret = utils.wait_condition(self._ec_influxdb_measurement_check,
-                                   [measurement_name, fqdn])
+                                   [measurement_name, tags])
         if ret:
             logging.error("failed to check measurement [%s]", measurement_name)
         return ret
@@ -1472,7 +1474,8 @@ def esmon_install_parse_config(workspace, config, config_fpath):
             logging.error("multiple SSH hosts with the same ID [%s], please "
                           "correct file [%s]", host_id, config_fpath)
             return -1, esmon_server, esmon_clients
-        host = ssh_host.SSHHost(hostname, ssh_identity_file)
+        host = ssh_host.SSHHost(hostname, identity_file=ssh_identity_file,
+                                host_id=host_id)
         hosts[host_id] = host
 
     server_host_config = esmon_common.config_value(config, esmon_common.CSTR_SERVER_HOST)

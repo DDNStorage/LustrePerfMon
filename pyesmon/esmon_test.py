@@ -143,6 +143,18 @@ def esmon_test_install(workspace, install_server, host_iso_path):
     return ret
 
 
+def lustre_host_metric_check(lustre_host, esmon_client):
+    """
+    Check that all expected Lustre metrics can be collected from this host
+    """
+    # ost_filesinfo_used,fqdn=server17_esmom_vm3,fs_name=lustre1,ost_index=OST0000
+    # ost_kbytesinfo_free,fqdn=server17_esmom_vm3,fs_name=lustre1,ost_index=OST0000
+    # ost_kbytesinfo_total,fqdn=server17_esmom_vm3,fs_name=lustre1,ost_index=OST0000
+    # ost_kbytesinfo_used,fqdn=server17_esmom_vm3,fs_name=lustre1,ost_index=OST0000
+    # pylint: disable=unused-argument
+    return 0
+
+
 def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
                       install_config_fpath):
     """
@@ -246,10 +258,14 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
                 lustre_fs.lf_mgs_nid = nid
 
             host = hosts[host_id]
-            if host_id not in lustre_hosts:
-                lustre_hosts[host_id] = host
+            lustre_host = lustre.LustreServerHost(host.sh_hostname,
+                                                  identity_file=host.sh_identity_file,
+                                                  local=host.sh_local)
 
-            lustre.LustreMDT(lustre_fs, mdt_index, host, device,
+            if host_id not in lustre_hosts:
+                lustre_hosts[host_id] = lustre_host
+
+            lustre.LustreMDT(lustre_fs, mdt_index, lustre_host, device,
                              is_mgs=is_mgs)
 
         if lustre_fs.lf_mgs_nid is None:
@@ -291,10 +307,14 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
                 return -1
 
             host = hosts[host_id]
-            if host_id not in lustre_hosts:
-                lustre_hosts[host_id] = host
+            lustre_host = lustre.LustreServerHost(host.sh_hostname,
+                                                  identity_file=host.sh_identity_file,
+                                                  local=host.sh_local)
 
-            lustre.LustreOST(lustre_fs, ost_index, host, device)
+            if host_id not in lustre_hosts:
+                lustre_hosts[host_id] = lustre_host
+
+            lustre.LustreOST(lustre_fs, ost_index, lustre_host, device)
 
         # Parse client configs
         client_configs = esmon_common.config_value(lustre_config,
@@ -326,7 +346,6 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
             host = hosts[host_id]
             if host_id not in lustre_hosts:
                 lustre_hosts[host_id] = host
-
             lustre.LustreClient(lustre_fs, host, mnt)
 
         # Install RPMs on MDS, OSS and clients
@@ -383,6 +402,23 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
                               "host [%s]", esmon_client.ec_host.sh_hostname)
                 return -1
 
+        for host_id, lustre_host in lustre_hosts.iteritems():
+            esmon_client = None
+            for tmp_client in esmon_clients.values():
+                if tmp_client.ec_host.sh_host_id == host_id:
+                    esmon_client = tmp_client
+                    break
+            if esmon_client is None:
+                logging.info("host [%s] is not configured as ESMON client in config file [%s]",
+                             lustre_host.sh_hostname, config_fpath)
+                continue
+            ret = lustre_host_metric_check(lustre_host, esmon_client)
+            if ret:
+                logging.error("failed to check Lustre metrics of "
+                              "host [%s]", lustre_host.sh_hostname)
+                return -1
+
+        for esmon_client in esmon_clients.values():
             ret = esmon_client.ec_collectd_send_config(False)
             if ret:
                 logging.error("failed to send final config to esmon client on host [%s]",

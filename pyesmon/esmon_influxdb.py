@@ -6,7 +6,12 @@ Library for access Influxdb through HTTP API
 """
 import logging
 import traceback
+import sys
+import httplib
 import requests
+
+from pyesmon import time_util
+from pyesmon import utils
 
 
 class InfluxdbClient(object):
@@ -56,3 +61,63 @@ class InfluxdbClient(object):
             return None
 
         return response
+
+
+def esmon_influxdb_query(influx_server, influx_database,
+                         query_string):
+    """
+    Query influxdb server
+    """
+    client = InfluxdbClient(influx_server, influx_database)
+    response = client.ic_query(query_string, epoch="s")
+    if response is None:
+        logging.debug("failed to query influxdb [%s] on server [%s] with query [%s] ",
+                      influx_database, influx_server, query_string)
+        return -1
+
+    if response.status_code != httplib.OK:
+        logging.debug("got InfluxDB status [%d]", response.status_code)
+        return -1
+
+    print response.json()
+    return 0
+
+
+def usage():
+    """
+    Print usage string
+    """
+    utils.eprint("Usage: %s influx_server influx_databse query_string" %
+                 sys.argv[0])
+
+
+def main():
+    """
+    Test Exascaler monitoring
+    """
+    # pylint: disable=unused-variable
+    reload(sys)
+    sys.setdefaultencoding("utf-8")
+
+    if len(sys.argv) != 4:
+        usage()
+        sys.exit(-1)
+    influx_server = sys.argv[1]
+    influx_database = sys.argv[2]
+    query_string = sys.argv[3]
+
+    identity = time_util.local_strftime(time_util.utcnow(), "%Y-%m-%d-%H_%M_%S")
+
+    print("Querying influxdb [%s] on server [%s] with query [%s] " %
+          (influx_database, influx_server, query_string))
+    utils.configure_logging()
+
+    console_handler = utils.LOGGING_HANLDERS["console"]
+    console_handler.setLevel(logging.DEBUG)
+
+    ret = esmon_influxdb_query(influx_server, influx_database,
+                               query_string)
+    if ret:
+        logging.error("Influxdb query failed")
+        sys.exit(ret)
+    sys.exit(0)

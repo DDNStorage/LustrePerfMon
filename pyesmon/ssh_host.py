@@ -130,8 +130,8 @@ class SSHHost(object):
     """
     Each SSH host has an object of SSHHost
     """
-    # pylint: disable=too-many-public-methods
-    def __init__(self, hostname, identity_file=None, local=False):
+    # pylint: disable=too-many-public-methods,too-many-instance-attributes
+    def __init__(self, hostname, identity_file=None, local=False, host_id=None):
         self.sh_hostname = hostname
         self.sh_identity_file = identity_file
         self.sh_local = local
@@ -139,6 +139,7 @@ class SSHHost(object):
         self.sh_uptime_before_reboot = 0
         self.sh_reboot_issued = False
         self.sh_cached_has_rsync = None
+        self.sh_host_id = host_id
 
     def sh_is_up(self, timeout=60):
         """

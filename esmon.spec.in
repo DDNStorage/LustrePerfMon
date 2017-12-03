@@ -40,6 +40,7 @@ mkdir -p $RPM_BUILD_ROOT%{_libdir}/esmon
 mkdir -p $RPM_BUILD_ROOT%{python_sitelib}
 mkdir -p $RPM_BUILD_ROOT%{_mandir}/man1/
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/pyesmon/*.py
+cp -a esmon_influxdb $RPM_BUILD_ROOT%{_bindir}
 cp -a esmon_install $RPM_BUILD_ROOT%{_bindir}
 cp -a esmon_test $RPM_BUILD_ROOT%{_bindir}
 cp -a esmon_virt $RPM_BUILD_ROOT%{_bindir}
@@ -57,6 +58,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root)
 
+%{_bindir}/esmon_influxdb
 %{_bindir}/esmon_install
 %{_bindir}/esmon_test
 %{_bindir}/esmon_virt

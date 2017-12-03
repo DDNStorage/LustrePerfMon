@@ -343,7 +343,7 @@ def run(command, timeout=None, stdout_tee=None, stderr_tee=None, stdin=None,
     return job.cj_run()
 
 
-def configure_logging(resultsdir):
+def configure_logging(resultsdir=None):
     """
     Configure the logging levels
     """
@@ -352,21 +352,22 @@ def configure_logging(resultsdir):
                                           "%(message)s",
                                           "%Y/%m/%d-%H:%M:%S")
 
-    debug_handler = logging.FileHandler(resultsdir + "/debug.log")
-    debug_handler.setLevel(logging.DEBUG)
-    debug_handler.setFormatter(default_formatter)
+    if resultsdir is not None:
+        debug_handler = logging.FileHandler(resultsdir + "/debug.log")
+        debug_handler.setLevel(logging.DEBUG)
+        debug_handler.setFormatter(default_formatter)
 
-    info_handler = logging.FileHandler(resultsdir + "/" + LOG_INFO_FNAME)
-    info_handler.setLevel(logging.INFO)
-    info_handler.setFormatter(default_formatter)
+        info_handler = logging.FileHandler(resultsdir + "/" + LOG_INFO_FNAME)
+        info_handler.setLevel(logging.INFO)
+        info_handler.setFormatter(default_formatter)
 
-    warning_handler = logging.FileHandler(resultsdir + "/warning.log")
-    warning_handler.setLevel(logging.WARNING)
-    warning_handler.setFormatter(default_formatter)
+        warning_handler = logging.FileHandler(resultsdir + "/warning.log")
+        warning_handler.setLevel(logging.WARNING)
+        warning_handler.setFormatter(default_formatter)
 
-    error_handler = logging.FileHandler(resultsdir + "/error.log")
-    error_handler.setLevel(logging.ERROR)
-    error_handler.setFormatter(default_formatter)
+        error_handler = logging.FileHandler(resultsdir + "/error.log")
+        error_handler.setLevel(logging.ERROR)
+        error_handler.setFormatter(default_formatter)
 
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
@@ -374,16 +375,18 @@ def configure_logging(resultsdir):
 
     logging.root.handlers = []
     logging.root.setLevel(logging.DEBUG)
-    logging.root.addHandler(debug_handler)
-    logging.root.addHandler(info_handler)
     logging.root.addHandler(console_handler)
-    logging.root.addHandler(warning_handler)
-    logging.root.addHandler(error_handler)
-
-    LOGGING_HANLDERS["debug"] = debug_handler
     LOGGING_HANLDERS["console"] = console_handler
-    LOGGING_HANLDERS["warning"] = warning_handler
-    LOGGING_HANLDERS["error"] = error_handler
+
+    if resultsdir is not None:
+        logging.root.addHandler(debug_handler)
+        logging.root.addHandler(info_handler)
+        logging.root.addHandler(warning_handler)
+        logging.root.addHandler(error_handler)
+        LOGGING_HANLDERS["debug"] = debug_handler
+        LOGGING_HANLDERS["info"] = debug_handler
+        LOGGING_HANLDERS["warning"] = warning_handler
+        LOGGING_HANLDERS["error"] = error_handler
 
 
 def thread_start(target, args):

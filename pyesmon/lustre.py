@@ -120,12 +120,19 @@ class LustreMDT(object):
         self.lmdt_lustre_fs = lustre_fs
         self.lmdt_index = index
         self.lmdt_host = host
+        if index in host.lsh_mdts:
+            reason = ("MDT [%d] already exists in host [%s]",
+                      (index, host.sh_hostname))
+            logging.error(reason)
+            raise Exception(reason)
+        host.lsh_mdts[index] = self
         self.lmdt_device = device
         self.lmdt_is_mgs = is_mgs
         self.lmdt_mnt = ("/mnt/%s_mdt_%s" % (lustre_fs.lf_fsname, index))
         if index in lustre_fs.lf_mdts:
             reason = ("MDT [%d] already exists in file system [%s]",
                       (index, lustre_fs.lf_fsname))
+            logging.error(reason)
             raise Exception(reason)
         lustre_fs.lf_mdts[index] = self
 
@@ -204,6 +211,12 @@ class LustreOST(object):
         self.lost_host = host
         self.lost_device = device
         self.lost_mnt = ("/mnt/%s_ost_%s" % (lustre_fs.lf_fsname, index))
+        if index in host.lsh_osts:
+            reason = ("OST [%d] already exists in host [%s]",
+                      (index, host.sh_hostname))
+            logging.error(reason)
+            raise Exception(reason)
+        host.lsh_osts[index] = self
         if index in lustre_fs.lf_osts:
             reason = ("OST [%d] already exists in file system [%s]",
                       (index, lustre_fs.lf_fsname))
@@ -510,6 +523,12 @@ class LustreServerHost(ssh_host.SSHHost):
         super(LustreServerHost, self).__init__(hostname,
                                                identity_file=identity_file,
                                                local=local)
+        # key: $hostname:$mnt, value: LustreClient object
+        self.lsh_clients = {}
+        # Key: $ost_index, value: LustreOST object
+        self.lsh_osts = {}
+        # Key: $mdt_index, value: LustreMDT object
+        self.lsh_mdts = {}
 
     def lsh_lustre_uninstall(self):
         # pylint: disable=too-many-return-statements,too-many-branches

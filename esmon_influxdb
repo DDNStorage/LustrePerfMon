@@ -1,0 +1,11 @@
+#!/usr/bin/python -u
+# Copyright (c) 2017 DataDirect Networks, Inc.
+# All Rights Reserved.
+# Author: lixi@ddn.com
+"""
+Check influxdb measurement
+"""
+from pyesmon import esmon_influxdb
+
+if __name__ == "__main__":
+    esmon_influxdb.main()
