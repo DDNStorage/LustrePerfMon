@@ -316,7 +316,8 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
             if host_id not in lustre_hosts:
                 lustre_hosts[host_id] = lustre_host
 
-            lustre.LustreMDT(lustre_fs, mdt_index, lustre_host, device,
+            mnt = "/mnt/%s_mdt_%s" % (fsname, mdt_index)
+            lustre.LustreMDT(lustre_fs, mdt_index, lustre_host, device, mnt,
                              is_mgs=is_mgs)
 
         if lustre_fs.lf_mgs_nid is None:
@@ -366,7 +367,8 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
             if host_id not in lustre_hosts:
                 lustre_hosts[host_id] = lustre_host
 
-            lustre.LustreOST(lustre_fs, ost_index, lustre_host, device)
+            mnt = "/mnt/%s_ost_%s" % (fsname, ost_index)
+            lustre.LustreOST(lustre_fs, ost_index, lustre_host, device, mnt)
 
         # Parse client configs
         client_configs = esmon_common.config_value(lustre_config,
@@ -404,6 +406,14 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
             if host_id not in lustre_hosts:
                 lustre_hosts[host_id] = lustre_host
             lustre.LustreClient(lustre_fs, host, mnt)
+
+        # Umount all clients first, so as to prevent stuck caused by umounted OSTs/MDTs
+        for host_id, lustre_host in lustre_hosts.iteritems():
+            logging.debug("trying to umount Lustre clients on host [%s] with host_id [%s]",
+                          lustre_host.sh_hostname, host_id)
+            ret = lustre_host.lsh_lustre_umount_services(client_only=True)
+            if ret:
+                logging.info("failed to umount Lustre clients, reboot is needed")
 
         # Install RPMs on MDS, OSS and clients
         for host_id, lustre_host in lustre_hosts.iteritems():

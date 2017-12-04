@@ -18,6 +18,17 @@ EPEL_RPM_RHEL6_RPM = ("http://download.fedoraproject.org/pub/epel/6/x86_64/"
 LUSTRE_TEST_SCRIPT_DIR = "/usr/lib64/lustre/tests"
 
 
+def lustre_string2index(index_string):
+    """
+    Transfer string to index number, e.g.
+    "000e" -> 14
+    """
+    index_number = int(index_string, 16)
+    if index_number > 0xffff:
+        return -1, ""
+    return 0, index_number
+
+
 def lustre_index2string(index_number):
     """
     Transfer number to index string, e.g.
@@ -147,12 +158,13 @@ class LustreMDT(object):
     """
     # pylint: disable=too-few-public-methods
     # index: 0, 1, etc.
-    def __init__(self, lustre_fs, index, host, device,
+    def __init__(self, lustre_fs, index, host, device, mnt,
                  is_mgs=False):
         # pylint: disable=too-many-arguments
         self.lmdt_lustre_fs = lustre_fs
         self.lmdt_index = index
         self.lmdt_host = host
+        self.lmdt_mnt = mnt
 
         ret = host.lsh_mdt_add(lustre_fs.lf_fsname, index, self)
         if ret:
@@ -170,7 +182,6 @@ class LustreMDT(object):
 
         self.lmdt_device = device
         self.lmdt_is_mgs = is_mgs
-        self.lmdt_mnt = ("/mnt/%s_mdt_%s" % (lustre_fs.lf_fsname, index))
 
     def lmdt_format(self):
         """
@@ -240,13 +251,13 @@ class LustreOST(object):
     """
     # pylint: disable=too-few-public-methods
     # index: 0, 1, etc.
-    def __init__(self, lustre_fs, index, host, device):
+    def __init__(self, lustre_fs, index, host, device, mnt):
         # pylint: disable=too-many-arguments
         self.lost_lustre_fs = lustre_fs
         self.lost_index = index
         self.lost_host = host
         self.lost_device = device
-        self.lost_mnt = ("/mnt/%s_ost_%s" % (lustre_fs.lf_fsname, index))
+        self.lost_mnt = mnt
         ret = host.lsh_ost_add(lustre_fs.lf_fsname, index, self)
         if ret:
             reason = ("OST [%s:%d] already exists in host [%s]",
@@ -551,6 +562,27 @@ def failure_caused_by_ksym(retval):
     return True
 
 
+def lustre_client_id(fsname, mnt):
+    """
+    Return the Lustre client ID
+    """
+    return "%s:%s" % (fsname, mnt)
+
+
+def lustre_ost_id(fsname, ost_index):
+    """
+    Return the Lustre client ID
+    """
+    return "%s:%s" % (fsname, ost_index)
+
+
+def lustre_mdt_id(fsname, mdt_index):
+    """
+    Return the Lustre client ID
+    """
+    return "%s:%s" % (fsname, mdt_index)
+
+
 class LustreServerHost(ssh_host.SSHHost):
     # pylint: disable=too-many-instance-attributes,too-many-public-methods
     """
@@ -572,7 +604,7 @@ class LustreServerHost(ssh_host.SSHHost):
         """
         Add OST into this host
         """
-        ost_id = ("%s:%s" % (fsname, ost_index))
+        ost_id = lustre_ost_id(fsname, ost_index)
         if ost_id in self.lsh_osts:
             return -1
         self.lsh_osts[ost_id] = ost
@@ -582,7 +614,7 @@ class LustreServerHost(ssh_host.SSHHost):
         """
         Add MDT into this host
         """
-        mdt_id = ("%s:%s" % (fsname, mdt_index))
+        mdt_id = lustre_mdt_id(fsname, mdt_index)
         if mdt_id in self.lsh_mdts:
             return -1
         self.lsh_mdts[mdt_id] = mdt
@@ -592,21 +624,17 @@ class LustreServerHost(ssh_host.SSHHost):
         """
         Add MDT into this host
         """
-        client_id = ("%s:%s" % (fsname, mnt))
+        client_id = lustre_client_id(fsname, mnt)
         if client_id in self.lsh_clients:
             return -1
         self.lsh_clients[client_id] = client
         return 0
 
-    def lsh_lustre_detect_clients(self, add_found=False):
+    def lsh_lustre_device_label(self, device):
         """
-        Detect mounted Lustre clients from the host
+        Run e2label on a lustre device
         """
-        client_pattern = (r"^.+:/(?P<fsname>\S+) (?P<mount_point>\S+) lustre .+$")
-        client_regular = re.compile(client_pattern)
-
-        # Detect Lustre client
-        command = ("cat /proc/mounts | grep lustre")
+        command = ("e2label %s" % device)
         retval = self.sh_run(command)
         if retval.cr_exit_status != 0:
             logging.error("failed to run command [%s] on host [%s], "
@@ -615,16 +643,51 @@ class LustreServerHost(ssh_host.SSHHost):
                           retval.cr_exit_status,
                           retval.cr_stdout,
                           retval.cr_stderr)
-            return []
+            return -1, None
+        return 0, retval.cr_stdout.strip()
 
-        clients = []
+    def lsh_lustre_detect_services(self, clients, osts, mdts, add_found=False):
+        """
+        Detect mounted Lustre services (MDT/OST/clients) from the host
+        """
+        # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+        server_pattern = (r"^(?P<device>\S+) (?P<mount_point>\S+) lustre .+$")
+        server_regular = re.compile(server_pattern)
+
+        client_pattern = (r"^.+:/(?P<fsname>\S+) (?P<mount_point>\S+) lustre .+$")
+        client_regular = re.compile(client_pattern)
+
+        ost_pattern = (r"^(?P<fsname>\S+)-OST(?P<index_string>[0-9a-f]{4})$")
+        ost_regular = re.compile(ost_pattern)
+
+        mdt_pattern = (r"^(?P<fsname>\S+)-MDT(?P<index_string>[0-9a-f]{4})$")
+        mdt_regular = re.compile(mdt_pattern)
+
+        # Detect Lustre services
+        command = ("cat /proc/mounts")
+        retval = self.sh_run(command)
+        if retval.cr_exit_status != 0:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command, self.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
         for line in retval.cr_stdout.splitlines():
             logging.debug("checking line [%s]", line)
+            match = server_regular.match(line)
+            if not match:
+                continue
+
+            device = match.group("device")
+            mount_point = match.group("mount_point")
+
             match = client_regular.match(line)
             if match:
-                mount_point = match.group("mount_point")
                 fsname = match.group("fsname")
-                client_id = ("%s:%s" % (fsname, mount_point))
+                client_id = lustre_client_id(fsname, mount_point)
                 if client_id in self.lsh_clients:
                     client = self.lsh_clients[client_id]
                 else:
@@ -632,18 +695,102 @@ class LustreServerHost(ssh_host.SSHHost):
                     client = LustreClient(lustre_fs, self, mount_point)
                     if add_found:
                         self.lsh_client_add(fsname, mount_point, client)
-                clients.append(client)
+                clients[client_id] = client
                 logging.debug("client [%s] mounted on dir [%s] of host [%s]",
                               fsname, mount_point, self.sh_hostname)
-        return clients
+                continue
 
-    def lsh_lustre_umount_clients(self):
+            ret, label = self.lsh_lustre_device_label(device)
+            if ret:
+                logging.error("failed to get the label of device [%s] on "
+                              "host [%s]", device, self.sh_hostname)
+                return -1
+
+            match = ost_regular.match(label)
+            if match:
+                fsname = match.group("fsname")
+                index_string = match.group("index_string")
+                ost_index = lustre_string2index(index_string)
+                ost_id = lustre_ost_id(fsname, ost_index)
+                if ost_id in self.lsh_osts:
+                    ost = self.lsh_osts[ost_id]
+                else:
+                    lustre_fs = LustreFilesystem(fsname)
+                    ost = LustreOST(lustre_fs, ost_index, self, device, mount_point)
+                    if add_found:
+                        self.lsh_ost_add(fsname, ost_index, ost)
+                osts[ost_id] = ost
+                logging.debug("OST [%s] mounted on dir [%s] of host [%s]",
+                              fsname, mount_point, self.sh_hostname)
+                continue
+
+            match = mdt_regular.match(label)
+            if match:
+                fsname = match.group("fsname")
+                index_string = match.group("index_string")
+                mdt_index = lustre_string2index(index_string)
+                mdt_id = lustre_mdt_id(fsname, mdt_index)
+                if mdt_id in self.lsh_mdts:
+                    mdt = self.lsh_mdts[mdt_id]
+                else:
+                    lustre_fs = LustreFilesystem(fsname)
+                    mdt = LustreMDT(lustre_fs, mdt_index, self, device, mount_point)
+                    if add_found:
+                        self.lsh_mdt_add(fsname, mdt_index, mdt)
+                mdts[mdt_id] = mdt
+                logging.debug("MDT [%s] mounted on dir [%s] of host [%s]",
+                              fsname, mount_point, self.sh_hostname)
+                continue
+            logging.error("unable to detect service mounted on dir [%s] of "
+                          "host [%s]", mount_point, self.sh_hostname)
+            return -1
+
+        return 0
+
+    def lsh_lustre_umount_services(self, client_only=False):
         """
-        Umount Lustre clients on the host
+        Umount Lustre OSTs/MDTs/clients on the host
         """
-        clients = self.lsh_lustre_detect_clients()
-        for client in clients:
+        clients = {}
+        osts = {}
+        mdts = {}
+        ret = self.lsh_lustre_detect_services(clients, osts, mdts)
+        if ret:
+            logging.error("failed to detect Lustre services on host [%s]",
+                          self.sh_hostname)
+            return -1
+
+        for client in clients.values():
             command = ("umount %s" % client.lc_mnt)
+            retval = self.sh_run(command)
+            if retval.cr_exit_status:
+                logging.error("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              self.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
+                return -1
+
+        if client_only:
+            return 0
+
+        for mdt in mdts.values():
+            command = ("umount %s" % mdt.lmdt_mnt)
+            retval = self.sh_run(command)
+            if retval.cr_exit_status:
+                logging.error("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              self.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
+                return -1
+
+        for ost in osts.values():
+            command = ("umount %s" % ost.lost_mnt)
             retval = self.sh_run(command)
             if retval.cr_exit_status:
                 logging.error("failed to run command [%s] on host [%s], "
@@ -1238,7 +1385,7 @@ class LustreServerHost(ssh_host.SSHHost):
                 return -1
 
         need_reboot = False
-        ret = self.lsh_lustre_umount_clients()
+        ret = self.lsh_lustre_umount_services()
         if ret:
             logging.info("failed to umount Lustre clients, reboot is needed")
             need_reboot = True
