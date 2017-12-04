@@ -634,7 +634,7 @@
               "pattern": "/.*/",
               "thresholds": [],
               "type": "number",
-              "unit": "short"
+              "unit": "deckbytes"
             }
           ],
           "targets": [
@@ -650,7 +650,7 @@
                 }
               ],
               "limit": "",
-              "measurement": "cqm_mdt_acctuser_samples",
+              "measurement": "cqm_ost_acctuser_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "A",
@@ -671,6 +671,12 @@
                   "key": "fs_name",
                   "operator": "=",
                   "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "optype",
+                  "operator": "=",
+                  "value": "usage_kbytes"
                 }
               ]
             }
@@ -717,7 +723,7 @@
               "pattern": "/.*/",
               "thresholds": [],
               "type": "number",
-              "unit": "kbytes"
+              "unit": "short"
             }
           ],
           "targets": [
@@ -732,7 +738,7 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_acctuser_samples",
+              "measurement": "cqm_mdt_acctuser_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "A",
@@ -752,11 +758,17 @@
                   "key": "fs_name",
                   "operator": "=",
                   "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "optype",
+                  "operator": "=",
+                  "value": "usage_inodes"
                 }
               ]
             }
           ],
-          "title": "Quota Accounting (inode)",
+          "title": "Quota Accounting (Inode)",
           "transform": "timeseries_aggregations",
           "type": "table"
         }
@@ -2377,7 +2389,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "lustre1",
           "value": "lustre1"
         },
