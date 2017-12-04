@@ -225,6 +225,12 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
                       esmon_common.CSTR_E2FSPROGS_RPM_DIR, config_fpath)
         return -1
 
+    cleanup = esmon_common.config_value(config, esmon_common.CSTR_CLEANUP)
+    if cleanup is None:
+        logging.debug("no [%s] is configured, use default value [false]",
+                      esmon_common.CSTR_CLEANUP)
+        cleanup = False
+
     lustre_rpms = lustre.LustreRPMs(lustre_rpm_dir)
     ret = lustre_rpms.lr_prepare()
     if ret:
@@ -495,11 +501,12 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
                               esmon_client.ec_host.sh_hostname)
                 return -1
 
-        ret = lustre_fs.lf_umount()
-        if ret:
-            logging.error("failed to umount file system [%s]",
-                          lustre_fs.lf_fsname)
-            return -1
+        if cleanup:
+            ret = lustre_fs.lf_umount()
+            if ret:
+                logging.error("failed to umount file system [%s]",
+                              lustre_fs.lf_fsname)
+                return -1
     return 0
 
 

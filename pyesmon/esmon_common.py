@@ -60,6 +60,7 @@ CSTR_IMAGE_DIR = "image_dir"
 CSTR_TEMPLATE_HOSTNAME = "template_hostname"
 CSTR_IP = "ip"
 CSTR_HOSTS = "hosts"
+CSTR_CLEANUP = "cleanup"
 
 
 def config_value(config, key):
