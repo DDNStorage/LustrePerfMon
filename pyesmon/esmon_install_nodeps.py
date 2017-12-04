@@ -768,9 +768,9 @@ class EsmonServer(object):
         group_string = ""
         for group in groups:
             group_string += ', "%s"' % group
-        query = ('CREATE CONTINUOUS QUERY %s ON "%s"\n'
-                 '  BEGIN SELECT sum("value") INTO "%s" '
-                 '      FROM "%s" GROUP BY time(%s)%s\n'
+        query = ('CREATE CONTINUOUS QUERY %s ON "%s" \n'
+                 'BEGIN SELECT sum("value") INTO "%s" \n'
+                 '    FROM "%s" GROUP BY time(%s)%s \n'
                  'END;' %
                  (cq_query, INFLUXDB_DATABASE_NAME, cq_measurement,
                   measurement, interval, group_string))
@@ -781,7 +781,9 @@ class EsmonServer(object):
             return -1
 
         if response.status_code != httplib.OK:
-            logging.error("got InfluxDB status [%d]", response.status_code)
+            logging.error("got InfluxDB status [%d] when creating "
+                          "continuous query with query [%s]",
+                          response.status_code, query)
             return -1
         return 0
 
@@ -800,7 +802,9 @@ class EsmonServer(object):
             return -1
 
         if response.status_code != httplib.OK:
-            logging.error("got InfluxDB status [%d]", response.status_code)
+            logging.error("got InfluxDB status [%d] when droping "
+                          "continuous query with query [%s]",
+                          response.status_code, query)
             return -1
         return 0
 
@@ -1300,7 +1304,8 @@ class EsmonClient(object):
             return -1
 
         if response.status_code != httplib.OK:
-            logging.debug("got InfluxDB status [%d]", response.status_code)
+            logging.debug("got InfluxDB status [%d] with query [%s]",
+                          response.status_code, query)
             return -1
 
         data = response.json()
