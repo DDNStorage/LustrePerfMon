@@ -178,6 +178,30 @@ def lustre_host_metric_check(lustre_host, esmon_client):
                               "of file system [%s]", measurement, ost.lost_index,
                               fsname)
                 return ret
+
+    for mdt in lustre_host.lsh_mdts.values():
+        lustre_fs = mdt.lmdt_lustre_fs
+        fsname = lustre_fs.lf_fsname
+        ret, mdt_index = lustre.lustre_mdt_index2string(mdt.lmdt_index)
+        if ret:
+            logging.error("invalid mdt index [%s]", mdt.lmdt_index)
+            return -1
+        measurements = ["mdt_filesinfo_free",
+                        "mdt_filesinfo_total",
+                        "mdt_filesinfo_used"]
+        for measurement in measurements:
+            logging.debug("checking measurement [%s] for MDT [%s] "
+                          "of file system [%s]", measurement, mdt.lmdt_index,
+                          fsname)
+            ret = esmon_client.ec_influxdb_measurement_check(measurement,
+                                                             fqdn=lustre_host.sh_hostname,
+                                                             fs_name=fsname,
+                                                             mdt_index=mdt_index)
+            if ret:
+                logging.error("failed to check measurement [%s] for MDT [%s] "
+                              "of file system [%s]", measurement, mdt.lmdt_index,
+                              fsname)
+                return ret
     return 0
 
 
