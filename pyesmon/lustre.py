@@ -598,6 +598,64 @@ class LustreServerHost(ssh_host.SSHHost):
         self.lsh_clients[client_id] = client
         return 0
 
+    def lsh_lustre_detect_clients(self, add_found=False):
+        """
+        Detect mounted Lustre clients from the host
+        """
+        client_pattern = (r"^.+:/(?P<fsname>\S+) (?P<mount_point>\S+) lustre .+$")
+        client_regular = re.compile(client_pattern)
+
+        # Detect Lustre client
+        command = ("cat /proc/mounts | grep lustre")
+        retval = self.sh_run(command)
+        if retval.cr_exit_status != 0:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command, self.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return []
+
+        clients = []
+        for line in retval.cr_stdout.splitlines():
+            logging.debug("checking line [%s]", line)
+            match = client_regular.match(line)
+            if match:
+                mount_point = match.group("mount_point")
+                fsname = match.group("fsname")
+                client_id = ("%s:%s" % (fsname, mount_point))
+                if client_id in self.lsh_clients:
+                    client = self.lsh_clients[client_id]
+                else:
+                    lustre_fs = LustreFilesystem(fsname)
+                    client = LustreClient(lustre_fs, self, mount_point)
+                    if add_found:
+                        self.lsh_client_add(fsname, mount_point, client)
+                clients.append(client)
+                logging.debug("client [%s] mounted on dir [%s] of host [%s]",
+                              fsname, mount_point, self.sh_hostname)
+        return clients
+
+    def lsh_lustre_umount_clients(self):
+        """
+        Umount Lustre clients on the host
+        """
+        clients = self.lsh_lustre_detect_clients()
+        for client in clients:
+            command = ("umount %s" % client.lc_mnt)
+            retval = self.sh_run(command)
+            if retval.cr_exit_status:
+                logging.error("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              self.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
+                return -1
+        return 0
+
     def lsh_lustre_uninstall(self):
         # pylint: disable=too-many-return-statements,too-many-branches
             # pylint: disable=too-many-statements
@@ -1129,11 +1187,11 @@ class LustreServerHost(ssh_host.SSHHost):
                 return False
         return True
 
-    def lsh_lustre_check_after_reboot(self, kernel_version):
+    def lsh_lustre_check_clean(self, kernel_version):
         """
-        Check whether the host is ready for running Lustre after reboot
+        Check whether the host is clean for running Lustre
         """
-        logging.info("checking for Lustre after on host [%s]", self.sh_hostname)
+        logging.info("checking for Lustre on host [%s]", self.sh_hostname)
         # Check whether kernel is installed kernel
         if not self.sh_is_up():
             logging.error("host [%s] is not up", self.sh_hostname)
@@ -1158,7 +1216,7 @@ class LustreServerHost(ssh_host.SSHHost):
                               retval.cr_stdout,
                               retval.cr_stderr)
                 return -1
-        logging.info("checked for Lustre after reboot on host [%s]",
+        logging.info("host [%s] is clean to run Lustre",
                      self.sh_hostname)
         return 0
 
@@ -1179,15 +1237,19 @@ class LustreServerHost(ssh_host.SSHHost):
                               self.sh_hostname)
                 return -1
 
-        need_reboot = True
-        if lazy_prepare:
-            ret = self.lsh_lustre_check_after_reboot(lustre_rpms.lr_kernel_version)
+        need_reboot = False
+        ret = self.lsh_lustre_umount_clients()
+        if ret:
+            logging.info("failed to umount Lustre clients, reboot is needed")
+            need_reboot = True
+
+        if lazy_prepare and not need_reboot:
+            ret = self.lsh_lustre_check_clean(lustre_rpms.lr_kernel_version)
             if ret:
                 logging.debug("host [%s] need a reboot to change the kernel "
                               "or cleanup the status of Lustre",
                               self.sh_hostname)
-            else:
-                need_reboot = False
+                need_reboot = True
 
         if need_reboot:
             ret = self.sh_kernel_set_default(lustre_rpms.lr_kernel_version)
@@ -1201,7 +1263,7 @@ class LustreServerHost(ssh_host.SSHHost):
                 logging.error("failed to reboot host [%s]", self.sh_hostname)
                 return -1
 
-            ret = self.lsh_lustre_check_after_reboot(lustre_rpms.lr_kernel_version)
+            ret = self.lsh_lustre_check_clean(lustre_rpms.lr_kernel_version)
             if ret:
                 logging.error("failed to check Lustre status after reboot on host [%s]",
                               self.sh_hostname)
