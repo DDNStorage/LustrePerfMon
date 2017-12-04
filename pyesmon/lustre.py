@@ -165,6 +165,12 @@ class LustreMDT(object):
         self.lmdt_index = index
         self.lmdt_host = host
         self.lmdt_mnt = mnt
+        ret, index_string = lustre_mdt_index2string(index)
+        if ret:
+            reason = ("invalid MDT index [%s]" % (index))
+            logging.error(reason)
+            raise Exception(reason)
+        self.lmdt_index_string = index_string
 
         ret = host.lsh_mdt_add(lustre_fs.lf_fsname, index, self)
         if ret:
@@ -258,6 +264,13 @@ class LustreOST(object):
         self.lost_host = host
         self.lost_device = device
         self.lost_mnt = mnt
+        ret, index_string = lustre_ost_index2string(index)
+        if ret:
+            reason = ("invalid OST index [%s]" % (index))
+            logging.error(reason)
+            raise Exception(reason)
+        self.lost_index_string = index_string
+
         ret = host.lsh_ost_add(lustre_fs.lf_fsname, index, self)
         if ret:
             reason = ("OST [%s:%d] already exists in host [%s]",
@@ -710,7 +723,11 @@ class LustreServerHost(ssh_host.SSHHost):
             if match:
                 fsname = match.group("fsname")
                 index_string = match.group("index_string")
-                ost_index = lustre_string2index(index_string)
+                ret, ost_index = lustre_string2index(index_string)
+                if ret:
+                    logging.error("invalid label [%s] of device [%s] on "
+                                  "host [%s]", label, device, self.sh_hostname)
+                    return -1
                 ost_id = lustre_ost_id(fsname, ost_index)
                 if ost_id in self.lsh_osts:
                     ost = self.lsh_osts[ost_id]
@@ -728,7 +745,11 @@ class LustreServerHost(ssh_host.SSHHost):
             if match:
                 fsname = match.group("fsname")
                 index_string = match.group("index_string")
-                mdt_index = lustre_string2index(index_string)
+                ret, mdt_index = lustre_string2index(index_string)
+                if ret:
+                    logging.error("invalid label [%s] of device [%s] on "
+                                  "host [%s]", label, device, self.sh_hostname)
+                    return -1
                 mdt_id = lustre_mdt_id(fsname, mdt_index)
                 if mdt_id in self.lsh_mdts:
                     mdt = self.lsh_mdts[mdt_id]

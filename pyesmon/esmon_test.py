@@ -157,7 +157,7 @@ def lustre_host_metric_check(lustre_host, esmon_client):
         fsname = lustre_fs.lf_fsname
         ret, ost_index = lustre.lustre_ost_index2string(ost.lost_index)
         if ret:
-            logging.error("invalid ost index [%s]", ost.lost_index)
+            logging.error("invalid OST index [%s]", (ost.lost_index))
             return -1
         measurements = ["ost_filesinfo_total",
                         "ost_filesinfo_free",
@@ -184,7 +184,7 @@ def lustre_host_metric_check(lustre_host, esmon_client):
         fsname = lustre_fs.lf_fsname
         ret, mdt_index = lustre.lustre_mdt_index2string(mdt.lmdt_index)
         if ret:
-            logging.error("invalid mdt index [%s]", mdt.lmdt_index)
+            logging.error("invalid MDT index [%s]", mdt.lmdt_index)
             return -1
         measurements = ["mdt_filesinfo_free",
                         "mdt_filesinfo_total",
