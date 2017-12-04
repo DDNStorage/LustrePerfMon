@@ -730,17 +730,29 @@ EOF
                       retval.cr_stderr)
         return -1
 
+    real_hostname = retval.cr_stdout.strip()
+    if real_hostname != hostname:
+        logging.error("wrong hostname, expected [%s], got [%s]",
+                      hostname, real_hostname)
+        return -1
+
     if internet:
         ret = vm_host.sh_enable_dns()
         if ret:
             logging.error("failed to enable dns on host [%s]")
             return -1
 
-    real_hostname = retval.cr_stdout.strip()
-    if real_hostname != hostname:
-        logging.error("wrong hostname, expected [%s], got [%s]",
-                      hostname, real_hostname)
-        return -1
+        command = "yum install rsync -y"
+        retval = vm_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          vm_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
 
     # Do not check the return status, because the connection could be stopped
     command = "init 0"
@@ -1075,13 +1087,17 @@ def esmon_vm_install(workspace, config, config_fpath):
         hosts_file.write(hosts_string)
 
     for host in vm_hosts:
-        ret = host.sh_enable_dns()
+        ret = host.sh_send_file(hosts_fpath, "/etc")
         if ret:
-            logging.error("failed to enable dns on host [%s]",
+            logging.error("failed to send hosts file [%s] on local host to "
+                          "directory [%s] on host [%s]",
+                          hosts_fpath, workspace,
                           host.sh_hostname)
             return -1
 
-        command = "yum install rsync -y"
+        # Clear the known_hosts, otherwise the reinstalled hosts can't be
+        # accessed by other hosts
+        command = "> /root/.ssh/known_hosts"
         retval = host.sh_run(command)
         if retval.cr_exit_status:
             logging.error("failed to run command [%s] on host [%s], "
@@ -1092,15 +1108,6 @@ def esmon_vm_install(workspace, config, config_fpath):
                           retval.cr_stdout,
                           retval.cr_stderr)
             return -1
-
-        ret = host.sh_send_file(hosts_fpath, "/etc")
-        if ret:
-            logging.error("failed to send hosts file [%s] on local host to "
-                          "directory [%s] on host [%s]",
-                          hosts_fpath, workspace,
-                          host.sh_hostname)
-            return -1
-
     return 0
 
 
