@@ -41,7 +41,7 @@
           "renderer": "flot",
           "seriesOverrides": [],
           "spaceLength": 10,
-          "span": 6,
+          "span": 3,
           "stack": true,
           "steppedLine": false,
           "targets": [
@@ -105,7 +105,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -145,7 +145,7 @@
           "renderer": "flot",
           "seriesOverrides": [],
           "spaceLength": 10,
-          "span": 6,
+          "span": 3,
           "stack": true,
           "steppedLine": false,
           "targets": [
@@ -209,7 +209,222 @@
               "label": null,
               "logBase": 1,
               "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
               "min": null,
+              "show": false
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 30,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 3,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "$tag_ost_index",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$__interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "cqm_ost_kbytesinfo_used",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" FROM \"ost_kbytesinfo_free\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"ost_index\"",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": []
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Free Space",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "deckbytes",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fill": 1,
+          "id": 31,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 3,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "$tag_ost_index",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$__interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" FROM \"ost_kbytesinfo_used\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"ost_index\"",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": []
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Used Space",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "deckbytes",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
               "show": true
             },
             {
@@ -2163,8 +2378,8 @@
         "allValue": null,
         "current": {
           "selected": true,
-          "text": "969362ae",
-          "value": "969362ae"
+          "text": "lustre1",
+          "value": "lustre1"
         },
         "datasource": "esmon_datasource",
         "hide": 0,
@@ -2172,18 +2387,7 @@
         "label": "Filesystem Name",
         "multi": false,
         "name": "fs_name",
-        "options": [
-          {
-            "selected": false,
-            "text": "server17",
-            "value": "server17"
-          },
-          {
-            "selected": true,
-            "text": "969362ae",
-            "value": "969362ae"
-          }
-        ],
+        "options": [],
         "query": "SHOW TAG VALUES FROM \"md_stats\" WITH KEY = fs_name",
         "refresh": 1,
         "regex": "",
