@@ -152,6 +152,32 @@ def lustre_host_metric_check(lustre_host, esmon_client):
     # ost_kbytesinfo_total,fqdn=server17_esmom_vm3,fs_name=lustre1,ost_index=OST0000
     # ost_kbytesinfo_used,fqdn=server17_esmom_vm3,fs_name=lustre1,ost_index=OST0000
     # pylint: disable=unused-argument
+    for ost in lustre_host.lsh_osts.values():
+        lustre_fs = ost.lost_lustre_fs
+        fsname = lustre_fs.lf_fsname
+        ret, ost_index = lustre.lustre_ost_index2string(ost.lost_index)
+        if ret:
+            logging.error("invalid ost index [%s]", ost.lost_index)
+            return -1
+        measurements = ["ost_filesinfo_total",
+                        "ost_filesinfo_free",
+                        "ost_filesinfo_used",
+                        "ost_kbytesinfo_free",
+                        "ost_kbytesinfo_total",
+                        "ost_kbytesinfo_used"]
+        for measurement in measurements:
+            logging.debug("checking measurement [%s] for OST [%s] "
+                          "of file system [%s]", measurement, ost.lost_index,
+                          fsname)
+            ret = esmon_client.ec_influxdb_measurement_check(measurement,
+                                                             fqdn=lustre_host.sh_hostname,
+                                                             fs_name=fsname,
+                                                             ost_index=ost_index)
+            if ret:
+                logging.error("failed to check measurement [%s] for OST [%s] "
+                              "of file system [%s]", measurement, ost.lost_index,
+                              fsname)
+                return ret
     return 0
 
 
@@ -260,7 +286,8 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
             host = hosts[host_id]
             lustre_host = lustre.LustreServerHost(host.sh_hostname,
                                                   identity_file=host.sh_identity_file,
-                                                  local=host.sh_local)
+                                                  local=host.sh_local,
+                                                  host_id=host_id)
 
             if host_id not in lustre_hosts:
                 lustre_hosts[host_id] = lustre_host
@@ -309,7 +336,8 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
             host = hosts[host_id]
             lustre_host = lustre.LustreServerHost(host.sh_hostname,
                                                   identity_file=host.sh_identity_file,
-                                                  local=host.sh_local)
+                                                  local=host.sh_local,
+                                                  host_id=host_id)
 
             if host_id not in lustre_hosts:
                 lustre_hosts[host_id] = lustre_host
@@ -344,15 +372,17 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
                 return -1
 
             host = hosts[host_id]
+            lustre_host = lustre.LustreServerHost(host.sh_hostname,
+                                                  identity_file=host.sh_identity_file,
+                                                  local=host.sh_local,
+                                                  host_id=host_id)
+
             if host_id not in lustre_hosts:
-                lustre_hosts[host_id] = host
+                lustre_hosts[host_id] = lustre_host
             lustre.LustreClient(lustre_fs, host, mnt)
 
         # Install RPMs on MDS, OSS and clients
-        for host_id, host in lustre_hosts.iteritems():
-            lustre_host = lustre.LustreServerHost(host.sh_hostname,
-                                                  identity_file=host.sh_identity_file,
-                                                  local=host.sh_local)
+        for host_id, lustre_host in lustre_hosts.iteritems():
             logging.debug("trying to install Lustre RPMs on host [%s] with host_id [%s]",
                           lustre_host.sh_hostname, host_id)
             ret = lustre_host.lsh_lustre_prepare(workspace, lustre_rpms,

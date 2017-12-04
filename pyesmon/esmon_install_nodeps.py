@@ -1276,7 +1276,7 @@ class EsmonClient(object):
 
     def _ec_influxdb_measurement_check(self, args):
         # pylint: disable=bare-except,unused-argument,too-many-return-statements
-        # pylint: disable=too-many-locals,too-many-branches
+        # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         """
         Check whether the datapoint is recieved by InfluxDB
         """
@@ -1284,8 +1284,12 @@ class EsmonClient(object):
         tags = args[1]
         tag_string = ""
         for key, value in tags.iteritems():
+            if tag_string != "":
+                tag_string += " AND"
+            else:
+                tag_string = " WHERE"
             tag_string += (" %s = '%s'" % (key, value))
-        query = ('SELECT * FROM "%s" WHERE%s ORDER BY time DESC LIMIT 1;' %
+        query = ('SELECT * FROM "%s"%s ORDER BY time DESC LIMIT 1;' %
                  (measurement_name, tag_string))
         client = self.ec_esmon_server.es_influxdb_client
 

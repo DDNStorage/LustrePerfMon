@@ -284,6 +284,14 @@ PostCacheChain "PostCache"
         Query_interval 10
     </Item>
     <Item>
+        Type "ost_filestotal"
+        Query_interval 10
+    </Item>
+    <Item>
+        Type "ost_filesfree"
+        Query_interval 10
+    </Item>
+    <Item>
         Type "ost_filesused"
         Query_interval 10
     </Item>

@@ -18,6 +18,39 @@ EPEL_RPM_RHEL6_RPM = ("http://download.fedoraproject.org/pub/epel/6/x86_64/"
 LUSTRE_TEST_SCRIPT_DIR = "/usr/lib64/lustre/tests"
 
 
+def lustre_index2string(index_number):
+    """
+    Transfer number to index string, e.g.
+    14 -> "000e"
+    """
+    if index_number > 0xffff:
+        return -1, ""
+    index_string = "%04x" % index_number
+    return 0, index_string
+
+
+def lustre_ost_index2string(index_number):
+    """
+    Transfer number to OST index string, e.g.
+    14 -> "OST000e"
+    """
+    if index_number > 0xffff:
+        return -1, ""
+    index_string = "OST%04x" % index_number
+    return 0, index_string
+
+
+def lustre_mdt_index2string(index_number):
+    """
+    Transfer number to MDT index string, e.g.
+    14 -> "MDT000e"
+    """
+    if index_number > 0xffff:
+        return -1, ""
+    index_string = "MDT%04x" % index_number
+    return 0, index_string
+
+
 class LustreFilesystem(object):
     """
     Information about Lustre file system
@@ -120,21 +153,24 @@ class LustreMDT(object):
         self.lmdt_lustre_fs = lustre_fs
         self.lmdt_index = index
         self.lmdt_host = host
-        if index in host.lsh_mdts:
-            reason = ("MDT [%d] already exists in host [%s]",
-                      (index, host.sh_hostname))
+
+        ret = host.lsh_mdt_add(lustre_fs.lf_fsname, index, self)
+        if ret:
+            reason = ("MDT [%s:%d] already exists in host [%s]",
+                      (lustre_fs.lf_fsname, index, host.sh_hostname))
             logging.error(reason)
             raise Exception(reason)
-        host.lsh_mdts[index] = self
-        self.lmdt_device = device
-        self.lmdt_is_mgs = is_mgs
-        self.lmdt_mnt = ("/mnt/%s_mdt_%s" % (lustre_fs.lf_fsname, index))
+
         if index in lustre_fs.lf_mdts:
             reason = ("MDT [%d] already exists in file system [%s]",
                       (index, lustre_fs.lf_fsname))
             logging.error(reason)
             raise Exception(reason)
         lustre_fs.lf_mdts[index] = self
+
+        self.lmdt_device = device
+        self.lmdt_is_mgs = is_mgs
+        self.lmdt_mnt = ("/mnt/%s_mdt_%s" % (lustre_fs.lf_fsname, index))
 
     def lmdt_format(self):
         """
@@ -211,12 +247,13 @@ class LustreOST(object):
         self.lost_host = host
         self.lost_device = device
         self.lost_mnt = ("/mnt/%s_ost_%s" % (lustre_fs.lf_fsname, index))
-        if index in host.lsh_osts:
-            reason = ("OST [%d] already exists in host [%s]",
-                      (index, host.sh_hostname))
+        ret = host.lsh_ost_add(lustre_fs.lf_fsname, index, self)
+        if ret:
+            reason = ("OST [%s:%d] already exists in host [%s]",
+                      (lustre_fs.lf_fsname, index, host.sh_hostname))
             logging.error(reason)
             raise Exception(reason)
-        host.lsh_osts[index] = self
+
         if index in lustre_fs.lf_osts:
             reason = ("OST [%d] already exists in file system [%s]",
                       (index, lustre_fs.lf_fsname))
@@ -519,16 +556,47 @@ class LustreServerHost(ssh_host.SSHHost):
     """
     Each host being used to run Lustre tests has an object of this
     """
-    def __init__(self, hostname, identity_file=None, local=False):
+    def __init__(self, hostname, identity_file=None, local=False, host_id=None):
         super(LustreServerHost, self).__init__(hostname,
                                                identity_file=identity_file,
-                                               local=local)
-        # key: $hostname:$mnt, value: LustreClient object
+                                               local=local,
+                                               host_id=host_id)
+        # key: $fsname:$mnt, value: LustreClient object
         self.lsh_clients = {}
-        # Key: $ost_index, value: LustreOST object
+        # Key: $fsname:$ost_index, value: LustreOST object
         self.lsh_osts = {}
-        # Key: $mdt_index, value: LustreMDT object
+        # Key: $fsname:$mdt_index, value: LustreMDT object
         self.lsh_mdts = {}
+
+    def lsh_ost_add(self, fsname, ost_index, ost):
+        """
+        Add OST into this host
+        """
+        ost_id = ("%s:%s" % (fsname, ost_index))
+        if ost_id in self.lsh_osts:
+            return -1
+        self.lsh_osts[ost_id] = ost
+        return 0
+
+    def lsh_mdt_add(self, fsname, mdt_index, mdt):
+        """
+        Add MDT into this host
+        """
+        mdt_id = ("%s:%s" % (fsname, mdt_index))
+        if mdt_id in self.lsh_mdts:
+            return -1
+        self.lsh_mdts[mdt_id] = mdt
+        return 0
+
+    def lsh_client_add(self, fsname, mnt, client):
+        """
+        Add MDT into this host
+        """
+        client_id = ("%s:%s" % (fsname, mnt))
+        if client_id in self.lsh_clients:
+            return -1
+        self.lsh_clients[client_id] = client
+        return 0
 
     def lsh_lustre_uninstall(self):
         # pylint: disable=too-many-return-statements,too-many-branches
