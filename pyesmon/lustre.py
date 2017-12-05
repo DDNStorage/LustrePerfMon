@@ -71,9 +71,32 @@ class LustreFilesystem(object):
     def __init__(self, fsname):
         self.lf_fsname = fsname
         self.lf_mgs_nid = None
+        self.lf_mgs = None
         self.lf_osts = {}
         self.lf_mdts = {}
         self.lf_clients = {}
+
+    def lf_ost_add(self, ost_index, ost):
+        """
+        Add OST into this file system
+        """
+        if ost_index in self.lf_osts:
+            return -1
+        self.lf_osts[ost_index] = ost
+        return 0
+
+    def lf_mdt_add(self, mdt_index, mdt):
+        """
+        Add MDT into this file system
+        """
+        if mdt_index in self.lf_mdts:
+            return -1
+        if mdt.lmdt_is_mgs:
+            if self.lf_mgs is not None:
+                return -1
+            self.lf_mgs = mdt
+        self.lf_mdts[mdt_index] = mdt
+        return 0
 
     def lf_format(self):
         """
@@ -151,6 +174,29 @@ class LustreFilesystem(object):
                 return -1
         return 0
 
+    def lf_conf_param(self, command):
+        """
+        Config param on the MGS
+        """
+        if self.lf_mgs is None:
+            logging.error("no MGS is known for Lustre file system [%s]",
+                          self.lf_fsname)
+            return -1
+
+        host = self.lf_mgs.lmdt_host
+        command = ("lctl conf_param %s.%s" %
+                   (self.lf_fsname, command))
+        retval = host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.debug("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
 
 class LustreMDT(object):
     """
@@ -165,6 +211,8 @@ class LustreMDT(object):
         self.lmdt_index = index
         self.lmdt_host = host
         self.lmdt_mnt = mnt
+        self.lmdt_device = device
+        self.lmdt_is_mgs = is_mgs
         ret, index_string = lustre_mdt_index2string(index)
         if ret:
             reason = ("invalid MDT index [%s]" % (index))
@@ -179,15 +227,13 @@ class LustreMDT(object):
             logging.error(reason)
             raise Exception(reason)
 
-        if index in lustre_fs.lf_mdts:
+        ret = lustre_fs.lf_mdt_add(index, self)
+        if ret:
             reason = ("MDT [%d] already exists in file system [%s]",
                       (index, lustre_fs.lf_fsname))
             logging.error(reason)
             raise Exception(reason)
         lustre_fs.lf_mdts[index] = self
-
-        self.lmdt_device = device
-        self.lmdt_is_mgs = is_mgs
 
     def lmdt_format(self):
         """
@@ -278,9 +324,11 @@ class LustreOST(object):
             logging.error(reason)
             raise Exception(reason)
 
-        if index in lustre_fs.lf_osts:
+        ret = lustre_fs.lf_ost_add(index, self)
+        if ret:
             reason = ("OST [%d] already exists in file system [%s]",
                       (index, lustre_fs.lf_fsname))
+            logging.error(reason)
             raise Exception(reason)
         lustre_fs.lf_osts[index] = self
 

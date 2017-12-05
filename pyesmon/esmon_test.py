@@ -445,6 +445,13 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
                           lustre_fs.lf_fsname)
             return -1
 
+        # Enable jobstat
+        ret = lustre_fs.lf_conf_param("sys.jobid_var=procname_uid")
+        if ret:
+            logging.error("failed to change jobid_var of file system [%s]",
+                          lustre_fs.lf_fsname)
+            return -1
+
         ret, esmon_server, esmon_clients = \
             esmon_install_nodeps.esmon_install_parse_config(workspace,
                                                             install_config,
