@@ -716,6 +716,42 @@ class EsmonServer(object):
                           self.es_host.sh_hostname)
             return -1
 
+        ret = self.es_influxdb_cq_create("mdt_acctuser_samples",
+                                         ["user_id", "optype", "fs_name"])
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("mdt_acctgroup_samples",
+                                         ["group_id", "optype", "fs_name"])
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("mdt_acctproject_samples",
+                                         ["project_id", "optype", "fs_name"])
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("ost_acctuser_samples",
+                                         ["user_id", "optype", "fs_name"])
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("ost_acctgroup_samples",
+                                         ["group_id", "optype", "fs_name"])
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("ost_acctproject_samples",
+                                         ["project_id", "optype", "fs_name"])
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("ost_kbytesinfo_used",
+                                         ["optype", "fs_name"],
+                                         interval="10m")
+        if ret:
+            return -1
+
         ret = self.es_influxdb_cq_create("mdt_jobstats_samples",
                                          ["job_id", "optype", "fs_name"])
         if ret:
@@ -738,22 +774,6 @@ class EsmonServer(object):
 
         ret = self.es_influxdb_cq_create("md_stats",
                                          ["optype", "fs_name"])
-        if ret:
-            return -1
-
-        ret = self.es_influxdb_cq_create("mdt_acctuser_samples",
-                                         ["user_id", "optype", "fs_name"])
-        if ret:
-            return -1
-
-        ret = self.es_influxdb_cq_create("ost_acctuser_samples",
-                                         ["user_id", "optype", "fs_name"])
-        if ret:
-            return -1
-
-        ret = self.es_influxdb_cq_create("ost_kbytesinfo_used",
-                                         ["user_id", "optype", "fs_name"],
-                                         interval="10m")
         if ret:
             return -1
         return 0

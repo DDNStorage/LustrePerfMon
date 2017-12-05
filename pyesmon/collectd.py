@@ -272,6 +272,14 @@ PostCacheChain "PostCache"
         Query_interval 10
     </Item>
     <Item>
+        Type "ost_acctgroup"
+        Query_interval 10
+    </Item>
+    <Item>
+        Type "ost_acctproject"
+        Query_interval 10
+    </Item>
+    <Item>
         Type "ost_kbytestotal"
         Query_interval 10
     </Item>
@@ -339,6 +347,14 @@ PostCacheChain "PostCache"
     # MDT stats
     <Item>
         Type "mdt_acctuser"
+        Query_interval 10
+    </Item>
+    <Item>
+        Type "mdt_acctgroup"
+        Query_interval 10
+    </Item>
+    <Item>
+        Type "mdt_acctproject"
         Query_interval 10
     </Item>
     <Item>
