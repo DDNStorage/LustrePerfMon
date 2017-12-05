@@ -56,10 +56,10 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "pd_rate",
+              "measurement": "vd_rate",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" FROM \"pd_rate\" WHERE \"disk_index\" = '$disk_index' AND \"fqdn\" = '$fqdn' AND $timeFilter GROUP BY \"controller\", \"type\", \"fqdn\"",
+              "query": "SELECT \"value\" FROM \"vd_rate\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'KiBps' AND $timeFilter GROUP BY \"controller\"",
               "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
@@ -97,7 +97,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "I/O Performance on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "title": "I/O Performance on Virtual Disk \"$disk_index\" of SFA \"$fqdn\"",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -172,11 +172,11 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "pd_rate",
+              "measurement": "vd_rate",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_rate\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'iops' AND $timeFilter GROUP BY \"controller\"",
-              "rawQuery": true,
+              "query": "SELECT \"value\" FROM \"vd_rate\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'iops' AND $timeFilter GROUP BY \"controller\"",
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
@@ -213,7 +213,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "IOPS on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "title": "IOPS on Virtual Disk \"$disk_index\" of SFA \"$fqdn\"",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -288,7 +288,7 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "pd_rate",
+              "measurement": "vd_rate",
               "orderByTime": "ASC",
               "policy": "default",
               "query": "SELECT \"value\" FROM \"vd_rate\" WHERE \"fqdn\" = 'OST' AND \"disk_index\" = '$disk_index' AND \"type\" = 'KiBps' AND $timeFilter GROUP BY \"controller\"",
@@ -329,7 +329,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Bytes per I/O on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "title": "Bytes per I/O on Virtual Disk \"$disk_index\" of SFA \"$fqdn\"",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -416,10 +416,10 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "pd_rate",
+              "measurement": "vd_rate",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" FROM \"pd_rate\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'W_KiBps' AND $timeFilter GROUP BY \"controller\"",
+              "query": "SELECT \"value\" FROM \"vd_rate\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'W_KiBps' AND $timeFilter GROUP BY \"controller\"",
               "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
@@ -457,7 +457,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Write Performance on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "title": "Write Performance on Virtual Disk \"$disk_index\" of SFA \"$fqdn\"",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -532,10 +532,10 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "pd_rate",
+              "measurement": "vd_rate",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" FROM \"pd_rate\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'R_KiBps' AND $timeFilter GROUP BY \"controller\"",
+              "query": "SELECT \"value\" FROM \"vd_rate\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'R_KiBps' AND $timeFilter GROUP BY \"controller\"",
               "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
@@ -573,7 +573,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Read Performance on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "title": "Read Performance on Virtual Disk \"$disk_index\" of SFA \"$fqdn\"",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -653,10 +653,10 @@
               "alias": "le4KiB",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_iosize",
+              "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le4KiB' AND $timeFilter",
+              "query": "SELECT \"value\"  / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le4KiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -700,10 +700,10 @@
               "alias": "le8KiB",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_iosize",
+              "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le8KiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le8KiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "B",
               "resultFormat": "time_series",
@@ -747,10 +747,10 @@
               "alias": "le16KiB",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_iosize",
+              "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le16KiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le16KiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "C",
               "resultFormat": "time_series",
@@ -794,10 +794,10 @@
               "alias": "le32KiB",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_iosize",
+              "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le32KiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le32KiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "D",
               "resultFormat": "time_series",
@@ -841,10 +841,10 @@
               "alias": "le64KiB",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_iosize",
+              "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le64KiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le64KiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "E",
               "resultFormat": "time_series",
@@ -888,10 +888,10 @@
               "alias": "le128KiB",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_iosize",
+              "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le128KiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le128KiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "F",
               "resultFormat": "time_series",
@@ -935,10 +935,10 @@
               "alias": "le256KiB",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_iosize",
+              "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le256KiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le256KiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "G",
               "resultFormat": "time_series",
@@ -982,10 +982,10 @@
               "alias": "le512KiB",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_iosize",
+              "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le512KiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le512KiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "H",
               "resultFormat": "time_series",
@@ -1029,10 +1029,10 @@
               "alias": "le1MiB",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_iosize",
+              "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le1MiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le1MiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "I",
               "resultFormat": "time_series",
@@ -1076,10 +1076,10 @@
               "alias": "le2MiB",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_iosize",
+              "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le2MiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le2MiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "J",
               "resultFormat": "time_series",
@@ -1123,10 +1123,10 @@
               "alias": "le4MiB",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_iosize",
+              "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le4MiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'le4MiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "K",
               "resultFormat": "time_series",
@@ -1170,10 +1170,10 @@
               "alias": "gt4MiB",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_iosize",
+              "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'gt4MiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"iosize\" = 'gt4MiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "L",
               "resultFormat": "time_series",
@@ -1217,7 +1217,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Write I/O Size Samples on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "title": "Write I/O Size Samples on Virtual Disk \"$disk_index\" of SFA \"$fqdn\"",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1285,10 +1285,10 @@
               "alias": "le4KiB",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_iosize",
+              "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le4KiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le4KiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -1335,7 +1335,7 @@
               "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le8KiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le8KiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "B",
               "resultFormat": "time_series",
@@ -1382,7 +1382,7 @@
               "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le16KiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le16KiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "C",
               "resultFormat": "time_series",
@@ -1429,7 +1429,7 @@
               "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le32KiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le32KiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "D",
               "resultFormat": "time_series",
@@ -1476,7 +1476,7 @@
               "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le64KiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le64KiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "E",
               "resultFormat": "time_series",
@@ -1523,7 +1523,7 @@
               "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le128KiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le128KiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "F",
               "resultFormat": "time_series",
@@ -1570,7 +1570,7 @@
               "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le256KiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le256KiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "G",
               "resultFormat": "time_series",
@@ -1617,7 +1617,7 @@
               "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le512KiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le512KiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "H",
               "resultFormat": "time_series",
@@ -1664,7 +1664,7 @@
               "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le1MiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le1MiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "I",
               "resultFormat": "time_series",
@@ -1711,7 +1711,7 @@
               "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le2MiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le2MiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "J",
               "resultFormat": "time_series",
@@ -1758,7 +1758,7 @@
               "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le4MiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'le4MiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "K",
               "resultFormat": "time_series",
@@ -1805,7 +1805,7 @@
               "measurement": "vd_iosize",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'gt4MiB' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_iosize\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"iosize\" = 'gt4MiB' AND $timeFilter",
               "rawQuery": true,
               "refId": "L",
               "resultFormat": "time_series",
@@ -1849,7 +1849,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Read I/O Size Samples on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "title": "Read I/O Size Samples on Virtual Disk \"$disk_index\" of SFA \"$fqdn\"",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1926,109 +1926,15 @@
           "steppedLine": false,
           "targets": [
             {
-              "alias": "le4ms",
-              "dsType": "influxdb",
-              "groupBy": [],
-              "measurement": "pd_latency",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le4ms' AND $timeFilter",
-              "rawQuery": true,
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "value"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fqdn",
-                  "operator": "=",
-                  "value": "$fqdn"
-                },
-                {
-                  "condition": "AND",
-                  "key": "disk_index",
-                  "operator": "=",
-                  "value": "$disk_index"
-                },
-                {
-                  "condition": "AND",
-                  "key": "type",
-                  "operator": "=",
-                  "value": "write"
-                },
-                {
-                  "condition": "AND",
-                  "key": "latency",
-                  "operator": "=",
-                  "value": "le4ms"
-                }
-              ]
-            },
-            {
-              "alias": "le8ms",
-              "dsType": "influxdb",
-              "groupBy": [],
-              "measurement": "pd_latency",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le8ms' AND $timeFilter",
-              "rawQuery": true,
-              "refId": "B",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "value"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fqdn",
-                  "operator": "=",
-                  "value": "$fqdn"
-                },
-                {
-                  "condition": "AND",
-                  "key": "disk_index",
-                  "operator": "=",
-                  "value": "$disk_index"
-                },
-                {
-                  "condition": "AND",
-                  "key": "type",
-                  "operator": "=",
-                  "value": "write"
-                },
-                {
-                  "condition": "AND",
-                  "key": "latency",
-                  "operator": "=",
-                  "value": "le8ms"
-                }
-              ]
-            },
-            {
               "alias": "le16ms",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_latency",
+              "measurement": "vd_latency",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le16ms' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le16ms' AND $timeFilter",
               "rawQuery": true,
-              "refId": "C",
+              "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -2070,12 +1976,12 @@
               "alias": "le32ms",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_latency",
+              "measurement": "vd_latency",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le32ms' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le2s' AND $timeFilter",
               "rawQuery": true,
-              "refId": "D",
+              "refId": "B",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -2103,13 +2009,13 @@
                   "condition": "AND",
                   "key": "type",
                   "operator": "=",
-                  "value": "write"
+                  "value": "read"
                 },
                 {
                   "condition": "AND",
                   "key": "latency",
                   "operator": "=",
-                  "value": "le32ms"
+                  "value": "le2s"
                 }
               ]
             },
@@ -2117,12 +2023,12 @@
               "alias": "le64ms",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_latency",
+              "measurement": "vd_latency",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le64ms' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le64ms' AND $timeFilter",
               "rawQuery": true,
-              "refId": "E",
+              "refId": "C",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -2164,12 +2070,12 @@
               "alias": "le128ms",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_latency",
+              "measurement": "vd_latency",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le128ms' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le128ms' AND $timeFilter",
               "rawQuery": true,
-              "refId": "F",
+              "refId": "D",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -2211,12 +2117,12 @@
               "alias": "le256ms",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_latency",
+              "measurement": "vd_latency",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le256ms' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le256ms' AND $timeFilter",
               "rawQuery": true,
-              "refId": "G",
+              "refId": "E",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -2258,12 +2164,12 @@
               "alias": "le512ms",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_latency",
+              "measurement": "vd_latency",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le512ms' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le512ms' AND $timeFilter",
               "rawQuery": true,
-              "refId": "H",
+              "refId": "F",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -2305,12 +2211,12 @@
               "alias": "le1s",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_latency",
+              "measurement": "vd_latency",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le1s' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le1s' AND $timeFilter",
               "rawQuery": true,
-              "refId": "I",
+              "refId": "G",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -2352,12 +2258,12 @@
               "alias": "le2s",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_latency",
+              "measurement": "vd_latency",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le2s' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le2s' AND $timeFilter",
               "rawQuery": true,
-              "refId": "J",
+              "refId": "H",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -2399,12 +2305,12 @@
               "alias": "le4s",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_latency",
+              "measurement": "vd_latency",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le4s' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le4s' AND $timeFilter",
               "rawQuery": true,
-              "refId": "K",
+              "refId": "I",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -2443,13 +2349,107 @@
               ]
             },
             {
-              "alias": "gt4s",
+              "alias": "le8s",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_latency",
+              "measurement": "vd_latency",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'gt4s' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le8s' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "J",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "write"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le8s"
+                }
+              ]
+            },
+            {
+              "alias": "le16s",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "vd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'le16s' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "K",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "write"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le16s"
+                }
+              ]
+            },
+            {
+              "alias": "gt16s",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "vd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'write' AND \"latency\" = 'gt16s' AND $timeFilter",
               "rawQuery": true,
               "refId": "L",
               "resultFormat": "time_series",
@@ -2485,7 +2485,7 @@
                   "condition": "AND",
                   "key": "latency",
                   "operator": "=",
-                  "value": "gt4s"
+                  "value": "gt16s"
                 }
               ]
             }
@@ -2493,7 +2493,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Write Latency Samples on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "title": "Write Latency Samples on Virtual Disk \"$disk_index\" of SFA \"$fqdn\"",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -2533,7 +2533,7 @@
           "dashes": false,
           "datasource": null,
           "fill": 1,
-          "id": 15,
+          "id": 3,
           "legend": {
             "avg": false,
             "current": false,
@@ -2558,109 +2558,15 @@
           "steppedLine": false,
           "targets": [
             {
-              "alias": "le4ms",
-              "dsType": "influxdb",
-              "groupBy": [],
-              "measurement": "pd_latency",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le4ms' AND $timeFilter",
-              "rawQuery": true,
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "value"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fqdn",
-                  "operator": "=",
-                  "value": "$fqdn"
-                },
-                {
-                  "condition": "AND",
-                  "key": "disk_index",
-                  "operator": "=",
-                  "value": "$disk_index"
-                },
-                {
-                  "condition": "AND",
-                  "key": "type",
-                  "operator": "=",
-                  "value": "read"
-                },
-                {
-                  "condition": "AND",
-                  "key": "latency",
-                  "operator": "=",
-                  "value": "le4ms"
-                }
-              ]
-            },
-            {
-              "alias": "le8ms",
-              "dsType": "influxdb",
-              "groupBy": [],
-              "measurement": "pd_latency",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le8ms' AND $timeFilter",
-              "rawQuery": true,
-              "refId": "B",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "value"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fqdn",
-                  "operator": "=",
-                  "value": "$fqdn"
-                },
-                {
-                  "condition": "AND",
-                  "key": "disk_index",
-                  "operator": "=",
-                  "value": "$disk_index"
-                },
-                {
-                  "condition": "AND",
-                  "key": "type",
-                  "operator": "=",
-                  "value": "read"
-                },
-                {
-                  "condition": "AND",
-                  "key": "latency",
-                  "operator": "=",
-                  "value": "le8ms"
-                }
-              ]
-            },
-            {
               "alias": "le16ms",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_latency",
+              "measurement": "vd_latency",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le16ms' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le16ms' AND $timeFilter",
               "rawQuery": true,
-              "refId": "C",
+              "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -2702,12 +2608,12 @@
               "alias": "le32ms",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_latency",
+              "measurement": "vd_latency",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le32ms' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le2s' AND $timeFilter",
               "rawQuery": true,
-              "refId": "D",
+              "refId": "B",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -2741,7 +2647,7 @@
                   "condition": "AND",
                   "key": "latency",
                   "operator": "=",
-                  "value": "le32ms"
+                  "value": "le2s"
                 }
               ]
             },
@@ -2749,12 +2655,12 @@
               "alias": "le64ms",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_latency",
+              "measurement": "vd_latency",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le64ms' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le64ms' AND $timeFilter",
               "rawQuery": true,
-              "refId": "E",
+              "refId": "C",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -2796,12 +2702,12 @@
               "alias": "le128ms",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_latency",
+              "measurement": "vd_latency",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le128ms' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le128ms' AND $timeFilter",
               "rawQuery": true,
-              "refId": "F",
+              "refId": "D",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -2843,12 +2749,12 @@
               "alias": "le256ms",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_latency",
+              "measurement": "vd_latency",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le256ms' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le256ms' AND $timeFilter",
               "rawQuery": true,
-              "refId": "G",
+              "refId": "E",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -2890,12 +2796,12 @@
               "alias": "le512ms",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_latency",
+              "measurement": "vd_latency",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le512ms' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le512ms' AND $timeFilter",
               "rawQuery": true,
-              "refId": "H",
+              "refId": "F",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -2937,12 +2843,12 @@
               "alias": "le1s",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_latency",
+              "measurement": "vd_latency",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le1s' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le1s' AND $timeFilter",
               "rawQuery": true,
-              "refId": "I",
+              "refId": "G",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -2984,12 +2890,12 @@
               "alias": "le2s",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_latency",
+              "measurement": "vd_latency",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le2s' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le2s' AND $timeFilter",
               "rawQuery": true,
-              "refId": "J",
+              "refId": "H",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -3031,12 +2937,12 @@
               "alias": "le4s",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_latency",
+              "measurement": "vd_latency",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le4s' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le4s' AND $timeFilter",
               "rawQuery": true,
-              "refId": "K",
+              "refId": "I",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -3075,13 +2981,107 @@
               ]
             },
             {
-              "alias": "gt4s",
+              "alias": "le8s",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "pd_latency",
+              "measurement": "vd_latency",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" / 60 FROM \"pd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'gt4s' AND $timeFilter",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le8s' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "J",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le8s"
+                }
+              ]
+            },
+            {
+              "alias": "le16s",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "vd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'le16s' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "K",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fqdn",
+                  "operator": "=",
+                  "value": "$fqdn"
+                },
+                {
+                  "condition": "AND",
+                  "key": "disk_index",
+                  "operator": "=",
+                  "value": "$disk_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "type",
+                  "operator": "=",
+                  "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "latency",
+                  "operator": "=",
+                  "value": "le16s"
+                }
+              ]
+            },
+            {
+              "alias": "gt16s",
+              "dsType": "influxdb",
+              "groupBy": [],
+              "measurement": "vd_latency",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" / $COLLECT_INTERVAL FROM \"vd_latency\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'read' AND \"latency\" = 'gt16s' AND $timeFilter",
               "rawQuery": true,
               "refId": "L",
               "resultFormat": "time_series",
@@ -3117,7 +3117,7 @@
                   "condition": "AND",
                   "key": "latency",
                   "operator": "=",
-                  "value": "gt4s"
+                  "value": "gt16s"
                 }
               ]
             }
@@ -3125,7 +3125,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Read Latency Samples on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "title": "Read Latency Samples on Virtual Disk \"$disk_index\" of SFA \"$fqdn\"",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -3212,11 +3212,11 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "pd_rate",
+              "measurement": "vd_rate",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" FROM \"pd_rate\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'Fwd_KiBps' AND $timeFilter GROUP BY \"controller\"",
-              "rawQuery": false,
+              "query": "SELECT \"value\" FROM \"vd_rate\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'Fwd_KiBps' AND $timeFilter GROUP BY \"controller\"",
+              "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
@@ -3233,7 +3233,7 @@
                 {
                   "key": "fqdn",
                   "operator": "=",
-                  "value": "$fqdn"
+                  "value": "OST"
                 },
                 {
                   "condition": "AND",
@@ -3253,7 +3253,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Forwarding I/O Performance on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "title": "Forwarding I/O Performance on Virtual Disk \"$disk_index\" of SFA \"$fqdn\"",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -3328,11 +3328,11 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "pd_rate",
+              "measurement": "vd_rate",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"value\" FROM \"pd_rate\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'Fwd_iops' AND $timeFilter GROUP BY \"controller\"",
-              "rawQuery": false,
+              "query": "SELECT \"value\" FROM \"vd_rate\" WHERE \"fqdn\" = '$fqdn' AND \"disk_index\" = '$disk_index' AND \"type\" = 'Fwd_iops' AND $timeFilter GROUP BY \"controller\"",
+              "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
@@ -3349,7 +3349,7 @@
                 {
                   "key": "fqdn",
                   "operator": "=",
-                  "value": "$fqdn"
+                  "value": "OST"
                 },
                 {
                   "condition": "AND",
@@ -3369,7 +3369,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Forwarding IOPS on Physical Disk \"$disk_index\" of SFA \"$fqdn\"",
+          "title": "Forwarding IOPS on Virtual Disk \"$disk_index\" of SFA \"$fqdn\"",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -3429,7 +3429,7 @@
         "multi": false,
         "name": "fqdn",
         "options": [],
-        "query": "SHOW TAG VALUES FROM \"pd_iosize\" WITH KEY = fqdn",
+        "query": "SHOW TAG VALUES FROM \"vd_iosize\" WITH KEY = fqdn",
         "refresh": 1,
         "regex": "",
         "sort": 3,
@@ -3442,8 +3442,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "1",
-          "value": "1"
+          "text": "0",
+          "value": "0"
         },
         "datasource": "esmon_datasource",
         "hide": 0,
@@ -3452,7 +3452,7 @@
         "multi": false,
         "name": "disk_index",
         "options": [],
-        "query": "SHOW TAG VALUES FROM \"pd_iosize\" WITH KEY = disk_index",
+        "query": "SHOW TAG VALUES FROM \"vd_iosize\" WITH KEY = disk_index",
         "refresh": 1,
         "regex": "",
         "sort": 3,
@@ -3485,6 +3485,6 @@
     ]
   },
   "timezone": "",
-  "title": "SFA Physical Disk",
+  "title": "SFA Virtual Disk",
   "version": 1
 }

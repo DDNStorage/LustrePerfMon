@@ -7,11 +7,9 @@ Library for generating collectd config
 import collections
 import logging
 
-COLLECTD_CONFIG_TEMPLATE_FNAME = "collectd.conf.template"
 COLLECTD_CONFIG_TEST_FNAME = "collectd.conf.test"
 COLLECTD_CONFIG_FINAL_FNAME = "collectd.conf.final"
 COLLECTD_INTERVAL_TEST = 1
-COLLECTD_INTERVAL_FINAL = 60
 
 
 class CollectdConfig(object):
@@ -19,7 +17,7 @@ class CollectdConfig(object):
     Each collectd config has an object of this type
     """
     # pylint: disable=too-many-public-methods,too-many-instance-attributes
-    def __init__(self, esmon_client):
+    def __init__(self, esmon_client, collect_internal):
         self.cc_configs = collections.OrderedDict()
         self.cc_plugins = collections.OrderedDict()
         self.cc_filedatas = collections.OrderedDict()
@@ -27,7 +25,7 @@ class CollectdConfig(object):
         self.cc_post_cache_chain_rules = collections.OrderedDict()
         self.cc_sfas = collections.OrderedDict()
         self.cc_checks = []
-        self.cc_configs["Interval"] = COLLECTD_INTERVAL_FINAL
+        self.cc_configs["Interval"] = collect_internal
         self.cc_configs["WriteQueueLimitHigh"] = 1000000
         self.cc_configs["WriteQueueLimitLow"] = 800000
         self.cc_plugin_syslog("err")

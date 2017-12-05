@@ -61,6 +61,7 @@ CSTR_TEMPLATE_HOSTNAME = "template_hostname"
 CSTR_IP = "ip"
 CSTR_HOSTS = "hosts"
 CSTR_CLEANUP = "cleanup"
+CSTR_COLLECT_INTERVAL = "collect_interval"
 
 
 def config_value(config, key):

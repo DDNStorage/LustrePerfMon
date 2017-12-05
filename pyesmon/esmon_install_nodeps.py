@@ -43,7 +43,6 @@ GRAFANA_DASHBOARDS = {}
 GRAFANA_DASHBOARDS["Cluster Status"] = "cluster_status.json"
 GRAFANA_DASHBOARDS["Lustre Statistics"] = "lustre_statistics.json"
 GRAFANA_DASHBOARDS["Server Statistics"] = "server_statistics.json"
-GRAFANA_DASHBOARDS["Server Statistics"] = "server_statistics.json"
 GRAFANA_DASHBOARDS["SFA Physical Disk"] = "SFA_physical_disk.json"
 GRAFANA_DASHBOARDS["SFA Virtual Disk"] = "SFA_virtual_disk.json"
 RPM_STRING = "RPMS"
@@ -77,8 +76,8 @@ class EsmonServer(object):
     """
     ESMON server host has an object of this type
     """
-    # pylint: disable=too-many-public-methods
-    def __init__(self, host, workspace):
+    # pylint: disable=too-many-public-methods,too-many-instance-attributes
+    def __init__(self, host, workspace, collect_interval):
         self.es_host = host
         self.es_workspace = workspace
         self.es_iso_dir = workspace + "/ISO"
@@ -88,7 +87,8 @@ class EsmonServer(object):
         hostname = host.sh_hostname
         self.es_influxdb_client = esmon_influxdb.InfluxdbClient(hostname,
                                                                 INFLUXDB_DATABASE_NAME)
-        self.es_client = EsmonClient(host, workspace, self)
+        self.es_client = EsmonClient(host, workspace, self, collect_interval)
+        self.es_collect_interval = collect_interval
 
     def es_check(self):
         """
@@ -660,9 +660,20 @@ class EsmonServer(object):
         if ret:
             return ret
 
+        collect_interval = str(self.es_collect_interval)
         for name, fname in GRAFANA_DASHBOARDS.iteritems():
-            dashboard_json_fpath = (mnt_path + "/" + GRAFANA_DASHBOARD_DIR +
-                                    "/" + fname)
+            dashboard_template_fpath = (mnt_path + "/" + GRAFANA_DASHBOARD_DIR +
+                                        "/" + fname + ".template")
+            if os.path.isfile(dashboard_template_fpath):
+                dashboard_json_fpath = (self.es_workspace + "/" + fname)
+                lines = open(dashboard_template_fpath).readlines()
+                json_file = open(dashboard_json_fpath, 'w')
+                for line in lines:
+                    json_file.write(line.replace('$COLLECT_INTERVAL', collect_interval))
+                json_file.close()
+            else:
+                dashboard_json_fpath = (mnt_path + "/" + GRAFANA_DASHBOARD_DIR +
+                                        "/" + fname)
 
             with open(dashboard_json_fpath) as json_file:
                 dashboard = json.load(json_file)
@@ -716,69 +727,81 @@ class EsmonServer(object):
                           self.es_host.sh_hostname)
             return -1
 
+        cq_time = self.es_collect_interval
         ret = self.es_influxdb_cq_create("mdt_acctuser_samples",
-                                         ["user_id", "optype", "fs_name"])
+                                         ["user_id", "optype", "fs_name"],
+                                         cq_time)
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("mdt_acctgroup_samples",
-                                         ["group_id", "optype", "fs_name"])
+                                         ["group_id", "optype", "fs_name"],
+                                         cq_time)
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("mdt_acctproject_samples",
-                                         ["project_id", "optype", "fs_name"])
+                                         ["project_id", "optype", "fs_name"],
+                                         cq_time)
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_acctuser_samples",
-                                         ["user_id", "optype", "fs_name"])
+                                         ["user_id", "optype", "fs_name"],
+                                         cq_time)
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_acctgroup_samples",
-                                         ["group_id", "optype", "fs_name"])
+                                         ["group_id", "optype", "fs_name"],
+                                         cq_time)
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_acctproject_samples",
-                                         ["project_id", "optype", "fs_name"])
+                                         ["project_id", "optype", "fs_name"],
+                                         cq_time)
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_kbytesinfo_used",
                                          ["optype", "fs_name"],
-                                         interval="10m")
+                                         cq_time)
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("mdt_jobstats_samples",
-                                         ["job_id", "optype", "fs_name"])
+                                         ["job_id", "optype", "fs_name"],
+                                         cq_time)
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_jobstats_samples",
-                                         ["job_id", "optype", "fs_name"])
+                                         ["job_id", "optype", "fs_name"],
+                                         cq_time)
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_brw_stats_rpc_bulk_samples",
-                                         ["size", "field", "fs_name"])
+                                         ["size", "field", "fs_name"],
+                                         cq_time)
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_stats_bytes",
-                                         ["optype", "fs_name"])
+                                         ["optype", "fs_name"],
+                                         cq_time)
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("md_stats",
-                                         ["optype", "fs_name"])
+                                         ["optype", "fs_name"],
+                                         cq_time)
         if ret:
             return -1
         return 0
 
-    def _es_influxdb_cq_create(self, measurement, groups, interval="1m"):
+    def _es_influxdb_cq_create(self, measurement, groups, interval):
         """
         Create continuous query in influxdb
         """
@@ -790,7 +813,7 @@ class EsmonServer(object):
             group_string += ', "%s"' % group
         query = ('CREATE CONTINUOUS QUERY %s ON "%s" \n'
                  'BEGIN SELECT sum("value") INTO "%s" \n'
-                 '    FROM "%s" GROUP BY time(%s)%s \n'
+                 '    FROM "%s" GROUP BY time(%ss)%s \n'
                  'END;' %
                  (cq_query, INFLUXDB_DATABASE_NAME, cq_measurement,
                   measurement, interval, group_string))
@@ -828,11 +851,11 @@ class EsmonServer(object):
             return -1
         return 0
 
-    def es_influxdb_cq_create(self, measurement, groups, interval="1m"):
+    def es_influxdb_cq_create(self, measurement, groups, interval):
         """
         Create continuous query in influxdb, delete one first if necesary
         """
-        ret = self._es_influxdb_cq_create(measurement, groups, interval=interval)
+        ret = self._es_influxdb_cq_create(measurement, groups, interval)
         if ret == 0:
             return 0
 
@@ -840,7 +863,7 @@ class EsmonServer(object):
         if ret:
             return ret
 
-        ret = self._es_influxdb_cq_create(measurement, groups, interval=interval)
+        ret = self._es_influxdb_cq_create(measurement, groups, interval)
         if ret:
             logging.error("failed to create continuous query for measurement [%s]",
                           measurement)
@@ -853,9 +876,9 @@ class EsmonClient(object):
     """
     # pylint: disable=too-few-public-methods,too-many-instance-attributes
     # pylint: disable=too-many-arguments
-    def __init__(self, host, workspace, esmon_server, lustre_oss=False,
-                 lustre_mds=False, ime=False, infiniband=False, sfas=None,
-                 enabled_plugins=""):
+    def __init__(self, host, workspace, esmon_server, collect_interval,
+                 lustre_oss=False, lustre_mds=False, ime=False,
+                 infiniband=False, sfas=None, enabled_plugins=""):
         self.ec_host = host
         self.ec_workspace = workspace
         self.ec_iso_basename = "ISO"
@@ -863,7 +886,7 @@ class EsmonClient(object):
         self.ec_esmon_server = esmon_server
         self.ec_needed_collectd_rpms = ["libcollectdclient", "collectd"]
         self.ec_enabled_plugins = enabled_plugins
-        config = collectd.CollectdConfig(self)
+        config = collectd.CollectdConfig(self, collect_interval)
         config.cc_configs["Interval"] = collectd.COLLECTD_INTERVAL_TEST
         if lustre_oss or lustre_mds:
             config.cc_plugin_lustre(lustre_oss=lustre_oss,
@@ -877,8 +900,7 @@ class EsmonClient(object):
             config.cc_plugin_infiniband()
         self.ec_collectd_config_test = config
 
-        config = collectd.CollectdConfig(self)
-        config.cc_configs["Interval"] = collectd.COLLECTD_INTERVAL_FINAL
+        config = collectd.CollectdConfig(self, collect_interval)
         if lustre_oss or lustre_mds:
             config.cc_plugin_lustre(lustre_oss=lustre_oss,
                                     lustre_mds=lustre_mds)
@@ -1525,8 +1547,15 @@ def esmon_install_parse_config(workspace, config, config_fpath):
                       host_id, config_fpath)
         return -1, esmon_server, esmon_clients
 
+    collect_interval = esmon_common.config_value(config,
+                                                 esmon_common.CSTR_COLLECT_INTERVAL)
+    if collect_interval is None:
+        logging.error("[%s] is not configured, please correct file [%s]",
+                      esmon_common.CSTR_COLLECT_INTERVAL, config_fpath)
+        return -1
+
     host = hosts[host_id]
-    esmon_server = EsmonServer(host, workspace)
+    esmon_server = EsmonServer(host, workspace, collect_interval)
     ret = esmon_server.es_check()
     if ret:
         logging.error("checking of ESMON server [%s] failed, please fix the "
@@ -1636,7 +1665,7 @@ def esmon_install_parse_config(workspace, config, config_fpath):
                 sfa_hosts.append(controller1_host)
             enabled_plugins += ", SFA"
 
-        esmon_client = EsmonClient(host, workspace, esmon_server,
+        esmon_client = EsmonClient(host, workspace, esmon_server, collect_interval,
                                    lustre_oss=lustre_oss,
                                    lustre_mds=lustre_mds, ime=ime,
                                    infiniband=infiniband,

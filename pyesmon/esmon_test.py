@@ -572,6 +572,14 @@ def esmon_do_test(workspace, config, config_fpath):
         return -1
     install_server = hosts[install_server_hostid]
 
+    collect_interval = esmon_common.config_value(config, esmon_common.CSTR_COLLECT_INTERVAL)
+    if collect_interval is None:
+        logging.error("can NOT find [%s] in the config file, "
+                      "please correct file [%s]",
+                      esmon_common.CSTR_COLLECT_INTERVAL,
+                      config_fpath)
+        return -1
+
     server_host_config = esmon_common.config_value(config, esmon_common.CSTR_SERVER_HOST)
     if server_host_config is None:
         logging.error("can NOT find [%s] in the config file, "
@@ -638,6 +646,7 @@ def esmon_do_test(workspace, config, config_fpath):
     install_config[esmon_common.CSTR_SSH_HOST] = ssh_host_configs
     install_config[esmon_common.CSTR_CLIENT_HOSTS] = client_host_configs
     install_config[esmon_common.CSTR_SERVER_HOST] = server_host_config
+    install_config[esmon_common.CSTR_COLLECT_INTERVAL] = collect_interval
     install_config_string = yaml.dump(install_config, default_flow_style=False)
     install_config_fpath = workspace + "/" + esmon_common.ESMON_INSTALL_CONFIG_FNAME
     with open(install_config_fpath, "wt") as install_config_file:
