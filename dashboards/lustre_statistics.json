@@ -15,243 +15,46 @@
       "height": 250,
       "panels": [
         {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "id": 27,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "links": [],
-          "nullPointMode": "null",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "span": 3,
-          "stack": true,
-          "steppedLine": false,
-          "targets": [
+          "columns": [
             {
-              "alias": "$tag_mdt_index",
-              "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "mdt_index"
-                  ],
-                  "type": "tag"
-                }
-              ],
-              "measurement": "mdt_filesinfo_free",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "query": "SELECT \"value\" FROM \"mdt_filesinfo_free\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"mdt_index\"",
-              "rawQuery": true,
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "value"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
-                }
-              ]
+              "text": "Current",
+              "value": "current"
             }
           ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Free Inode Number",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
+          "datasource": null,
+          "description": "Free capacity on each OST.",
+          "filterNull": false,
+          "fontSize": "100%",
+          "id": 40,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 3,
+            "desc": true
           },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
+          "span": 3,
+          "styles": [
             {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": "0",
-              "show": true
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
             },
             {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": false
-            }
-          ]
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "id": 28,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "links": [],
-          "nullPointMode": "null",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "span": 3,
-          "stack": true,
-          "steppedLine": false,
-          "targets": [
-            {
-              "alias": "$tag_mdt_index",
-              "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "mdt_index"
-                  ],
-                  "type": "tag"
-                }
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
               ],
-              "measurement": "mdt_filesinfo_free",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "query": "SELECT \"value\" FROM \"mdt_filesinfo_used\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"mdt_index\"",
-              "rawQuery": true,
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "value"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
-                }
-              ]
+              "decimals": 2,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "deckbytes"
             }
           ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Used Inode Number",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": "0",
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": false
-            }
-          ]
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "id": 30,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "links": [],
-          "nullPointMode": "null",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "span": 3,
-          "stack": true,
-          "steppedLine": false,
           "targets": [
             {
               "alias": "$tag_ost_index",
@@ -259,18 +62,12 @@
               "groupBy": [
                 {
                   "params": [
-                    "$__interval"
+                    "exp_client"
                   ],
-                  "type": "time"
-                },
-                {
-                  "params": [
-                    "null"
-                  ],
-                  "type": "fill"
+                  "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_kbytesinfo_used",
+              "measurement": "cqm_exp_md_stats",
               "orderByTime": "ASC",
               "policy": "default",
               "query": "SELECT \"value\" FROM \"ost_kbytesinfo_free\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"ost_index\"",
@@ -281,85 +78,68 @@
                 [
                   {
                     "params": [
-                      "value"
+                      "sum"
                     ],
                     "type": "field"
-                  },
-                  {
-                    "params": [],
-                    "type": "mean"
                   }
                 ]
               ],
-              "tags": []
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                }
+              ]
             }
           ],
-          "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Free Space",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "deckbytes",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": "0",
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": false
-            }
-          ]
+          "title": "Free Capacity per OST",
+          "transform": "timeseries_aggregations",
+          "type": "table"
         },
         {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
+          "columns": [
+            {
+              "text": "Current",
+              "value": "current"
+            }
+          ],
           "datasource": null,
-          "fill": 1,
-          "id": 31,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
+          "description": "Used capacity on each OST.",
+          "filterNull": false,
+          "fontSize": "100%",
+          "id": 41,
           "links": [],
-          "nullPointMode": "null",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 3,
+            "desc": true
+          },
           "span": 3,
-          "stack": true,
-          "steppedLine": false,
+          "styles": [
+            {
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "decimals": 2,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "deckbytes"
+            }
+          ],
           "targets": [
             {
               "alias": "$tag_ost_index",
@@ -367,17 +147,12 @@
               "groupBy": [
                 {
                   "params": [
-                    "$__interval"
+                    "exp_client"
                   ],
-                  "type": "time"
-                },
-                {
-                  "params": [
-                    "null"
-                  ],
-                  "type": "fill"
+                  "type": "tag"
                 }
               ],
+              "measurement": "cqm_exp_md_stats",
               "orderByTime": "ASC",
               "policy": "default",
               "query": "SELECT \"value\" FROM \"ost_kbytesinfo_used\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"ost_index\"",
@@ -388,54 +163,196 @@
                 [
                   {
                     "params": [
-                      "value"
+                      "sum"
                     ],
                     "type": "field"
-                  },
-                  {
-                    "params": [],
-                    "type": "mean"
                   }
                 ]
               ],
-              "tags": []
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                }
+              ]
             }
           ],
-          "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Used Space",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
+          "title": "Used Capacity per OST",
+          "transform": "timeseries_aggregations",
+          "type": "table"
+        },
+        {
+          "columns": [
             {
-              "format": "deckbytes",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": "0",
-              "show": true
+              "text": "Current",
+              "value": "current"
+            }
+          ],
+          "datasource": null,
+          "description": "Free inode number on each MDT.",
+          "filterNull": false,
+          "fontSize": "100%",
+          "id": 39,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 3,
+            "desc": true
+          },
+          "span": 3,
+          "styles": [
+            {
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
             },
             {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": false
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "decimals": 2,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
             }
-          ]
+          ],
+          "targets": [
+            {
+              "alias": "$tag_mdt_index",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "exp_client"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_exp_md_stats",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" FROM \"mdt_filesinfo_free\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"mdt_index\"",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Free Inode Number per MDT",
+          "transform": "timeseries_aggregations",
+          "type": "table"
+        },
+        {
+          "columns": [
+            {
+              "text": "Current",
+              "value": "current"
+            }
+          ],
+          "datasource": null,
+          "description": "Used inode number on each MDT.",
+          "filterNull": false,
+          "fontSize": "100%",
+          "id": 42,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 3,
+            "desc": true
+          },
+          "span": 3,
+          "styles": [
+            {
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "decimals": 2,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            }
+          ],
+          "targets": [
+            {
+              "alias": "$tag_mdt_index",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "exp_client"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_exp_md_stats",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" FROM \"mdt_filesinfo_used\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"mdt_index\"",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Used Inode Number per MDT",
+          "transform": "timeseries_aggregations",
+          "type": "table"
         }
       ],
       "repeat": null,
@@ -456,6 +373,7 @@
               "value": "current"
             }
           ],
+          "description": "The used capacity for each user.",
           "fontSize": "100%",
           "height": "300",
           "id": 25,
@@ -545,6 +463,7 @@
               "value": "current"
             }
           ],
+          "description": "The used inodes for each user.",
           "fontSize": "100%",
           "height": "300",
           "id": 26,
@@ -632,6 +551,7 @@
               "value": "current"
             }
           ],
+          "description": "The used capacity for each group.",
           "fontSize": "100%",
           "height": "300",
           "id": 33,
@@ -721,6 +641,7 @@
               "value": "current"
             }
           ],
+          "description": "The used inodes for each user.",
           "fontSize": "100%",
           "height": "300",
           "id": 34,
@@ -811,7 +732,7 @@
     },
     {
       "collapse": false,
-      "height": 300,
+      "height": 301,
       "panels": [
         {
           "aliasColors": {},
@@ -916,35 +837,54 @@
           ]
         },
         {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
+          "columns": [
+            {
+              "text": "Avg",
+              "value": "avg"
+            },
+            {
+              "text": "Max",
+              "value": "max"
+            },
+            {
+              "text": "Current",
+              "value": "current"
+            }
+          ],
           "datasource": null,
-          "fill": 1,
-          "id": 3,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
+          "description": "The operation  rate for each type of metadata operation",
+          "filterNull": false,
+          "fontSize": "100%",
+          "id": 37,
           "links": [],
-          "nullPointMode": "null",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": null,
+            "desc": false
+          },
           "span": 4,
-          "stack": true,
-          "steppedLine": false,
+          "styles": [
+            {
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "decimals": 2,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "ops"
+            }
+          ],
           "targets": [
             {
               "alias": "$tag_optype",
@@ -960,8 +900,6 @@
               "measurement": "cqm_md_stats",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_md_stats\" WHERE $timeFilter",
-              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
@@ -983,72 +921,61 @@
               ]
             }
           ],
-          "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Metadata Operations per Type",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "ops",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ]
+          "title": "Metadata Operation Rate per Type",
+          "transform": "timeseries_aggregations",
+          "type": "table"
         },
         {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
+          "columns": [
+            {
+              "text": "Avg",
+              "value": "avg"
+            },
+            {
+              "text": "Max",
+              "value": "max"
+            },
+            {
+              "text": "Current",
+              "value": "current"
+            }
+          ],
           "datasource": null,
-          "fill": 1,
-          "id": 36,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
+          "description": "The metadata operation  rate for each client.",
+          "filterNull": false,
+          "fontSize": "100%",
+          "id": 38,
           "links": [],
-          "nullPointMode": "null",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 3,
+            "desc": true
+          },
           "span": 4,
-          "stack": true,
-          "steppedLine": false,
+          "styles": [
+            {
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "decimals": 2,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "ops"
+            }
+          ],
           "targets": [
             {
               "alias": "$tag_exp_client",
@@ -1064,8 +991,6 @@
               "measurement": "cqm_exp_md_stats",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_md_stats\" WHERE $timeFilter",
-              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
@@ -1087,41 +1012,11 @@
               ]
             }
           ],
-          "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Metadata Operations per Client",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "ops",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ]
+          "title": "Metadata Operation Rate per Client",
+          "transform": "timeseries_aggregations",
+          "type": "table"
         }
       ],
       "repeat": null,
@@ -2501,6 +2396,7 @@
             }
           ],
           "timeFrom": null,
+          "timeShift": null,
           "title": "Metadata Performance of Jobs",
           "transform": "timeseries_aggregations",
           "type": "table"
