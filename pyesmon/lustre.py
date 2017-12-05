@@ -612,6 +612,50 @@ class LustreServerHost(ssh_host.SSHHost):
         self.lsh_osts = {}
         # Key: $fsname:$mdt_index, value: LustreMDT object
         self.lsh_mdts = {}
+        self.lsh_cached_has_fuser = None
+        self.lsh_fuser_install_failed = False
+
+    def lsh_has_fuser(self):
+        """
+        Check whether host has fuser
+        """
+        # pylint: disable=too-many-return-statements,too-many-branches
+        if self.lsh_cached_has_fuser is not None:
+            return self.lsh_cached_has_fuser
+
+        ret = self.sh_run("which fuser")
+        if ret.cr_exit_status != 0:
+            self.lsh_cached_has_fuser = False
+        else:
+            self.lsh_cached_has_fuser = True
+        return self.lsh_cached_has_fuser
+
+    def lsh_fuser_kill(self, fpath):
+        """
+        Run "fuser -km" to a fpath
+        """
+        if not self.lsh_has_fuser() and not self.lsh_fuser_install_failed:
+            logging.debug("host [%s] doesnot have fuser, trying to install",
+                          self.sh_hostname)
+            ret = self.sh_run("yum install psmisc -y")
+            if ret.cr_exit_status:
+                logging.error("failed to install fuser")
+                self.lsh_fuser_install_failed = True
+                return -1
+            self.sh_cached_has_rsync = True
+
+        command = ("fuser -km %s" % (fpath))
+        retval = self.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        return 0
 
     def lsh_ost_add(self, fsname, ost_index, ost):
         """
@@ -772,6 +816,7 @@ class LustreServerHost(ssh_host.SSHHost):
         """
         Umount Lustre OSTs/MDTs/clients on the host
         """
+        # pylint: disable=too-many-return-statements
         clients = {}
         osts = {}
         mdts = {}
@@ -782,6 +827,25 @@ class LustreServerHost(ssh_host.SSHHost):
             return -1
 
         for client in clients.values():
+            command = ("umount %s" % client.lc_mnt)
+            retval = self.sh_run(command)
+            if retval.cr_exit_status:
+                logging.debug("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              self.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
+            else:
+                continue
+
+            # Kill the user of Lustre client so that umount won't be stopped
+            ret = self.lsh_fuser_kill(client.lc_mnt)
+            if ret:
+                logging.error("failed to kill processes using [%s]", client.lc_mnt)
+                return -1
+
             command = ("umount %s" % client.lc_mnt)
             retval = self.sh_run(command)
             if retval.cr_exit_status:

@@ -355,18 +355,7 @@ PostCacheChain "PostCache"
         Type "mdt_acctproject"
         Query_interval 10
     </Item>
-    <Item>
-        Type "mdt_filestotal"
-        Query_interval 10
-    </Item>
-    <Item>
-        Type "mdt_filesfree"
-        Query_interval 10
-    </Item>
-    <Item>
-        Type "mdt_filesused"
-        Query_interval 10
-    </Item>
+
     <Item>
         Type "md_stats_open"
     </Item>
@@ -406,6 +395,50 @@ PostCacheChain "PostCache"
     <Item>
         Type "md_stats_sync"
     </Item>
+
+    <Item>
+        Type "exp_md_stats_open"
+    </Item>
+    <Item>
+        Type "exp_md_stats_close"
+    </Item>
+    <Item>
+        Type "exp_md_stats_mknod"
+    </Item>
+    <Item>
+        Type "exp_md_stats_link"
+    </Item>
+    <Item>
+        Type "exp_md_stats_unlink"
+    </Item>
+    <Item>
+        Type "exp_md_stats_mkdir"
+    </Item>
+    <Item>
+        Type "exp_md_stats_rmdir"
+    </Item>
+    <Item>
+        Type "exp_md_stats_rename"
+    </Item>
+    <Item>
+        Type "exp_md_stats_getattr"
+    </Item>
+    <Item>
+        Type "exp_md_stats_setattr"
+    </Item>
+    <Item>
+        Type "exp_md_stats_getxattr"
+    </Item>
+    <Item>
+        Type "exp_md_stats_setxattr"
+    </Item>
+    <Item>
+        Type "exp_md_stats_statfs"
+    </Item>
+    <Item>
+        Type "exp_md_stats_sync"
+    </Item>
+
     <Item>
         Type "mdt_jobstats"
 #       <Rule>
@@ -435,6 +468,19 @@ PostCacheChain "PostCache"
 #       </ExtendedParse>
 #       TsdbTags "slurm_job_uid=${extendfield:slurm_job_uid} slurm_job_gid=${extendfield:slurm_job_gid} slurm_job_id=${extendfield:slurm_job_id}"
 #   </ItemType>
+
+    <Item>
+        Type "mdt_filestotal"
+        Query_interval 10
+    </Item>
+    <Item>
+        Type "mdt_filesfree"
+        Query_interval 10
+    </Item>
+    <Item>
+        Type "mdt_filesused"
+        Query_interval 10
+    </Item>
 """
         config += "</Plugin>\n\n"
         self.cc_filedatas["lustre"] = config

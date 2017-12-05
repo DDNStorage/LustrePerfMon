@@ -764,14 +764,22 @@ class EsmonServer(object):
         if ret:
             return -1
 
-        ret = self.es_influxdb_cq_create("ost_kbytesinfo_used",
-                                         ["optype", "fs_name"],
+        # Shows summarized client metadata operations
+        ret = self.es_influxdb_cq_create("exp_md_stats",
+                                         ["exp_client", "fs_name"],
                                          cq_time)
         if ret:
             return -1
 
+        # Shows summarized job metadata operations
         ret = self.es_influxdb_cq_create("mdt_jobstats_samples",
-                                         ["job_id", "optype", "fs_name"],
+                                         ["job_id", "fs_name"],
+                                         cq_time)
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("ost_kbytesinfo_used",
+                                         ["optype", "fs_name"],
                                          cq_time)
         if ret:
             return -1
