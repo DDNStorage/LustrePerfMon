@@ -267,15 +267,12 @@ PostCacheChain "PostCache"
     # OST stats
     <Item>
         Type "ost_acctuser"
-        Query_interval 10
     </Item>
     <Item>
         Type "ost_acctgroup"
-        Query_interval 10
     </Item>
     <Item>
         Type "ost_acctproject"
-        Query_interval 10
     </Item>
 
     <Item>
@@ -291,27 +288,21 @@ PostCacheChain "PostCache"
 
     <Item>
         Type "ost_kbytestotal"
-        Query_interval 10
     </Item>
     <Item>
         Type "ost_kbytesfree"
-        Query_interval 10
     </Item>
     <Item>
         Type "ost_kbytesused"
-        Query_interval 10
     </Item>
     <Item>
         Type "ost_filestotal"
-        Query_interval 10
     </Item>
     <Item>
         Type "ost_filesfree"
-        Query_interval 10
     </Item>
     <Item>
         Type "ost_filesused"
-        Query_interval 10
     </Item>
     <Item>
         Type "ost_brw_stats_rpc_bulk"
@@ -351,15 +342,12 @@ PostCacheChain "PostCache"
     # MDT stats
     <Item>
         Type "mdt_acctuser"
-        Query_interval 10
     </Item>
     <Item>
         Type "mdt_acctgroup"
-        Query_interval 10
     </Item>
     <Item>
         Type "mdt_acctproject"
-        Query_interval 10
     </Item>
 
     <Item>
@@ -477,15 +465,12 @@ PostCacheChain "PostCache"
 
     <Item>
         Type "mdt_filestotal"
-        Query_interval 10
     </Item>
     <Item>
         Type "mdt_filesfree"
-        Query_interval 10
     </Item>
     <Item>
         Type "mdt_filesused"
-        Query_interval 10
     </Item>
 """
         config += "</Plugin>\n\n"

@@ -12,8 +12,218 @@
   "rows": [
     {
       "collapse": false,
-      "height": 250,
+      "height": "300",
       "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "description": "Free Capacity of the whole file system",
+          "fill": 1,
+          "id": 49,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 2,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "Free Capacity",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "optype"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_ost_stats_bytes-optype-fs_name",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"sum\" FROM \"cqm_ost_kbytesinfo_free-fs_name\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Free Capacity in Total",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "deckbytes",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "description": "Used Capacity of the whole file system",
+          "fill": 1,
+          "id": 50,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 2,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "Used Capacity",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "optype"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_ost_stats_bytes-optype-fs_name",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"sum\" FROM \"cqm_ost_kbytesinfo_used-fs_name\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Used Capacity in Total",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "deckbytes",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        },
         {
           "columns": [
             {
@@ -31,10 +241,10 @@
           "scroll": true,
           "showHeader": true,
           "sort": {
-            "col": 3,
-            "desc": true
+            "col": 1,
+            "desc": false
           },
-          "span": 3,
+          "span": 2,
           "styles": [
             {
               "dateFormat": "YYYY-MM-DD HH:mm:ss",
@@ -116,10 +326,10 @@
           "scroll": true,
           "showHeader": true,
           "sort": {
-            "col": 3,
+            "col": 1,
             "desc": true
           },
-          "span": 3,
+          "span": 2,
           "styles": [
             {
               "dateFormat": "YYYY-MM-DD HH:mm:ss",
@@ -191,188 +401,6 @@
               "value": "current"
             }
           ],
-          "datasource": null,
-          "description": "Free inode number on each MDT.",
-          "filterNull": false,
-          "fontSize": "100%",
-          "id": 39,
-          "links": [],
-          "pageSize": null,
-          "scroll": true,
-          "showHeader": true,
-          "sort": {
-            "col": 3,
-            "desc": true
-          },
-          "span": 3,
-          "styles": [
-            {
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "pattern": "/.*/",
-              "thresholds": [],
-              "type": "number",
-              "unit": "short"
-            }
-          ],
-          "targets": [
-            {
-              "alias": "$tag_mdt_index",
-              "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "exp_client"
-                  ],
-                  "type": "tag"
-                }
-              ],
-              "measurement": "cqm_exp_md_stats",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "query": "SELECT \"value\" FROM \"mdt_filesinfo_free\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"mdt_index\"",
-              "rawQuery": true,
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "sum"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
-                }
-              ]
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Free Inode Number per MDT",
-          "transform": "timeseries_aggregations",
-          "type": "table"
-        },
-        {
-          "columns": [
-            {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
-          "datasource": null,
-          "description": "Used inode number on each MDT.",
-          "filterNull": false,
-          "fontSize": "100%",
-          "id": 42,
-          "links": [],
-          "pageSize": null,
-          "scroll": true,
-          "showHeader": true,
-          "sort": {
-            "col": 3,
-            "desc": true
-          },
-          "span": 3,
-          "styles": [
-            {
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "pattern": "/.*/",
-              "thresholds": [],
-              "type": "number",
-              "unit": "short"
-            }
-          ],
-          "targets": [
-            {
-              "alias": "$tag_mdt_index",
-              "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "exp_client"
-                  ],
-                  "type": "tag"
-                }
-              ],
-              "measurement": "cqm_exp_md_stats",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "query": "SELECT \"value\" FROM \"mdt_filesinfo_used\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"mdt_index\"",
-              "rawQuery": true,
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "sum"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
-                }
-              ]
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Used Inode Number per MDT",
-          "transform": "timeseries_aggregations",
-          "type": "table"
-        }
-      ],
-      "repeat": null,
-      "repeatIteration": null,
-      "repeatRowId": null,
-      "showTitle": false,
-      "title": "Capacity and Inode Usage of Lustre",
-      "titleSize": "h6"
-    },
-    {
-      "collapse": false,
-      "height": 248,
-      "panels": [
-        {
-          "columns": [
-            {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
           "description": "The used capacity for each user.",
           "fontSize": "100%",
           "height": "300",
@@ -385,7 +413,7 @@
             "col": 1,
             "desc": true
           },
-          "span": 3,
+          "span": 2,
           "styles": [
             {
               "alias": "Time",
@@ -454,7 +482,196 @@
               ]
             }
           ],
-          "title": "Capacity Usage per User",
+          "title": "Used Capacity per User",
+          "transform": "timeseries_aggregations",
+          "type": "table"
+        },
+        {
+          "columns": [
+            {
+              "text": "Current",
+              "value": "current"
+            }
+          ],
+          "description": "The used capacity for each group.",
+          "fontSize": "100%",
+          "height": "300",
+          "id": 33,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 1,
+            "desc": true
+          },
+          "span": 2,
+          "styles": [
+            {
+              "alias": "Time",
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "decimals": 2,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "deckbytes"
+            }
+          ],
+          "targets": [
+            {
+              "alias": "GID=$tag_group_id",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "group_id"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "limit": "",
+              "measurement": "cqm_ost_acctgroup_samples",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"sum\" FROM \"cqm_ost_acctgroup_samples-fs_name-group_id-optype\" WHERE \"fs_name\" = '$fs_name' AND \"optype\" = 'usage_kbytes' AND $timeFilter GROUP BY \"group_id\"",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "slimit": "",
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "optype",
+                  "operator": "=",
+                  "value": "usage_kbytes"
+                }
+              ]
+            }
+          ],
+          "title": "Used Capacity per Group",
+          "transform": "timeseries_aggregations",
+          "type": "table"
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Capacity and Inode Usage of Lustre",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": "300",
+      "panels": [
+        {
+          "columns": [
+            {
+              "text": "Current",
+              "value": "current"
+            }
+          ],
+          "datasource": null,
+          "description": "Free inode number on each MDT.",
+          "filterNull": false,
+          "fontSize": "100%",
+          "id": 39,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 1,
+            "desc": false
+          },
+          "span": 3,
+          "styles": [
+            {
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "decimals": 2,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            }
+          ],
+          "targets": [
+            {
+              "alias": "$tag_mdt_index",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "exp_client"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_exp_md_stats",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" FROM \"mdt_filesinfo_free\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"mdt_index\"",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Free Inode Number per MDT",
           "transform": "timeseries_aggregations",
           "type": "table"
         },
@@ -544,99 +761,7 @@
               ]
             }
           ],
-          "title": "Inode Usage per User",
-          "transform": "timeseries_aggregations",
-          "type": "table"
-        },
-        {
-          "columns": [
-            {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
-          "description": "The used capacity for each group.",
-          "fontSize": "100%",
-          "height": "300",
-          "id": 33,
-          "links": [],
-          "pageSize": null,
-          "scroll": true,
-          "showHeader": true,
-          "sort": {
-            "col": 1,
-            "desc": true
-          },
-          "span": 3,
-          "styles": [
-            {
-              "alias": "Time",
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "alias": "",
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "pattern": "/.*/",
-              "thresholds": [],
-              "type": "number",
-              "unit": "deckbytes"
-            }
-          ],
-          "targets": [
-            {
-              "alias": "GID=$tag_group_id",
-              "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "group_id"
-                  ],
-                  "type": "tag"
-                }
-              ],
-              "limit": "",
-              "measurement": "cqm_ost_acctgroup_samples",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_ost_acctgroup_samples-fs_name-group_id-optype\" WHERE \"fs_name\" = '$fs_name' AND \"optype\" = 'usage_kbytes' AND $timeFilter GROUP BY \"group_id\"",
-              "rawQuery": true,
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "sum"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "slimit": "",
-              "tags": [
-                {
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
-                },
-                {
-                  "condition": "AND",
-                  "key": "optype",
-                  "operator": "=",
-                  "value": "usage_kbytes"
-                }
-              ]
-            }
-          ],
-          "title": "Capacity Usage per Group",
+          "title": "Used Inode Number per User",
           "transform": "timeseries_aggregations",
           "type": "table"
         },
@@ -697,7 +822,7 @@
               "measurement": "cqm_mdt_acctgroup_samples",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_mdt_acctuser_samples-fs_name-optype-user_id\" WHERE \"fs_name\" = '$fs_name' AND \"optype\" = 'usage_inodes' AND $timeFilter GROUP BY \"group_id\"",
+              "query": "SELECT \"sum\" FROM \"cqm_mdt_acctgroup_samples-fs_name-group_id-optype\" WHERE \"fs_name\" = '$fs_name' AND \"optype\" = 'usage_inodes' AND $timeFilter GROUP BY \"group_id\"",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -726,7 +851,92 @@
               ]
             }
           ],
-          "title": "Inode Usage per Group",
+          "title": "Used Inode Number per Group",
+          "transform": "timeseries_aggregations",
+          "type": "table"
+        },
+        {
+          "columns": [
+            {
+              "text": "Current",
+              "value": "current"
+            }
+          ],
+          "datasource": null,
+          "description": "Used inode number on each MDT.",
+          "filterNull": false,
+          "fontSize": "100%",
+          "id": 42,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 1,
+            "desc": true
+          },
+          "span": 3,
+          "styles": [
+            {
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "decimals": 2,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            }
+          ],
+          "targets": [
+            {
+              "alias": "$tag_mdt_index",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "exp_client"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_exp_md_stats",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" FROM \"mdt_filesinfo_used\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"mdt_index\"",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Used Inode Number per MDT",
           "transform": "timeseries_aggregations",
           "type": "table"
         }
@@ -740,7 +950,7 @@
     },
     {
       "collapse": false,
-      "height": 301,
+      "height": "300",
       "panels": [
         {
           "aliasColors": {},
@@ -814,7 +1024,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "I/O Bandwith",
+          "title": "I/O Bandwith in Total",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -872,8 +1082,8 @@
           "scroll": true,
           "showHeader": true,
           "sort": {
-            "col": 0,
-            "desc": false
+            "col": 3,
+            "desc": true
           },
           "span": 3,
           "styles": [
@@ -965,8 +1175,8 @@
           "scroll": true,
           "showHeader": true,
           "sort": {
-            "col": 0,
-            "desc": false
+            "col": 3,
+            "desc": true
           },
           "span": 3,
           "styles": [
@@ -1148,7 +1358,7 @@
     },
     {
       "collapse": false,
-      "height": 250,
+      "height": "300",
       "panels": [
         {
           "aliasColors": {},
@@ -1222,7 +1432,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Metadata Operation Rate",
+          "title": "Metadata Operation Rate  in Total",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1251,7 +1461,7 @@
               "logBase": 1,
               "max": null,
               "min": null,
-              "show": true
+              "show": false
             }
           ]
         },
@@ -1542,11 +1752,11 @@
     },
     {
       "collapse": false,
-      "height": 250,
+      "height": "300",
       "panels": [
         {
           "aliasColors": {},
-          "bars": true,
+          "bars": false,
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
@@ -1561,7 +1771,7 @@
             "total": false,
             "values": false
           },
-          "lines": false,
+          "lines": true,
           "linewidth": 1,
           "links": [],
           "nullPointMode": "null",
@@ -2115,7 +2325,7 @@
               "logBase": 1,
               "max": null,
               "min": null,
-              "show": true
+              "show": false
             }
           ]
         },
@@ -3012,8 +3222,8 @@
       "titleSize": "h6"
     },
     {
-      "collapse": false,
-      "height": 250,
+      "collapse": true,
+      "height": "300",
       "panels": [
         {
           "aliasColors": {},
@@ -3202,7 +3412,7 @@
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {

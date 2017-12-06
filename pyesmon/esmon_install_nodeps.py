@@ -838,6 +838,18 @@ class EsmonServer(object):
         if ret:
             return -1
 
+        ret = self.es_influxdb_cq_create("ost_kbytesinfo_free",
+                                         ["fs_name"],
+                                         cq_time)
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("ost_kbytesinfo_used",
+                                         ["fs_name"],
+                                         cq_time)
+        if ret:
+            return -1
+
         return 0
 
     def _es_influxdb_cq_create(self, measurement, groups, interval):
