@@ -277,6 +277,18 @@ PostCacheChain "PostCache"
         Type "ost_acctproject"
         Query_interval 10
     </Item>
+
+    <Item>
+        Type "ost_stats_write"
+    </Item>
+    <Item>
+        Type "ost_stats_read"
+    </Item>
+
+    <Item>
+        Type "ost_stats_statfs"
+    </Item>
+
     <Item>
         Type "ost_kbytestotal"
         Query_interval 10
@@ -300,12 +312,6 @@ PostCacheChain "PostCache"
     <Item>
         Type "ost_filesused"
         Query_interval 10
-    </Item>
-    <Item>
-        Type "ost_stats_write"
-    </Item>
-    <Item>
-        Type "ost_stats_read"
     </Item>
     <Item>
         Type "ost_brw_stats_rpc_bulk"

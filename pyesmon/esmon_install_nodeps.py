@@ -695,7 +695,7 @@ class EsmonServer(object):
         """
         Reinstall RPMs
         """
-        # pylint: disable=too-many-return-statements,too-many-branches
+        # pylint: disable=too-many-return-statements,too-many-branches,too-many-statements
         ret = self.es_client.ec_send_iso_files(mnt_path)
         if ret:
             logging.error("failed to send file [%s] on local host to "
@@ -729,37 +729,37 @@ class EsmonServer(object):
 
         cq_time = self.es_collect_interval
         ret = self.es_influxdb_cq_create("mdt_acctuser_samples",
-                                         ["user_id", "optype", "fs_name"],
+                                         ["fs_name", "optype", "user_id", ],
                                          cq_time)
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("mdt_acctgroup_samples",
-                                         ["group_id", "optype", "fs_name"],
+                                         ["fs_name", "group_id", "optype", ],
                                          cq_time)
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("mdt_acctproject_samples",
-                                         ["project_id", "optype", "fs_name"],
+                                         ["fs_name", "optype", "project_id"],
                                          cq_time)
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_acctuser_samples",
-                                         ["user_id", "optype", "fs_name"],
+                                         ["fs_name", "optype", "user_id", ],
                                          cq_time)
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_acctgroup_samples",
-                                         ["group_id", "optype", "fs_name"],
+                                         ["fs_name", "optype", "group_id"],
                                          cq_time)
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_acctproject_samples",
-                                         ["project_id", "optype", "fs_name"],
+                                         ["fs_name", "optype", "project_id"],
                                          cq_time)
         if ret:
             return -1
@@ -773,37 +773,61 @@ class EsmonServer(object):
 
         # Shows summarized job metadata operations
         ret = self.es_influxdb_cq_create("mdt_jobstats_samples",
-                                         ["job_id", "fs_name"],
-                                         cq_time)
-        if ret:
-            return -1
-
-        ret = self.es_influxdb_cq_create("ost_kbytesinfo_used",
-                                         ["optype", "fs_name"],
-                                         cq_time)
-        if ret:
-            return -1
-
-        ret = self.es_influxdb_cq_create("ost_jobstats_samples",
-                                         ["job_id", "optype", "fs_name"],
-                                         cq_time)
-        if ret:
-            return -1
-
-        ret = self.es_influxdb_cq_create("ost_brw_stats_rpc_bulk_samples",
-                                         ["size", "field", "fs_name"],
+                                         ["fs_name", "job_id"],
                                          cq_time)
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_stats_bytes",
-                                         ["optype", "fs_name"],
+                                         ["fs_name", "optype", "ost_index"],
+                                         cq_time)
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("ost_stats_bytes",
+                                         ["fs_name", "ost_index"],
+                                         cq_time)
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("ost_stats_bytes",
+                                         ["fs_name", "optype"],
+                                         cq_time)
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("ost_kbytesinfo_used",
+                                         ["fs_name", "optype"],
+                                         cq_time)
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("ost_jobstats_samples",
+                                         ["fs_name", "job_id", "optype"],
+                                         cq_time)
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("ost_jobstats_samples",
+                                         ["fs_name", "job_id"],
+                                         cq_time)
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("ost_brw_stats_rpc_bulk_samples",
+                                         ["field", "fs_name", "size"],
                                          cq_time)
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("md_stats",
-                                         ["optype", "fs_name"],
+                                         ["fs_name", "optype"],
+                                         cq_time)
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("md_stats",
+                                         ["fs_name", "mdt_index"],
                                          cq_time)
         if ret:
             return -1
@@ -815,10 +839,13 @@ class EsmonServer(object):
         """
         # pylint: disable=bare-except
         cq_query = INFLUXDB_CQ_PREFIX + measurement
-        cq_measurement = INFLUXDB_CQ_MEASUREMENT_PREFIX + measurement
         group_string = ""
+        cq_measurement = INFLUXDB_CQ_MEASUREMENT_PREFIX + measurement
         for group in groups:
             group_string += ', "%s"' % group
+            cq_query += "_%s" % group
+            cq_measurement += "-%s" % group
+
         query = ('CREATE CONTINUOUS QUERY %s ON "%s" \n'
                  'BEGIN SELECT sum("value") INTO "%s" \n'
                  '    FROM "%s" GROUP BY time(%ss)%s \n'
@@ -838,12 +865,14 @@ class EsmonServer(object):
             return -1
         return 0
 
-    def es_influxdb_cq_delete(self, measurement):
+    def es_influxdb_cq_delete(self, measurement, groups):
         """
         Delete continuous query in influxdb
         """
         # pylint: disable=bare-except
         cq_query = INFLUXDB_CQ_PREFIX + measurement
+        for group in groups:
+            cq_query += "_%s" % group
         query = ('DROP CONTINUOUS QUERY %s ON "%s";' %
                  (cq_query, INFLUXDB_DATABASE_NAME))
         response = self.es_influxdb_client.ic_query(query)
@@ -863,11 +892,13 @@ class EsmonServer(object):
         """
         Create continuous query in influxdb, delete one first if necesary
         """
+        # Sort the groups so that we will get a unique cq name for the same groups
+        groups.sort()
         ret = self._es_influxdb_cq_create(measurement, groups, interval)
         if ret == 0:
             return 0
 
-        ret = self.es_influxdb_cq_delete(measurement)
+        ret = self.es_influxdb_cq_delete(measurement, groups)
         if ret:
             return ret
 
