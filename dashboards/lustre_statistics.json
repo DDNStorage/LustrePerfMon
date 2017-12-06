@@ -20,7 +20,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "Free Capacity of the whole file system",
+          "description": "Free capacity of the whole file system",
           "fill": 1,
           "id": 49,
           "legend": {
@@ -125,7 +125,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "Used Capacity of the whole file system",
+          "description": "Used capacity of the whole file system",
           "fill": 1,
           "id": 50,
           "legend": {
@@ -591,6 +591,216 @@
       "height": "300",
       "panels": [
         {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "description": "Free inode number of the whole file system",
+          "fill": 1,
+          "id": 51,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 2,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "Free Inode Number",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "optype"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_ost_stats_bytes-optype-fs_name",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"sum\" FROM \"cqm_mdt_filesinfo_free-fs_name\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Free Inode Number in Total",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "description": "Used inode number of the whole file system",
+          "fill": 1,
+          "id": 52,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 2,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "Used Inode Number",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "optype"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_ost_stats_bytes-optype-fs_name",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"sum\" FROM \"cqm_mdt_filesinfo_used-fs_name\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Used Inode Number in Total",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        },
+        {
           "columns": [
             {
               "text": "Current",
@@ -610,7 +820,7 @@
             "col": 1,
             "desc": false
           },
-          "span": 3,
+          "span": 2,
           "styles": [
             {
               "dateFormat": "YYYY-MM-DD HH:mm:ss",
@@ -694,7 +904,7 @@
             "col": 1,
             "desc": true
           },
-          "span": 3,
+          "span": 2,
           "styles": [
             {
               "alias": "Time",
@@ -784,7 +994,7 @@
             "col": 1,
             "desc": true
           },
-          "span": 3,
+          "span": 2,
           "styles": [
             {
               "alias": "Time",
@@ -875,7 +1085,7 @@
             "col": 1,
             "desc": true
           },
-          "span": 3,
+          "span": 2,
           "styles": [
             {
               "dateFormat": "YYYY-MM-DD HH:mm:ss",
@@ -3412,7 +3622,7 @@
     ]
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {
