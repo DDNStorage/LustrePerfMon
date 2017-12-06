@@ -353,7 +353,7 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
                 return -1
 
             if host_id not in hosts:
-                logging.error("no host with [%s] is configured in hosts, "
+                logging.error("no host with ID [%s] is configured in hosts, "
                               "please correct file [%s]",
                               host_id, config_fpath)
                 return -1

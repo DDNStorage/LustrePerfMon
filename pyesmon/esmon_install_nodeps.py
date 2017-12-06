@@ -837,6 +837,7 @@ class EsmonServer(object):
                                          cq_time)
         if ret:
             return -1
+
         return 0
 
     def _es_influxdb_cq_create(self, measurement, groups, interval):
