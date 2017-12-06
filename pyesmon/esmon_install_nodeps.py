@@ -821,13 +821,19 @@ class EsmonServer(object):
             return -1
 
         ret = self.es_influxdb_cq_create("md_stats",
-                                         ["fs_name", "optype"],
+                                         ["fs_name"],
                                          cq_time)
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("md_stats",
                                          ["fs_name", "mdt_index"],
+                                         cq_time)
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("md_stats",
+                                         ["fs_name", "optype"],
                                          cq_time)
         if ret:
             return -1

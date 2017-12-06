@@ -1151,6 +1151,295 @@
       "height": 250,
       "panels": [
         {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "description": "Metadata Operation Rate of the whole file system",
+          "fill": 1,
+          "id": 48,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 3,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "optype"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_ost_stats_bytes-optype-fs_name",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"sum\" FROM \"cqm_md_stats-fs_name\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Metadata Operation Rate",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "Bps",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        },
+        {
+          "columns": [
+            {
+              "text": "Avg",
+              "value": "avg"
+            },
+            {
+              "text": "Max",
+              "value": "max"
+            },
+            {
+              "text": "Current",
+              "value": "current"
+            }
+          ],
+          "datasource": null,
+          "description": "The metadata operation  rate for each MDT.",
+          "filterNull": false,
+          "fontSize": "100%",
+          "id": 47,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 3,
+            "desc": true
+          },
+          "span": 3,
+          "styles": [
+            {
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "decimals": 2,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "ops"
+            }
+          ],
+          "targets": [
+            {
+              "alias": "$tag_mdt_index",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "optype"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_md_stats-optype-fs_name",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"sum\" FROM \"cqm_md_stats-fs_name-mdt_index\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"mdt_index\"",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Metadata Operation Rate per MDT",
+          "transform": "timeseries_aggregations",
+          "type": "table"
+        },
+        {
+          "columns": [
+            {
+              "text": "Avg",
+              "value": "avg"
+            },
+            {
+              "text": "Max",
+              "value": "max"
+            },
+            {
+              "text": "Current",
+              "value": "current"
+            }
+          ],
+          "datasource": null,
+          "description": "The metadata operation  rate for each client.",
+          "filterNull": false,
+          "fontSize": "100%",
+          "id": 38,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 3,
+            "desc": true
+          },
+          "span": 3,
+          "styles": [
+            {
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "decimals": 2,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "ops"
+            }
+          ],
+          "targets": [
+            {
+              "alias": "$tag_exp_client",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "exp_client"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_exp_md_stats-exp_client-fs_name",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Metadata Operation Rate per Client",
+          "transform": "timeseries_aggregations",
+          "type": "table"
+        },
+        {
           "columns": [
             {
               "text": "Avg",
@@ -1178,7 +1467,7 @@
             "col": 3,
             "desc": true
           },
-          "span": 6,
+          "span": 3,
           "styles": [
             {
               "dateFormat": "YYYY-MM-DD HH:mm:ss",
@@ -1240,97 +1529,6 @@
           "timeFrom": null,
           "timeShift": null,
           "title": "Metadata Operation Rate per Type",
-          "transform": "timeseries_aggregations",
-          "type": "table"
-        },
-        {
-          "columns": [
-            {
-              "text": "Avg",
-              "value": "avg"
-            },
-            {
-              "text": "Max",
-              "value": "max"
-            },
-            {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
-          "datasource": null,
-          "description": "The metadata operation  rate for each client.",
-          "filterNull": false,
-          "fontSize": "100%",
-          "id": 38,
-          "links": [],
-          "pageSize": null,
-          "scroll": true,
-          "showHeader": true,
-          "sort": {
-            "col": 3,
-            "desc": true
-          },
-          "span": 6,
-          "styles": [
-            {
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "pattern": "/.*/",
-              "thresholds": [],
-              "type": "number",
-              "unit": "ops"
-            }
-          ],
-          "targets": [
-            {
-              "alias": "$tag_exp_client",
-              "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "exp_client"
-                  ],
-                  "type": "tag"
-                }
-              ],
-              "measurement": "cqm_exp_md_stats-exp_client-fs_name",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "sum"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
-                }
-              ]
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Metadata Operation Rate per Client",
           "transform": "timeseries_aggregations",
           "type": "table"
         }

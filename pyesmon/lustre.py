@@ -222,14 +222,14 @@ class LustreMDT(object):
 
         ret = host.lsh_mdt_add(lustre_fs.lf_fsname, index, self)
         if ret:
-            reason = ("MDT [%s:%d] already exists in host [%s]",
+            reason = ("MDT [%s:%d] already exists in host [%s]" %
                       (lustre_fs.lf_fsname, index, host.sh_hostname))
             logging.error(reason)
             raise Exception(reason)
 
         ret = lustre_fs.lf_mdt_add(index, self)
         if ret:
-            reason = ("MDT [%d] already exists in file system [%s]",
+            reason = ("MDT [%d] already exists in file system [%s]" %
                       (index, lustre_fs.lf_fsname))
             logging.error(reason)
             raise Exception(reason)
@@ -319,14 +319,14 @@ class LustreOST(object):
 
         ret = host.lsh_ost_add(lustre_fs.lf_fsname, index, self)
         if ret:
-            reason = ("OST [%s:%d] already exists in host [%s]",
+            reason = ("OST [%s:%d] already exists in host [%s]" %
                       (lustre_fs.lf_fsname, index, host.sh_hostname))
             logging.error(reason)
             raise Exception(reason)
 
         ret = lustre_fs.lf_ost_add(index, self)
         if ret:
-            reason = ("OST [%d] already exists in file system [%s]",
+            reason = ("OST [%d] already exists in file system [%s]" %
                       (index, lustre_fs.lf_fsname))
             logging.error(reason)
             raise Exception(reason)
