@@ -293,6 +293,9 @@ PostCacheChain "PostCache"
     <Item>
         Type "ost_brw_stats_io_time"
     </Item>
+    <Item>
+        Type "ost_brw_stats_io_size"
+    </Item>
 
     <Item>
         Type "ost_stats_write"

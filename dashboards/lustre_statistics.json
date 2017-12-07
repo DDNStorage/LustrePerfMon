@@ -3873,7 +3873,7 @@
             "threshold": ""
           },
           "datasource": null,
-          "description": "The write I/O time is the elasped time length between an I/O (not BIO, since a single I/O could sumbit multiple BIOs) starts and ends. Less I/O time of course is better.",
+          "description": "The I/O time is the elasped time length between an I/O (Not BIO. A single I/O could sumbit multiple BIOs) starts and ends. Less I/O time of course is better.",
           "fontSize": "80%",
           "format": "short",
           "id": 65,
@@ -3952,7 +3952,7 @@
             "threshold": ""
           },
           "datasource": null,
-          "description": "The write I/O time is the elasped time length between an I/O (not BIO, since a single I/O could sumbit multiple BIOs) starts and ends. Less I/O time of course is better.",
+          "description": "The I/O time is the elasped time length between an I/O (Not BIO. A single I/O could sumbit multiple BIOs) starts and ends. Less I/O time of course is better.",
           "fontSize": "80%",
           "format": "short",
           "id": 66,
@@ -4028,7 +4028,177 @@
       "repeatIteration": null,
       "repeatRowId": null,
       "showTitle": false,
-      "title": "Dashboard Row",
+      "title": "Distribution of I/O Size on OST",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": "300",
+      "panels": [
+        {
+          "aliasColors": {},
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": ""
+          },
+          "datasource": null,
+          "description": "The I/O size on disk is the size of submitted BIO. Usually, bigger I/O size means better performance.",
+          "fontSize": "80%",
+          "format": "short",
+          "id": 67,
+          "interval": null,
+          "legend": {
+            "header": "",
+            "percentage": true,
+            "percentageDecimals": null,
+            "show": true,
+            "sort": null,
+            "sortDesc": null,
+            "values": false
+          },
+          "legendType": "Right side",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "pieType": "pie",
+          "span": 6,
+          "strokeWidth": "1",
+          "targets": [
+            {
+              "alias": "$tag_size",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "size"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_io_size_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'write_sample' AND $timeFilter GROUP BY \"size\"",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Distribution of Write I/O Size on Disk",
+          "type": "grafana-piechart-panel",
+          "valueName": "current"
+        },
+        {
+          "aliasColors": {},
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": ""
+          },
+          "datasource": null,
+          "description": "The I/O size is the size of submitted BIO. Usually, bigger I/O size means better performance.",
+          "fontSize": "80%",
+          "format": "short",
+          "id": 68,
+          "interval": null,
+          "legend": {
+            "header": "",
+            "percentage": true,
+            "percentageDecimals": null,
+            "show": true,
+            "sort": null,
+            "sortDesc": null,
+            "values": false
+          },
+          "legendType": "Right side",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "pieType": "pie",
+          "span": 6,
+          "strokeWidth": "1",
+          "targets": [
+            {
+              "alias": "$tag_size",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "size"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_io_size_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'read_sample' AND $timeFilter GROUP BY \"size\"",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Distribution of Read I/O Size on Disk",
+          "type": "grafana-piechart-panel",
+          "valueName": "current"
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Distribution of I/O Size on OST",
       "titleSize": "h6"
     },
     {
