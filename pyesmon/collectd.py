@@ -287,6 +287,12 @@ PostCacheChain "PostCache"
     <Item>
         Type "ost_brw_stats_fragmented_io"
     </Item>
+    <Item>
+        Type "ost_brw_stats_io_in_flight"
+    </Item>
+    <Item>
+        Type "ost_brw_stats_io_time"
+    </Item>
 
     <Item>
         Type "ost_stats_write"

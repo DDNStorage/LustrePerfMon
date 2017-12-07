@@ -2545,7 +2545,7 @@
           "cacheTimeout": null,
           "combine": {
             "label": "Others",
-            "threshold": "0.01"
+            "threshold": ""
           },
           "datasource": null,
           "fontSize": "80%",
@@ -2561,7 +2561,7 @@
             "sortDesc": null,
             "values": false
           },
-          "legendType": "On graph",
+          "legendType": "Right side",
           "links": [],
           "maxDataPoints": 3,
           "nullPointMode": "connected",
@@ -3116,7 +3116,7 @@
           "cacheTimeout": null,
           "combine": {
             "label": "Others",
-            "threshold": "0.01"
+            "threshold": ""
           },
           "datasource": null,
           "fontSize": "80%",
@@ -3132,7 +3132,7 @@
             "sortDesc": null,
             "values": false
           },
-          "legendType": "On graph",
+          "legendType": "Right side",
           "links": [],
           "maxDataPoints": 3,
           "nullPointMode": "connected",
@@ -3219,7 +3219,7 @@
             "sortDesc": null,
             "values": false
           },
-          "legendType": "On graph",
+          "legendType": "Right side",
           "links": [],
           "maxDataPoints": 3,
           "nullPointMode": "connected",
@@ -3280,8 +3280,8 @@
           "aliasColors": {},
           "cacheTimeout": null,
           "combine": {
-            "label": "Others",
-            "threshold": "0.01"
+            "label": "",
+            "threshold": ""
           },
           "datasource": null,
           "description": "If the next page to be written or read in the I/O is not with the next offset, that page is a discontinuous page. There could be multiple discontinuous pages in an I/O. I/Os with less discontinuous pages are more friendly to OSDs.",
@@ -3298,7 +3298,7 @@
             "sortDesc": null,
             "values": false
           },
-          "legendType": "On graph",
+          "legendType": "Right side",
           "links": [],
           "maxDataPoints": 3,
           "nullPointMode": "connected",
@@ -3377,7 +3377,7 @@
             "sortDesc": null,
             "values": false
           },
-          "legendType": "On graph",
+          "legendType": "Right side",
           "links": [],
           "maxDataPoints": 3,
           "nullPointMode": "connected",
@@ -3439,7 +3439,7 @@
           "cacheTimeout": null,
           "combine": {
             "label": "Others",
-            "threshold": "0.01"
+            "threshold": ""
           },
           "datasource": null,
           "description": "If the next block to be written or read in the I/O is not with the next offset, that block is a discontinuous block. There could be multiple discontinuous block in an I/O. I/Os with less discontinuous blocks are more friendly to OSDs. One page contains multiple blocks. The block size is determined by underline file system (Ldiskfs or ZFS).",
@@ -3456,7 +3456,7 @@
             "sortDesc": null,
             "values": false
           },
-          "legendType": "On graph",
+          "legendType": "Right side",
           "links": [],
           "maxDataPoints": 3,
           "nullPointMode": "connected",
@@ -3547,12 +3547,12 @@
             "sortDesc": null,
             "values": false
           },
-          "legendType": "On graph",
+          "legendType": "Right side",
           "links": [],
           "maxDataPoints": 3,
           "nullPointMode": "connected",
           "pieType": "pie",
-          "span": 3,
+          "span": 6,
           "strokeWidth": "1",
           "targets": [
             {
@@ -3609,7 +3609,7 @@
           "cacheTimeout": null,
           "combine": {
             "label": "Others",
-            "threshold": "0.01"
+            "threshold": ""
           },
           "datasource": null,
           "description": "Sometimes an I/O is not able to be written/read in a single BIO on OST,  instead, multiple BIOs are submitted. The fragment number of this I/O equals to the BIO number. Usually, less fragments in the I/Os mean better performance.",
@@ -3626,12 +3626,12 @@
             "sortDesc": null,
             "values": false
           },
-          "legendType": "On graph",
+          "legendType": "Right side",
           "links": [],
           "maxDataPoints": 3,
           "nullPointMode": "connected",
           "pieType": "pie",
-          "span": 3,
+          "span": 6,
           "strokeWidth": "1",
           "targets": [
             {
@@ -3689,6 +3689,346 @@
       "repeatRowId": null,
       "showTitle": false,
       "title": "I/O Fragments on OSTs",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": "300",
+      "panels": [
+        {
+          "aliasColors": {},
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": "0.01"
+          },
+          "datasource": null,
+          "description": "The in-flight I/O number means the BIO that have started but not ended yet. Thus, when starting a BIO, the in-flight I/O increases. By contrast, when a BIO ends, the in-flight I/O number decreases. And when starting a BIO, the current in-flight I/O number will be collected. More in-flight I/Os means more concurrent I/Os on this OST, and thus heavier load for the OST.",
+          "fontSize": "80%",
+          "format": "short",
+          "id": 63,
+          "interval": null,
+          "legend": {
+            "header": "",
+            "percentage": true,
+            "percentageDecimals": null,
+            "show": true,
+            "sort": null,
+            "sortDesc": null,
+            "values": false
+          },
+          "legendType": "Right side",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "pieType": "pie",
+          "span": 6,
+          "strokeWidth": "1",
+          "targets": [
+            {
+              "alias": "$tag_size",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "size"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_io_in_flight_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'write_sample' AND $timeFilter GROUP BY \"size\"",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Distribution of In-fight Write I/O Number when Starting Each Write I/O",
+          "type": "grafana-piechart-panel",
+          "valueName": "current"
+        },
+        {
+          "aliasColors": {},
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": "0.01"
+          },
+          "datasource": null,
+          "description": "The in-flight I/O number means the BIO that have started but not ended yet. Thus, when starting a BIO, the in-flight I/O increases. By contrast, when a BIO ends, the in-flight I/O number decreases. And when starting a BIO, the current in-flight I/O number will be collected. More in-flight I/Os means more concurrent I/Os on this OST, and thus heavier load for the OST.",
+          "fontSize": "80%",
+          "format": "short",
+          "id": 64,
+          "interval": null,
+          "legend": {
+            "header": "",
+            "percentage": true,
+            "percentageDecimals": null,
+            "show": true,
+            "sort": null,
+            "sortDesc": null,
+            "values": false
+          },
+          "legendType": "Right side",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "pieType": "pie",
+          "span": 6,
+          "strokeWidth": "1",
+          "targets": [
+            {
+              "alias": "$tag_size",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "size"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_io_in_flight_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'read_sample' AND $timeFilter GROUP BY \"size\"",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Distribution of In-fight Read I/O Number when Starting Each Read I/O",
+          "type": "grafana-piechart-panel",
+          "valueName": "current"
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "In-flight I/O Number on OST",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": "300",
+      "panels": [
+        {
+          "aliasColors": {},
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": ""
+          },
+          "datasource": null,
+          "description": "The write I/O time is the elasped time length between an I/O (not BIO, since a single I/O could sumbit multiple BIOs) starts and ends. Less I/O time of course is better.",
+          "fontSize": "80%",
+          "format": "short",
+          "id": 65,
+          "interval": null,
+          "legend": {
+            "header": "",
+            "percentage": true,
+            "percentageDecimals": null,
+            "show": true,
+            "sort": null,
+            "sortDesc": null,
+            "values": false
+          },
+          "legendType": "Right side",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "pieType": "pie",
+          "span": 6,
+          "strokeWidth": "1",
+          "targets": [
+            {
+              "alias": "$tag_size",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "size"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_io_time_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'write_sample' AND $timeFilter GROUP BY \"size\"",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Distribution of Write I/O Time",
+          "type": "grafana-piechart-panel",
+          "valueName": "current"
+        },
+        {
+          "aliasColors": {},
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": ""
+          },
+          "datasource": null,
+          "description": "The write I/O time is the elasped time length between an I/O (not BIO, since a single I/O could sumbit multiple BIOs) starts and ends. Less I/O time of course is better.",
+          "fontSize": "80%",
+          "format": "short",
+          "id": 66,
+          "interval": null,
+          "legend": {
+            "header": "",
+            "percentage": true,
+            "percentageDecimals": null,
+            "show": true,
+            "sort": null,
+            "sortDesc": null,
+            "values": false
+          },
+          "legendType": "Right side",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "pieType": "pie",
+          "span": 6,
+          "strokeWidth": "1",
+          "targets": [
+            {
+              "alias": "$tag_size",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "size"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_io_time_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'read_sample' AND $timeFilter GROUP BY \"size\"",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Distribution of Read I/O Time",
+          "type": "grafana-piechart-panel",
+          "valueName": "current"
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Dashboard Row",
       "titleSize": "h6"
     },
     {

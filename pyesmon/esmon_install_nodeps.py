@@ -838,6 +838,18 @@ class EsmonServer(object):
         if ret:
             return -1
 
+        ret = self.es_influxdb_cq_create("ost_brw_stats_io_in_flight_samples",
+                                         ["field", "fs_name", "size"],
+                                         cq_time)
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("ost_brw_stats_io_time_samples",
+                                         ["field", "fs_name", "size"],
+                                         cq_time)
+        if ret:
+            return -1
+
         ret = self.es_influxdb_cq_create("md_stats",
                                          ["fs_name"],
                                          cq_time)
