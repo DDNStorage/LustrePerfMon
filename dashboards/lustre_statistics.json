@@ -3354,6 +3354,164 @@
           "title": "Distribution of Discontinuous Pages in Each Read I/O",
           "type": "grafana-piechart-panel",
           "valueName": "current"
+        },
+        {
+          "aliasColors": {},
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": "0.01"
+          },
+          "datasource": null,
+          "description": "If the next block to be written or read in the I/O is not with the next offset, that block is a discontinuous block. There could be multiple discontinuous block in an I/O. I/Os with less discontinuous blocks are more friendly to OSDs. One page contains multiple blocks. The block size is determined by underline file system (Ldiskfs or ZFS).",
+          "fontSize": "80%",
+          "format": "short",
+          "id": 59,
+          "interval": null,
+          "legend": {
+            "header": "",
+            "percentage": true,
+            "percentageDecimals": null,
+            "show": true,
+            "sort": null,
+            "sortDesc": null,
+            "values": false
+          },
+          "legendType": "On graph",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "pieType": "pie",
+          "span": 3,
+          "strokeWidth": "1",
+          "targets": [
+            {
+              "alias": "$tag_size",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "size"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_block_discontiguous_rpc_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'write_sample' AND $timeFilter GROUP BY \"size\"",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Distribution of Discontinuous Blocks in Each Write I/O",
+          "type": "grafana-piechart-panel",
+          "valueName": "current"
+        },
+        {
+          "aliasColors": {},
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": "0.01"
+          },
+          "datasource": null,
+          "description": "If the next block to be written or read in the I/O is not with the next offset, that block is a discontinuous block. There could be multiple discontinuous block in an I/O. I/Os with less discontinuous blocks are more friendly to OSDs. One page contains multiple blocks. The block size is determined by underline file system (Ldiskfs or ZFS).",
+          "fontSize": "80%",
+          "format": "short",
+          "id": 60,
+          "interval": null,
+          "legend": {
+            "header": "",
+            "percentage": true,
+            "percentageDecimals": null,
+            "show": true,
+            "sort": null,
+            "sortDesc": null,
+            "values": false
+          },
+          "legendType": "On graph",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "pieType": "pie",
+          "span": 3,
+          "strokeWidth": "1",
+          "targets": [
+            {
+              "alias": "$tag_size",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "size"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_block_discontiguous_rpc_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'read_sample' AND $timeFilter GROUP BY \"size\"",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Distribution of Discontinuous Blocks in Each Read I/O",
+          "type": "grafana-piechart-panel",
+          "valueName": "current"
         }
       ],
       "repeat": null,

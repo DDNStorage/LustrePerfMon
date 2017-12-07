@@ -281,6 +281,9 @@ PostCacheChain "PostCache"
     <Item>
         Type "ost_brw_stats_page_discontiguous_rpc"
     </Item>
+    <Item>
+        Type "ost_brw_stats_block_discontiguous_rpc"
+    </Item>
 
     <Item>
         Type "ost_stats_write"
