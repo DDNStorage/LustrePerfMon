@@ -276,12 +276,18 @@ PostCacheChain "PostCache"
     </Item>
 
     <Item>
+        Type "ost_brw_stats_rpc_bulk"
+    </Item>
+    <Item>
+        Type "ost_brw_stats_page_discontiguous_rpc"
+    </Item>
+
+    <Item>
         Type "ost_stats_write"
     </Item>
     <Item>
         Type "ost_stats_read"
     </Item>
-
     <Item>
         Type "ost_stats_statfs"
     </Item>
@@ -304,9 +310,7 @@ PostCacheChain "PostCache"
     <Item>
         Type "ost_filesused"
     </Item>
-    <Item>
-        Type "ost_brw_stats_rpc_bulk"
-    </Item>
+
     <Item>
         Type "ost_jobstats"
 #        <Rule>

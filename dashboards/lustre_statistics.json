@@ -583,7 +583,7 @@
       "repeatIteration": null,
       "repeatRowId": null,
       "showTitle": false,
-      "title": "Capacity and Inode Usage of Lustre",
+      "title": "Capacity",
       "titleSize": "h6"
     },
     {
@@ -1155,7 +1155,7 @@
       "repeatIteration": null,
       "repeatRowId": null,
       "showTitle": false,
-      "title": "Quota Accounting",
+      "title": "Inode Number",
       "titleSize": "h6"
     },
     {
@@ -1957,7 +1957,7 @@
       "repeatIteration": null,
       "repeatRowId": null,
       "showTitle": false,
-      "title": "Metadata Rate",
+      "title": "Metadata Operation Rate",
       "titleSize": "h6"
     },
     {
@@ -1970,6 +1970,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
+          "description": "",
           "fill": 1,
           "id": 15,
           "legend": {
@@ -1991,7 +1992,7 @@
           "renderer": "flot",
           "seriesOverrides": [],
           "spaceLength": 10,
-          "span": 6,
+          "span": 3,
           "stack": true,
           "steppedLine": false,
           "targets": [
@@ -2506,7 +2507,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Size Distribution of Bulk RPC (Write)",
+          "title": "Write Bulk RPC Rate per Size",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -2541,7 +2542,81 @@
         },
         {
           "aliasColors": {},
-          "bars": true,
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": "0.01"
+          },
+          "datasource": null,
+          "fontSize": "80%",
+          "format": "short",
+          "id": 54,
+          "interval": null,
+          "legend": {
+            "header": "",
+            "percentage": true,
+            "percentageDecimals": null,
+            "show": true,
+            "sort": null,
+            "sortDesc": null,
+            "values": false
+          },
+          "legendType": "On graph",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "pieType": "pie",
+          "span": 3,
+          "strokeWidth": "1",
+          "targets": [
+            {
+              "alias": "$tag_size",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "size"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                }
+              ]
+            }
+          ],
+          "title": "Size Distribution of Write Bulk RPC",
+          "type": "grafana-piechart-panel",
+          "valueName": "current"
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
@@ -2556,7 +2631,7 @@
             "total": false,
             "values": false
           },
-          "lines": false,
+          "lines": true,
           "linewidth": 1,
           "links": [],
           "nullPointMode": "null",
@@ -2566,7 +2641,7 @@
           "renderer": "flot",
           "seriesOverrides": [],
           "spaceLength": 10,
-          "span": 6,
+          "span": 3,
           "stack": true,
           "steppedLine": false,
           "targets": [
@@ -3003,7 +3078,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Size Distribution of Bulk RPC (Read)",
+          "title": "Read Bulk RPC Rate per Size",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -3032,9 +3107,83 @@
               "logBase": 1,
               "max": null,
               "min": null,
-              "show": true
+              "show": false
             }
           ]
+        },
+        {
+          "aliasColors": {},
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": "0.01"
+          },
+          "datasource": null,
+          "fontSize": "80%",
+          "format": "short",
+          "id": 53,
+          "interval": null,
+          "legend": {
+            "header": "",
+            "percentage": true,
+            "percentageDecimals": null,
+            "show": true,
+            "sort": null,
+            "sortDesc": null,
+            "values": false
+          },
+          "legendType": "On graph",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "pieType": "pie",
+          "span": 3,
+          "strokeWidth": "1",
+          "targets": [
+            {
+              "alias": "$tag_size",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "size"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "field",
+                  "operator": "=",
+                  "value": "read_sample"
+                }
+              ]
+            }
+          ],
+          "title": "Size Distribution of Read Bulk RPC",
+          "type": "grafana-piechart-panel",
+          "valueName": "current"
         }
       ],
       "repeat": null,
@@ -3042,6 +3191,176 @@
       "repeatRowId": null,
       "showTitle": false,
       "title": "RPC Size",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": "300",
+      "panels": [
+        {
+          "aliasColors": {},
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": "0.01"
+          },
+          "datasource": null,
+          "description": "If the next page to be written or read in the I/O is not with the next offset, that page is a discontinuous page. There could be multiple discontinuous pages in an I/O. I/Os with less discontinuous pages are more friendly to OSDs.",
+          "fontSize": "80%",
+          "format": "short",
+          "id": 56,
+          "interval": null,
+          "legend": {
+            "header": "",
+            "percentage": true,
+            "percentageDecimals": null,
+            "show": true,
+            "sort": null,
+            "sortDesc": null,
+            "values": false
+          },
+          "legendType": "On graph",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "pieType": "pie",
+          "span": 3,
+          "strokeWidth": "1",
+          "targets": [
+            {
+              "alias": "$tag_size",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "size"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_page_discontiguous_rpc_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'write_sample' AND $timeFilter GROUP BY \"size\"",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Distribution of Discontinuous Pages in Each Write I/O",
+          "type": "grafana-piechart-panel",
+          "valueName": "current"
+        },
+        {
+          "aliasColors": {},
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": "0.01"
+          },
+          "datasource": null,
+          "description": "If the next page to be written or read in the I/O is not with the next offset, that page is a discontinuous page. There could be multiple discontinuous pages in an I/O. I/Os with less discontinuous pages are more friendly to OSDs.",
+          "fontSize": "80%",
+          "format": "short",
+          "id": 57,
+          "interval": null,
+          "legend": {
+            "header": "",
+            "percentage": true,
+            "percentageDecimals": null,
+            "show": true,
+            "sort": null,
+            "sortDesc": null,
+            "values": false
+          },
+          "legendType": "On graph",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "pieType": "pie",
+          "span": 3,
+          "strokeWidth": "1",
+          "targets": [
+            {
+              "alias": "$tag_size",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "size"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_page_discontiguous_rpc_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'read_sample' AND $timeFilter GROUP BY \"size\"",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "field",
+                  "operator": "=",
+                  "value": "write_sample"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Distribution of Discontinuous Pages in Each Read I/O",
+          "type": "grafana-piechart-panel",
+          "valueName": "current"
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Discontiguous Pages/Blocks",
       "titleSize": "h6"
     },
     {
@@ -3135,7 +3454,7 @@
             }
           ],
           "timeFrom": null,
-          "title": "I/O Bandwith per Job",
+          "title": "I/O Bandwidth per Job",
           "transform": "timeseries_aggregations",
           "type": "table"
         },
@@ -3232,7 +3551,7 @@
             }
           ],
           "timeFrom": null,
-          "title": "Write Bandwith per Job",
+          "title": "Write Bandwidth per Job",
           "transform": "timeseries_aggregations",
           "type": "table"
         },
@@ -3329,7 +3648,7 @@
             }
           ],
           "timeFrom": null,
-          "title": "Read Bandwith per Job",
+          "title": "Read Bandwidth per Job",
           "transform": "timeseries_aggregations",
           "type": "table"
         },
@@ -3428,11 +3747,11 @@
       "repeatIteration": null,
       "repeatRowId": null,
       "showTitle": false,
-      "title": "Bandwith and Metadata Rate per Job",
+      "title": "Bandwidth  and Metadata Rate per Job",
       "titleSize": "h6"
     },
     {
-      "collapse": true,
+      "collapse": false,
       "height": "300",
       "panels": [
         {

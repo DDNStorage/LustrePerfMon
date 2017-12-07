@@ -76,7 +76,7 @@ def config_value(config, key):
 def clone_src_from_git(build_dir, git_url, branch,
                        ssh_identity_file=None):
     """
-    Get the Lustre soure codes from Git server.
+    Get the soure codes from Git server.
     """
     command = ("rm -fr %s && mkdir -p %s && git init %s" %
                (build_dir, build_dir, build_dir))
