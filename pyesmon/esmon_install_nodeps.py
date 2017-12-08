@@ -856,6 +856,12 @@ class EsmonServer(object):
         if ret:
             return -1
 
+        ret = self.es_influxdb_cq_create("exp_ost_stats_bytes",
+                                         ["fs_name", "exp_client", "optype"],
+                                         cq_time)
+        if ret:
+            return -1
+
         ret = self.es_influxdb_cq_create("md_stats",
                                          ["fs_name"],
                                          cq_time)

@@ -298,6 +298,14 @@ PostCacheChain "PostCache"
     </Item>
 
     <Item>
+        Type "exp_ost_stats_read"
+    </Item>
+    <Item>
+        Type "exp_ost_stats_write"
+    </Item>
+    # The other exp_ost_stats_* items are not enabled here
+
+    <Item>
         Type "ost_stats_write"
     </Item>
     <Item>
@@ -305,25 +313,6 @@ PostCacheChain "PostCache"
     </Item>
     <Item>
         Type "ost_stats_statfs"
-    </Item>
-
-    <Item>
-        Type "ost_kbytestotal"
-    </Item>
-    <Item>
-        Type "ost_kbytesfree"
-    </Item>
-    <Item>
-        Type "ost_kbytesused"
-    </Item>
-    <Item>
-        Type "ost_filestotal"
-    </Item>
-    <Item>
-        Type "ost_filesfree"
-    </Item>
-    <Item>
-        Type "ost_filesused"
     </Item>
 
     <Item>
@@ -355,6 +344,25 @@ PostCacheChain "PostCache"
 #       </ExtendedParse>
 #       TsdbTags "slurm_job_uid=${extendfield:slurm_job_uid} slurm_job_gid=${extendfield:slurm_job_gid} slurm_job_id=${extendfield:slurm_job_id}"
 #   </ItemType>
+
+    <Item>
+        Type "ost_kbytestotal"
+    </Item>
+    <Item>
+        Type "ost_kbytesfree"
+    </Item>
+    <Item>
+        Type "ost_kbytesused"
+    </Item>
+    <Item>
+        Type "ost_filestotal"
+    </Item>
+    <Item>
+        Type "ost_filesfree"
+    </Item>
+    <Item>
+        Type "ost_filesused"
+    </Item>
 """
         if lustre_mds:
             config += """
@@ -492,6 +500,7 @@ PostCacheChain "PostCache"
         Type "mdt_filesused"
     </Item>
 """
+        # Client support, e.g. max_rpcs_in_flight of mdc could be added
         config += "</Plugin>\n\n"
         self.cc_filedatas["lustre"] = config
         client = self.cc_esmon_client
