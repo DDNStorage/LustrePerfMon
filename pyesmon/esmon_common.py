@@ -63,6 +63,12 @@ CSTR_HOSTS = "hosts"
 CSTR_CLEANUP = "cleanup"
 CSTR_COLLECT_INTERVAL = "collect_interval"
 
+GRAFANA_STATUS_PANEL = "Grafana_Status_panel"
+GRAFANA_PIECHART_PANEL = "piechart-panel"
+GRAFANA_PLUGIN_GITS = {}
+GRAFANA_PLUGIN_GITS[GRAFANA_STATUS_PANEL] = "https://github.com/Vonage/Grafana_Status_panel.git"
+GRAFANA_PLUGIN_GITS[GRAFANA_PIECHART_PANEL] = "https://github.com/grafana/piechart-panel.git"
+
 
 def config_value(config, key):
     """

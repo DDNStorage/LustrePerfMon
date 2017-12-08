@@ -37,7 +37,6 @@ INFLUXDB_DATABASE_NAME = "esmon_database"
 INFLUXDB_CQ_PREFIX = "cq_"
 INFLUXDB_CQ_MEASUREMENT_PREFIX = "cqm_"
 GRAFANA_DASHBOARD_DIR = "dashboards"
-GRAFANA_STATUS_PANEL = "Grafana_Status_panel"
 GRAFANA_PLUGIN_DIR = "/var/lib/grafana/plugins"
 GRAFANA_DASHBOARDS = {}
 GRAFANA_DASHBOARDS["Cluster Status"] = "cluster_status.json"
@@ -561,11 +560,11 @@ class EsmonServer(object):
             return -1
         return 0
 
-    def es_grafana_install_plugin(self):
+    def es_grafana_install_plugin(self, panel_name):
         """
-        Install grafana status plugin
+        Install a grafana plugin
         """
-        plugin_dir = GRAFANA_PLUGIN_DIR + "/" + GRAFANA_STATUS_PANEL
+        plugin_dir = GRAFANA_PLUGIN_DIR + "/" + panel_name
         command = ("rm -fr %s" % (plugin_dir))
         retval = self.es_host.sh_run(command)
         if retval.cr_exit_status:
@@ -578,7 +577,7 @@ class EsmonServer(object):
                           retval.cr_stderr)
             return -1
 
-        new_plugin_dir = self.es_iso_dir + "/" + GRAFANA_STATUS_PANEL
+        new_plugin_dir = self.es_iso_dir + "/" + panel_name
         command = ("cp -a %s %s" % (new_plugin_dir, GRAFANA_PLUGIN_DIR))
         retval = self.es_host.sh_run(command)
         if retval.cr_exit_status:
@@ -590,6 +589,17 @@ class EsmonServer(object):
                           retval.cr_stdout,
                           retval.cr_stderr)
             return -1
+        return 0
+
+    def es_grafana_install_plugins(self):
+        """
+        Install grafana plugins
+        """
+        for plugin in esmon_common.GRAFANA_PLUGIN_GITS.iterkeys():
+            ret = self.es_grafana_install_plugin(plugin)
+            if ret:
+                logging.error("failed to install grafana plugin [%s]", plugin)
+                return -1
         return 0
 
     def es_grafana_reinstall(self, mnt_path):
@@ -686,7 +696,7 @@ class EsmonServer(object):
         if ret:
             return ret
 
-        ret = self.es_grafana_install_plugin()
+        ret = self.es_grafana_install_plugins()
         if ret:
             return ret
         return 0

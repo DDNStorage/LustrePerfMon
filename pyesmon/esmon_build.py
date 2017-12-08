@@ -647,6 +647,52 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
     return 0
 
 
+def esmon_download_grafana_plugin(local_host, iso_cached_dir, plugin_name, git_url):
+    """
+    Download grafana plugin
+    """
+    panel_git_path = iso_cached_dir + "/" + plugin_name
+    command = "test -e %s" % panel_git_path
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        command = ("git clone %s %s" % (git_url, panel_git_path))
+        retval = local_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          local_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+    else:
+        command = ("cd %s && git pull" % panel_git_path)
+        retval = local_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          local_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+
+def esmon_download_grafana_plugins(local_host, iso_cached_dir):
+    """
+    Download grafana plugin
+    """
+    for plugin_name, git_url in esmon_common.GRAFANA_PLUGIN_GITS.iteritems():
+        ret = esmon_download_grafana_plugin(local_host, iso_cached_dir, plugin_name, git_url)
+        if ret:
+            logging.error("failed to download Grafana plugin [%s] from url [%s]",
+                          plugin_name, git_url)
+            return -1
+    return 0
+
+
 def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
     """
     Build the ISO
@@ -858,39 +904,14 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
                               retval.cr_stderr)
                 return -1
 
-    grafana_status_panel = "Grafana_Status_panel"
-    grafana_status_panel_git_path = iso_cached_dir + "/" + grafana_status_panel
-    command = "test -e %s" % grafana_status_panel_git_path
-    retval = local_host.sh_run(command)
-    if retval.cr_exit_status:
-        command = ("git clone https://github.com/Vonage/"
-                   "Grafana_Status_panel.git %s" %
-                   grafana_status_panel_git_path)
-        retval = local_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          local_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
-    else:
-        command = ("cd %s && git pull" % grafana_status_panel_git_path)
-        retval = local_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          local_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
+    ret = esmon_download_grafana_plugins(local_host, iso_cached_dir)
+    if ret:
+        logging.error("failed to download Grafana plugins")
+        return -1
 
     dependent_existing_files = os.listdir(iso_cached_dir)
-    dependent_existing_files.remove(grafana_status_panel)
+    for panel_name in esmon_common.GRAFANA_PLUGIN_GITS.iterkeys():
+        dependent_existing_files.remove(panel_name)
     dependent_existing_files.remove("RPMS")
     for extra_fname in dependent_existing_files:
         logging.warning("find unknown file [%s] under directory [%s], removing",
