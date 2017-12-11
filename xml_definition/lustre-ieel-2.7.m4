@@ -493,7 +493,7 @@ HEAD(Lustre-ieel-2.5)
 							</subpath>
 							<mode>file</mode>
 							<item>
-								<name>ldlm_stats</name>
+								<name>ost_ldlm_stats</name>
 								<pattern>snapshot_time             +([[:digit:]]+).+
 granted                   +[[:digit:]]+ samples \[locks\] +([[:digit:]]+).+
 grant                     +[[:digit:]]+ samples \[locks\] +([[:digit:]]+).+

@@ -363,6 +363,17 @@ PostCacheChain "PostCache"
     <Item>
         Type "ost_filesused"
     </Item>
+
+    # Items of ost_threads_* are not enabled
+
+    # Items of ost_io_stats_* are not enabled because in order to get meaningful
+    # value, need to, for example:
+    # ost_io_stats_usec_sum / ost_io_stats_usec_samples
+
+    # Items of ost_io_threads_* are not enabled
+
+    # Item ost_ldlm_stats is not enabled, because min/max/sum/stddev is not so
+    # useful for none-rate metrics.
 """
         if lustre_mds:
             config += """
