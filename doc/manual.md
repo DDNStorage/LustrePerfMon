@@ -66,13 +66,13 @@ Several additional plugins are added to *Collectd* in *ESMON* to support various
       # mount -o loop /ISOs/esmon.iso /media
       ```
 
-3. Install the *ESMON* RPM on *installation server*:
+3. Install the *ESMON* RPM on the *installation server*:
 
       ```shell
       # rpm -ivh /media/RPMS/rhel7/esmon*.rpm
       ```
 
-###2. Update the Configuration File on *Installation Server*
+###2. Update the Configuration File on the *Installation Server*
 
 The configuration file */etc/esmon_install.conf* includes all the necessary information for installation. Following is an example:
 
