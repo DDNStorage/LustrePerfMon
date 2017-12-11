@@ -812,24 +812,6 @@ class EsmonServer(object):
         if ret:
             return -1
 
-        ret = self.es_influxdb_cq_create("ost_jobstats_samples",
-                                         ["fs_name", "job_id", "optype"],
-                                         cq_time)
-        if ret:
-            return -1
-
-        ret = self.es_influxdb_cq_create("ost_jobstats_samples",
-                                         ["fs_name", "job_id"],
-                                         cq_time)
-        if ret:
-            return -1
-
-        ret = self.es_influxdb_cq_create("ost_brw_stats_rpc_bulk_samples",
-                                         ["field", "fs_name", "size"],
-                                         cq_time)
-        if ret:
-            return -1
-
         ret = self.es_influxdb_cq_create("ost_brw_stats_page_discontiguous_rpc_samples",
                                          ["field", "fs_name", "size"],
                                          cq_time)
@@ -861,6 +843,26 @@ class EsmonServer(object):
             return -1
 
         ret = self.es_influxdb_cq_create("ost_brw_stats_io_size_samples",
+                                         ["field", "fs_name", "size"],
+                                         cq_time)
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("ost_jobstats_samples",
+                                         ["fs_name", "job_id", "optype"],
+                                         cq_time)
+        if ret:
+            return -1
+
+        where = "WHERE optype = 'sum_read_bytes' OR optype = 'sum_write_bytes'"
+        ret = self.es_influxdb_cq_create("ost_jobstats_samples",
+                                         ["fs_name", "job_id"],
+                                         cq_time,
+                                         where=where)
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("ost_brw_stats_rpc_bulk_samples",
                                          ["field", "fs_name", "size"],
                                          cq_time)
         if ret:
@@ -916,7 +918,7 @@ class EsmonServer(object):
 
         return 0
 
-    def _es_influxdb_cq_create(self, measurement, groups, interval):
+    def _es_influxdb_cq_create(self, measurement, groups, interval, where=""):
         """
         Create continuous query in influxdb
         """
@@ -931,10 +933,10 @@ class EsmonServer(object):
 
         query = ('CREATE CONTINUOUS QUERY %s ON "%s" \n'
                  'BEGIN SELECT sum("value") INTO "%s" \n'
-                 '    FROM "%s" GROUP BY time(%ss)%s \n'
+                 '    FROM "%s" %s GROUP BY time(%ss)%s \n'
                  'END;' %
                  (cq_query, INFLUXDB_DATABASE_NAME, cq_measurement,
-                  measurement, interval, group_string))
+                  measurement, where, interval, group_string))
         response = self.es_influxdb_client.ic_query(query)
         if response is None:
             logging.error("failed to create continuous query with query [%s]",
@@ -971,13 +973,13 @@ class EsmonServer(object):
             return -1
         return 0
 
-    def es_influxdb_cq_create(self, measurement, groups, interval):
+    def es_influxdb_cq_create(self, measurement, groups, interval, where=""):
         """
         Create continuous query in influxdb, delete one first if necesary
         """
         # Sort the groups so that we will get a unique cq name for the same groups
         groups.sort()
-        ret = self._es_influxdb_cq_create(measurement, groups, interval)
+        ret = self._es_influxdb_cq_create(measurement, groups, interval, where=where)
         if ret == 0:
             return 0
 
@@ -985,7 +987,7 @@ class EsmonServer(object):
         if ret:
             return ret
 
-        ret = self._es_influxdb_cq_create(measurement, groups, interval)
+        ret = self._es_influxdb_cq_create(measurement, groups, interval, where=where)
         if ret:
             logging.error("failed to create continuous query for measurement [%s]",
                           measurement)

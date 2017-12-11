@@ -1168,7 +1168,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "I/O Bandwith of the whole file system",
+          "description": "I/O Throughput  of the whole file system",
           "fill": 1,
           "id": 4,
           "legend": {
@@ -1234,7 +1234,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "I/O Bandwith in Total",
+          "title": "I/O Throughput in Total",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1283,7 +1283,7 @@
             }
           ],
           "datasource": null,
-          "description": "The I/O bandwith for each OST.",
+          "description": "The I/O throughput for each OST.",
           "filterNull": false,
           "fontSize": "100%",
           "id": 45,
@@ -1356,7 +1356,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "I/O Bandwith per OST",
+          "title": "I/O Throughput per OST",
           "transform": "timeseries_aggregations",
           "type": "table"
         },
@@ -1376,7 +1376,7 @@
             }
           ],
           "datasource": null,
-          "description": "The write bandwith for each OST.",
+          "description": "The write throughput for each OST.",
           "filterNull": false,
           "fontSize": "100%",
           "id": 44,
@@ -1455,7 +1455,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Write Bandwith per OST",
+          "title": "Write Throughput per OST",
           "transform": "timeseries_aggregations",
           "type": "table"
         },
@@ -1475,7 +1475,7 @@
             }
           ],
           "datasource": null,
-          "description": "The read bandwith for each OST.",
+          "description": "The read throughput for each OST.",
           "filterNull": false,
           "fontSize": "100%",
           "id": 43,
@@ -1554,7 +1554,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Read Bandwith per OST",
+          "title": "Read Throughput per OST",
           "transform": "timeseries_aggregations",
           "type": "table"
         }
@@ -4221,7 +4221,7 @@
             }
           ],
           "datasource": null,
-          "description": "The write bandwidth for each client.",
+          "description": "The write throughput for each client.",
           "filterNull": false,
           "fontSize": "100%",
           "id": 69,
@@ -4298,7 +4298,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Write Bandwidth per Client",
+          "title": "Write Throughput per Client",
           "transform": "timeseries_aggregations",
           "type": "table"
         },
@@ -4318,7 +4318,7 @@
             }
           ],
           "datasource": null,
-          "description": "The read bandwidth for each client.",
+          "description": "The read throughput for each client.",
           "filterNull": false,
           "fontSize": "100%",
           "id": 70,
@@ -4395,7 +4395,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Read Bandwidth per Client",
+          "title": "Read Throughput per Client",
           "transform": "timeseries_aggregations",
           "type": "table"
         }
@@ -4498,7 +4498,7 @@
             }
           ],
           "timeFrom": null,
-          "title": "I/O Bandwidth per Job",
+          "title": "I/O Throughput per Job",
           "transform": "timeseries_aggregations",
           "type": "table"
         },
@@ -4595,7 +4595,7 @@
             }
           ],
           "timeFrom": null,
-          "title": "Write Bandwidth per Job",
+          "title": "Write Throughput per Job",
           "transform": "timeseries_aggregations",
           "type": "table"
         },
@@ -4692,7 +4692,7 @@
             }
           ],
           "timeFrom": null,
-          "title": "Read Bandwidth per Job",
+          "title": "Read Throughput per Job",
           "transform": "timeseries_aggregations",
           "type": "table"
         },
