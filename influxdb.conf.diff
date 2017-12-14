@@ -1,5 +1,23 @@
---- /etc/influxdb/influxdb.conf	2017-07-21 00:34:08.000000000 +0800
-+++ influxdb.conf	2017-08-16 12:43:36.297201165 +0800
+--- influxdb_origin.conf	2017-12-13 04:23:14.950412388 -0500
++++ influxdb.conf	2017-12-13 04:25:58.685455884 -0500
+@@ -57,7 +57,7 @@
+   # The type of shard index to use for new shards.  The default is an in-memory index that is
+   # recreated at startup.  A value of "tsi1" will use a disk based index that supports higher
+   # cardinality datasets.
+-  # index-version = "inmem"
++  index-version = "tsi1"
+ 
+   # Trace logging provides more verbose output around the tsm engine. Turning
+   # this on can provide more useful output for debugging tsm engine issues.
+@@ -95,7 +95,7 @@
+   # The maximum series allowed per database before writes are dropped.  This limit can prevent
+   # high cardinality issues at the database level.  This limit can be disabled by setting it to
+   # 0.
+-  # max-series-per-database = 1000000
++  max-series-per-database = 0
+ 
+   # The maximum number of tag values per tag that are allowed before writes are dropped.  This limit
+   # can prevent high cardinality tag values from being written to a measurement.  This limit can be
 @@ -362,9 +362,9 @@
  ###
  
