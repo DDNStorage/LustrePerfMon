@@ -20,9 +20,9 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "Free capacity of the whole file system",
+          "description": "Free capacity on this OST.",
           "fill": 1,
-          "id": 49,
+          "id": 71,
           "legend": {
             "avg": false,
             "current": false,
@@ -42,7 +42,7 @@
           "renderer": "flot",
           "seriesOverrides": [],
           "spaceLength": 10,
-          "span": 2,
+          "span": 3,
           "stack": false,
           "steppedLine": false,
           "targets": [
@@ -60,7 +60,7 @@
               "measurement": "cqm_ost_stats_bytes-optype-fs_name",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_ost_kbytesinfo_free-fs_name\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter",
+              "query": "SELECT \"value\" FROM \"ost_kbytesinfo_free\" WHERE \"fs_name\" = '$fs_name'  AND \"ost_index\" = '$ost_index' AND $timeFilter GROUP BY \"ost_index\"",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -86,7 +86,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Free Capacity in Total",
+          "title": "Free Capacity",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -125,9 +125,9 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "Used capacity of the whole file system",
+          "description": "Used capacity on this OST.",
           "fill": 1,
-          "id": 50,
+          "id": 72,
           "legend": {
             "avg": false,
             "current": false,
@@ -147,7 +147,7 @@
           "renderer": "flot",
           "seriesOverrides": [],
           "spaceLength": 10,
-          "span": 2,
+          "span": 3,
           "stack": false,
           "steppedLine": false,
           "targets": [
@@ -165,7 +165,7 @@
               "measurement": "cqm_ost_stats_bytes-optype-fs_name",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_ost_kbytesinfo_used-fs_name\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter",
+              "query": "SELECT \"value\" FROM \"ost_kbytesinfo_used\" WHERE \"fs_name\" = '$fs_name'  AND \"ost_index\" = '$ost_index' AND $timeFilter GROUP BY \"ost_index\"",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -191,7 +191,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Used Capacity in Total",
+          "title": "Used Capacity",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -227,202 +227,39 @@
         {
           "columns": [
             {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
-          "datasource": null,
-          "description": "Free capacity on each OST.",
-          "filterNull": false,
-          "fontSize": "100%",
-          "id": 40,
-          "links": [],
-          "pageSize": null,
-          "scroll": true,
-          "showHeader": true,
-          "sort": {
-            "col": 1,
-            "desc": false
-          },
-          "span": 2,
-          "styles": [
-            {
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
+              "text": "Avg",
+              "value": "avg"
             },
             {
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "pattern": "/.*/",
-              "thresholds": [],
-              "type": "number",
-              "unit": "deckbytes"
-            }
-          ],
-          "targets": [
-            {
-              "alias": "$tag_ost_index",
-              "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "exp_client"
-                  ],
-                  "type": "tag"
-                }
-              ],
-              "measurement": "cqm_exp_md_stats",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "query": "SELECT \"value\" FROM \"ost_kbytesinfo_free\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"ost_index\"",
-              "rawQuery": true,
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "sum"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
-                }
-              ]
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Free Capacity per OST",
-          "transform": "timeseries_aggregations",
-          "type": "table"
-        },
-        {
-          "columns": [
+              "text": "Max",
+              "value": "max"
+            },
             {
               "text": "Current",
               "value": "current"
             }
           ],
           "datasource": null,
-          "description": "Used capacity on each OST.",
-          "filterNull": false,
-          "fontSize": "100%",
-          "id": 41,
-          "links": [],
-          "pageSize": null,
-          "scroll": true,
-          "showHeader": true,
-          "sort": {
-            "col": 1,
-            "desc": true
-          },
-          "span": 2,
-          "styles": [
-            {
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "pattern": "/.*/",
-              "thresholds": [],
-              "type": "number",
-              "unit": "deckbytes"
-            }
-          ],
-          "targets": [
-            {
-              "alias": "$tag_ost_index",
-              "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "exp_client"
-                  ],
-                  "type": "tag"
-                }
-              ],
-              "measurement": "cqm_exp_md_stats",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "query": "SELECT \"value\" FROM \"ost_kbytesinfo_used\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"ost_index\"",
-              "rawQuery": true,
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "sum"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
-                }
-              ]
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Used Capacity per OST",
-          "transform": "timeseries_aggregations",
-          "type": "table"
-        },
-        {
-          "columns": [
-            {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
           "description": "The used capacity for each user.",
+          "filterNull": false,
           "fontSize": "100%",
-          "height": "300",
-          "id": 25,
+          "id": 80,
           "links": [],
           "pageSize": null,
           "scroll": true,
           "showHeader": true,
           "sort": {
-            "col": 1,
+            "col": 3,
             "desc": true
           },
-          "span": 2,
+          "span": 3,
           "styles": [
             {
-              "alias": "Time",
               "dateFormat": "YYYY-MM-DD HH:mm:ss",
               "pattern": "Time",
               "type": "date"
             },
             {
-              "alias": "",
               "colorMode": null,
               "colors": [
                 "rgba(245, 54, 54, 0.9)",
@@ -448,25 +285,21 @@
                   "type": "tag"
                 }
               ],
-              "limit": "",
-              "measurement": "cqm_ost_acctuser_samples-user_id0",
+              "measurement": "ost_acctuser_samples",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_ost_acctuser_samples-fs_name-optype-user_id\" WHERE \"fs_name\" = '$fs_name' AND \"optype\" = 'usage_kbytes' AND $timeFilter GROUP BY \"user_id\"",
-              "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
                 ]
               ],
-              "slimit": "",
               "tags": [
                 {
                   "key": "fs_name",
@@ -478,10 +311,18 @@
                   "key": "optype",
                   "operator": "=",
                   "value": "usage_kbytes"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
           ],
+          "timeFrom": null,
+          "timeShift": null,
           "title": "Used Capacity per User",
           "transform": "timeseries_aggregations",
           "type": "table"
@@ -489,32 +330,39 @@
         {
           "columns": [
             {
+              "text": "Avg",
+              "value": "avg"
+            },
+            {
+              "text": "Max",
+              "value": "max"
+            },
+            {
               "text": "Current",
               "value": "current"
             }
           ],
+          "datasource": null,
           "description": "The used capacity for each group.",
+          "filterNull": false,
           "fontSize": "100%",
-          "height": "300",
-          "id": 33,
+          "id": 81,
           "links": [],
           "pageSize": null,
           "scroll": true,
           "showHeader": true,
           "sort": {
-            "col": 1,
+            "col": 3,
             "desc": true
           },
-          "span": 2,
+          "span": 3,
           "styles": [
             {
-              "alias": "Time",
               "dateFormat": "YYYY-MM-DD HH:mm:ss",
               "pattern": "Time",
               "type": "date"
             },
             {
-              "alias": "",
               "colorMode": null,
               "colors": [
                 "rgba(245, 54, 54, 0.9)",
@@ -540,25 +388,21 @@
                   "type": "tag"
                 }
               ],
-              "limit": "",
-              "measurement": "cqm_ost_acctgroup_samples",
+              "measurement": "ost_acctgroup_samples",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_ost_acctgroup_samples-fs_name-group_id-optype\" WHERE \"fs_name\" = '$fs_name' AND \"optype\" = 'usage_kbytes' AND $timeFilter GROUP BY \"group_id\"",
-              "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
                 ]
               ],
-              "slimit": "",
               "tags": [
                 {
                   "key": "fs_name",
@@ -570,10 +414,18 @@
                   "key": "optype",
                   "operator": "=",
                   "value": "usage_kbytes"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
           ],
+          "timeFrom": null,
+          "timeShift": null,
           "title": "Used Capacity per Group",
           "transform": "timeseries_aggregations",
           "type": "table"
@@ -583,7 +435,7 @@
       "repeatIteration": null,
       "repeatRowId": null,
       "showTitle": false,
-      "title": "Capacity",
+      "title": "Capacity and Inode Number",
       "titleSize": "h6"
     },
     {
@@ -596,9 +448,9 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "Free inode number of the whole file system",
+          "description": "Free Inode Number on this OST.",
           "fill": 1,
-          "id": 51,
+          "id": 73,
           "legend": {
             "avg": false,
             "current": false,
@@ -618,7 +470,7 @@
           "renderer": "flot",
           "seriesOverrides": [],
           "spaceLength": 10,
-          "span": 2,
+          "span": 3,
           "stack": false,
           "steppedLine": false,
           "targets": [
@@ -636,7 +488,7 @@
               "measurement": "cqm_ost_stats_bytes-optype-fs_name",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_mdt_filesinfo_free-fs_name\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter",
+              "query": "SELECT \"value\" FROM \"ost_filesinfo_free\" WHERE \"fs_name\" = '$fs_name'  AND \"ost_index\" = '$ost_index' AND $timeFilter GROUP BY \"ost_index\"",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -662,7 +514,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Free Inode Number in Total",
+          "title": "Free Inode Number",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -701,9 +553,9 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "Used inode number of the whole file system",
+          "description": "Used  Inode Number on this OST.",
           "fill": 1,
-          "id": 52,
+          "id": 74,
           "legend": {
             "avg": false,
             "current": false,
@@ -723,12 +575,12 @@
           "renderer": "flot",
           "seriesOverrides": [],
           "spaceLength": 10,
-          "span": 2,
+          "span": 3,
           "stack": false,
           "steppedLine": false,
           "targets": [
             {
-              "alias": "Used Inode Number",
+              "alias": "Free Inode Number",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -741,7 +593,7 @@
               "measurement": "cqm_ost_stats_bytes-optype-fs_name",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_mdt_filesinfo_used-fs_name\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter",
+              "query": "SELECT \"value\" FROM \"ost_filesinfo_used\" WHERE \"fs_name\" = '$fs_name'  AND \"ost_index\" = '$ost_index' AND $timeFilter GROUP BY \"ost_index\"",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -767,7 +619,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Used Inode Number in Total",
+          "title": "Used Inode Number",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -803,117 +655,39 @@
         {
           "columns": [
             {
+              "text": "Avg",
+              "value": "avg"
+            },
+            {
+              "text": "Max",
+              "value": "max"
+            },
+            {
               "text": "Current",
               "value": "current"
             }
           ],
           "datasource": null,
-          "description": "Free inode number on each MDT.",
+          "description": "The used inode number for each user.",
           "filterNull": false,
           "fontSize": "100%",
-          "id": 39,
+          "id": 82,
           "links": [],
           "pageSize": null,
           "scroll": true,
           "showHeader": true,
           "sort": {
-            "col": 1,
-            "desc": false
-          },
-          "span": 2,
-          "styles": [
-            {
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "pattern": "/.*/",
-              "thresholds": [],
-              "type": "number",
-              "unit": "short"
-            }
-          ],
-          "targets": [
-            {
-              "alias": "$tag_mdt_index",
-              "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "exp_client"
-                  ],
-                  "type": "tag"
-                }
-              ],
-              "measurement": "cqm_exp_md_stats",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "query": "SELECT \"value\" FROM \"mdt_filesinfo_free\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"mdt_index\"",
-              "rawQuery": true,
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "sum"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
-                }
-              ]
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Free Inode Number per MDT",
-          "transform": "timeseries_aggregations",
-          "type": "table"
-        },
-        {
-          "columns": [
-            {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
-          "description": "The used inodes for each user.",
-          "fontSize": "100%",
-          "height": "300",
-          "id": 26,
-          "links": [],
-          "pageSize": null,
-          "scroll": true,
-          "showHeader": true,
-          "sort": {
-            "col": 1,
+            "col": 3,
             "desc": true
           },
-          "span": 2,
+          "span": 3,
           "styles": [
             {
-              "alias": "Time",
               "dateFormat": "YYYY-MM-DD HH:mm:ss",
               "pattern": "Time",
               "type": "date"
             },
             {
-              "alias": "",
               "colorMode": null,
               "colors": [
                 "rgba(245, 54, 54, 0.9)",
@@ -939,18 +713,16 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_mdt_acctuser_samples",
+              "measurement": "ost_acctuser_samples",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_mdt_acctuser_samples-fs_name-optype-user_id\" WHERE \"fs_name\" = '$fs_name' AND \"optype\" = 'usage_inodes' AND $timeFilter GROUP BY \"user_id\"",
-              "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -967,10 +739,18 @@
                   "key": "optype",
                   "operator": "=",
                   "value": "usage_inodes"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
           ],
+          "timeFrom": null,
+          "timeShift": null,
           "title": "Used Inode Number per User",
           "transform": "timeseries_aggregations",
           "type": "table"
@@ -978,32 +758,39 @@
         {
           "columns": [
             {
+              "text": "Avg",
+              "value": "avg"
+            },
+            {
+              "text": "Max",
+              "value": "max"
+            },
+            {
               "text": "Current",
               "value": "current"
             }
           ],
-          "description": "The used inodes for each user.",
+          "datasource": null,
+          "description": "The used inode number for each group.",
+          "filterNull": false,
           "fontSize": "100%",
-          "height": "300",
-          "id": 34,
+          "id": 83,
           "links": [],
           "pageSize": null,
           "scroll": true,
           "showHeader": true,
           "sort": {
-            "col": 1,
+            "col": 3,
             "desc": true
           },
-          "span": 2,
+          "span": 3,
           "styles": [
             {
-              "alias": "Time",
               "dateFormat": "YYYY-MM-DD HH:mm:ss",
               "pattern": "Time",
               "type": "date"
             },
             {
-              "alias": "",
               "colorMode": null,
               "colors": [
                 "rgba(245, 54, 54, 0.9)",
@@ -1029,18 +816,16 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_mdt_acctgroup_samples",
+              "measurement": "ost_acctgroup_samples",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_mdt_acctgroup_samples-fs_name-group_id-optype\" WHERE \"fs_name\" = '$fs_name' AND \"optype\" = 'usage_inodes' AND $timeFilter GROUP BY \"group_id\"",
-              "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -1057,96 +842,19 @@
                   "key": "optype",
                   "operator": "=",
                   "value": "usage_inodes"
-                }
-              ]
-            }
-          ],
-          "title": "Used Inode Number per Group",
-          "transform": "timeseries_aggregations",
-          "type": "table"
-        },
-        {
-          "columns": [
-            {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
-          "datasource": null,
-          "description": "Used inode number on each MDT.",
-          "filterNull": false,
-          "fontSize": "100%",
-          "id": 42,
-          "links": [],
-          "pageSize": null,
-          "scroll": true,
-          "showHeader": true,
-          "sort": {
-            "col": 1,
-            "desc": true
-          },
-          "span": 2,
-          "styles": [
-            {
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "pattern": "/.*/",
-              "thresholds": [],
-              "type": "number",
-              "unit": "short"
-            }
-          ],
-          "targets": [
-            {
-              "alias": "$tag_mdt_index",
-              "dsType": "influxdb",
-              "groupBy": [
+                },
                 {
-                  "params": [
-                    "exp_client"
-                  ],
-                  "type": "tag"
-                }
-              ],
-              "measurement": "cqm_exp_md_stats",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "query": "SELECT \"value\" FROM \"mdt_filesinfo_used\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"mdt_index\"",
-              "rawQuery": true,
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "sum"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fs_name",
+                  "condition": "AND",
+                  "key": "ost_index",
                   "operator": "=",
-                  "value": "$fs_name"
+                  "value": "$ost_index"
                 }
               ]
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Used Inode Number per MDT",
+          "title": "Used Inode Number per Group",
           "transform": "timeseries_aggregations",
           "type": "table"
         }
@@ -1168,9 +876,9 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "I/O Throughput  of the whole file system",
+          "description": "The I/O throughput on this OST.",
           "fill": 1,
-          "id": 4,
+          "id": 75,
           "legend": {
             "avg": false,
             "current": false,
@@ -1190,242 +898,19 @@
           "renderer": "flot",
           "seriesOverrides": [],
           "spaceLength": 10,
-          "span": 3,
+          "span": 4,
           "stack": false,
           "steppedLine": false,
           "targets": [
             {
-              "alias": "$tag_optype",
+              "alias": "I/O Throughput",
               "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "optype"
-                  ],
-                  "type": "tag"
-                }
-              ],
-              "measurement": "cqm_ost_stats_bytes-optype-fs_name",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_ost_stats_bytes-fs_name-optype\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"optype\"",
-              "rawQuery": true,
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "sum"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
-                }
-              ]
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "I/O Throughput in Total",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "Bps",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ]
-        },
-        {
-          "columns": [
-            {
-              "text": "Avg",
-              "value": "avg"
-            },
-            {
-              "text": "Max",
-              "value": "max"
-            },
-            {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
-          "datasource": null,
-          "description": "The I/O throughput for each OST.",
-          "filterNull": false,
-          "fontSize": "100%",
-          "id": 45,
-          "links": [],
-          "pageSize": null,
-          "scroll": true,
-          "showHeader": true,
-          "sort": {
-            "col": 3,
-            "desc": true
-          },
-          "span": 3,
-          "styles": [
-            {
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "pattern": "/.*/",
-              "thresholds": [],
-              "type": "number",
-              "unit": "Bps"
-            }
-          ],
-          "targets": [
-            {
-              "alias": "$tag_ost_index",
-              "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "ost_index"
-                  ],
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "measurement": "cqm_ost_stats_bytes-fs_name-ost_index",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_ost_stats_bytes-fs_name-ost_index\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"ost_index\"",
-              "rawQuery": true,
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "sum"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
-                }
-              ]
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "I/O Throughput per OST",
-          "transform": "timeseries_aggregations",
-          "type": "table"
-        },
-        {
-          "columns": [
-            {
-              "text": "Avg",
-              "value": "avg"
-            },
-            {
-              "text": "Max",
-              "value": "max"
-            },
-            {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
-          "datasource": null,
-          "description": "The write throughput for each OST.",
-          "filterNull": false,
-          "fontSize": "100%",
-          "id": 44,
-          "links": [],
-          "pageSize": null,
-          "scroll": true,
-          "showHeader": true,
-          "sort": {
-            "col": 3,
-            "desc": true
-          },
-          "span": 3,
-          "styles": [
-            {
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "pattern": "/.*/",
-              "thresholds": [],
-              "type": "number",
-              "unit": "Bps"
-            }
-          ],
-          "targets": [
-            {
-              "alias": "$tag_ost_index",
-              "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "ost_index"
-                  ],
-                  "type": "tag"
-                }
-              ],
-              "measurement": "cqm_ost_stats_bytes-optype-fs_name-ost_index",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_ost_stats_bytes-fs_name-optype-ost_index\" WHERE \"fs_name\" = '$fs_name' AND \"optype\" = 'write' AND $timeFilter GROUP BY \"ost_index\"",
-              "rawQuery": true,
+              "query": "SELECT \"sum\" FROM \"cqm_ost_stats_bytes-fs_name-ost_index\" WHERE \"fs_name\" = '$fs_name' AND \"optype\" = 'write' AND $timeFilter GROUP BY \"ost_index\"",
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
@@ -1446,195 +931,9 @@
                 },
                 {
                   "condition": "AND",
-                  "key": "optype",
+                  "key": "ost_index",
                   "operator": "=",
-                  "value": "write"
-                }
-              ]
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Write Throughput per OST",
-          "transform": "timeseries_aggregations",
-          "type": "table"
-        },
-        {
-          "columns": [
-            {
-              "text": "Avg",
-              "value": "avg"
-            },
-            {
-              "text": "Max",
-              "value": "max"
-            },
-            {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
-          "datasource": null,
-          "description": "The read throughput for each OST.",
-          "filterNull": false,
-          "fontSize": "100%",
-          "id": 43,
-          "links": [],
-          "pageSize": null,
-          "scroll": true,
-          "showHeader": true,
-          "sort": {
-            "col": 0,
-            "desc": false
-          },
-          "span": 3,
-          "styles": [
-            {
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "pattern": "/.*/",
-              "thresholds": [],
-              "type": "number",
-              "unit": "Bps"
-            }
-          ],
-          "targets": [
-            {
-              "alias": "$tag_ost_index",
-              "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "ost_index"
-                  ],
-                  "type": "tag"
-                }
-              ],
-              "measurement": "cqm_ost_stats_bytes-optype-fs_name-ost_index",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_ost_stats_bytes-fs_name-optype-ost_index\" WHERE \"fs_name\" = '$fs_name' AND \"optype\" = 'read' AND $timeFilter GROUP BY \"ost_index\"",
-              "rawQuery": true,
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "sum"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
-                },
-                {
-                  "condition": "AND",
-                  "key": "optype",
-                  "operator": "=",
-                  "value": "read"
-                }
-              ]
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Read Throughput per OST",
-          "transform": "timeseries_aggregations",
-          "type": "table"
-        }
-      ],
-      "repeat": null,
-      "repeatIteration": null,
-      "repeatRowId": null,
-      "showTitle": false,
-      "title": "I/O Bandwith",
-      "titleSize": "h6"
-    },
-    {
-      "collapse": false,
-      "height": "300",
-      "panels": [
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "description": "Metadata Operation Rate of the whole file system",
-          "fill": 1,
-          "id": 48,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "links": [],
-          "nullPointMode": "null",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "span": 3,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "alias": "",
-              "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "optype"
-                  ],
-                  "type": "tag"
-                }
-              ],
-              "measurement": "cqm_ost_stats_bytes-optype-fs_name",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_md_stats-fs_name\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter",
-              "rawQuery": true,
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "sum"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
+                  "value": "$ost_index"
                 }
               ]
             }
@@ -1642,7 +941,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Metadata Operation Rate  in Total",
+          "title": "I/O Throughput",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1662,7 +961,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -1676,78 +975,53 @@
           ]
         },
         {
-          "columns": [
-            {
-              "text": "Avg",
-              "value": "avg"
-            },
-            {
-              "text": "Max",
-              "value": "max"
-            },
-            {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
           "datasource": null,
-          "description": "The metadata operation  rate for each MDT.",
-          "filterNull": false,
-          "fontSize": "100%",
-          "id": 47,
-          "links": [],
-          "pageSize": null,
-          "scroll": true,
-          "showHeader": true,
-          "sort": {
-            "col": 3,
-            "desc": true
+          "description": "The write throughput on this OST.",
+          "fill": 1,
+          "id": 84,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
           },
-          "span": 3,
-          "styles": [
-            {
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "pattern": "/.*/",
-              "thresholds": [],
-              "type": "number",
-              "unit": "ops"
-            }
-          ],
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 4,
+          "stack": false,
+          "steppedLine": false,
           "targets": [
             {
-              "alias": "$tag_mdt_index",
+              "alias": "Write Throughput",
               "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "optype"
-                  ],
-                  "type": "tag"
-                }
-              ],
-              "measurement": "cqm_md_stats-optype-fs_name",
+              "groupBy": [],
+              "measurement": "ost_stats_bytes",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_md_stats-fs_name-mdt_index\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"mdt_index\"",
-              "rawQuery": true,
+              "query": "SELECT \"sum\" FROM \"cqm_ost_stats_bytes-fs_name-optype-ost_index\" WHERE \"fs_name\" = '$fs_name' AND \"optype\" = 'write' AND $timeFilter GROUP BY \"ost_index\"",
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -1758,87 +1032,106 @@
                   "key": "fs_name",
                   "operator": "=",
                   "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "optype",
+                  "operator": "=",
+                  "value": "write"
                 }
               ]
             }
           ],
+          "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Metadata Operation Rate per MDT",
-          "transform": "timeseries_aggregations",
-          "type": "table"
+          "title": "Write Throughput",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "Bps",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
         },
         {
-          "columns": [
-            {
-              "text": "Avg",
-              "value": "avg"
-            },
-            {
-              "text": "Max",
-              "value": "max"
-            },
-            {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
           "datasource": null,
-          "description": "The metadata operation  rate for each client.",
-          "filterNull": false,
-          "fontSize": "100%",
-          "id": 38,
-          "links": [],
-          "pageSize": null,
-          "scroll": true,
-          "showHeader": true,
-          "sort": {
-            "col": 3,
-            "desc": true
+          "description": "The read throughput on this OST.",
+          "fill": 1,
+          "id": 85,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
           },
-          "span": 3,
-          "styles": [
-            {
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "pattern": "/.*/",
-              "thresholds": [],
-              "type": "number",
-              "unit": "ops"
-            }
-          ],
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 4,
+          "stack": false,
+          "steppedLine": false,
           "targets": [
             {
-              "alias": "$tag_exp_client",
+              "alias": "Write Throughput",
               "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "exp_client"
-                  ],
-                  "type": "tag"
-                }
-              ],
-              "measurement": "cqm_exp_md_stats-exp_client-fs_name",
+              "groupBy": [],
+              "measurement": "ost_stats_bytes",
               "orderByTime": "ASC",
               "policy": "default",
+              "query": "SELECT \"sum\" FROM \"cqm_ost_stats_bytes-fs_name-optype-ost_index\" WHERE \"fs_name\" = '$fs_name' AND \"optype\" = 'write' AND $timeFilter GROUP BY \"ost_index\"",
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -1849,115 +1142,64 @@
                   "key": "fs_name",
                   "operator": "=",
                   "value": "$fs_name"
-                }
-              ]
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Metadata Operation Rate per Client",
-          "transform": "timeseries_aggregations",
-          "type": "table"
-        },
-        {
-          "columns": [
-            {
-              "text": "Avg",
-              "value": "avg"
-            },
-            {
-              "text": "Max",
-              "value": "max"
-            },
-            {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
-          "datasource": null,
-          "description": "The operation  rate for each type of metadata operation",
-          "filterNull": false,
-          "fontSize": "100%",
-          "id": 37,
-          "links": [],
-          "pageSize": null,
-          "scroll": true,
-          "showHeader": true,
-          "sort": {
-            "col": 3,
-            "desc": true
-          },
-          "span": 3,
-          "styles": [
-            {
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "pattern": "/.*/",
-              "thresholds": [],
-              "type": "number",
-              "unit": "ops"
-            }
-          ],
-          "targets": [
-            {
-              "alias": "$tag_optype",
-              "dsType": "influxdb",
-              "groupBy": [
+                },
                 {
-                  "params": [
-                    "optype"
-                  ],
-                  "type": "tag"
-                }
-              ],
-              "measurement": "cqm_md_stats-optype-fs_name",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_md_stats-fs_name-optype\" WHERE \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY \"optype\"",
-              "rawQuery": true,
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "sum"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fs_name",
+                  "condition": "AND",
+                  "key": "ost_index",
                   "operator": "=",
-                  "value": "$fs_name"
+                  "value": "$ost_index"
+                },
+                {
+                  "condition": "AND",
+                  "key": "optype",
+                  "operator": "=",
+                  "value": "read"
                 }
               ]
             }
           ],
+          "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Metadata Operation Rate per Type",
-          "transform": "timeseries_aggregations",
-          "type": "table"
+          "title": "Read Throughput",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "Bps",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
         }
       ],
       "repeat": null,
       "repeatIteration": null,
       "repeatRowId": null,
       "showTitle": false,
-      "title": "Metadata Operation Rate",
+      "title": "I/O Bandwith",
       "titleSize": "h6"
     },
     {
@@ -2000,16 +1242,18 @@
               "alias": "4k",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
+              "query": "SELECT \"value\" FROM \"ost_brw_stats_rpc_bulk_samples\" WHERE \"size\" = '1_pages' AND \"field\" = 'write_sample' AND \"fs_name\" = '$fs_name' AND \"ost_index\" = '$ost_index' AND $timeFilter",
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2032,6 +1276,12 @@
                   "key": "fs_name",
                   "operator": "=",
                   "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2039,16 +1289,18 @@
               "alias": "8k",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
+              "query": "SELECT \"sum\" FROM \"ost_brw_stats_rpc_bulk_samples\" WHERE \"size\" = '2_pages' AND \"field\" = 'write_sample' AND \"fs_name\" = '$fs_name' AND \"ost_index\" = '$ost_index' AND $timeFilter",
+              "rawQuery": false,
               "refId": "B",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2071,6 +1323,12 @@
                   "key": "fs_name",
                   "operator": "=",
                   "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2078,16 +1336,18 @@
               "alias": "16k",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
+              "query": "SELECT \"sum\" FROM \"ost_brw_stats_rpc_bulk_samples\" WHERE \"size\" = '4_pages' AND \"field\" = 'write_sample' AND \"fs_name\" = '$fs_name' AND \"ost_index\" = '$ost_index' AND $timeFilter",
+              "rawQuery": false,
               "refId": "C",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2110,6 +1370,12 @@
                   "key": "fs_name",
                   "operator": "=",
                   "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2117,7 +1383,7 @@
               "alias": "32k",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "D",
@@ -2126,7 +1392,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2149,6 +1415,12 @@
                   "key": "fs_name",
                   "operator": "=",
                   "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2156,7 +1428,7 @@
               "alias": "64k",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "E",
@@ -2165,7 +1437,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2188,6 +1460,12 @@
                   "key": "fs_name",
                   "operator": "=",
                   "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2195,7 +1473,7 @@
               "alias": "128k",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "F",
@@ -2204,7 +1482,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2227,6 +1505,12 @@
                   "key": "fs_name",
                   "operator": "=",
                   "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2234,7 +1518,7 @@
               "alias": "256k",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "G",
@@ -2243,7 +1527,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2266,6 +1550,12 @@
                   "key": "fs_name",
                   "operator": "=",
                   "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2273,7 +1563,7 @@
               "alias": "512k",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "H",
@@ -2282,7 +1572,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2305,6 +1595,12 @@
                   "key": "fs_name",
                   "operator": "=",
                   "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2312,7 +1608,7 @@
               "alias": "2m",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "I",
@@ -2321,7 +1617,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2344,6 +1640,12 @@
                   "key": "fs_name",
                   "operator": "=",
                   "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2351,7 +1653,7 @@
               "alias": "1m",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "J",
@@ -2360,7 +1662,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2383,6 +1685,12 @@
                   "key": "fs_name",
                   "operator": "=",
                   "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2390,7 +1698,7 @@
               "alias": "4m",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "K",
@@ -2422,6 +1730,12 @@
                   "key": "fs_name",
                   "operator": "=",
                   "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2429,7 +1743,7 @@
               "alias": "8m",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "L",
@@ -2438,7 +1752,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2461,6 +1775,12 @@
                   "key": "fs_name",
                   "operator": "=",
                   "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2468,7 +1788,7 @@
               "alias": "16m",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "M",
@@ -2477,7 +1797,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2500,6 +1820,12 @@
                   "key": "fs_name",
                   "operator": "=",
                   "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
@@ -2580,7 +1906,7 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "A",
@@ -2589,7 +1915,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2606,6 +1932,12 @@
                   "key": "field",
                   "operator": "=",
                   "value": "write_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
@@ -2620,8 +1952,9 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
+          "description": "",
           "fill": 1,
-          "id": 16,
+          "id": 77,
           "legend": {
             "avg": false,
             "current": false,
@@ -2649,16 +1982,18 @@
               "alias": "4k",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
+              "query": "SELECT \"value\" FROM \"ost_brw_stats_rpc_bulk_samples\" WHERE \"size\" = '1_pages' AND \"field\" = 'write_sample' AND \"fs_name\" = '$fs_name' AND \"ost_index\" = '$ost_index' AND $timeFilter",
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2675,6 +2010,18 @@
                   "key": "field",
                   "operator": "=",
                   "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2682,16 +2029,18 @@
               "alias": "8k",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
+              "query": "SELECT \"sum\" FROM \"ost_brw_stats_rpc_bulk_samples\" WHERE \"size\" = '2_pages' AND \"field\" = 'write_sample' AND \"fs_name\" = '$fs_name' AND \"ost_index\" = '$ost_index' AND $timeFilter",
+              "rawQuery": false,
               "refId": "B",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2708,6 +2057,18 @@
                   "key": "field",
                   "operator": "=",
                   "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2715,16 +2076,18 @@
               "alias": "16k",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
+              "query": "SELECT \"sum\" FROM \"ost_brw_stats_rpc_bulk_samples\" WHERE \"size\" = '4_pages' AND \"field\" = 'write_sample' AND \"fs_name\" = '$fs_name' AND \"ost_index\" = '$ost_index' AND $timeFilter",
+              "rawQuery": false,
               "refId": "C",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2741,6 +2104,18 @@
                   "key": "field",
                   "operator": "=",
                   "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2748,7 +2123,7 @@
               "alias": "32k",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "D",
@@ -2757,7 +2132,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2774,6 +2149,18 @@
                   "key": "field",
                   "operator": "=",
                   "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2781,7 +2168,7 @@
               "alias": "64k",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "E",
@@ -2790,7 +2177,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2807,6 +2194,18 @@
                   "key": "field",
                   "operator": "=",
                   "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2814,7 +2213,7 @@
               "alias": "128k",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "F",
@@ -2823,7 +2222,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2840,6 +2239,18 @@
                   "key": "field",
                   "operator": "=",
                   "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2847,7 +2258,7 @@
               "alias": "256k",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "G",
@@ -2856,7 +2267,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2873,6 +2284,18 @@
                   "key": "field",
                   "operator": "=",
                   "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2880,7 +2303,7 @@
               "alias": "512k",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "H",
@@ -2889,7 +2312,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2906,6 +2329,18 @@
                   "key": "field",
                   "operator": "=",
                   "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2913,7 +2348,7 @@
               "alias": "2m",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "I",
@@ -2922,7 +2357,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2939,6 +2374,18 @@
                   "key": "field",
                   "operator": "=",
                   "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2946,7 +2393,7 @@
               "alias": "1m",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "J",
@@ -2955,7 +2402,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -2972,6 +2419,18 @@
                   "key": "field",
                   "operator": "=",
                   "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -2979,7 +2438,7 @@
               "alias": "4m",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "K",
@@ -3005,6 +2464,18 @@
                   "key": "field",
                   "operator": "=",
                   "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -3012,7 +2483,7 @@
               "alias": "8m",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "L",
@@ -3021,7 +2492,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -3038,6 +2509,18 @@
                   "key": "field",
                   "operator": "=",
                   "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             },
@@ -3045,7 +2528,7 @@
               "alias": "16m",
               "dsType": "influxdb",
               "groupBy": [],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "M",
@@ -3054,7 +2537,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -3071,6 +2554,18 @@
                   "key": "field",
                   "operator": "=",
                   "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
@@ -3121,7 +2616,7 @@
           "datasource": null,
           "fontSize": "80%",
           "format": "short",
-          "id": 53,
+          "id": 78,
           "interval": null,
           "legend": {
             "header": "",
@@ -3151,7 +2646,7 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_rpc_bulk_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "A",
@@ -3160,7 +2655,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -3177,6 +2672,12 @@
                   "key": "field",
                   "operator": "=",
                   "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
@@ -3238,18 +2739,18 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_page_discontiguous_rpc_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_page_discontiguous_rpc_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'write_sample' AND $timeFilter GROUP BY \"size\"",
-              "rawQuery": true,
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -3266,6 +2767,12 @@
                   "key": "field",
                   "operator": "=",
                   "value": "write_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
@@ -3317,18 +2824,18 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_page_discontiguous_rpc_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_page_discontiguous_rpc_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'read_sample' AND $timeFilter GROUP BY \"size\"",
-              "rawQuery": true,
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -3344,7 +2851,13 @@
                   "condition": "AND",
                   "key": "field",
                   "operator": "=",
-                  "value": "write_sample"
+                  "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
@@ -3396,18 +2909,18 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_block_discontiguous_rpc_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_block_discontiguous_rpc_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'write_sample' AND $timeFilter GROUP BY \"size\"",
-              "rawQuery": true,
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -3424,6 +2937,12 @@
                   "key": "field",
                   "operator": "=",
                   "value": "write_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
@@ -3475,18 +2994,18 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_block_discontiguous_rpc_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_block_discontiguous_rpc_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'read_sample' AND $timeFilter GROUP BY \"size\"",
-              "rawQuery": true,
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -3502,7 +3021,13 @@
                   "condition": "AND",
                   "key": "field",
                   "operator": "=",
-                  "value": "write_sample"
+                  "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
@@ -3566,18 +3091,18 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_fragmented_io_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_fragmented_io_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'write_sample' AND $timeFilter GROUP BY \"size\"",
-              "rawQuery": true,
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -3594,6 +3119,12 @@
                   "key": "field",
                   "operator": "=",
                   "value": "write_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
@@ -3645,18 +3176,18 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_fragmented_io_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_fragmented_io_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'read_sample' AND $timeFilter GROUP BY \"size\"",
-              "rawQuery": true,
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -3672,7 +3203,13 @@
                   "condition": "AND",
                   "key": "field",
                   "operator": "=",
-                  "value": "write_sample"
+                  "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
@@ -3736,18 +3273,18 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_io_in_flight_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_io_in_flight_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'write_sample' AND $timeFilter GROUP BY \"size\"",
-              "rawQuery": true,
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -3764,6 +3301,12 @@
                   "key": "field",
                   "operator": "=",
                   "value": "write_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
@@ -3815,18 +3358,18 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_io_in_flight_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_io_in_flight_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'read_sample' AND $timeFilter GROUP BY \"size\"",
-              "rawQuery": true,
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -3842,7 +3385,13 @@
                   "condition": "AND",
                   "key": "field",
                   "operator": "=",
-                  "value": "write_sample"
+                  "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
@@ -3906,18 +3455,18 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_io_time_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_io_time_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'write_sample' AND $timeFilter GROUP BY \"size\"",
-              "rawQuery": true,
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -3934,6 +3483,12 @@
                   "key": "field",
                   "operator": "=",
                   "value": "write_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
@@ -3985,18 +3540,18 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_io_time_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_io_time_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'read_sample' AND $timeFilter GROUP BY \"size\"",
-              "rawQuery": true,
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -4012,7 +3567,13 @@
                   "condition": "AND",
                   "key": "field",
                   "operator": "=",
-                  "value": "write_sample"
+                  "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
@@ -4076,18 +3637,18 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_io_size_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_io_size_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'write_sample' AND $timeFilter GROUP BY \"size\"",
-              "rawQuery": true,
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -4104,6 +3665,12 @@
                   "key": "field",
                   "operator": "=",
                   "value": "write_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
@@ -4155,18 +3722,18 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_brw_stats_rpc_bulk_samples-field-fs_name-size",
+              "measurement": "ost_brw_stats_io_size_samples",
               "orderByTime": "ASC",
               "policy": "default",
               "query": "SELECT \"sum\" FROM \"cqm_ost_brw_stats_io_size_samples-field-fs_name-size\" WHERE \"fs_name\" = '$fs_name' AND \"field\" = 'read_sample' AND $timeFilter GROUP BY \"size\"",
-              "rawQuery": true,
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -4182,7 +3749,13 @@
                   "condition": "AND",
                   "key": "field",
                   "operator": "=",
-                  "value": "write_sample"
+                  "value": "read_sample"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
@@ -4222,103 +3795,6 @@
           ],
           "datasource": null,
           "description": "The write throughput for each client.",
-          "filterNull": false,
-          "fontSize": "100%",
-          "id": 69,
-          "links": [],
-          "pageSize": null,
-          "scroll": true,
-          "showHeader": true,
-          "sort": {
-            "col": 3,
-            "desc": true
-          },
-          "span": 6,
-          "styles": [
-            {
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "pattern": "/.*/",
-              "thresholds": [],
-              "type": "number",
-              "unit": "Bps"
-            }
-          ],
-          "targets": [
-            {
-              "alias": "$tag_exp_client",
-              "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "exp_client"
-                  ],
-                  "type": "tag"
-                }
-              ],
-              "measurement": "cqm_exp_ost_stats_bytes-exp_client-fs_name-optype",
-              "orderByTime": "ASC",
-              "policy": "default",
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "sum"
-                    ],
-                    "type": "field"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "fs_name",
-                  "operator": "=",
-                  "value": "$fs_name"
-                },
-                {
-                  "condition": "AND",
-                  "key": "optype",
-                  "operator": "=",
-                  "value": "write"
-                }
-              ]
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Write Throughput per Client",
-          "transform": "timeseries_aggregations",
-          "type": "table"
-        },
-        {
-          "columns": [
-            {
-              "text": "Avg",
-              "value": "avg"
-            },
-            {
-              "text": "Max",
-              "value": "max"
-            },
-            {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
-          "datasource": null,
-          "description": "The read throughput for each client.",
           "filterNull": false,
           "fontSize": "100%",
           "id": 70,
@@ -4363,7 +3839,7 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_exp_ost_stats_bytes-exp_client-fs_name-optype",
+              "measurement": "exp_ost_stats_bytes",
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "A",
@@ -4372,7 +3848,110 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "optype",
+                  "operator": "=",
+                  "value": "write"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Write Throughput per Client",
+          "transform": "timeseries_aggregations",
+          "type": "table"
+        },
+        {
+          "columns": [
+            {
+              "text": "Avg",
+              "value": "avg"
+            },
+            {
+              "text": "Max",
+              "value": "max"
+            },
+            {
+              "text": "Current",
+              "value": "current"
+            }
+          ],
+          "datasource": null,
+          "description": "The read throughput for each client.",
+          "filterNull": false,
+          "fontSize": "100%",
+          "id": 79,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 3,
+            "desc": true
+          },
+          "span": 6,
+          "styles": [
+            {
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "decimals": 2,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "Bps"
+            }
+          ],
+          "targets": [
+            {
+              "alias": "$tag_exp_client",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "exp_client"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "exp_ost_stats_bytes",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -4389,6 +3968,12 @@
                   "key": "optype",
                   "operator": "=",
                   "value": "read"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
@@ -4803,6 +4388,7 @@
       {
         "allValue": null,
         "current": {
+          "selected": true,
           "text": "lustre1",
           "value": "lustre1"
         },
@@ -4813,10 +4399,35 @@
         "multi": false,
         "name": "fs_name",
         "options": [],
-        "query": "SHOW TAG VALUES FROM \"md_stats\" WITH KEY = fs_name",
+        "query": "SHOW TAG VALUES FROM \"ost_kbytesinfo_used\" WITH KEY = fs_name",
         "refresh": 1,
         "regex": "",
         "sort": 3,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "selected": true,
+          "tags": [],
+          "text": "OST0000",
+          "value": "OST0000"
+        },
+        "datasource": "esmon_datasource",
+        "hide": 0,
+        "includeAll": false,
+        "label": "OST Index",
+        "multi": false,
+        "name": "ost_index",
+        "options": [],
+        "query": "SHOW TAG VALUES FROM \"ost_kbytesinfo_used\" WITH KEY = ost_index WHERE \"fs_name\" = '$fs_name'",
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
         "tagValuesQuery": "",
         "tags": [],
         "tagsQuery": "",
@@ -4846,6 +4457,6 @@
     ]
   },
   "timezone": "browser",
-  "title": "Lustre Statistics",
+  "title": "Lustre OST",
   "version": 1
 }
