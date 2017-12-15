@@ -875,14 +875,14 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
         return -1
 
     server_rpms = {}
-    name = "grafana-4.4.1-1.x86_64.rpm"
+    name = "grafana-4.6.3-1.x86_64.rpm"
     url = ("https://s3-us-west-2.amazonaws.com/grafana-releases/release/"
-           "grafana-4.4.1-1.x86_64.rpm")
+           "grafana-4.6.3-1.x86_64.rpm")
     server_rpms[name] = url
 
-    name = "influxdb-1.3.1.x86_64.rpm"
+    name = "influxdb-1.4.2.x86_64.rpm"
     url = ("https://dl.influxdata.com/influxdb/releases/"
-           "influxdb-1.3.1.x86_64.rpm")
+           "influxdb-1.4.2.x86_64.rpm")
     server_rpms[name] = url
 
     for name, url in server_rpms.iteritems():
@@ -903,6 +903,24 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
                               retval.cr_stdout,
                               retval.cr_stderr)
                 return -1
+
+    server_existing_files = os.listdir(local_server_rpm_dir)
+    for server_rpm in server_rpms.iterkeys():
+        server_existing_files.remove(server_rpm)
+    for extra_fname in server_existing_files:
+        logging.warning("find unknown file [%s] under directory [%s], removing",
+                        extra_fname, local_server_rpm_dir)
+        command = ("rm -fr %s/%s" % (local_server_rpm_dir, extra_fname))
+        retval = local_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          local_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
 
     ret = esmon_download_grafana_plugins(local_host, iso_cached_dir)
     if ret:

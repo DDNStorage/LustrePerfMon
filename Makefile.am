@@ -42,7 +42,6 @@ esmon-$(MONSYSTEM_PKGVER).x86_64.iso: \
 	rm -f esmon-*.md5
 	cp -a $(CACHED_ISO_PATH) $(ISO_PATH)
 	cp $(XML_DEFINITION_RPM_PATH) $(ISO_RPM)
-	cp $(OPENTSDB_WEB_RPM_PATH) $(ISO_RPM_RHEL7_SERVER)
 	cp $(ESMON_RPM) $(ISO_RPM_RHEL7)
 	cp influxdb.conf.diff $(ISO_PATH)
 	cp -a dashboards $(ISO_PATH)
