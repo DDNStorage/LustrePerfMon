@@ -219,7 +219,7 @@ class EsmonServer(object):
             return ret
 
         if erase_influxdb:
-            command = ('rm /var/lib/influxdb -fr')
+            command = ('rm %s -fr' % (esmon_common.INFLUXDB_PATH))
             retval = self.es_host.sh_run(command)
             if retval.cr_exit_status:
                 logging.error("failed to run command [%s] on host [%s], "
@@ -230,6 +230,20 @@ class EsmonServer(object):
                               retval.cr_stdout,
                               retval.cr_stderr)
                 return -1
+
+        command = ('mkdir -p %s && chown influxdb %s && chgrp influxdb %s' %
+                   (esmon_common.INFLUXDB_PATH, esmon_common.INFLUXDB_PATH,
+                    esmon_common.INFLUXDB_PATH))
+        retval = self.es_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.es_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
 
         ret = self.es_client.ec_rpm_install("influxdb", RPM_TYPE_SERVER)
         if ret:

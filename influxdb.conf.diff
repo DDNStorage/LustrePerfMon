@@ -1,5 +1,27 @@
 --- influxdb_origin.conf	2017-12-13 04:23:14.950412388 -0500
-+++ influxdb.conf	2017-12-13 04:25:58.685455884 -0500
++++ influxdb.conf	2017-12-15 02:05:36.182363717 -0500
+@@ -23,7 +23,7 @@
+ 
+ [meta]
+   # Where the metadata/raft database is stored
+-  dir = "/var/lib/influxdb/meta"
++  dir = "/esmon/influxdb/meta"
+ 
+   # Automatically create a default retention policy when creating a database.
+   # retention-autocreate = true
+@@ -42,10 +42,10 @@
+ 
+ [data]
+   # The directory where the TSM storage engine stores TSM files.
+-  dir = "/var/lib/influxdb/data"
++  dir = "/esmon/influxdb/data"
+ 
+   # The directory where the TSM storage engine stores WAL files.
+-  wal-dir = "/var/lib/influxdb/wal"
++  wal-dir = "/esmon/influxdb/wal"
+ 
+   # The amount of time that a write will wait before fsyncing.  A duration
+   # greater than 0 can be used to batch up multiple fsync calls.  This is useful for slower
 @@ -57,7 +57,7 @@
    # The type of shard index to use for new shards.  The default is an in-memory index that is
    # recreated at startup.  A value of "tsi1" will use a disk based index that supports higher
