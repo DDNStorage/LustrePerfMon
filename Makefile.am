@@ -32,11 +32,11 @@ $(ESMON_RPM): esmon.spec dist
 			--define="dist .el${DISTRO_RELEASE}" \
 		&& echo "RPM successfully generated in $(build_dir)/RPMS"
 
-doc/manual.pdf: doc/manual.md doc/pic
-	cd doc && pandoc --template=ddntemplate.latex --toc manual.md -o manual.pdf
+doc/ESMON_User_Manual_Raw_en.pdf: doc/ESMON_User_Manual_Raw_en.md doc/pic
+	cd doc && pandoc --template=ddntemplate.latex --toc ESMON_User_Manual_Raw_en.md -o ESMON_User_Manual_Raw_en.pdf
 
 esmon-$(MONSYSTEM_PKGVER).x86_64.iso: \
-		doc/manual.pdf $(ESMON_RPM)
+		doc/ESMON_User_Manual_Raw_en.pdf $(ESMON_RPM)
 	rm $(ISO_PATH) -fr
 	rm -f esmon-*.iso
 	rm -f esmon-*.md5
@@ -48,7 +48,7 @@ esmon-$(MONSYSTEM_PKGVER).x86_64.iso: \
 	cp -a $(CACHED_ISO_PATH)/Grafana_Status_panel $(ISO_PATH)
 	cp DDN-Storage-RedBG.svg $(ISO_PATH)
 	cp DDN-Storage-RedBG.png $(ISO_PATH)
-	cp doc/manual.pdf $(ISO_PATH)
+	cp doc/ESMON_User_Manual_Raw_en.pdf $(ISO_PATH)
 	mkisofs -joliet-long -R -o esmon-$(MONSYSTEM_PKGVER).x86_64.iso $(ISO_PATH)
 
 esmon-$(MONSYSTEM_PKGVER).x86_64.md5: \
