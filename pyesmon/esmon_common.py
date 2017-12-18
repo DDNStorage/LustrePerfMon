@@ -66,9 +66,12 @@ CSTR_COLLECT_INTERVAL = "collect_interval"
 
 GRAFANA_STATUS_PANEL = "Grafana_Status_panel"
 GRAFANA_PIECHART_PANEL = "piechart-panel"
+GRAFANA_SAVANTLY_HEATMAP_PANEL = "savantly-heatmap-panel"
 GRAFANA_PLUGIN_GITS = {}
 GRAFANA_PLUGIN_GITS[GRAFANA_STATUS_PANEL] = "https://github.com/Vonage/Grafana_Status_panel.git"
 GRAFANA_PLUGIN_GITS[GRAFANA_PIECHART_PANEL] = "https://github.com/grafana/piechart-panel.git"
+GRAFANA_PLUGIN_GITS[GRAFANA_SAVANTLY_HEATMAP_PANEL] = ("https://github.com/savantly-net/"
+                                                       "rafana-heatmap.git")
 
 
 def config_value(config, key):
