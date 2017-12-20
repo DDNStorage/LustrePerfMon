@@ -70,5 +70,5 @@ rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Mon Aug 11 2017 Li Xi <lixi@ddn.com> 0.1
+* Fri Aug 11 2017 Li Xi <lixi@ddn.com> 0.1
 - Initial import
