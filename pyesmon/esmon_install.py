@@ -179,7 +179,6 @@ def main():
     """
     Install Exascaler monitoring
     """
-    # pylint: disable=unused-variable
     missing_dependencies = []
 
     try:

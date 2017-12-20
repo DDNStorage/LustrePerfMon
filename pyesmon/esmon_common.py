@@ -63,6 +63,7 @@ CSTR_IP = "ip"
 CSTR_HOSTS = "hosts"
 CSTR_CLEANUP = "cleanup"
 CSTR_COLLECT_INTERVAL = "collect_interval"
+CSTR_CONTINUOUS_QUERY_INTERVAL = "continuous_query_interval"
 
 GRAFANA_STATUS_PANEL = "Grafana_Status_panel"
 GRAFANA_PIECHART_PANEL = "piechart-panel"

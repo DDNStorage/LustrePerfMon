@@ -77,7 +77,7 @@ class EsmonServer(object):
     ESMON server host has an object of this type
     """
     # pylint: disable=too-many-public-methods,too-many-instance-attributes
-    def __init__(self, host, workspace, collect_interval):
+    def __init__(self, host, workspace, collect_interval, continuous_query_interval):
         self.es_host = host
         self.es_workspace = workspace
         self.es_iso_dir = workspace + "/ISO"
@@ -89,6 +89,7 @@ class EsmonServer(object):
                                                                 INFLUXDB_DATABASE_NAME)
         self.es_client = EsmonClient(host, workspace, self, collect_interval)
         self.es_collect_interval = collect_interval
+        self.es_continuous_query_interval = continuous_query_interval
 
     def es_check(self):
         """
@@ -332,7 +333,7 @@ class EsmonServer(object):
                 api_path)
 
     def es_grafana_try_connect(self, args):
-        # pylint: disable=bare-except,unused-argument
+        # pylint: disable=bare-except
         """
         Check whether we can connect to Grafana
         """
@@ -752,188 +753,158 @@ class EsmonServer(object):
                           self.es_host.sh_hostname)
             return -1
 
-        cq_time = self.es_collect_interval
         ret = self.es_influxdb_cq_create("mdt_acctuser_samples",
-                                         ["fs_name", "optype", "user_id", ],
-                                         cq_time)
+                                         ["fs_name", "optype", "user_id", ])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("mdt_acctgroup_samples",
-                                         ["fs_name", "group_id", "optype", ],
-                                         cq_time)
+                                         ["fs_name", "group_id", "optype", ])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("mdt_acctproject_samples",
-                                         ["fs_name", "optype", "project_id"],
-                                         cq_time)
+                                         ["fs_name", "optype", "project_id"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_acctuser_samples",
-                                         ["fs_name", "optype", "user_id", ],
-                                         cq_time)
+                                         ["fs_name", "optype", "user_id", ])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_acctgroup_samples",
-                                         ["fs_name", "optype", "group_id"],
-                                         cq_time)
+                                         ["fs_name", "optype", "group_id"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_acctproject_samples",
-                                         ["fs_name", "optype", "project_id"],
-                                         cq_time)
+                                         ["fs_name", "optype", "project_id"])
         if ret:
             return -1
 
         # Shows summarized client metadata operations
         ret = self.es_influxdb_cq_create("exp_md_stats",
-                                         ["exp_client", "fs_name"],
-                                         cq_time)
+                                         ["exp_client", "fs_name"])
         if ret:
             return -1
 
         # Shows summarized job metadata operations
         ret = self.es_influxdb_cq_create("mdt_jobstats_samples",
-                                         ["fs_name", "job_id"],
-                                         cq_time)
+                                         ["fs_name", "job_id"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_stats_bytes",
-                                         ["fs_name", "optype", "ost_index"],
-                                         cq_time)
+                                         ["fs_name", "optype", "ost_index"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_stats_bytes",
-                                         ["fs_name", "ost_index"],
-                                         cq_time)
+                                         ["fs_name", "ost_index"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_stats_bytes",
-                                         ["fs_name", "optype"],
-                                         cq_time)
+                                         ["fs_name", "optype"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_kbytesinfo_used",
-                                         ["fs_name", "optype"],
-                                         cq_time)
+                                         ["fs_name", "optype"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_brw_stats_page_discontiguous_rpc_samples",
-                                         ["field", "fs_name", "size"],
-                                         cq_time)
+                                         ["field", "fs_name", "size"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_brw_stats_block_discontiguous_rpc_samples",
-                                         ["field", "fs_name", "size"],
-                                         cq_time)
+                                         ["field", "fs_name", "size"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_brw_stats_fragmented_io_samples",
-                                         ["field", "fs_name", "size"],
-                                         cq_time)
+                                         ["field", "fs_name", "size"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_brw_stats_io_in_flight_samples",
-                                         ["field", "fs_name", "size"],
-                                         cq_time)
+                                         ["field", "fs_name", "size"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_brw_stats_io_time_samples",
-                                         ["field", "fs_name", "size"],
-                                         cq_time)
+                                         ["field", "fs_name", "size"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_brw_stats_io_size_samples",
-                                         ["field", "fs_name", "size"],
-                                         cq_time)
+                                         ["field", "fs_name", "size"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_jobstats_samples",
-                                         ["fs_name", "job_id", "optype"],
-                                         cq_time)
+                                         ["fs_name", "job_id", "optype"])
         if ret:
             return -1
 
         where = "WHERE optype = 'sum_read_bytes' OR optype = 'sum_write_bytes'"
         ret = self.es_influxdb_cq_create("ost_jobstats_samples",
                                          ["fs_name", "job_id"],
-                                         cq_time,
                                          where=where)
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_brw_stats_rpc_bulk_samples",
-                                         ["field", "fs_name", "size"],
-                                         cq_time)
+                                         ["field", "fs_name", "size"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("exp_ost_stats_bytes",
-                                         ["fs_name", "exp_client", "optype"],
-                                         cq_time)
+                                         ["fs_name", "exp_client", "optype"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("md_stats",
-                                         ["fs_name"],
-                                         cq_time)
+                                         ["fs_name"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("md_stats",
-                                         ["fs_name", "mdt_index"],
-                                         cq_time)
+                                         ["fs_name", "mdt_index"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("md_stats",
-                                         ["fs_name", "optype"],
-                                         cq_time)
+                                         ["fs_name", "optype"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("mdt_filesinfo_free",
-                                         ["fs_name"],
-                                         cq_time)
+                                         ["fs_name"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("mdt_filesinfo_used",
-                                         ["fs_name"],
-                                         cq_time)
+                                         ["fs_name"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_kbytesinfo_free",
-                                         ["fs_name"],
-                                         cq_time)
+                                         ["fs_name"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_kbytesinfo_used",
-                                         ["fs_name"],
-                                         cq_time)
+                                         ["fs_name"])
         if ret:
             return -1
 
         return 0
 
-    def _es_influxdb_cq_create(self, measurement, groups, interval, where=""):
+    def _es_influxdb_cq_create(self, measurement, groups, where=""):
         """
         Create continuous query in influxdb
         """
@@ -946,12 +917,14 @@ class EsmonServer(object):
             cq_query += "_%s" % group
             cq_measurement += "-%s" % group
 
+        cq_time = int(self.es_collect_interval) * int(self.es_continuous_query_interval)
         query = ('CREATE CONTINUOUS QUERY %s ON "%s" \n'
-                 'BEGIN SELECT sum("value") INTO "%s" \n'
-                 '    FROM "%s" %s GROUP BY time(%ss)%s \n'
+                 'BEGIN SELECT sum("value") / %s INTO "%s" \n'
+                 '    FROM "%s" %s GROUP BY time(%ds)%s \n'
                  'END;' %
-                 (cq_query, INFLUXDB_DATABASE_NAME, cq_measurement,
-                  measurement, where, interval, group_string))
+                 (cq_query, INFLUXDB_DATABASE_NAME,
+                  self.es_continuous_query_interval, cq_measurement,
+                  measurement, where, cq_time, group_string))
         response = self.es_influxdb_client.ic_query(query)
         if response is None:
             logging.error("failed to create continuous query with query [%s]",
@@ -988,13 +961,13 @@ class EsmonServer(object):
             return -1
         return 0
 
-    def es_influxdb_cq_create(self, measurement, groups, interval, where=""):
+    def es_influxdb_cq_create(self, measurement, groups, where=""):
         """
         Create continuous query in influxdb, delete one first if necesary
         """
         # Sort the groups so that we will get a unique cq name for the same groups
         groups.sort()
-        ret = self._es_influxdb_cq_create(measurement, groups, interval, where=where)
+        ret = self._es_influxdb_cq_create(measurement, groups, where=where)
         if ret == 0:
             return 0
 
@@ -1002,7 +975,7 @@ class EsmonServer(object):
         if ret:
             return ret
 
-        ret = self._es_influxdb_cq_create(measurement, groups, interval, where=where)
+        ret = self._es_influxdb_cq_create(measurement, groups, where=where)
         if ret:
             logging.error("failed to create continuous query for measurement [%s]",
                           measurement)
@@ -1460,7 +1433,7 @@ class EsmonClient(object):
         return 0
 
     def _ec_influxdb_measurement_check(self, args):
-        # pylint: disable=bare-except,unused-argument,too-many-return-statements
+        # pylint: disable=bare-except,too-many-return-statements
         # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         """
         Check whether the datapoint is recieved by InfluxDB
@@ -1693,8 +1666,15 @@ def esmon_install_parse_config(workspace, config, config_fpath):
                       esmon_common.CSTR_COLLECT_INTERVAL, config_fpath)
         return -1
 
+    continuous_query_interval = \
+        esmon_common.config_value(config, esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL)
+    if continuous_query_interval is None:
+        logging.error("[%s] is not configured, please correct file [%s]",
+                      esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL, config_fpath)
+        return -1
+
     host = hosts[host_id]
-    esmon_server = EsmonServer(host, workspace, collect_interval)
+    esmon_server = EsmonServer(host, workspace, collect_interval, continuous_query_interval)
     ret = esmon_server.es_check()
     if ret:
         logging.error("checking of ESMON server [%s] failed, please fix the "
@@ -1916,7 +1896,7 @@ def esmon_mount_and_install(workspace, config, config_fpath):
     """
     Mount the ISO and install the ESMON system
     """
-    # pylint: disable=bare-except,global-statement
+    # pylint: disable=bare-except
     local_host = ssh_host.SSHHost("localhost", local=True)
     iso_path = esmon_common.config_value(config, esmon_common.CSTR_ISO_PATH)
     if iso_path is None:
@@ -2035,7 +2015,6 @@ def main():
     """
     Install Exascaler monitoring
     """
-    # pylint: disable=unused-variable
     reload(sys)
     sys.setdefaultencoding("utf-8")
     config_fpath = ESMON_INSTALL_CONFIG

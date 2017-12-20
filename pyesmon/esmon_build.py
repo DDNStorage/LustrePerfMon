@@ -1008,7 +1008,6 @@ def main():
     """
     Install Exascaler monitoring
     """
-    # pylint: disable=unused-variable
     reload(sys)
     sys.setdefaultencoding("utf-8")
     config_fpath = ESMON_BUILD_CONFIG

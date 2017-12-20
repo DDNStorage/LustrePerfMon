@@ -15,7 +15,6 @@ def signal_handler(signum, frame):
     """
     Singal hander
     """
-    # pylint: disable=unused-argument,global-statement
     global SHUTTING_DOWN, EXIT_REASON
     SHUTTING_DOWN = True
     EXIT_REASON = "got signal %d" % signum

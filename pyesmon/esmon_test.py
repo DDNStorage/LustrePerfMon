@@ -151,7 +151,6 @@ def lustre_host_metric_check(lustre_host, esmon_client):
     # ost_kbytesinfo_free,fqdn=server17_esmom_vm3,fs_name=lustre1,ost_index=OST0000
     # ost_kbytesinfo_total,fqdn=server17_esmom_vm3,fs_name=lustre1,ost_index=OST0000
     # ost_kbytesinfo_used,fqdn=server17_esmom_vm3,fs_name=lustre1,ost_index=OST0000
-    # pylint: disable=unused-argument
     for ost in lustre_host.lsh_osts.values():
         lustre_fs = ost.lost_lustre_fs
         fsname = lustre_fs.lf_fsname
@@ -212,7 +211,6 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
     """
     # pylint: disable=too-many-branches,too-many-return-statements
     # pylint: disable=too-many-statements,too-many-locals,too-many-arguments
-    # pylint: disable=unused-variable
     lustre_rpm_dir = esmon_common.config_value(config, esmon_common.CSTR_LUSTRE_RPM_DIR)
     if lustre_rpm_dir is None:
         logging.error("no [%s] is configured, please correct file [%s]",
@@ -587,6 +585,15 @@ def esmon_do_test(workspace, config, config_fpath):
                       config_fpath)
         return -1
 
+    continuous_query_interval = \
+        esmon_common.config_value(config, esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL)
+    if continuous_query_interval is None:
+        logging.error("can NOT find [%s] in the config file, "
+                      "please correct file [%s]",
+                      esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL,
+                      config_fpath)
+        return -1
+
     server_host_config = esmon_common.config_value(config, esmon_common.CSTR_SERVER_HOST)
     if server_host_config is None:
         logging.error("can NOT find [%s] in the config file, "
@@ -654,6 +661,7 @@ def esmon_do_test(workspace, config, config_fpath):
     install_config[esmon_common.CSTR_CLIENT_HOSTS] = client_host_configs
     install_config[esmon_common.CSTR_SERVER_HOST] = server_host_config
     install_config[esmon_common.CSTR_COLLECT_INTERVAL] = collect_interval
+    install_config[esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL] = continuous_query_interval
     install_config_string = yaml.dump(install_config, default_flow_style=False)
     install_config_fpath = workspace + "/" + esmon_common.ESMON_INSTALL_CONFIG_FNAME
     with open(install_config_fpath, "wt") as install_config_file:
@@ -738,7 +746,6 @@ def main():
     """
     Test Exascaler monitoring
     """
-    # pylint: disable=unused-variable
     reload(sys)
     sys.setdefaultencoding("utf-8")
     config_fpath = ESMON_TEST_CONFIG
