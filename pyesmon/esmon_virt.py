@@ -1172,6 +1172,7 @@ def main():
     """
     Install virtual machines
     """
+    # pylint: disable=unused-variable
     reload(sys)
     sys.setdefaultencoding("utf-8")
     config_fpath = ESMON_VIRT_CONFIG

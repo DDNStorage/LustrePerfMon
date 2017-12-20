@@ -333,7 +333,7 @@ class EsmonServer(object):
                 api_path)
 
     def es_grafana_try_connect(self, args):
-        # pylint: disable=bare-except
+        # pylint: disable=bare-except,unused-argument
         """
         Check whether we can connect to Grafana
         """

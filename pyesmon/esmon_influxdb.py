@@ -95,6 +95,7 @@ def main():
     """
     Test Exascaler monitoring
     """
+    # pylint: disable=unused-variable
     reload(sys)
     sys.setdefaultencoding("utf-8")
 

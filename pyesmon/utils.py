@@ -62,6 +62,7 @@ def signal_pid(pid, sig):
     Sends a signal to a process id. Returns True if the process terminated
     successfully, False otherwise.
     """
+    # pylint: disable=unused-variable
     try:
         os.kill(pid, sig)
     except OSError:
@@ -423,6 +424,7 @@ def which(program):
     """
     Return the full path of (shell) commands.
     """
+    # pylint: disable=unused-variable
     def is_exe(fpath):
         """
         Whether the fpath is an executable file
