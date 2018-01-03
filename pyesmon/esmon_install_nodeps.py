@@ -232,6 +232,12 @@ class EsmonServer(object):
                               retval.cr_stderr)
                 return -1
 
+        ret = self.es_client.ec_rpm_install("influxdb", RPM_TYPE_SERVER)
+        if ret:
+            logging.error("failed to install Influxdb RPM on ESMON "
+                          "server [%s]", self.es_host.sh_hostname)
+            return ret
+
         command = ('mkdir -p %s && chown influxdb %s && chgrp influxdb %s' %
                    (esmon_common.INFLUXDB_PATH, esmon_common.INFLUXDB_PATH,
                     esmon_common.INFLUXDB_PATH))
@@ -245,12 +251,6 @@ class EsmonServer(object):
                           retval.cr_stdout,
                           retval.cr_stderr)
             return -1
-
-        ret = self.es_client.ec_rpm_install("influxdb", RPM_TYPE_SERVER)
-        if ret:
-            logging.error("failed to install Influxdb RPM on ESMON "
-                          "server [%s]", self.es_host.sh_hostname)
-            return ret
 
         config_diff = self.es_iso_dir + "/" + INFLUXDB_CONFIG_DIFF
         command = ("patch -i %s %s" % (config_diff, INFLUXDB_CONFIG_FPATH))
