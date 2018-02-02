@@ -1,0 +1,12 @@
+#!/usr/bin/python -u
+# Copyright (c) 2018 DataDirect Networks, Inc.
+# All Rights Reserved.
+# Author: Qian Yingjin <qian@ddn.com>
+"""
+Test Exascaler monistoring system
+"""
+from pyesmon import esmon_ioload
+
+if __name__ == "__main__":
+    esmon_ioload.main()
+
