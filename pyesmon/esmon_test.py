@@ -594,6 +594,20 @@ def esmon_do_test(workspace, config, config_fpath):
                       config_fpath)
         return -1
 
+    lustre_exp_ost = \
+        esmon_common.config_value(config, esmon_common.CSTR_LUSTRE_EXP_OST)
+    if lustre_exp_ost is None:
+        lustre_exp_ost = False
+        logging.info("[%s] is not configured, setting it to [False] by default",
+                      esmon_common.CSTR_LUSTRE_EXP_OST)
+
+    lustre_exp_mdt = \
+        esmon_common.config_value(config, esmon_common.CSTR_LUSTRE_EXP_MDT)
+    if lustre_exp_mdt is None:
+        lustre_exp_mdt = False
+        logging.info("[%s] is not configured, setting it to [False] by default",
+                      esmon_common.CSTR_LUSTRE_EXP_MDT)
+
     server_host_config = esmon_common.config_value(config, esmon_common.CSTR_SERVER_HOST)
     if server_host_config is None:
         logging.error("can NOT find [%s] in the config file, "
@@ -662,6 +676,8 @@ def esmon_do_test(workspace, config, config_fpath):
     install_config[esmon_common.CSTR_SERVER_HOST] = server_host_config
     install_config[esmon_common.CSTR_COLLECT_INTERVAL] = collect_interval
     install_config[esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL] = continuous_query_interval
+    install_config[esmon_common.CSTR_LUSTRE_EXP_OST] = lustre_exp_ost
+    install_config[esmon_common.CSTR_LUSTRE_EXP_MDT] = lustre_exp_mdt
     install_config_string = yaml.dump(install_config, default_flow_style=False)
     install_config_fpath = workspace + "/" + esmon_common.ESMON_INSTALL_CONFIG_FNAME
     with open(install_config_fpath, "wt") as install_config_file:

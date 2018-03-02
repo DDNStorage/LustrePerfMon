@@ -990,7 +990,8 @@ class EsmonClient(object):
     # pylint: disable=too-many-arguments
     def __init__(self, host, workspace, esmon_server, collect_interval,
                  lustre_oss=False, lustre_mds=False, ime=False,
-                 infiniband=False, sfas=None, enabled_plugins=""):
+                 infiniband=False, sfas=None, enabled_plugins="",
+                 lustre_exp_ost=False, lustre_exp_mdt=False):
         self.ec_host = host
         self.ec_workspace = workspace
         self.ec_iso_basename = "ISO"
@@ -1002,7 +1003,9 @@ class EsmonClient(object):
         config.cc_configs["Interval"] = collectd.COLLECTD_INTERVAL_TEST
         if lustre_oss or lustre_mds:
             config.cc_plugin_lustre(lustre_oss=lustre_oss,
-                                    lustre_mds=lustre_mds)
+                                    lustre_mds=lustre_mds,
+                                    lustre_exp_ost=lustre_exp_ost,
+                                    lustre_exp_mdt=lustre_exp_mdt)
         if ime:
             config.cc_plugin_ime()
         if sfas is not None:
@@ -1015,7 +1018,9 @@ class EsmonClient(object):
         config = collectd.CollectdConfig(self, collect_interval)
         if lustre_oss or lustre_mds:
             config.cc_plugin_lustre(lustre_oss=lustre_oss,
-                                    lustre_mds=lustre_mds)
+                                    lustre_mds=lustre_mds,
+                                    lustre_exp_ost=lustre_exp_ost,
+                                    lustre_exp_mdt=lustre_exp_mdt)
         if ime:
             config.cc_plugin_ime()
         if sfas is not None:
@@ -1664,14 +1669,28 @@ def esmon_install_parse_config(workspace, config, config_fpath):
     if collect_interval is None:
         logging.error("[%s] is not configured, please correct file [%s]",
                       esmon_common.CSTR_COLLECT_INTERVAL, config_fpath)
-        return -1
+        return -1, esmon_server, esmon_clients
 
     continuous_query_interval = \
         esmon_common.config_value(config, esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL)
     if continuous_query_interval is None:
         logging.error("[%s] is not configured, please correct file [%s]",
                       esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL, config_fpath)
-        return -1
+        return -1, esmon_server, esmon_clients
+
+    lustre_exp_ost = \
+        esmon_common.config_value(config, esmon_common.CSTR_LUSTRE_EXP_OST)
+    if lustre_exp_ost is None:
+        lustre_exp_ost = False
+        logging.info("[%s] is not configured, setting it to [False] by default",
+                      esmon_common.CSTR_LUSTRE_EXP_OST)
+
+    lustre_exp_mdt = \
+        esmon_common.config_value(config, esmon_common.CSTR_LUSTRE_EXP_MDT)
+    if lustre_exp_mdt is None:
+        lustre_exp_mdt = False
+        logging.info("[%s] is not configured, setting it to [False] by default",
+                      esmon_common.CSTR_LUSTRE_EXP_MDT)
 
     host = hosts[host_id]
     esmon_server = EsmonServer(host, workspace, collect_interval, continuous_query_interval)
@@ -1789,7 +1808,9 @@ def esmon_install_parse_config(workspace, config, config_fpath):
                                    lustre_mds=lustre_mds, ime=ime,
                                    infiniband=infiniband,
                                    sfas=sfas,
-                                   enabled_plugins=enabled_plugins)
+                                   enabled_plugins=enabled_plugins,
+                                   lustre_exp_ost=lustre_exp_ost,
+                                   lustre_exp_mdt=lustre_exp_mdt)
         esmon_clients[host_id] = esmon_client
         ret = esmon_client.ec_check()
         if ret:

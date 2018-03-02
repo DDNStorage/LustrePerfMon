@@ -253,7 +253,8 @@ PostCacheChain "PostCache"
             self.cc_checks.append(self.cc_plugin_cpu_check)
         return 0
 
-    def cc_plugin_lustre(self, lustre_oss=False, lustre_mds=False):
+    def cc_plugin_lustre(self, lustre_oss=False, lustre_mds=False,
+                         lustre_exp_ost=False, lustre_exp_mdt=False):
         """
         Config the Lustre plugin
         """
@@ -296,14 +297,6 @@ PostCacheChain "PostCache"
     <Item>
         Type "ost_brw_stats_io_size"
     </Item>
-
-    <Item>
-        Type "exp_ost_stats_read"
-    </Item>
-    <Item>
-        Type "exp_ost_stats_write"
-    </Item>
-    # The other exp_ost_stats_* items are not enabled here
 
     <Item>
         Type "ost_stats_write"
@@ -375,6 +368,18 @@ PostCacheChain "PostCache"
     # Item ost_ldlm_stats is not enabled, because min/max/sum/stddev is not so
     # useful for none-rate metrics.
 """
+
+        if lustre_exp_ost:
+            config += """
+    <Item>
+        Type "exp_ost_stats_read"
+    </Item>
+    <Item>
+        Type "exp_ost_stats_write"
+    </Item>
+    # The other exp_ost_stats_* items are not enabled here
+"""
+
         if lustre_mds:
             config += """
     # MDT stats
@@ -429,6 +434,49 @@ PostCacheChain "PostCache"
     </Item>
 
     <Item>
+        Type "mdt_jobstats"
+#       <Rule>
+#           Field "job_id"
+#           Match "[[:digit:]]+"
+#       </Rule>
+    </Item>
+#   <ItemType>
+#       Type "mdt_jobstats"
+#       <ExtendedParse>
+#           # Parse the field job_id
+#           Field "job_id"
+#           # Match the pattern
+#           Pattern "u([[:digit:]]+)[.]g([[:digit:]]+)[.]j([[:digit:]]+)"
+#           <ExtendedField>
+#               Index 1
+#               Name slurm_job_uid
+#           </ExtendedField>
+#           <ExtendedField>
+#               Index 2
+#               Name slurm_job_gid
+#           </ExtendedField>
+#           <ExtendedField>
+#               Index 3
+#               Name slurm_job_id
+#           </ExtendedField>
+#       </ExtendedParse>
+#       TsdbTags "slurm_job_uid=${extendfield:slurm_job_uid} slurm_job_gid=${extendfield:slurm_job_gid} slurm_job_id=${extendfield:slurm_job_id}"
+#   </ItemType>
+
+    <Item>
+        Type "mdt_filestotal"
+    </Item>
+    <Item>
+        Type "mdt_filesfree"
+    </Item>
+    <Item>
+        Type "mdt_filesused"
+    </Item>
+"""
+
+        if lustre_exp_mdt:
+            config += """
+    <Item>
         Type "exp_md_stats_open"
     </Item>
     <Item>
@@ -470,47 +518,8 @@ PostCacheChain "PostCache"
     <Item>
         Type "exp_md_stats_sync"
     </Item>
-
-    <Item>
-        Type "mdt_jobstats"
-#       <Rule>
-#           Field "job_id"
-#           Match "[[:digit:]]+"
-#       </Rule>
-    </Item>
-#   <ItemType>
-#       Type "mdt_jobstats"
-#       <ExtendedParse>
-#           # Parse the field job_id
-#           Field "job_id"
-#           # Match the pattern
-#           Pattern "u([[:digit:]]+)[.]g([[:digit:]]+)[.]j([[:digit:]]+)"
-#           <ExtendedField>
-#               Index 1
-#               Name slurm_job_uid
-#           </ExtendedField>
-#           <ExtendedField>
-#               Index 2
-#               Name slurm_job_gid
-#           </ExtendedField>
-#           <ExtendedField>
-#               Index 3
-#               Name slurm_job_id
-#           </ExtendedField>
-#       </ExtendedParse>
-#       TsdbTags "slurm_job_uid=${extendfield:slurm_job_uid} slurm_job_gid=${extendfield:slurm_job_gid} slurm_job_id=${extendfield:slurm_job_id}"
-#   </ItemType>
-
-    <Item>
-        Type "mdt_filestotal"
-    </Item>
-    <Item>
-        Type "mdt_filesfree"
-    </Item>
-    <Item>
-        Type "mdt_filesused"
-    </Item>
 """
+
         # Client support, e.g. max_rpcs_in_flight of mdc could be added
         config += "</Plugin>\n\n"
         self.cc_filedatas["lustre"] = config

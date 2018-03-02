@@ -64,6 +64,8 @@ CSTR_HOSTS = "hosts"
 CSTR_CLEANUP = "cleanup"
 CSTR_COLLECT_INTERVAL = "collect_interval"
 CSTR_CONTINUOUS_QUERY_INTERVAL = "continuous_query_interval"
+CSTR_LUSTRE_EXP_OST = "lustre_exp_ost"
+CSTR_LUSTRE_EXP_MDT = "lustre_exp_mdt"
 
 GRAFANA_STATUS_PANEL = "Grafana_Status_panel"
 GRAFANA_PIECHART_PANEL = "piechart-panel"
