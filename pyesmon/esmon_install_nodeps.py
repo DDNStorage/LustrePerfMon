@@ -1683,14 +1683,14 @@ def esmon_install_parse_config(workspace, config, config_fpath):
     if lustre_exp_ost is None:
         lustre_exp_ost = False
         logging.info("[%s] is not configured, setting it to [False] by default",
-                      esmon_common.CSTR_LUSTRE_EXP_OST)
+                     esmon_common.CSTR_LUSTRE_EXP_OST)
 
     lustre_exp_mdt = \
         esmon_common.config_value(config, esmon_common.CSTR_LUSTRE_EXP_MDT)
     if lustre_exp_mdt is None:
         lustre_exp_mdt = False
         logging.info("[%s] is not configured, setting it to [False] by default",
-                      esmon_common.CSTR_LUSTRE_EXP_MDT)
+                     esmon_common.CSTR_LUSTRE_EXP_MDT)
 
     host = hosts[host_id]
     esmon_server = EsmonServer(host, workspace, collect_interval, continuous_query_interval)

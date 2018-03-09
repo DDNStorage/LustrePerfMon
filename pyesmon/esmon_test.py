@@ -599,14 +599,14 @@ def esmon_do_test(workspace, config, config_fpath):
     if lustre_exp_ost is None:
         lustre_exp_ost = False
         logging.info("[%s] is not configured, setting it to [False] by default",
-                      esmon_common.CSTR_LUSTRE_EXP_OST)
+                     esmon_common.CSTR_LUSTRE_EXP_OST)
 
     lustre_exp_mdt = \
         esmon_common.config_value(config, esmon_common.CSTR_LUSTRE_EXP_MDT)
     if lustre_exp_mdt is None:
         lustre_exp_mdt = False
         logging.info("[%s] is not configured, setting it to [False] by default",
-                      esmon_common.CSTR_LUSTRE_EXP_MDT)
+                     esmon_common.CSTR_LUSTRE_EXP_MDT)
 
     server_host_config = esmon_common.config_value(config, esmon_common.CSTR_SERVER_HOST)
     if server_host_config is None:
