@@ -22,6 +22,7 @@ from pyesmon import esmon_virt
 from pyesmon import ssh_host
 from pyesmon import watched_io
 from pyesmon import lustre
+from pyesmon import collectd
 
 ESMON_TEST_LOG_DIR = "/var/log/esmon_test"
 ESMON_TEST_CONFIG_FNAME = "esmon_test.conf"
@@ -147,10 +148,32 @@ def lustre_host_metric_check(lustre_host, esmon_client):
     """
     Check that all expected Lustre metrics can be collected from this host
     """
+    # pylint: disable=too-many-branches,too-many-return-statements
     # ost_filesinfo_used,fqdn=server17_esmom_vm3,fs_name=lustre1,ost_index=OST0000
     # ost_kbytesinfo_free,fqdn=server17_esmom_vm3,fs_name=lustre1,ost_index=OST0000
     # ost_kbytesinfo_total,fqdn=server17_esmom_vm3,fs_name=lustre1,ost_index=OST0000
     # ost_kbytesinfo_used,fqdn=server17_esmom_vm3,fs_name=lustre1,ost_index=OST0000
+
+    support_used = False
+    if esmon_client.ec_lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3:
+        support_used = True
+    elif esmon_client.ec_lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES2:
+        if collectd.ES2_HAS_USED_INODE_SPACE_SUPPORT:
+            support_used = True
+    else:
+        logging.error("unsupported Lustre version of [%s]",
+                      esmon_client.ec_lustre_version.lv_name)
+        return -1
+
+    measurements = ["ost_filesinfo_total",
+                    "ost_filesinfo_free",
+                    "ost_kbytesinfo_free",
+                    "ost_kbytesinfo_total"]
+
+    if support_used:
+        measurements.append("ost_filesinfo_used")
+        measurements.append("ost_kbytesinfo_used")
+
     for ost in lustre_host.lsh_osts.values():
         lustre_fs = ost.lost_lustre_fs
         fsname = lustre_fs.lf_fsname
@@ -158,12 +181,6 @@ def lustre_host_metric_check(lustre_host, esmon_client):
         if ret:
             logging.error("invalid OST index [%s]", (ost.lost_index))
             return -1
-        measurements = ["ost_filesinfo_total",
-                        "ost_filesinfo_free",
-                        "ost_filesinfo_used",
-                        "ost_kbytesinfo_free",
-                        "ost_kbytesinfo_total",
-                        "ost_kbytesinfo_used"]
         for measurement in measurements:
             logging.debug("checking measurement [%s] for OST [%s] "
                           "of file system [%s]", measurement, ost.lost_index,
@@ -178,6 +195,12 @@ def lustre_host_metric_check(lustre_host, esmon_client):
                               fsname)
                 return ret
 
+    measurements = ["mdt_filesinfo_free",
+                    "mdt_filesinfo_total"]
+
+    if support_used:
+        measurements.append("mdt_filesinfo_used")
+
     for mdt in lustre_host.lsh_mdts.values():
         lustre_fs = mdt.lmdt_lustre_fs
         fsname = lustre_fs.lf_fsname
@@ -185,9 +208,6 @@ def lustre_host_metric_check(lustre_host, esmon_client):
         if ret:
             logging.error("invalid MDT index [%s]", mdt.lmdt_index)
             return -1
-        measurements = ["mdt_filesinfo_free",
-                        "mdt_filesinfo_total",
-                        "mdt_filesinfo_used"]
         for measurement in measurements:
             logging.debug("checking measurement [%s] for MDT [%s] "
                           "of file system [%s]", measurement, mdt.lmdt_index,
@@ -594,6 +614,13 @@ def esmon_do_test(workspace, config, config_fpath):
                       config_fpath)
         return -1
 
+    lustre_default_version = \
+        esmon_common.config_value(config, esmon_common.CSTR_LUSTRE_DEFAULT_VERSION)
+    if lustre_default_version is None:
+        logging.error("[%s] is not configured, please correct file [%s]",
+                      esmon_common.CSTR_LUSTRE_DEFAULT_VERSION, config_fpath)
+        return -1
+
     lustre_exp_ost = \
         esmon_common.config_value(config, esmon_common.CSTR_LUSTRE_EXP_OST)
     if lustre_exp_ost is None:
@@ -676,6 +703,7 @@ def esmon_do_test(workspace, config, config_fpath):
     install_config[esmon_common.CSTR_SERVER_HOST] = server_host_config
     install_config[esmon_common.CSTR_COLLECT_INTERVAL] = collect_interval
     install_config[esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL] = continuous_query_interval
+    install_config[esmon_common.CSTR_LUSTRE_DEFAULT_VERSION] = lustre_default_version
     install_config[esmon_common.CSTR_LUSTRE_EXP_OST] = lustre_exp_ost
     install_config[esmon_common.CSTR_LUSTRE_EXP_MDT] = lustre_exp_mdt
     install_config_string = yaml.dump(install_config, default_flow_style=False)

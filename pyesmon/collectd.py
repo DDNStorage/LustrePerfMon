@@ -7,9 +7,13 @@ Library for generating collectd config
 import collections
 import logging
 
+from pyesmon import lustre
+
 COLLECTD_CONFIG_TEST_FNAME = "collectd.conf.test"
 COLLECTD_CONFIG_FINAL_FNAME = "collectd.conf.final"
 COLLECTD_INTERVAL_TEST = 1
+# ES2 will add support for used inode/space in the future
+ES2_HAS_USED_INODE_SPACE_SUPPORT = False
 
 
 class CollectdConfig(object):
@@ -253,14 +257,26 @@ PostCacheChain "PostCache"
             self.cc_checks.append(self.cc_plugin_cpu_check)
         return 0
 
-    def cc_plugin_lustre(self, lustre_oss=False, lustre_mds=False,
-                         lustre_exp_ost=False, lustre_exp_mdt=False):
+    def cc_plugin_lustre(self, lustre_version, lustre_oss=False,
+                         lustre_mds=False, lustre_exp_ost=False,
+                         lustre_exp_mdt=False):
+        # pylint: disable=too-many-arguments,too-many-branches
         """
         Config the Lustre plugin
         """
+        if lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES2:
+            xml_fname = "lustre-ieel-2.5_definition.xml"
+        elif lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3:
+            xml_fname = "lustre-ieel-2.7_definition.xml"
+        else:
+            logging.error("unsupported Lustre version of [%s]",
+                          lustre_version.lv_name)
+            return -1
         config = """<Plugin "filedata">
     <Common>
-        DefinitionFile "/etc/lustre-ieel-2.7_definition.xml"
+        DefinitionFile "/etc/"""
+        config += xml_fname + '"'
+        config += """
     </Common>
 """
         if lustre_oss:
@@ -268,14 +284,17 @@ PostCacheChain "PostCache"
     # OST stats
     <Item>
         Type "ost_acctuser"
-    </Item>
+    </Item>"""
+            if lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3:
+                config += """
     <Item>
         Type "ost_acctgroup"
     </Item>
     <Item>
         Type "ost_acctproject"
     </Item>
-
+"""
+            config += """
     <Item>
         Type "ost_brw_stats_rpc_bulk"
     </Item>
@@ -343,19 +362,30 @@ PostCacheChain "PostCache"
     </Item>
     <Item>
         Type "ost_kbytesfree"
-    </Item>
+    </Item>"""
+
+            if ((lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3) or
+                    (lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES2 and
+                     ES2_HAS_USED_INODE_SPACE_SUPPORT)):
+                config += """
     <Item>
         Type "ost_kbytesused"
-    </Item>
+    </Item>"""
+            config += """
     <Item>
         Type "ost_filestotal"
     </Item>
     <Item>
         Type "ost_filesfree"
-    </Item>
+    </Item>"""
+            if ((lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3) or
+                    (lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES2 and
+                     ES2_HAS_USED_INODE_SPACE_SUPPORT)):
+                config += """
     <Item>
         Type "ost_filesused"
-    </Item>
+    </Item>"""
+            config += """
 
     # Items of ost_threads_* are not enabled
 
@@ -385,14 +415,16 @@ PostCacheChain "PostCache"
     # MDT stats
     <Item>
         Type "mdt_acctuser"
-    </Item>
+    </Item>"""
+            if lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3:
+                config += """
     <Item>
         Type "mdt_acctgroup"
     </Item>
     <Item>
-        Type "mdt_acctproject"
-    </Item>
-
+        Type "ost_acctproject"
+    </Item>"""
+            config += """
     <Item>
         Type "md_stats_open"
     </Item>
@@ -468,7 +500,11 @@ PostCacheChain "PostCache"
     </Item>
     <Item>
         Type "mdt_filesfree"
-    </Item>
+    </Item>"""
+            if ((lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3) or
+                    (lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES2 and
+                     ES2_HAS_USED_INODE_SPACE_SUPPORT)):
+                config += """
     <Item>
         Type "mdt_filesused"
     </Item>

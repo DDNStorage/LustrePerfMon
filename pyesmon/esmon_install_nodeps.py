@@ -15,6 +15,7 @@ import re
 import json
 
 # Local libs
+from pyesmon import lustre
 from pyesmon import utils
 from pyesmon import time_util
 from pyesmon import ssh_host
@@ -53,6 +54,7 @@ RPM_TYPE_DEPENDENT = DEPENDENT_STRING
 SERVER_STRING = "server"
 RPM_TYPE_SERVER = SERVER_STRING
 RPM_TYPE_XML = "xml"
+LUSTRE_DEFAULT_VERSION = None
 
 
 def grafana_dashboard_check(name, dashboard):
@@ -998,38 +1000,17 @@ class EsmonClient(object):
         self.ec_iso_dir = self.ec_workspace + "/" + self.ec_iso_basename
         self.ec_esmon_server = esmon_server
         self.ec_needed_collectd_rpms = ["libcollectdclient", "collectd"]
+        self.ec_collect_interval = collect_interval
         self.ec_enabled_plugins = enabled_plugins
-        config = collectd.CollectdConfig(self, collect_interval)
-        config.cc_configs["Interval"] = collectd.COLLECTD_INTERVAL_TEST
-        if lustre_oss or lustre_mds:
-            config.cc_plugin_lustre(lustre_oss=lustre_oss,
-                                    lustre_mds=lustre_mds,
-                                    lustre_exp_ost=lustre_exp_ost,
-                                    lustre_exp_mdt=lustre_exp_mdt)
-        if ime:
-            config.cc_plugin_ime()
-        if sfas is not None:
-            for sfa in sfas:
-                config.cc_plugin_sfa(sfa)
-        if infiniband:
-            config.cc_plugin_infiniband()
-        self.ec_collectd_config_test = config
-
-        config = collectd.CollectdConfig(self, collect_interval)
-        if lustre_oss or lustre_mds:
-            config.cc_plugin_lustre(lustre_oss=lustre_oss,
-                                    lustre_mds=lustre_mds,
-                                    lustre_exp_ost=lustre_exp_ost,
-                                    lustre_exp_mdt=lustre_exp_mdt)
-        if ime:
-            config.cc_plugin_ime()
-        if sfas is not None:
-            for sfa in sfas:
-                config.cc_plugin_sfa(sfa)
-        if infiniband:
-            config.cc_plugin_infiniband()
-        self.ec_collectd_config_final = config
-
+        self.ec_enable_lustre_oss = lustre_oss
+        self.ec_enable_lustre_mds = lustre_mds
+        self.ec_enable_ime = ime
+        self.ec_enable_infiniband = infiniband
+        self.ec_sfas = sfas
+        self.ec_enable_lustre_exp_ost = lustre_exp_ost
+        self.ec_enable_lustre_exp_mdt = lustre_exp_mdt
+        self.ec_collectd_config_test = None
+        self.ec_collectd_config_final = None
         self.ec_influxdb_update_time = None
         self.ec_distro = None
         self.ec_rpm_pattern = None
@@ -1041,6 +1022,55 @@ class EsmonClient(object):
         self.ec_rpm_fnames = None
         self.ec_rpm_server_dir = None
         self.ec_rpm_server_fnames = None
+        self.ec_lustre_version = None
+
+    def ec_check_lustre_version(self):
+        """
+        Check the Lustre version according to the installed RPMs
+        """
+        command = ("rpm -qa | grep lustre")
+        retval = self.ec_host.sh_run(command)
+        if (retval.cr_exit_status == 1 and retval.cr_stdout == "" and
+                retval.cr_stderr == ""):
+            self.ec_lustre_version = LUSTRE_DEFAULT_VERSION
+            return 0
+        elif retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.ec_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        rpm_names = retval.cr_stdout.split()
+        rpm_files = []
+        for rpm_name in rpm_names:
+            rpm_files.append(rpm_name + ".rpm")
+
+        rpm_dict = {}
+        possible_versions = lustre.LUSTER_VERSIONS[:]
+        for rpm_file in rpm_files:
+            logging.debug("found RPM [%s] on host [%s]",
+                          rpm_file, self.ec_host.sh_hostname)
+            ret = lustre.match_rpm_patterns(rpm_file, rpm_dict,
+                                            possible_versions)
+            if ret:
+                logging.error("failed to match pattern for file [%s]",
+                              rpm_file)
+                return -1
+        if len(possible_versions) == 0:
+            logging.info("can't match Lustre version according to RPM "
+                         "names, using default [%s]",
+                         LUSTRE_DEFAULT_VERSION.lv_name)
+            self.ec_lustre_version = LUSTRE_DEFAULT_VERSION
+            return 0
+        elif len(possible_versions) != 1:
+            logging.error("the possible RPM version is %d, should be 1",
+                          len(possible_versions))
+            return -1
+        self.ec_lustre_version = possible_versions[0]
+        return 0
 
     def ec_check(self):
         """
@@ -1058,6 +1088,12 @@ class EsmonClient(object):
                           retval.cr_exit_status,
                           retval.cr_stdout,
                           retval.cr_stderr)
+            return -1
+
+        ret = self.ec_check_lustre_version()
+        if ret:
+            logging.error("failed to check Lustre version on host [%s]",
+                          self.ec_host.sh_hostname)
             return -1
 
         distro = self.ec_host.sh_distro()
@@ -1081,6 +1117,56 @@ class EsmonClient(object):
         self.ec_rpm_server_dir = ("%s/%s" %
                                   (rpm_distro_dir, SERVER_STRING))
         return 0
+
+    def ec_prepare(self):
+        """
+        Do sanity check of the host and then prepare Collectd config
+        """
+        # pylint: disable=too-many-branches
+        ret = self.ec_check()
+        if ret:
+            logging.error("failed to check status on host [%s]",
+                          self.ec_host.sh_hostname)
+            return -1
+
+        config = collectd.CollectdConfig(self, self.ec_collect_interval)
+        config.cc_configs["Interval"] = collectd.COLLECTD_INTERVAL_TEST
+        if self.ec_enable_lustre_oss or self.ec_enable_lustre_mds:
+            ret = config.cc_plugin_lustre(self.ec_lustre_version,
+                                          lustre_oss=self.ec_enable_lustre_oss,
+                                          lustre_mds=self.ec_enable_lustre_mds,
+                                          lustre_exp_ost=self.ec_enable_lustre_exp_ost,
+                                          lustre_exp_mdt=self.ec_enable_lustre_exp_mdt)
+            if ret:
+                logging.error("failed to config Lustre plugin of Collectd")
+                return -1
+        if self.ec_enable_ime:
+            config.cc_plugin_ime()
+        if self.ec_sfas is not None:
+            for sfa in self.ec_sfas:
+                config.cc_plugin_sfa(sfa)
+        if self.ec_enable_infiniband:
+            config.cc_plugin_infiniband()
+        self.ec_collectd_config_test = config
+
+        config = collectd.CollectdConfig(self, self.ec_collect_interval)
+        if self.ec_enable_lustre_oss or self.ec_enable_lustre_mds:
+            ret = config.cc_plugin_lustre(self.ec_lustre_version,
+                                          lustre_oss=self.ec_enable_lustre_oss,
+                                          lustre_mds=self.ec_enable_lustre_mds,
+                                          lustre_exp_ost=self.ec_enable_lustre_exp_ost,
+                                          lustre_exp_mdt=self.ec_enable_lustre_exp_mdt)
+            if ret:
+                logging.error("failed to config Lustre plugin of Collectd")
+                return -1
+        if self.ec_enable_ime:
+            config.cc_plugin_ime()
+        if self.ec_sfas is not None:
+            for sfa in self.ec_sfas:
+                config.cc_plugin_sfa(sfa)
+        if self.ec_enable_infiniband:
+            config.cc_plugin_infiniband()
+        self.ec_collectd_config_final = config
 
     def ec_dependent_rpms_install(self):
         """
@@ -1610,7 +1696,7 @@ def esmon_install_parse_config(workspace, config, config_fpath):
     """
     # pylint: disable=too-many-return-statements
     # pylint: disable=too-many-branches,bare-except, too-many-locals
-    # pylint: disable=too-many-statements
+    # pylint: disable=too-many-statements,global-statement
     esmon_clients = {}
     esmon_server = None
 
@@ -1676,6 +1762,22 @@ def esmon_install_parse_config(workspace, config, config_fpath):
     if continuous_query_interval is None:
         logging.error("[%s] is not configured, please correct file [%s]",
                       esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL, config_fpath)
+        return -1, esmon_server, esmon_clients
+
+    version_name = \
+        esmon_common.config_value(config, esmon_common.CSTR_LUSTRE_DEFAULT_VERSION)
+    if version_name is None:
+        logging.error("[%s] is not configured, please correct file [%s]",
+                      esmon_common.CSTR_LUSTRE_DEFAULT_VERSION, config_fpath)
+        return -1, esmon_server, esmon_clients
+    global LUSTRE_DEFAULT_VERSION
+    for version in lustre.LUSTER_VERSIONS:
+        if version.lv_name == version_name:
+            LUSTRE_DEFAULT_VERSION = version
+            break
+    if LUSTRE_DEFAULT_VERSION is None:
+        logging.error("unsupported Lustre version [%s], please correct file [%s]",
+                      version_name, config_fpath)
         return -1, esmon_server, esmon_clients
 
     lustre_exp_ost = \
@@ -1812,7 +1914,7 @@ def esmon_install_parse_config(workspace, config, config_fpath):
                                    lustre_exp_ost=lustre_exp_ost,
                                    lustre_exp_mdt=lustre_exp_mdt)
         esmon_clients[host_id] = esmon_client
-        ret = esmon_client.ec_check()
+        ret = esmon_client.ec_prepare()
         if ret:
             logging.error("checking of ESMON client [%s] failed, please fix "
                           "the problem",

@@ -477,6 +477,26 @@ LUSTRE_RPM_TYPES = [RPM_KMOD, RPM_OSD_LDISKFS_MOUNT, RPM_OSD_LDISKFS,
                     RPM_OSD_ZFS_MOUNT, RPM_OSD_ZFS,
                     RPM_LUSTRE, RPM_IOKIT, RPM_TESTS_KMOD, RPM_TESTS]
 
+ES2_PATTERNS = {
+    RPM_KERNEL: r"^(kernel-2.+\.x86_64\.rpm)$",
+    RPM_LUSTRE: r"^(lustre-2\.5.+\.x86_64\.rpm)$",
+    RPM_IOKIT: r"^(lustre-iokit-2\.5.+\.x86_64\.rpm)$",
+    RPM_KMOD: r"^(lustre-modules-2\.5.+\.x86_64\.rpm)$",
+    RPM_OSD_LDISKFS: r"^(lustre-osd-ldiskfs-2\.5.+\.x86_64\.rpm)$",
+    RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.5.+\.x86_64\.rpm)$",
+    RPM_OSD_ZFS: r"^(lustre-osd-zfs-2\.5.+\.x86_64\.rpm)$",
+    RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.5.+\.x86_64\.rpm)$",
+    RPM_TESTS: r"^(lustre-tests-2\.5.+\.x86_64\.rpm)$",
+    RPM_MLNX_OFA: r"^(mlnx-ofa_kernel-\d.+\.x86_64\.rpm)$",
+    RPM_MLNX_KMOD: r"^(mlnx-ofa_kernel-modules-\d.+\.x86_64\.rpm)$"}
+
+LUSTRE_VERSION_NAME_ES2 = "es2"
+
+LUSTRE_VERSION_ES2 = LustreVersion(LUSTRE_VERSION_NAME_ES2,
+                                   r".+\.x86_64_g(.+)\.x86_64\.rpm$",
+                                   ES2_PATTERNS,  # rpm_patterns
+                                   "2")  # kernel_major_version
+
 ES3_PATTERNS = {
     RPM_KERNEL: r"^(kernel-3.+\.x86_64\.rpm)$",
     RPM_LUSTRE: r"^(lustre-2\.7.+\.x86_64\.rpm)$",
@@ -490,13 +510,14 @@ ES3_PATTERNS = {
     RPM_MLNX_OFA: r"^(mlnx-ofa_kernel-3.+\.x86_64\.rpm)$",
     RPM_MLNX_KMOD: r"^(mlnx-ofa_kernel-modules-3.+\.x86_64\.rpm)$"}
 
-LUSTRE_VERSION_ES3 = LustreVersion("es3",
+LUSTRE_VERSION_NAME_ES3 = "es3"
+
+LUSTRE_VERSION_ES3 = LustreVersion(LUSTRE_VERSION_NAME_ES3,
                                    r".+\.x86_64_g(.+)\.x86_64\.rpm$",
                                    ES3_PATTERNS,  # rpm_patterns
                                    "3")  # kernel_major_version
 
-
-LUSTER_VERSIONS = [LUSTRE_VERSION_ES3]
+LUSTER_VERSIONS = [LUSTRE_VERSION_ES2, LUSTRE_VERSION_ES3]
 
 
 def match_rpm_patterns(data, rpm_dict, possible_versions):
