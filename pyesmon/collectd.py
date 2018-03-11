@@ -14,6 +14,48 @@ COLLECTD_CONFIG_FINAL_FNAME = "collectd.conf.final"
 COLLECTD_INTERVAL_TEST = 1
 # ES2 will add support for used inode/space in the future
 ES2_HAS_USED_INODE_SPACE_SUPPORT = False
+# ES4 will add support for used inode/space in the future
+ES4_HAS_USED_INODE_SPACE_SUPPORT = False
+
+
+def lustre_version_xml_fname(lustre_version):
+    """
+    Return the XML file of this Lustre version
+    """
+    if lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES2:
+        xml_fname = "lustre-ieel-2.5_definition.xml"
+    elif lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3:
+        xml_fname = "lustre-ieel-2.7_definition.xml"
+    elif lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES4:
+        xml_fname = "lustre-ieel-2.7_definition.xml"
+    else:
+        logging.error("unsupported Lustre version of [%s]",
+                      lustre_version.lv_name)
+        return None
+    return xml_fname
+
+
+def support_acctgroup_acctproject(lustre_version):
+    """
+    Whether this Lustre version supports acctgroup and acctproject
+    """
+    if (lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3 or
+            lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES4):
+        return True
+    return False
+
+
+def support_space_inode_used(lustre_version):
+    """
+    Whether this Lustre version supports used inode/space
+    """
+    if ((lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3) or
+            (lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES2 and
+             ES2_HAS_USED_INODE_SPACE_SUPPORT) or
+            (lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES4 and
+             ES4_HAS_USED_INODE_SPACE_SUPPORT)):
+        return True
+    return False
 
 
 class CollectdConfig(object):
@@ -264,11 +306,8 @@ PostCacheChain "PostCache"
         """
         Config the Lustre plugin
         """
-        if lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES2:
-            xml_fname = "lustre-ieel-2.5_definition.xml"
-        elif lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3:
-            xml_fname = "lustre-ieel-2.7_definition.xml"
-        else:
+        xml_fname = lustre_version_xml_fname(lustre_version)
+        if xml_fname is None:
             logging.error("unsupported Lustre version of [%s]",
                           lustre_version.lv_name)
             return -1
@@ -285,7 +324,7 @@ PostCacheChain "PostCache"
     <Item>
         Type "ost_acctuser"
     </Item>"""
-            if lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3:
+            if support_acctgroup_acctproject(lustre_version):
                 config += """
     <Item>
         Type "ost_acctgroup"
@@ -364,9 +403,7 @@ PostCacheChain "PostCache"
         Type "ost_kbytesfree"
     </Item>"""
 
-            if ((lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3) or
-                    (lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES2 and
-                     ES2_HAS_USED_INODE_SPACE_SUPPORT)):
+            if support_space_inode_used(lustre_version):
                 config += """
     <Item>
         Type "ost_kbytesused"
@@ -378,9 +415,7 @@ PostCacheChain "PostCache"
     <Item>
         Type "ost_filesfree"
     </Item>"""
-            if ((lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3) or
-                    (lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES2 and
-                     ES2_HAS_USED_INODE_SPACE_SUPPORT)):
+            if support_space_inode_used(lustre_version):
                 config += """
     <Item>
         Type "ost_filesused"
@@ -416,7 +451,7 @@ PostCacheChain "PostCache"
     <Item>
         Type "mdt_acctuser"
     </Item>"""
-            if lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3:
+            if support_acctgroup_acctproject(lustre_version):
                 config += """
     <Item>
         Type "mdt_acctgroup"
@@ -501,9 +536,7 @@ PostCacheChain "PostCache"
     <Item>
         Type "mdt_filesfree"
     </Item>"""
-            if ((lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3) or
-                    (lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES2 and
-                     ES2_HAS_USED_INODE_SPACE_SUPPORT)):
+            if support_space_inode_used(lustre_version):
                 config += """
     <Item>
         Type "mdt_filesused"

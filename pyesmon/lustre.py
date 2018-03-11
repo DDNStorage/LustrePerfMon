@@ -450,11 +450,10 @@ class LustreVersion(object):
     RPM version of Lustre
     """
     # pylint: disable=too-few-public-methods,too-many-instance-attributes
-    def __init__(self, name, rpm_git_pattern, rpm_patterns,
+    def __init__(self, name, rpm_patterns,
                  kernel_major_version):
         # pylint: disable=too-few-public-methods,too-many-arguments
         self.lv_name = name
-        self.lv_rpm_git_pattern = rpm_git_pattern
         self.lv_rpm_patterns = rpm_patterns
         self.lv_kernel_major_version = kernel_major_version
 
@@ -493,7 +492,6 @@ ES2_PATTERNS = {
 LUSTRE_VERSION_NAME_ES2 = "es2"
 
 LUSTRE_VERSION_ES2 = LustreVersion(LUSTRE_VERSION_NAME_ES2,
-                                   r".+\.x86_64_g(.+)\.x86_64\.rpm$",
                                    ES2_PATTERNS,  # rpm_patterns
                                    "2")  # kernel_major_version
 
@@ -513,11 +511,29 @@ ES3_PATTERNS = {
 LUSTRE_VERSION_NAME_ES3 = "es3"
 
 LUSTRE_VERSION_ES3 = LustreVersion(LUSTRE_VERSION_NAME_ES3,
-                                   r".+\.x86_64_g(.+)\.x86_64\.rpm$",
                                    ES3_PATTERNS,  # rpm_patterns
                                    "3")  # kernel_major_version
 
-LUSTER_VERSIONS = [LUSTRE_VERSION_ES2, LUSTRE_VERSION_ES3]
+ES4_PATTERNS = {
+    RPM_KERNEL: r"^(kernel-3.+\.x86_64\.rpm)$",
+    RPM_LUSTRE: r"^(lustre-2\.10.+\.x86_64\.rpm)$",
+    RPM_IOKIT: r"^(lustre-iokit-2\.10.+\.x86_64\.rpm)$",
+    RPM_KMOD: r"^(kmod-lustre-2\.10.+\.x86_64\.rpm)$",
+    RPM_OSD_LDISKFS: r"^(kmod-lustre-osd-ldiskfs-2\.10.+\.x86_64\.rpm)$",
+    RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.10.+\.x86_64\.rpm)$",
+    RPM_OSD_ZFS: r"^(kmod-lustre-osd-zfs-2\.10.+\.x86_64\.rpm)$",
+    RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.10.+\.x86_64\.rpm)$",
+    RPM_TESTS: r"^(lustre-tests-2\.10.+\.x86_64\.rpm)$",
+    RPM_TESTS_KMOD: r"^(kmod-lustre-tests-2\.10.+\.x86_64\.rpm)$",
+}
+
+LUSTRE_VERSION_NAME_ES4 = "es4"
+
+LUSTRE_VERSION_ES4 = LustreVersion(LUSTRE_VERSION_NAME_ES4,
+                                   ES4_PATTERNS,  # rpm_patterns
+                                   "3")  # kernel_major_version
+
+LUSTER_VERSIONS = [LUSTRE_VERSION_ES2, LUSTRE_VERSION_ES3, LUSTRE_VERSION_ES4]
 
 
 def match_rpm_patterns(data, rpm_dict, possible_versions):

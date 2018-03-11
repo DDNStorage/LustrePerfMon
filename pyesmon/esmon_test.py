@@ -154,16 +154,12 @@ def lustre_host_metric_check(lustre_host, esmon_client):
     # ost_kbytesinfo_total,fqdn=server17_esmom_vm3,fs_name=lustre1,ost_index=OST0000
     # ost_kbytesinfo_used,fqdn=server17_esmom_vm3,fs_name=lustre1,ost_index=OST0000
 
-    support_used = False
-    if esmon_client.ec_lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3:
-        support_used = True
-    elif esmon_client.ec_lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES2:
-        if collectd.ES2_HAS_USED_INODE_SPACE_SUPPORT:
-            support_used = True
-    else:
+    xml_fname = collectd.lustre_version_xml_fname(esmon_client.ec_lustre_version)
+    if xml_fname is None:
         logging.error("unsupported Lustre version of [%s]",
                       esmon_client.ec_lustre_version.lv_name)
         return -1
+    support_used = collectd.support_space_inode_used(esmon_client.ec_lustre_version)
 
     measurements = ["ost_filesinfo_total",
                     "ost_filesinfo_free",
