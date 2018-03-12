@@ -1105,6 +1105,8 @@ class LustreServerHost(ssh_host.SSHHost):
         distro = self.sh_distro()
         if distro == ssh_host.DISTRO_RHEL7:
             dependent_rpms += ["net-snmp-agent-libs"]
+        elif distro == ssh_host.DISTRO_RHEL6:
+            pass
         else:
             logging.error("unsupported distro of host [%s]",
                           self.sh_hostname)

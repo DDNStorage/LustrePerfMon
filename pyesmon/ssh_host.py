@@ -233,10 +233,12 @@ class SSHHost(object):
             no_lsb = True
 
         if no_lsb:
-            ret = self.sh_run("uname -r")
+            command = "uname -r"
+            ret = self.sh_run(command)
             if ret.cr_exit_status != 0:
-                logging.error("lsb_release is needed on host [%s] for accurate "
-                              "distro identification", self.sh_hostname)
+                logging.error("failed to run command [%s] on host [%s], "
+                              "failed to get the distro version",
+                              command, self.sh_hostname)
                 return None
             else:
                 if "el7" in ret.cr_stdout:

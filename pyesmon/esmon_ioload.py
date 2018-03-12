@@ -9,10 +9,10 @@ import sys
 import logging
 import os
 import traceback
-import yaml
-import filelock
 import shutil
 import time
+import yaml
+import filelock
 
 # Local libs
 from pyesmon import utils
@@ -25,11 +25,12 @@ ESMON_TEST_LOG_DIR = "/var/log/esmon_test"
 ESMON_TEST_CONFIG_FNAME = "esmon_test.conf"
 ESMON_TEST_CONFIG = "/etc/" + ESMON_TEST_CONFIG_FNAME
 
+
 def esmon_write_thread(client, stripe_num):
     """
-     The thread doing write IO.
+    The thread doing write IO.
     """
-    fpath = ("%s/%s_write" %(client.lc_mnt, client.lc_host.sh_hostname))
+    fpath = ("%s/%s_write" % (client.lc_mnt, client.lc_host.sh_hostname))
     command = ("lfs setstripe -c %s %s" % (stripe_num, fpath))
     retval = client.lc_host.sh_run(command)
     if retval.cr_exit_status:
@@ -44,7 +45,7 @@ def esmon_write_thread(client, stripe_num):
 
     while True:
         command = ("dd if=/dev/zero of=%s bs=1M count=4096" % (fpath))
-    	retval = client.lc_host.sh_run(command)
+        retval = client.lc_host.sh_run(command)
         if retval.cr_exit_status != 0:
             logging.error("failed to run command [%s] on host [%s], "
                           "ret = [%d], stdout = [%s], stderr = [%s]",
@@ -98,6 +99,7 @@ def esmon_read_thread(client, stripe_num):
             return -1
     return 0
 
+
 def esmon_mdtest_thread(client, number):
     """
     The thread doing mdtest.
@@ -115,7 +117,11 @@ def esmon_mdtest_thread(client, number):
             return -1
     return 0
 
+
 def esmon_remove_allfiles(client):
+    """
+    Test of remove all files
+    """
     command = ("rm -rf %s/*" % (client.lc_mnt))
     retval = client.lc_host.sh_run(command)
     if retval.cr_exit_status:
@@ -129,10 +135,12 @@ def esmon_remove_allfiles(client):
         return -1
     return 0
 
+
 def esmon_launch_ioload_daemon(lustre_fs):
     """
     Launch IO laod daemon.
     """
+    # pylint: disable=unused-variable
     clinum = len(lustre_fs.lf_clients)
     if clinum < 3:
         logging.error("Need 3 Lustre clients at least to perform I/O "
@@ -156,7 +164,13 @@ def esmon_launch_ioload_daemon(lustre_fs):
 
     return 0
 
+
 def esmon_io_loading(workspace, config, confpath):
+    """
+    Start the I/O
+    """
+    # pylint: disable=too-many-locals,unused-argument,too-many-return-statements
+    # pylint: disable=too-many-branches,too-many-statements
     ssh_host_configs = esmon_common.config_value(config, esmon_common.CSTR_SSH_HOST)
     if ssh_host_configs is None:
         logging.error("can NOT find [%s] in the config file, "
@@ -301,10 +315,12 @@ def esmon_io_loading(workspace, config, confpath):
 
     return 0
 
+
 def esmon_ioload_locked(workspace, confpath):
     """
     Start to generate I/O load with configure lock.
     """
+    # pylint: disable=bare-except
     save_fpath = workspace + "/" + ESMON_TEST_CONFIG_FNAME
     logging.debug("copying config file from [%s] to [%s]", confpath,
                   save_fpath)
@@ -330,10 +346,12 @@ def esmon_ioload_locked(workspace, confpath):
 
     return ret
 
+
 def esmon_ioload(workspace, confpath):
     """
     Start I/O loading
     """
+    # pylint: disable=bare-except
     lock_file = confpath + ".lock"
     lock = filelock.FileLock(lock_file)
     try:
@@ -350,12 +368,14 @@ def esmon_ioload(workspace, confpath):
                       "to prevent conflicts", lock_file)
     return ret
 
+
 def usage():
     """
     Print usage string
     """
     utils.eprint("Usage: %s <config_file>" %
                  sys.argv[0])
+
 
 def main():
     """

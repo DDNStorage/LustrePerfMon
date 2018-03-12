@@ -786,6 +786,10 @@ def main():
     """
     Test Exascaler monitoring
     """
+    # Some command out needs to be parsed, so make sure the language is
+    # English.
+    os.environ["LANG"] = "en_us"
+
     reload(sys)
     sys.setdefaultencoding("utf-8")
     config_fpath = ESMON_TEST_CONFIG
