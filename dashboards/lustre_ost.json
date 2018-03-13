@@ -1,12 +1,22 @@
 {
   "annotations": {
-    "list": []
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
   },
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
   "hideControls": false,
-  "id": null,
+  "id": 1252,
   "links": [],
   "refresh": "1m",
   "rows": [
@@ -1117,7 +1127,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "alias": "Write Throughput",
+              "alias": "Read Throughput",
               "dsType": "influxdb",
               "groupBy": [],
               "measurement": "ost_stats_bytes",
@@ -4011,6 +4021,7 @@
               "value": "current"
             }
           ],
+          "datasource": null,
           "filterNull": false,
           "fontSize": "100%",
           "height": "",
@@ -4102,6 +4113,7 @@
               "value": "current"
             }
           ],
+          "datasource": null,
           "filterNull": false,
           "fontSize": "100%",
           "height": "",
@@ -4199,6 +4211,7 @@
               "value": "current"
             }
           ],
+          "datasource": null,
           "filterNull": false,
           "fontSize": "100%",
           "height": "",
@@ -4388,9 +4401,8 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "lustre1",
-          "value": "lustre1"
+          "text": "es2",
+          "value": "es2"
         },
         "datasource": "esmon_datasource",
         "hide": 0,
@@ -4412,8 +4424,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "tags": [],
           "text": "OST0000",
           "value": "OST0000"
         },

@@ -42,6 +42,7 @@ GRAFANA_PLUGIN_DIR = "/var/lib/grafana/plugins"
 GRAFANA_DASHBOARDS = {}
 GRAFANA_DASHBOARDS["Cluster Status"] = "cluster_status.json"
 GRAFANA_DASHBOARDS["Lustre Statistics"] = "lustre_statistics.json"
+GRAFANA_DASHBOARDS["Lustre OSS"] = "lustre_oss.json"
 GRAFANA_DASHBOARDS["Lustre OST"] = "lustre_ost.json"
 GRAFANA_DASHBOARDS["Server Statistics"] = "server_statistics.json"
 GRAFANA_DASHBOARDS["SFA Physical Disk"] = "SFA_physical_disk.json"
@@ -798,12 +799,17 @@ class EsmonServer(object):
             return -1
 
         ret = self.es_influxdb_cq_create("ost_stats_bytes",
-                                         ["fs_name", "optype", "ost_index"])
+                                         ["fs_name", "optype", "fqdn"])
         if ret:
             return -1
 
         ret = self.es_influxdb_cq_create("ost_stats_bytes",
                                          ["fs_name", "ost_index"])
+        if ret:
+            return -1
+
+        ret = self.es_influxdb_cq_create("ost_stats_bytes",
+                                         ["fs_name", "fqdn"])
         if ret:
             return -1
 
