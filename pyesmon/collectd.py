@@ -12,8 +12,8 @@ from pyesmon import lustre
 COLLECTD_CONFIG_TEST_FNAME = "collectd.conf.test"
 COLLECTD_CONFIG_FINAL_FNAME = "collectd.conf.final"
 COLLECTD_INTERVAL_TEST = 1
-# ES2 will add support for used inode/space in the future
-ES2_HAS_USED_INODE_SPACE_SUPPORT = False
+# ES2 of version ddn18 added support for used inode/space in the future
+ES2_HAS_USED_INODE_SPACE_SUPPORT = True
 # ES4 will add support for used inode/space in the future
 ES4_HAS_USED_INODE_SPACE_SUPPORT = False
 
