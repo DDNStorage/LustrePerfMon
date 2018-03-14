@@ -581,6 +581,45 @@ HEAD(Lustre-ieel-2.5)
 			<entry>
 				<subpath>
 					<subpath_type>constant</subpath_type>
+					<path>namespaces</path>
+				</subpath>
+				<mode>directory</mode>
+				<entry>
+					<subpath>
+						<subpath_type>regular_expression</subpath_type>
+						<path>^filter-(.+)-(OST[0-9a-fA-F]+)_UUID$</path>
+						<subpath_field>
+							<index>1</index>
+							<name>fs_name</name>
+						</subpath_field>
+						<subpath_field>
+							<index>2</index>
+							<name>ost_index</name>
+						</subpath_field>
+					</subpath>
+					<mode>directory</mode>
+					LDLM_LOCK_INFO_ENTRIES(5, ost, ${subpath:fs_name}-${subpath:ost_index}, 1)
+				</entry>
+				<entry>
+					<subpath>
+						<subpath_type>regular_expression</subpath_type>
+						<path>^mdt-(.+)-(MDT[0-9a-fA-F]+)_UUID$</path>
+						<subpath_field>
+							<index>1</index>
+							<name>fs_name</name>
+						</subpath_field>
+						<subpath_field>
+							<index>2</index>
+							<name>mdt_index</name>
+						</subpath_field>
+					</subpath>
+					<mode>directory</mode>
+					LDLM_LOCK_INFO_ENTRIES(5, mdt, ${subpath:fs_name}-${subpath:mdt_index}, 1)
+				</entry>
+			</entry>
+			<entry>
+				<subpath>
+					<subpath_type>constant</subpath_type>
 					<path>services</path>
 				</subpath>
 				<mode>directory</mode>

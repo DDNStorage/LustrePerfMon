@@ -41,6 +41,7 @@ GRAFANA_DASHBOARD_DIR = "dashboards"
 GRAFANA_PLUGIN_DIR = "/var/lib/grafana/plugins"
 GRAFANA_DASHBOARDS = {}
 GRAFANA_DASHBOARDS["Cluster Status"] = "cluster_status.json"
+GRAFANA_DASHBOARDS["Lustre MDT"] = "lustre_mdt.json"
 GRAFANA_DASHBOARDS["Lustre MDS"] = "lustre_mds.json"
 GRAFANA_DASHBOARDS["Lustre Statistics"] = "lustre_statistics.json"
 GRAFANA_DASHBOARDS["Lustre OSS"] = "lustre_oss.json"

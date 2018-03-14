@@ -526,6 +526,13 @@ PostCacheChain "PostCache"
 
     # Currently do not enable:
     # ost_seq_stats_[req_waittime|req_qdepth|req_active|req_timeout|reqbuf_avail]
+
+    <Item>
+        Type "ost_lock_count"
+    </Item>
+    <Item>
+        Type "ost_lock_timeouts"
+    </Item>
 """
 
         if lustre_exp_ost:
@@ -551,7 +558,7 @@ PostCacheChain "PostCache"
         Type "mdt_acctgroup"
     </Item>
     <Item>
-        Type "ost_acctproject"
+        Type "mdt_acctproject"
     </Item>"""
             config += """
     <Item>
@@ -700,6 +707,13 @@ PostCacheChain "PostCache"
     # Currently do not enable:
     # mdt_setattr_stats_[req_waittime|req_qdepth|req_active|req_timeout|reqbuf_avail]
     # because Lustre doesn't use it yet.
+
+    <Item>
+        Type "mdt_lock_count"
+    </Item>
+    <Item>
+        Type "mdt_lock_timeouts"
+    </Item>
 """
 
         if lustre_exp_mdt:

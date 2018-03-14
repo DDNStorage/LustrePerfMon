@@ -61,6 +61,14 @@ CONSTANT_FILE_ENTRY($1, kbytesused, $2_kbytesused, (.+), number, ${key:hostname}
 CONSTANT_FILE_ENTRY($1, kbytesavail, $2_kbytesavail, (.+), number, ${key:hostname}, $3, kbytesinfo, gauge, kbytesavail, $2_kbytesinfo_avail, fs_name=${subpath:fs_name} $2_index=${subpath:$2_index}, 0)')dnl
 dnl
 dnl $1: number of INDENT
+dnl $2: "mdt" or "ost"
+dnl $3: plugin OPTION
+dnl $4: is first child of parent ELEMENT
+define(`LDLM_LOCK_INFO_ENTRIES',
+`CONSTANT_FILE_ENTRY($1, lock_count, $2_lock_count, (.+), number, ${key:hostname}, $3, locksinfo, gauge, lock_count, $2_lock_count, fs_name=${subpath:fs_name} $2_index=${subpath:$2_index}, 1)
+CONSTANT_FILE_ENTRY($1, lock_timeouts, $2_lock_timeouts, (.+), number, ${key:hostname}, $3, locksinfo, gauge, lock_timeouts, $2_lock_timeouts, fs_name=${subpath:fs_name} $2_index=${subpath:$2_index}, 0)')dnl
+dnl
+dnl $1: number of INDENT
 dnl $2: name of MD_STATS_ITEM
 dnl $3: is first child of parent ELEMENT
 define(`MD_STATS_ITEM',
