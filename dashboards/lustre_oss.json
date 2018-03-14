@@ -30,7 +30,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "The I/O throughput on this OST.",
+          "description": "The I/O throughput on this OSS.",
           "fill": 1,
           "id": 75,
           "legend": {
@@ -134,7 +134,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "The write throughput on this OST.",
+          "description": "The write throughput on this OSS.",
           "fill": 1,
           "id": 84,
           "legend": {
@@ -244,7 +244,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "The read throughput on this OST.",
+          "description": "The read throughput on this OSS.",
           "fill": 1,
           "id": 85,
           "legend": {
