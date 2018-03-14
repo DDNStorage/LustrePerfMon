@@ -432,6 +432,66 @@ PostCacheChain "PostCache"
 
     # Item ost_ldlm_stats is not enabled, because min/max/sum/stddev is not so
     # useful for none-rate metrics.
+
+    <Item>
+        Type "ost_stats_req_waittime"
+    </Item>
+    <Item>
+        Type "ost_stats_req_qdepth"
+    </Item>
+    <Item>
+        Type "ost_stats_req_active"
+    </Item>
+    <Item>
+        Type "ost_stats_req_timeout"
+    </Item>
+    <Item>
+        Type "ost_stats_reqbuf_avail"
+    </Item>
+
+    <Item>
+        Type "ost_io_stats_req_waittime"
+    </Item>
+    <Item>
+        Type "ost_io_stats_req_qdepth"
+    </Item>
+    <Item>
+        Type "ost_io_stats_req_active"
+    </Item>
+    <Item>
+        Type "ost_io_stats_req_timeout"
+    </Item>
+    <Item>
+        Type "ost_io_stats_reqbuf_avail"
+    </Item>
+    <Item>
+        Type "ost_io_stats_ost_read"
+    </Item>
+    <Item>
+        Type "ost_io_stats_ost_write"
+    </Item>
+    <Item>
+        Type "ost_io_stats_ost_punch"
+    </Item>
+
+    <Item>
+        Type "ost_create_stats_req_waittime"
+    </Item>
+    <Item>
+        Type "ost_create_stats_req_qdepth"
+    </Item>
+    <Item>
+        Type "ost_create_stats_req_active"
+    </Item>
+    <Item>
+        Type "ost_create_stats_req_timeout"
+    </Item>
+    <Item>
+        Type "ost_create_stats_reqbuf_avail"
+    </Item>
+
+    # Currently do not enable:
+    # ost_seq_stats_[req_waittime|req_qdepth|req_active|req_timeout|reqbuf_avail]
 """
 
         if lustre_exp_ost:

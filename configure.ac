@@ -116,7 +116,7 @@ AC_MSG_CHECKING([whether to enable XML test])
 AC_ARG_ENABLE([test],
 	AC_HELP_STRING([--disable-test],
 		       [disable test]),
-	[], [enable_test="yes"])
+	[], [enable_test="no"])
 AC_MSG_RESULT([$enable_test])
 
 if [[[ $enable_xmlonly == 'no' ]]]; then

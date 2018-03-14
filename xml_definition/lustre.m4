@@ -170,19 +170,19 @@ EXPORT_MD_STATS_ITEM($1 + 1, sync, 0)
 $2', $3)')dnl
 dnl
 dnl $1: number of INDENT
-dnl $2: name of OST_IO_STATS_ITEM
+dnl $2: name of SERVICE_STATS_ITEM
 dnl $3: type of item
 dnl $4: is first child of parent ELEMENT
-define(`OST_IO_STATS_ITEM',
+define(`SERVICE_STATS_ITEM',
         `ELEMENT($1, item,
-        `NAME($1 + 1, ost_io_stats_$2, 1)
-PATTERN($1 + 1, `$2 +([[:digit:]]+) samples \[$3\] +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+)', 0)
-FIELD($1 + 1, 1, $2, number, ${key:hostname}, ost_io, stats, derive, $2_samples, ost_io_stats_$3_samples, optype=$2, 0)
-FIELD($1 + 1, 2, $2, number, ${key:hostname}, ost_io, stats, gauge, $2_min, ost_io_stats_$3_min, optype=$2, 0)
-FIELD($1 + 1, 3, $2, number, ${key:hostname}, ost_io, stats, gauge, $2_max, ost_io_stats_$3_max, optype=$2, 0)
-FIELD($1 + 1, 4, $2, number, ${key:hostname}, ost_io, stats, derive, $2_sum, ost_io_stats_$3_sum, optype=$2, 0)
-FIELD($1 + 1, 5, $2, number, ${key:hostname}, ost_io, stats, derive, $2_sum_square, ost_io_stats_$3_sum_square, optype=$2, 0)
-', $4)')dnl
+        `NAME($1 + 1, $2_stats_$3, 1)
+PATTERN($1 + 1, `$3 +([[:digit:]]+) samples \[$4\] +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+)', 0)
+FIELD($1 + 1, 1, $3, number, ${key:hostname}, $2, stats, gauge, $3_samples, $2_stats_$3, type=samples, 0)
+FIELD($1 + 1, 2, $3, number, ${key:hostname}, $2, stats, gauge, $3_min, $2_stats_$3, type=min, 0)
+FIELD($1 + 1, 3, $3, number, ${key:hostname}, $2, stats, gauge, $3_max, $2_stats_$3, type=max, 0)
+FIELD($1 + 1, 4, $3, number, ${key:hostname}, $2, stats, gauge, $3_sum, $2_stats_$3, type=sum, 0)
+FIELD($1 + 1, 5, $3, number, ${key:hostname}, $2, stats, gauge, $3_sum_square, $2_stats_$3, type=sum_square, 0)
+', $5)')dnl
 dnl
 dnl $1: number of INDENT
 dnl $2: index of FIELD

@@ -260,14 +260,14 @@ HEAD(Lustre-2.1.6)
 							<path>stats</path>
 						</subpath>
 						<mode>file</mode>
-						OST_IO_STATS_ITEM(6, req_waittime, usec, 1)
-						OST_IO_STATS_ITEM(6, req_qdepth, reqs, 1)
-						OST_IO_STATS_ITEM(6, req_active, reqs, 1)
-						OST_IO_STATS_ITEM(6, req_timeout, sec, 1)
-						OST_IO_STATS_ITEM(6, reqbuf_avail, bufs, 1)
-						OST_IO_STATS_ITEM(6, ost_read, usec, 1)
-						OST_IO_STATS_ITEM(6, ost_write, usec, 1)
-						OST_IO_STATS_ITEM(6, ost_punch, usec, 1)
+						SERVICE_STATS_ITEM(6, ost_io, req_waittime, usec, 1)
+						SERVICE_STATS_ITEM(6, ost_io, req_qdepth, reqs, 1)
+						SERVICE_STATS_ITEM(6, ost_io, req_active, reqs, 1)
+						SERVICE_STATS_ITEM(6, ost_io, req_timeout, sec, 1)
+						SERVICE_STATS_ITEM(6, ost_io, reqbuf_avail, bufs, 1)
+						SERVICE_STATS_ITEM(6, ost_io, ost_read, usec, 1)
+						SERVICE_STATS_ITEM(6, ost_io, ost_write, usec, 1)
+						SERVICE_STATS_ITEM(6, ost_io, ost_punch, usec, 1)
 					</entry>
 					THREAD_INFO_ENTRIES(5, ost_io, ost, bulk_data_IO, gauge, 1)
 				</entry>

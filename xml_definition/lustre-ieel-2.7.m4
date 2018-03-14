@@ -396,7 +396,139 @@ HEAD(Lustre-ieel-2.5)
 						<path>mdt</path>
 					</subpath>
 					<mode>directory</mode>
+					<entry>
+						<subpath>
+							<subpath_type>constant</subpath_type>
+							<path>stats</path>
+						</subpath>
+						<mode>file</mode>
+						SERVICE_STATS_ITEM(6, mdt, req_waittime, usec, 1)
+						SERVICE_STATS_ITEM(6, mdt, req_qdepth, reqs, 1)
+						SERVICE_STATS_ITEM(6, mdt, req_active, reqs, 1)
+						SERVICE_STATS_ITEM(6, mdt, req_timeout, sec, 1)
+						SERVICE_STATS_ITEM(6, mdt, reqbuf_avail, bufs, 1)
+					</entry>
 					THREAD_INFO_ENTRIES(5, mds, mds, normal_metadata_ops, gauge, 1)
+				</entry>
+				<entry>
+					<subpath>
+						<subpath_type>constant</subpath_type>
+						<path>mdt_readpage</path>
+					</subpath>
+					<mode>directory</mode>
+					<entry>
+						<subpath>
+							<subpath_type>constant</subpath_type>
+							<path>stats</path>
+						</subpath>
+						<mode>file</mode>
+						SERVICE_STATS_ITEM(6, mdt_readpage, req_waittime, usec, 1)
+						SERVICE_STATS_ITEM(6, mdt_readpage, req_qdepth, reqs, 1)
+						SERVICE_STATS_ITEM(6, mdt_readpage, req_active, reqs, 1)
+						SERVICE_STATS_ITEM(6, mdt_readpage, req_timeout, sec, 1)
+						SERVICE_STATS_ITEM(6, mdt_readpage, reqbuf_avail, bufs, 1)
+					</entry>
+					THREAD_INFO_ENTRIES(5, mds, mds, readpage, gauge, 1)
+				</entry>
+				<entry>
+					<subpath>
+						<subpath_type>constant</subpath_type>
+						<path>mdt_setattr</path>
+					</subpath>
+					<mode>directory</mode>
+					<entry>
+						<subpath>
+							<subpath_type>constant</subpath_type>
+							<path>stats</path>
+						</subpath>
+						<mode>file</mode>
+						SERVICE_STATS_ITEM(6, mdt_setattr, req_waittime, usec, 1)
+						SERVICE_STATS_ITEM(6, mdt_setattr, req_qdepth, reqs, 1)
+						SERVICE_STATS_ITEM(6, mdt_setattr, req_active, reqs, 1)
+						SERVICE_STATS_ITEM(6, mdt_setattr, req_timeout, sec, 1)
+						SERVICE_STATS_ITEM(6, mdt_setattr, reqbuf_avail, bufs, 1)
+					</entry>
+					THREAD_INFO_ENTRIES(5, mds, mds, setattr_service, gauge, 1)
+				</entry>
+				<entry>
+					<subpath>
+						<subpath_type>constant</subpath_type>
+						<path>mdt_fld</path>
+					</subpath>
+					<mode>directory</mode>
+					<entry>
+						<subpath>
+							<subpath_type>constant</subpath_type>
+							<path>stats</path>
+						</subpath>
+						<mode>file</mode>
+						SERVICE_STATS_ITEM(6, mdt_fld, req_waittime, usec, 1)
+						SERVICE_STATS_ITEM(6, mdt_fld, req_qdepth, reqs, 1)
+						SERVICE_STATS_ITEM(6, mdt_fld, req_active, reqs, 1)
+						SERVICE_STATS_ITEM(6, mdt_fld, req_timeout, sec, 1)
+						SERVICE_STATS_ITEM(6, mdt_fld, reqbuf_avail, bufs, 1)
+					</entry>
+					THREAD_INFO_ENTRIES(5, mds, mds, fld_service, gauge, 1)
+				</entry>
+				<entry>
+					<subpath>
+						<subpath_type>constant</subpath_type>
+						<path>mdt_out</path>
+					</subpath>
+					<mode>directory</mode>
+					<entry>
+						<subpath>
+							<subpath_type>constant</subpath_type>
+							<path>stats</path>
+						</subpath>
+						<mode>file</mode>
+						SERVICE_STATS_ITEM(6, mdt_out, req_waittime, usec, 1)
+						SERVICE_STATS_ITEM(6, mdt_out, req_qdepth, reqs, 1)
+						SERVICE_STATS_ITEM(6, mdt_out, req_active, reqs, 1)
+						SERVICE_STATS_ITEM(6, mdt_out, req_timeout, sec, 1)
+						SERVICE_STATS_ITEM(6, mdt_out, reqbuf_avail, bufs, 1)
+					</entry>
+					THREAD_INFO_ENTRIES(5, mds, mds, metadata_out_service, gauge, 1)
+				</entry>
+				<entry>
+					<subpath>
+						<subpath_type>constant</subpath_type>
+						<path>mdt_seqm</path>
+					</subpath>
+					<mode>directory</mode>
+					<entry>
+						<subpath>
+							<subpath_type>constant</subpath_type>
+							<path>stats</path>
+						</subpath>
+						<mode>file</mode>
+						SERVICE_STATS_ITEM(6, mdt_seqm, req_waittime, usec, 1)
+						SERVICE_STATS_ITEM(6, mdt_seqm, req_qdepth, reqs, 1)
+						SERVICE_STATS_ITEM(6, mdt_seqm, req_active, reqs, 1)
+						SERVICE_STATS_ITEM(6, mdt_seqm, req_timeout, sec, 1)
+						SERVICE_STATS_ITEM(6, mdt_seqm, reqbuf_avail, bufs, 1)
+					</entry>
+					THREAD_INFO_ENTRIES(5, mds, mds, metadata_seqm_service, gauge, 1)
+				</entry>
+				<entry>
+					<subpath>
+						<subpath_type>constant</subpath_type>
+						<path>mdt_seqs</path>
+					</subpath>
+					<mode>directory</mode>
+					<entry>
+						<subpath>
+							<subpath_type>constant</subpath_type>
+							<path>stats</path>
+						</subpath>
+						<mode>file</mode>
+						SERVICE_STATS_ITEM(6, mdt_seqs, req_waittime, usec, 1)
+						SERVICE_STATS_ITEM(6, mdt_seqs, req_qdepth, reqs, 1)
+						SERVICE_STATS_ITEM(6, mdt_seqs, req_active, reqs, 1)
+						SERVICE_STATS_ITEM(6, mdt_seqs, req_timeout, sec, 1)
+						SERVICE_STATS_ITEM(6, mdt_seqs, reqbuf_avail, bufs, 1)
+					</entry>
+					THREAD_INFO_ENTRIES(5, mds, mds, metadata_seqs_service, gauge, 1)
 				</entry>
 			</entry>
 		</entry>
@@ -418,6 +550,18 @@ HEAD(Lustre-ieel-2.5)
 						<path>ost</path>
 					</subpath>
 					<mode>directory</mode>
+					<entry>
+						<subpath>
+							<subpath_type>constant</subpath_type>
+							<path>stats</path>
+						</subpath>
+						<mode>file</mode>
+						SERVICE_STATS_ITEM(6, ost, req_waittime, usec, 1)
+						SERVICE_STATS_ITEM(6, ost, req_qdepth, reqs, 1)
+						SERVICE_STATS_ITEM(6, ost, req_active, reqs, 1)
+						SERVICE_STATS_ITEM(6, ost, req_timeout, sec, 1)
+						SERVICE_STATS_ITEM(6, ost, reqbuf_avail, bufs, 1)
+					</entry>
 					THREAD_INFO_ENTRIES(5, ost, ost, normal_data, gauge, 1)
 				</entry>
 				<entry>
@@ -432,14 +576,14 @@ HEAD(Lustre-ieel-2.5)
 							<path>stats</path>
 						</subpath>
 						<mode>file</mode>
-						OST_IO_STATS_ITEM(6, req_waittime, usec, 1)
-						OST_IO_STATS_ITEM(6, req_qdepth, reqs, 1)
-						OST_IO_STATS_ITEM(6, req_active, reqs, 1)
-						OST_IO_STATS_ITEM(6, req_timeout, sec, 1)
-						OST_IO_STATS_ITEM(6, reqbuf_avail, bufs, 1)
-						OST_IO_STATS_ITEM(6, ost_read, usec, 1)
-						OST_IO_STATS_ITEM(6, ost_write, usec, 1)
-						OST_IO_STATS_ITEM(6, ost_punch, usec, 1)
+						SERVICE_STATS_ITEM(6, ost_io, req_waittime, usec, 1)
+						SERVICE_STATS_ITEM(6, ost_io, req_qdepth, reqs, 1)
+						SERVICE_STATS_ITEM(6, ost_io, req_active, reqs, 1)
+						SERVICE_STATS_ITEM(6, ost_io, req_timeout, sec, 1)
+						SERVICE_STATS_ITEM(6, ost_io, reqbuf_avail, bufs, 1)
+						SERVICE_STATS_ITEM(6, ost_io, ost_read, usec, 1)
+						SERVICE_STATS_ITEM(6, ost_io, ost_write, usec, 1)
+						SERVICE_STATS_ITEM(6, ost_io, ost_punch, usec, 1)
 					</entry>
 					THREAD_INFO_ENTRIES(5, ost_io, ost, bulk_data_IO, gauge, 1)
 				</entry>
@@ -449,7 +593,39 @@ HEAD(Lustre-ieel-2.5)
 						<path>ost_create</path>
 					</subpath>
 					<mode>directory</mode>
+					<entry>
+						<subpath>
+							<subpath_type>constant</subpath_type>
+							<path>stats</path>
+						</subpath>
+						<mode>file</mode>
+						SERVICE_STATS_ITEM(6, ost_create, req_waittime, usec, 1)
+						SERVICE_STATS_ITEM(6, ost_create, req_qdepth, reqs, 1)
+						SERVICE_STATS_ITEM(6, ost_create, req_active, reqs, 1)
+						SERVICE_STATS_ITEM(6, ost_create, req_timeout, sec, 1)
+						SERVICE_STATS_ITEM(6, ost_create, reqbuf_avail, bufs, 1)
+					</entry>
 					THREAD_INFO_ENTRIES(5, ost_create, ost, obj_pre-creation_service, gauge, 1)
+				</entry>
+				<entry>
+					<subpath>
+						<subpath_type>constant</subpath_type>
+						<path>ost_seq</path>
+					</subpath>
+					<mode>directory</mode>
+					<entry>
+						<subpath>
+							<subpath_type>constant</subpath_type>
+							<path>stats</path>
+						</subpath>
+						<mode>file</mode>
+						SERVICE_STATS_ITEM(6, ost_seq, req_waittime, usec, 1)
+						SERVICE_STATS_ITEM(6, ost_seq, req_qdepth, reqs, 1)
+						SERVICE_STATS_ITEM(6, ost_seq, req_active, reqs, 1)
+						SERVICE_STATS_ITEM(6, ost_seq, req_timeout, sec, 1)
+						SERVICE_STATS_ITEM(6, ost_seq, reqbuf_avail, bufs, 1)
+					</entry>
+					THREAD_INFO_ENTRIES(5, ost_seq, ost, seq_service, gauge, 1)
 				</entry>
 			</entry>
 		</entry>
@@ -459,6 +635,53 @@ HEAD(Lustre-ieel-2.5)
 				<path>ldlm</path>
 			</subpath>
 			<mode>directory</mode>
+			<entry>
+				<subpath>
+					<subpath_type>constant</subpath_type>
+					<path>services</path>
+				</subpath>
+				<mode>directory</mode>
+				<entry>
+					<subpath>
+						<subpath_type>constant</subpath_type>
+						<path>ldlm_canceld</path>
+					</subpath>
+					<mode>directory</mode>
+					<entry>
+						<subpath>
+							<subpath_type>constant</subpath_type>
+							<path>stats</path>
+						</subpath>
+						<mode>file</mode>
+						SERVICE_STATS_ITEM(6, ldlm_canceld, req_waittime, usec, 1)
+						SERVICE_STATS_ITEM(6, ldlm_canceld, req_qdepth, reqs, 1)
+						SERVICE_STATS_ITEM(6, ldlm_canceld, req_active, reqs, 1)
+						SERVICE_STATS_ITEM(6, ldlm_canceld, req_timeout, sec, 1)
+						SERVICE_STATS_ITEM(6, ldlm_canceld, reqbuf_avail, bufs, 1)
+					</entry>
+					THREAD_INFO_ENTRIES(5, ldlm_cancel, ldlm_service, lock_cancel, gauge, 1)
+				</entry>
+				<entry>
+					<subpath>
+						<subpath_type>constant</subpath_type>
+						<path>ldlm_cbd</path>
+					</subpath>
+					<mode>directory</mode>
+					<entry>
+						<subpath>
+							<subpath_type>constant</subpath_type>
+							<path>stats</path>
+						</subpath>
+						<mode>file</mode>
+						SERVICE_STATS_ITEM(6, ldlm_cbd, req_waittime, usec, 1)
+						SERVICE_STATS_ITEM(6, ldlm_cbd, req_qdepth, reqs, 1)
+						SERVICE_STATS_ITEM(6, ldlm_cbd, req_active, reqs, 1)
+						SERVICE_STATS_ITEM(6, ldlm_cbd, req_timeout, sec, 1)
+						SERVICE_STATS_ITEM(6, ldlm_cbd, reqbuf_avail, bufs, 1)
+					</entry>
+					THREAD_INFO_ENTRIES(5, ldlm_cbd, ldlm_service, lock_grant, gauge, 1)
+				</entry>
+			</entry>
 			<entry>
 				<subpath>
 					<subpath_type>constant</subpath_type>
