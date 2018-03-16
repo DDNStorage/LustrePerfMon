@@ -407,6 +407,13 @@ HEAD(Lustre-ieel-2.5)
 						SERVICE_STATS_ITEM(6, mdt, req_active, reqs, 1)
 						SERVICE_STATS_ITEM(6, mdt, req_timeout, sec, 1)
 						SERVICE_STATS_ITEM(6, mdt, reqbuf_avail, bufs, 1)
+						SERVICE_STATS_ITEM(6, mdt, ldlm_ibits_enqueue, reqs, 1)
+						SERVICE_STATS_ITEM(6, mdt, mds_getattr, usec, 1)
+						SERVICE_STATS_ITEM(6, mdt, mds_connect, usec, 1)
+						SERVICE_STATS_ITEM(6, mdt, mds_get_root, usec, 1)
+						SERVICE_STATS_ITEM(6, mdt, mds_statfs, usec, 1)
+						SERVICE_STATS_ITEM(6, mdt, mds_getxattr, usec, 1)
+						SERVICE_STATS_ITEM(6, mdt, obd_ping, usec, 1)
 					</entry>
 					THREAD_INFO_ENTRIES(5, mds, mds, normal_metadata_ops, gauge, 1)
 				</entry>
@@ -427,6 +434,8 @@ HEAD(Lustre-ieel-2.5)
 						SERVICE_STATS_ITEM(6, mdt_readpage, req_active, reqs, 1)
 						SERVICE_STATS_ITEM(6, mdt_readpage, req_timeout, sec, 1)
 						SERVICE_STATS_ITEM(6, mdt_readpage, reqbuf_avail, bufs, 1)
+						SERVICE_STATS_ITEM(6, mdt_readpage, mds_close, usec, 1)
+						SERVICE_STATS_ITEM(6, mdt_readpage, mds_readpage, usec, 1)
 					</entry>
 					THREAD_INFO_ENTRIES(5, mds, mds, readpage, gauge, 1)
 				</entry>

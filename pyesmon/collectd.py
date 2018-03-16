@@ -4,6 +4,7 @@
 """
 Library for generating collectd config
 """
+# pylint: disable=too-many-lines
 import collections
 import logging
 
@@ -601,6 +602,71 @@ PostCacheChain "PostCache"
     <Item>
         Type "mdt_filesused"
     </Item>
+"""
+
+        config += """
+    <Item>
+        Type "mdt_stats_req_waittime"
+    </Item>
+    <Item>
+        Type "mdt_stats_req_qdepth"
+    </Item>
+    <Item>
+        Type "mdt_stats_req_active"
+    </Item>
+    <Item>
+        Type "mdt_stats_req_timeout"
+    </Item>
+    <Item>
+        Type "mdt_stats_reqbuf_avail"
+    </Item>
+    <Item>
+        Type "mdt_stats_ldlm_ibits_enqueue"
+    </Item>
+    <Item>
+        Type "mdt_stats_mds_getattr"
+    </Item>
+    <Item>
+        Type "mdt_stats_mds_connect"
+    </Item>
+    <Item>
+        Type "mdt_stats_mds_get_root"
+    </Item>
+    <Item>
+        Type "mdt_stats_mds_statfs"
+    </Item>
+    <Item>
+        Type "mdt_stats_mds_getxattr"
+    </Item>
+    <Item>
+        Type "mdt_stats_obd_ping"
+    </Item>
+
+    <Item>
+        Type "mdt_readpage_stats_req_waittime"
+    </Item>
+    <Item>
+        Type "mdt_readpage_stats_req_qdepth"
+    </Item>
+    <Item>
+        Type "mdt_readpage_stats_req_active"
+    </Item>
+    <Item>
+        Type "mdt_readpage_stats_req_timeout"
+    </Item>
+    <Item>
+        Type "mdt_readpage_stats_reqbuf_avail"
+    </Item>
+    <Item>
+        Type "mdt_readpage_stats_mds_close"
+    </Item>
+    <Item>
+        Type "mdt_readpage_stats_mds_readpage"
+    </Item>
+
+    # Currently do not enable:
+    # mdt_setattr_stats_[req_waittime|req_qdepth|req_active|req_timeout|reqbuf_avail]
+    # because Lustre doesn't use it yet.
 """
 
         if lustre_exp_mdt:
