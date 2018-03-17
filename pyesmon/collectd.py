@@ -319,6 +319,39 @@ PostCacheChain "PostCache"
         config += """
     </Common>
 """
+        config += """
+    <Item>
+        Type "ldlm_canceld_stats_req_waittime"
+    </Item>
+    <Item>
+        Type "ldlm_canceld_stats_req_qdepth"
+    </Item>
+    <Item>
+        Type "ldlm_canceld_stats_req_active"
+    </Item>
+    <Item>
+        Type "ldlm_canceld_stats_req_timeout"
+    </Item>
+    <Item>
+        Type "ldlm_canceld_stats_reqbuf_avail"
+    </Item>
+
+    <Item>
+        Type "ldlm_cbd_stats_req_waittime"
+    </Item>
+    <Item>
+        Type "ldlm_cbd_stats_req_qdepth"
+    </Item>
+    <Item>
+        Type "ldlm_cbd_stats_req_active"
+    </Item>
+    <Item>
+        Type "ldlm_cbd_stats_req_timeout"
+    </Item>
+    <Item>
+        Type "ldlm_cbd_stats_reqbuf_avail"
+    </Item>
+"""
         if lustre_oss:
             config += """
     # OST stats
