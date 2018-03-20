@@ -69,6 +69,29 @@ define(`LDLM_LOCK_INFO_ENTRIES',
 CONSTANT_FILE_ENTRY($1, lock_timeouts, $2_lock_timeouts, (.+), number, ${key:hostname}, $3, locksinfo, gauge, lock_timeouts, $2_lock_timeouts, fs_name=${subpath:fs_name} $2_index=${subpath:$2_index}, 0)')dnl
 dnl
 dnl $1: number of INDENT
+dnl $2: name of RECOVERY_STATUS_ITEM
+dnl $3: "mdt" or "ost"
+dnl $4: match pattern RegEx str
+dnl $5: type of item
+dnl $6: is first child of parent ELEMENT
+define(`RECOVERY_STATUS_ITEM',
+	`ELEMENT($1, item, 
+	`NAME($1 + 1, $3_recovery_status_$2, 1)
+PATTERN($1 + 1, `$2: +$4', 0)
+FIELD($1 + 1, 1, $2, $5, ${key:hostname}, ${subpath:fs_name}-${subpath:$3_index}, $3_recovery_status, gauge, $2, $3_recovery_status, optype=$2 fs_name=${subpath:fs_name} $3_index=${subpath:$3_index}, 0)', $6)')dnl
+dnl
+dnl $1: number of INDENT
+dnl $2: name of RECOVERY_STATUS_CONNECTED_ITEM
+dnl $3: "mdt" or "ost"
+dnl $4: is first child of parent ELEMENT
+define(`RECOVERY_STATUS_CONNECTED_ITEM',
+	`ELEMENT($1, item, 
+	`NAME($1 + 1, $3_recovery_status_$2, 1)
+PATTERN($1 + 1, `$2: +([[:digit:]]+)\/([[:digit:]]+)', 0)
+FIELD($1 + 1, 1, connected_clients, number, ${key:hostname}, ${subpath:fs_name}-${subpath:$3_index}, $3_recovery_status, gauge, connected_clients, $3_recovery_status, optype=connected_clients fs_name=${subpath:fs_name} $3_index=${subpath:$3_index}, 0)
+FIELD($1 + 1, 2, recoverable_clients, number, ${key:hostname}, ${subpath:fs_name}-${subpath:$3_index}, $3_recovery_status, gauge, recoverable_clients, $3_recovery_status, optype=recoverable_clients fs_name=${subpath:fs_name} $3_index=${subpath:$3_index}, 0)', $4)')dnl
+dnl
+dnl $1: number of INDENT
 dnl $2: name of MD_STATS_ITEM
 dnl $3: is first child of parent ELEMENT
 define(`MD_STATS_ITEM',

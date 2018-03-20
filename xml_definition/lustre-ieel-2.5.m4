@@ -101,6 +101,25 @@ HEAD(Lustre-ieel-2.5)
 				</subpath>
 				<mode>directory</mode>
 				<entry>
+					<subpath>
+						<subpath_type>constant</subpath_type>
+						<path>recovery_status</path>
+					</subpath>
+					<mode>file</mode>
+					RECOVERY_STATUS_ITEM(5, recovery_start, mdt, ([[:digit:]]+), number, 1)
+					RECOVERY_STATUS_ITEM(5, recovery_duration, mdt, ([[:digit:]]+), number, 1)
+					RECOVERY_STATUS_CONNECTED_ITEM(5, completed_clients, mdt, 1)
+					RECOVERY_STATUS_ITEM(5, replayed_requests, mdt, ([[:digit:]]+), number, 1)
+					RECOVERY_STATUS_ITEM(5, last_transno, mdt, ([[:digit:]]+), number, 1)
+					RECOVERY_STATUS_ITEM(5, time_remaining, mdt, ([[:digit:]]+), number, 1)
+					RECOVERY_STATUS_CONNECTED_ITEM(5, connected_clients, mdt, 1)
+					RECOVERY_STATUS_ITEM(5, req_replay_clients, mdt, ([[:digit:]]+), number, 1)
+					RECOVERY_STATUS_ITEM(5, lock_replay_clients, mdt, ([[:digit:]]+), number, 1)
+					RECOVERY_STATUS_ITEM(5, evicted_clients, mdt, ([[:digit:]]+), number, 1)
+					RECOVERY_STATUS_ITEM(5, queued_requests, mdt, ([[:digit:]]+), number, 1)
+					RECOVERY_STATUS_ITEM(5, next_transno, mdt, ([[:digit:]]+), number, 1)
+				</entry>
+				<entry>
 					<!-- mds_stats_counter_init() -->
 					<subpath>
 						<subpath_type>constant</subpath_type>
@@ -198,6 +217,25 @@ HEAD(Lustre-ieel-2.5)
 					</subpath_field>
 				</subpath>
 				<mode>directory</mode>
+				<entry>
+					<subpath>
+						<subpath_type>constant</subpath_type>
+						<path>recovery_status</path>
+					</subpath>
+					<mode>file</mode>
+					RECOVERY_STATUS_ITEM(5, recovery_start, ost, ([[:digit:]]+), number, 1)
+					RECOVERY_STATUS_ITEM(5, recovery_duration, ost, ([[:digit:]]+), number, 1)
+					RECOVERY_STATUS_CONNECTED_ITEM(5, completed_clients, ost, 1)
+					RECOVERY_STATUS_ITEM(5, replayed_requests, ost, ([[:digit:]]+), number, 1)
+					RECOVERY_STATUS_ITEM(5, last_transno, ost, ([[:digit:]]+), number, 1)
+					RECOVERY_STATUS_ITEM(5, time_remaining, ost, ([[:digit:]]+), number, 1)
+					RECOVERY_STATUS_CONNECTED_ITEM(5, connected_clients, ost, 1)
+					RECOVERY_STATUS_ITEM(5, req_replay_clients, ost, ([[:digit:]]+), number, 1)
+					RECOVERY_STATUS_ITEM(5, lock_replay_clients, ost, ([[:digit:]]+), number, 1)
+					RECOVERY_STATUS_ITEM(5, evicted_clients, ost, ([[:digit:]]+), number, 1)
+					RECOVERY_STATUS_ITEM(5, queued_requests, ost, ([[:digit:]]+), number, 1)
+					RECOVERY_STATUS_ITEM(5, next_transno, ost, ([[:digit:]]+), number, 1)
+				</entry>
 				<entry>
 					<!-- filter_setup().
 					     There are a lot of counter, only defined part of them here

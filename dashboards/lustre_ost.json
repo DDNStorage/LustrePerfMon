@@ -4609,6 +4609,128 @@
       "showTitle": false,
       "title": "LDLM Lock",
       "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": "300",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "description": "When Lustre OST/MDT service re-mounted, a recovery process will be started to recover the connections to the clients.",
+          "fill": 1,
+          "id": 88,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 12,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "$tag_optype",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "optype"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "ost_recovery_status",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Number of Recovery Clients",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "decimals": 0,
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Recovery Status",
+      "titleSize": "h6"
     }
   ],
   "schemaVersion": 14,
@@ -4619,6 +4741,7 @@
       {
         "allValue": null,
         "current": {
+          "selected": true,
           "text": "es2",
           "value": "es2"
         },
@@ -4642,6 +4765,8 @@
       {
         "allValue": null,
         "current": {
+          "selected": true,
+          "tags": [],
           "text": "OST0000",
           "value": "OST0000"
         },

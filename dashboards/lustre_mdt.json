@@ -665,6 +665,130 @@
       "showTitle": false,
       "title": "LDLM Lock",
       "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": "300",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "description": "When Lustre OST/MDT service re-mounted, a recovery process will be started to recover the connections to the clients.\n\nevicted_clients: The number of clients that have been evicted during the recovery process.\n\nconnected_clients: The number of clients that connected successfully.\n\nrecoverable_clients: The maximum number of clients that can possibily be recovered.",
+          "fill": 1,
+          "id": 88,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "span": 12,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "$tag_optype",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "optype"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "mdt_recovery_status",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"value\" FROM \"mdt_filesinfo_free\" WHERE \"fs_name\" = '$fs_name'  AND \"mdt_index\" = '$mdt_index' AND $timeFilter GROUP BY \"mdt_index\"",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "mdt_index",
+                  "operator": "=",
+                  "value": "$mdt_index"
+                }
+              ]
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Number of Recovery Clients",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "decimals": 0,
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Recovery Status",
+      "titleSize": "h6"
     }
   ],
   "schemaVersion": 14,
@@ -698,9 +822,8 @@
       {
         "allValue": null,
         "current": {
-          "tags": [],
-          "text": "MDT0001",
-          "value": "MDT0001"
+          "text": "MDT0000",
+          "value": "MDT0000"
         },
         "datasource": "esmon_datasource",
         "hide": 0,

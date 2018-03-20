@@ -533,6 +533,36 @@ PostCacheChain "PostCache"
     <Item>
         Type "ost_lock_timeouts"
     </Item>
+
+    # Currently do not enable:
+    # ost_recovery_status_[recovery_start|recovery_duration|replayed_requests|
+    # last_transno|time_remaining|req_replay_clients|lock_replay_clients|
+    # queued_requests|next_transno]
+    #
+    # Whenever enabling completed_clients or connected_clients, need to enable
+    # them both, because when recovery under different status (COMPLETE|RECOVERING),
+    # /proc prints the same variables but with different leading words:
+    #
+    # When status is COMPLETE:
+    #
+    # completed_clients: $finished_clients/$recoverable_clients
+    #
+    # When status is RECOVERING:
+    #
+    # connected_clients: $finished_clients/$recoverable_clients
+    #
+    # evicted_clients will be printed only during RECOVERING, thus is a good sign
+    # to show that recovery is in process.
+    #
+    <Item>
+        Type "ost_recovery_status_completed_clients"
+    </Item>
+    <Item>
+        Type "ost_recovery_status_connected_clients"
+    </Item>
+    <Item>
+        Type "ost_recovery_status_evicted_clients"
+    </Item>
 """
 
         if lustre_exp_ost:
@@ -705,14 +735,44 @@ PostCacheChain "PostCache"
     </Item>
 
     # Currently do not enable:
-    # mdt_setattr_stats_[req_waittime|req_qdepth|req_active|req_timeout|reqbuf_avail]
-    # because Lustre doesn't use it yet.
+    # mdt_setattr_stats_[req_waittime|req_qdepth|req_active|req_timeout|
+    # reqbuf_avail], because Lustre doesn't use it yet.
 
     <Item>
         Type "mdt_lock_count"
     </Item>
     <Item>
         Type "mdt_lock_timeouts"
+    </Item>
+
+    # Currently do not enable:
+    # mdt_recovery_status_[recovery_start|recovery_duration|replayed_requests|
+    # last_transno|time_remaining|req_replay_clients|lock_replay_clients|
+    # queued_requests|next_transno]
+    #
+    # Whenever enabling completed_clients or connected_clients, need to enable
+    # them both, because when recovery under different status (COMPLETE|RECOVERING),
+    # /proc prints the same variables but with different leading words:
+    #
+    # When status is COMPLETE:
+    #
+    # completed_clients: $finished_clients/$recoverable_clients
+    #
+    # When status is RECOVERING:
+    #
+    # connected_clients: $finished_clients/$recoverable_clients
+    #
+    # evicted_clients will be printed only during RECOVERING, thus is a good sign
+    # to show that recovery is in process.
+    #
+    <Item>
+        Type "mdt_recovery_status_completed_clients"
+    </Item>
+    <Item>
+        Type "mdt_recovery_status_connected_clients"
+    </Item>
+    <Item>
+        Type "mdt_recovery_status_evicted_clients"
     </Item>
 """
 
