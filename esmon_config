@@ -1,0 +1,12 @@
+#!/usr/bin/python -u
+# Copyright (c) 2017 DataDirect Networks, Inc.
+# All Rights Reserved.
+# Author: lixi@ddn.com
+"""
+Configure Exascaler monistoring system
+"""
+from pyesmon import esmon_config
+
+if __name__ == "__main__":
+    esmon_config.main()
+
