@@ -363,8 +363,12 @@ def esmon_command_cd(arg_string):
         ESMON_CONFIG_WALK_STACK.append(child)
     elif isinstance(current_config, list):
         ret = esmon_list_cd(current, arg_string)
+    elif str(current_config) == arg_string:
+        console_error('"%s" is not a directory' % arg_string)
+        ret = -1
     else:
-        console_error('failed to change to subdir "%s"' % arg_string)
+        console_error('"%s" is not found' % arg_string)
+        ret = -1
     return ret
 
 
