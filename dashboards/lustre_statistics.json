@@ -1619,7 +1619,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "alias": "",
+              "alias": "Metadata Operation Rate",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -1658,7 +1658,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Metadata Operation Rate  in Total",
+          "title": "Metadata Operation Rate in Total",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1674,7 +1674,7 @@
           },
           "yaxes": [
             {
-              "format": "Bps",
+              "format": "ops",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -4921,8 +4921,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "lustre1",
-          "value": "lustre1"
+          "text": "es2",
+          "value": "es2"
         },
         "datasource": "esmon_datasource",
         "hide": 0,
