@@ -16,24 +16,35 @@ PATTERN_PYTHON_LIBRARY = r"^%s-\d+\.\d+\.\d+\.tar\.gz$"
 INFLUXDB_PATH = "/esmon/influxdb"
 
 # Config strings
-CSTR_ISO_PATH = "iso_path"
-CSTR_SSH_HOST = "ssh_hosts"
-CSTR_CLIENT_HOSTS = "client_hosts"
-CSTR_SERVER_HOST = "server_host"
-CSTR_HOST_ID = "host_id"
-CSTR_HOSTNAME = "hostname"
-CSTR_DROP_DATABASE = "drop_database"
-CSTR_ERASE_INFLUXDB = "erase_influxdb"
-CSTR_LUSTRE_OSS = "lustre_oss"
-CSTR_LUSTRE_MDS = "lustre_mds"
-CSTR_IME = "ime"
-CSTR_REINSTALL = "reinstall"
-CSTR_CLIENTS_REINSTALL = "clients_reinstall"
-CSTR_INFINIBAND = "infiniband"
-CSTR_SFAS = "sfas"
-CSTR_NAME = "name"
+
+# ESMON_CONFIG_CSTR_PATH can be set to None
+ESMON_CONFIG_CSTR_NONE = "None"
+
+# Config used by esmon_install.conf
+CSTR_CONTINUOUS_QUERY_INTERVAL = "continuous_query_interval"
 CSTR_CONTROLLER0_HOST = "controller0_host"
 CSTR_CONTROLLER1_HOST = "controller1_host"
+CSTR_CLIENT_HOSTS = "client_hosts"
+CSTR_CLIENTS_REINSTALL = "clients_reinstall"
+CSTR_COLLECT_INTERVAL = "collect_interval"
+CSTR_DROP_DATABASE = "drop_database"
+CSTR_ERASE_INFLUXDB = "erase_influxdb"
+CSTR_HOST_ID = "host_id"
+CSTR_HOSTNAME = "hostname"
+CSTR_IME = "ime"
+CSTR_INFINIBAND = "infiniband"
+CSTR_ISO_PATH = "iso_path"
+CSTR_LUSTRE_EXP_MDT = "lustre_exp_mdt"
+CSTR_LUSTRE_EXP_OST = "lustre_exp_ost"
+CSTR_LUSTRE_MDS = "lustre_mds"
+CSTR_LUSTRE_OSS = "lustre_oss"
+CSTR_NAME = "name"
+CSTR_REINSTALL = "reinstall"
+CSTR_SERVER_HOST = "server_host"
+CSTR_SFAS = "sfas"
+CSTR_SSH_HOSTS = "ssh_hosts"
+CSTR_SSH_IDENTITY_FILE = "ssh_identity_file"
+
 CSTR_LUSTRES = "lustres"
 CSTR_FSNAME = "fsname"
 CSTR_MDTS = "mdts"
@@ -48,7 +59,6 @@ CSTR_LAZY_PREPARE = "lazy_prepare"
 CSTR_CLIENTS = "clients"
 CSTR_MNT = "mnt"
 CSTR_DISTRO = "distro"
-CSTR_HOSTNAME = "hostname"
 CSTR_HOST_IPS = "ips"
 CSTR_TEMPLATES = "templates"
 CSTR_INTERNET = "internet"
@@ -62,10 +72,6 @@ CSTR_TEMPLATE_HOSTNAME = "template_hostname"
 CSTR_IP = "ip"
 CSTR_HOSTS = "hosts"
 CSTR_CLEANUP = "cleanup"
-CSTR_COLLECT_INTERVAL = "collect_interval"
-CSTR_CONTINUOUS_QUERY_INTERVAL = "continuous_query_interval"
-CSTR_LUSTRE_EXP_OST = "lustre_exp_ost"
-CSTR_LUSTRE_EXP_MDT = "lustre_exp_mdt"
 CSTR_LUSTRE_DEFAULT_VERSION = "lustre_default_version"
 
 GRAFANA_STATUS_PANEL = "Grafana_Status_panel"
@@ -78,13 +84,16 @@ GRAFANA_PLUGIN_GITS[GRAFANA_SAVANTLY_HEATMAP_PANEL] = ("https://github.com/savan
                                                        "grafana-heatmap.git")
 
 
-def config_value(config, key):
+def config_value(config, key, mapping_dict=None):
     """
     Return value of a key in config
     """
     if key not in config:
         return None
-    return config[key]
+    value = config[key]
+    if mapping_dict is not None and value in mapping_dict:
+        value = mapping_dict[value]
+    return value
 
 
 def clone_src_from_git(build_dir, git_url, branch,

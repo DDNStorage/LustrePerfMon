@@ -721,8 +721,10 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
                           host_id, config_fpath)
             return -1
 
+        mapping_dict = {esmon_common.ESMON_CONFIG_CSTR_NONE: None}
         ssh_identity_file = esmon_common.config_value(host_config,
-                                                      "ssh_identity_file")
+                                                      esmon_common.CSTR_SSH_IDENTITY_FILE,
+                                                      mapping_dict=mapping_dict)
 
         if host_id in hosts:
             logging.error("multiple SSH hosts with the same ID [%s], please "

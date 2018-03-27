@@ -1708,7 +1708,7 @@ def esmon_install_parse_config(workspace, config, config_fpath):
     esmon_clients = {}
     esmon_server = None
 
-    host_configs = esmon_common.config_value(config, esmon_common.CSTR_SSH_HOST)
+    host_configs = esmon_common.config_value(config, esmon_common.CSTR_SSH_HOSTS)
     if host_configs is None:
         logging.error("can NOT find [ssh_hosts] in the config file, "
                       "please correct file [%s]", config_fpath)
@@ -1730,7 +1730,10 @@ def esmon_install_parse_config(workspace, config, config_fpath):
                           host_id, config_fpath)
             return -1, esmon_server, esmon_clients
 
-        ssh_identity_file = esmon_common.config_value(host_config, "ssh_identity_file")
+        mapping_dict = {esmon_common.ESMON_CONFIG_CSTR_NONE: None}
+        ssh_identity_file = esmon_common.config_value(host_config,
+                                                      esmon_common.CSTR_SSH_IDENTITY_FILE,
+                                                      mapping_dict=mapping_dict)
 
         if host_id in hosts:
             logging.error("multiple SSH hosts with the same ID [%s], please "

@@ -548,11 +548,11 @@ def esmon_do_test(workspace, config, config_fpath):
         logging.error("failed to install the virtual machines")
         return -1
 
-    ssh_host_configs = esmon_common.config_value(config, esmon_common.CSTR_SSH_HOST)
+    ssh_host_configs = esmon_common.config_value(config, esmon_common.CSTR_SSH_HOSTS)
     if ssh_host_configs is None:
         logging.error("can NOT find [%s] in the config file, "
                       "please correct file [%s]",
-                      esmon_common.CSTR_SSH_HOST, config_fpath)
+                      esmon_common.CSTR_SSH_HOSTS, config_fpath)
         return -1
 
     hosts = {}
@@ -571,7 +571,10 @@ def esmon_do_test(workspace, config, config_fpath):
                           host_id, config_fpath)
             return -1
 
-        ssh_identity_file = esmon_common.config_value(host_config, "ssh_identity_file")
+        mapping_dict = {esmon_common.ESMON_CONFIG_CSTR_NONE: None}
+        ssh_identity_file = esmon_common.config_value(host_config,
+                                                      esmon_common.CSTR_SSH_IDENTITY_FILE,
+                                                      mapping_dict=mapping_dict)
 
         if host_id in hosts:
             logging.error("multiple SSH hosts with the same ID [%s], please "
@@ -694,7 +697,7 @@ def esmon_do_test(workspace, config, config_fpath):
     host_iso_path = workspace + "/" + iso_name
     install_config = {}
     install_config[esmon_common.CSTR_ISO_PATH] = host_iso_path
-    install_config[esmon_common.CSTR_SSH_HOST] = ssh_host_configs
+    install_config[esmon_common.CSTR_SSH_HOSTS] = ssh_host_configs
     install_config[esmon_common.CSTR_CLIENT_HOSTS] = client_host_configs
     install_config[esmon_common.CSTR_SERVER_HOST] = server_host_config
     install_config[esmon_common.CSTR_COLLECT_INTERVAL] = collect_interval

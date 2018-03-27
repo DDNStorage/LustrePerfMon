@@ -171,11 +171,11 @@ def esmon_io_loading(workspace, config, confpath):
     """
     # pylint: disable=too-many-locals,unused-argument,too-many-return-statements
     # pylint: disable=too-many-branches,too-many-statements
-    ssh_host_configs = esmon_common.config_value(config, esmon_common.CSTR_SSH_HOST)
+    ssh_host_configs = esmon_common.config_value(config, esmon_common.CSTR_SSH_HOSTS)
     if ssh_host_configs is None:
         logging.error("can NOT find [%s] in the config file, "
                       "please correct file [%s]",
-                      esmon_common.CSTR_SSH_HOST, confpath)
+                      esmon_common.CSTR_SSH_HOSTS, confpath)
         return -1
 
     hosts = {}
@@ -193,8 +193,10 @@ def esmon_io_loading(workspace, config, confpath):
                           "with ID [%s], please correct file [%s]",
                           host_id, confpath)
             return -1
-
-        ssh_identity_file = esmon_common.config_value(host_config, "ssh_identity_file")
+        mapping_dict = {esmon_common.ESMON_CONFIG_CSTR_NONE: None}
+        ssh_identity_file = esmon_common.config_value(host_config,
+                                                      esmon_common.CSTR_SSH_IDENTITY_FILE,
+                                                      mapping_dict=mapping_dict)
 
         if host_id in hosts:
             logging.error("multiple SSH hosts with the same ID [%s], please "
