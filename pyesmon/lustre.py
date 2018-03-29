@@ -471,6 +471,8 @@ RPM_TESTS_KMOD = "tests_kmod"
 RPM_MLNX_OFA = "mlnx_ofa"
 RPM_MLNX_KMOD = "mlnx_ofa_modules"
 
+LUSTRE_ZFS_RPM_TYPES = [RPM_OSD_ZFS, RPM_OSD_ZFS_MOUNT]
+
 # The order should be proper for the dependency of RPMs
 LUSTRE_RPM_TYPES = [RPM_KMOD, RPM_OSD_LDISKFS_MOUNT, RPM_OSD_LDISKFS,
                     RPM_OSD_ZFS_MOUNT, RPM_OSD_ZFS,
@@ -591,6 +593,7 @@ class LustreRPMs(object):
         self.lr_rpm_names = {}
         self.lr_lustre_version = None
         self.lr_kernel_version = None
+        self.lr_zfs_support = True
 
     def lr_prepare(self):
         """
@@ -610,15 +613,20 @@ class LustreRPMs(object):
                 return -1
 
         if len(possible_versions) != 1:
-            logging.error("the possible RPM version is %d, should be 1",
+            logging.error("the possible RPM version is [%d], should be [1]",
                           len(possible_versions))
             return -1
         self.lr_lustre_version = possible_versions[0]
 
         for key in self.lr_lustre_version.lv_rpm_patterns.keys():
             if key not in self.lr_rpm_names:
-                logging.error("failed to get RPM name of [%s]", key)
-                return -1
+                if key in LUSTRE_ZFS_RPM_TYPES:
+                    logging.info("disabling ZFS support, because no RPM [%s] "
+                                 "found", key)
+                    self.lr_zfs_support = False
+                else:
+                    logging.error("failed to get RPM name of [%s]", key)
+                    return -1
 
         kernel_rpm_name = self.lr_rpm_names[RPM_KERNEL]
         kernel_rpm_path = (self.lr_rpm_dir + '/' + kernel_rpm_name)
@@ -1413,23 +1421,24 @@ class LustreServerHost(ssh_host.SSHHost):
             return -1
 
         logging.info("installing ZFS RPMs on host [%s]", self.sh_hostname)
-        install_timeout = ssh_host.LONGEST_SIMPLE_COMMAND_TIME * 2
-        version = lustre_rpms.lr_lustre_version
-        kernel_major_version = version.lv_kernel_major_version
-        retval = self.sh_run("cd %s && rpm -ivh libnvpair1-* libuutil1-* "
-                             "libzfs2-0* libzpool2-0* kmod-spl-%s* "
-                             "kmod-zfs-%s* spl-0* zfs-0*" %
-                             (host_lustre_rpm_dir, kernel_major_version,
-                              kernel_major_version),
-                             timeout=install_timeout)
-        if retval.cr_exit_status != 0:
-            logging.error("failed to install ZFS RPMs on host "
-                          "[%s], ret = %d, stdout = [%s], stderr = [%s]",
-                          self.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
+        if lustre_rpms.lr_zfs_support:
+            install_timeout = ssh_host.LONGEST_SIMPLE_COMMAND_TIME * 2
+            version = lustre_rpms.lr_lustre_version
+            kernel_major_version = version.lv_kernel_major_version
+            retval = self.sh_run("cd %s && rpm -ivh libnvpair1-* libuutil1-* "
+                                 "libzfs2-0* libzpool2-0* kmod-spl-%s* "
+                                 "kmod-zfs-%s* spl-0* zfs-0*" %
+                                 (host_lustre_rpm_dir, kernel_major_version,
+                                  kernel_major_version),
+                                 timeout=install_timeout)
+            if retval.cr_exit_status != 0:
+                logging.error("failed to install ZFS RPMs on host "
+                              "[%s], ret = %d, stdout = [%s], stderr = [%s]",
+                              self.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
+                return -1
 
         logging.info("installing RPMs on host [%s]", self.sh_hostname)
         for rpm_type in LUSTRE_RPM_TYPES:
