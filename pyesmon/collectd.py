@@ -29,6 +29,8 @@ def lustre_version_xml_fname(lustre_version):
         xml_fname = "lustre-ieel-2.7_definition.xml"
     elif lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES4:
         xml_fname = "lustre-ieel-2.7_definition.xml"
+    elif lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_2_7:
+        xml_fname = "lustre-ieel-2.7_definition.xml"
     else:
         logging.error("unsupported Lustre version of [%s]",
                       lustre_version.lv_name)
@@ -309,8 +311,6 @@ PostCacheChain "PostCache"
         """
         xml_fname = lustre_version_xml_fname(lustre_version)
         if xml_fname is None:
-            logging.error("unsupported Lustre version of [%s]",
-                          lustre_version.lv_name)
             return -1
         config = """<Plugin "filedata">
     <Common>

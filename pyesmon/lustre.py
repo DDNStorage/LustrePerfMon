@@ -461,6 +461,12 @@ RPM_KERNEL = "kernel"
 RPM_KERNEL_FIRMWARE = "kernel-firmware"
 RPM_LUSTRE = "lustre"
 RPM_IOKIT = "iokit"
+
+# Following three RPMs only in EXAScaler3
+RPM_KMOD_COMMON = "kmod_common"
+RPM_LUSTER_SERVER = "lustre_server"
+RPM_KMOD_LDISKFS = "kmod_ldiskfs"
+
 RPM_KMOD = "kmod"
 RPM_OSD_LDISKFS = "osd_ldiskfs"
 RPM_OSD_LDISKFS_MOUNT = "osd_ldiskfs_mount"
@@ -474,9 +480,18 @@ RPM_MLNX_KMOD = "mlnx_ofa_modules"
 LUSTRE_ZFS_RPM_TYPES = [RPM_OSD_ZFS, RPM_OSD_ZFS_MOUNT]
 
 # The order should be proper for the dependency of RPMs
-LUSTRE_RPM_TYPES = [RPM_KMOD, RPM_OSD_LDISKFS_MOUNT, RPM_OSD_LDISKFS,
-                    RPM_OSD_ZFS_MOUNT, RPM_OSD_ZFS,
-                    RPM_LUSTRE, RPM_IOKIT, RPM_TESTS_KMOD, RPM_TESTS]
+LUSTRE_RPM_TYPES = [RPM_KMOD_COMMON,  # Only in EXAScaler3
+                    RPM_KMOD,
+                    RPM_OSD_LDISKFS_MOUNT,
+                    RPM_KMOD_LDISKFS,  # Only in EXAScaler3
+                    RPM_OSD_LDISKFS,
+                    RPM_OSD_ZFS_MOUNT,
+                    RPM_OSD_ZFS,
+                    RPM_LUSTRE,
+                    RPM_LUSTER_SERVER,  # Only in EXAScaler3
+                    RPM_IOKIT,
+                    RPM_TESTS_KMOD,
+                    RPM_TESTS]
 
 ES2_PATTERNS = {
     RPM_KERNEL: r"^(kernel-2.+\.x86_64\.rpm)$",
@@ -498,19 +513,22 @@ LUSTRE_VERSION_ES2 = LustreVersion(LUSTRE_VERSION_NAME_ES2,
                                    "2")  # kernel_major_version
 
 ES3_PATTERNS = {
-    RPM_KERNEL: r"^(kernel-3.+\.x86_64\.rpm)$",
+    RPM_KERNEL: r"^(kernel-lustre-3.+\.x86_64\.rpm)$",
     RPM_LUSTRE: r"^(lustre-2\.7.+\.x86_64\.rpm)$",
+    RPM_LUSTER_SERVER: r"^(lustre-server-2\.7.+\.x86_64\.rpm)$",
     RPM_IOKIT: r"^(lustre-iokit-2\.7.+\.x86_64\.rpm)$",
-    RPM_KMOD: r"^(lustre-modules-2\.7.+\.x86_64\.rpm)$",
-    RPM_OSD_LDISKFS: r"^(lustre-osd-ldiskfs-2\.7.+\.x86_64\.rpm)$",
+    RPM_KMOD_COMMON: r"^(kmod-lustre-common-2\.7.+\.x86_64\.rpm)$",
+    RPM_KMOD: r"^(kmod-lustre-el7\.\d-2\.7.+\.x86_64\.rpm)$",
+    RPM_KMOD_LDISKFS: r"^(kmod-lustre-el7\.\d-ldiskfs-2\.7.+\.x86_64\.rpm)$",
+    RPM_OSD_LDISKFS: r"^(kmod-lustre-el7\.\d-osd-ldiskfs-2\.7.+\.x86_64\.rpm)$",
     RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.7.+\.x86_64\.rpm)$",
-    RPM_OSD_ZFS: r"^(lustre-osd-zfs-2\.7.+\.x86_64\.rpm)$",
-    RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.7.+\.x86_64\.rpm)$",
     RPM_TESTS: r"^(lustre-tests-2\.7.+\.x86_64\.rpm)$",
     RPM_MLNX_OFA: r"^(mlnx-ofa_kernel-3.+\.x86_64\.rpm)$",
-    RPM_MLNX_KMOD: r"^(mlnx-ofa_kernel-modules-3.+\.x86_64\.rpm)$"}
+    RPM_MLNX_KMOD: r"^(kmod-mlnx-ofa_kernel-el7\.\d-lustre-3.+\.x86_64\.rpm)$"}
 
 LUSTRE_VERSION_NAME_ES3 = "es3"
+
+ES3_HAS_DEPENDENCY_PROBLEM = True
 
 LUSTRE_VERSION_ES3 = LustreVersion(LUSTRE_VERSION_NAME_ES3,
                                    ES3_PATTERNS,  # rpm_patterns
@@ -535,7 +553,28 @@ LUSTRE_VERSION_ES4 = LustreVersion(LUSTRE_VERSION_NAME_ES4,
                                    ES4_PATTERNS,  # rpm_patterns
                                    "3")  # kernel_major_version
 
-LUSTER_VERSIONS = [LUSTRE_VERSION_ES2, LUSTRE_VERSION_ES3, LUSTRE_VERSION_ES4]
+B2_7_PATTERNS = {
+    RPM_KERNEL: r"^(kernel-3.+\.x86_64\.rpm)$",
+    RPM_LUSTRE: r"^(lustre-2\.7.+\.x86_64\.rpm)$",
+    RPM_IOKIT: r"^(lustre-iokit-2\.7.+\.x86_64\.rpm)$",
+    RPM_KMOD: r"^(lustre-modules-2\.7.+\.x86_64\.rpm)$",
+    RPM_OSD_LDISKFS: r"^(lustre-osd-ldiskfs-2\.7.+\.x86_64\.rpm)$",
+    RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.7.+\.x86_64\.rpm)$",
+    RPM_OSD_ZFS: r"^(lustre-osd-zfs-2\.7.+\.x86_64\.rpm)$",
+    RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.7.+\.x86_64\.rpm)$",
+    RPM_TESTS: r"^(lustre-tests-2\.7.+\.x86_64\.rpm)$",
+    RPM_MLNX_OFA: r"^(mlnx-ofa_kernel-3.+\.x86_64\.rpm)$",
+    RPM_MLNX_KMOD: r"^(mlnx-ofa_kernel-modules-3.+\.x86_64\.rpm)$"}
+
+LUSTRE_VERSION_NAME_2_7 = "2.7"
+
+LUSTRE_VERSION_2_7 = LustreVersion(LUSTRE_VERSION_NAME_2_7,
+                                   B2_7_PATTERNS,  # rpm_patterns
+                                   "3")  # kernel_major_version
+
+
+LUSTER_VERSIONS = [LUSTRE_VERSION_ES2, LUSTRE_VERSION_ES3, LUSTRE_VERSION_ES4,
+                   LUSTRE_VERSION_2_7]
 
 
 def match_rpm_patterns(data, rpm_dict, possible_versions):
@@ -627,6 +666,14 @@ class LustreRPMs(object):
                 else:
                     logging.error("failed to get RPM name of [%s]", key)
                     return -1
+
+        if self.lr_zfs_support:
+            for key in LUSTRE_ZFS_RPM_TYPES:
+                if key not in self.lr_rpm_names:
+                    logging.info("disabling ZFS support, because no [%s] "
+                                 "defined in RPM patterns", key)
+                    self.lr_zfs_support = False
+                    break
 
         kernel_rpm_name = self.lr_rpm_names[RPM_KERNEL]
         kernel_rpm_path = (self.lr_rpm_dir + '/' + kernel_rpm_name)
@@ -1450,7 +1497,9 @@ class LustreServerHost(ssh_host.SSHHost):
                                   lustre_rpms.lr_rpm_names[rpm_type]),
                                  timeout=install_timeout)
             if retval.cr_exit_status != 0:
-                if failure_caused_by_ksym(retval):
+                if (failure_caused_by_ksym(retval) or
+                        (lustre_rpms.lr_lustre_version.lv_name == LUSTRE_VERSION_NAME_ES3 and
+                         ES3_HAS_DEPENDENCY_PROBLEM)):
                     retval = self.sh_run("rpm -ivh --force --nodeps %s/%s" %
                                          (host_lustre_rpm_dir,
                                           lustre_rpms.lr_rpm_names[rpm_type]),
@@ -1500,7 +1549,13 @@ class LustreServerHost(ssh_host.SSHHost):
         """
         Check whether the install of Lustre RPMs could be skipped
         """
-        for rpm_name in lustre_rpms.lr_rpm_names.values():
+        for rpm_type in LUSTRE_RPM_TYPES:
+            if rpm_type not in lustre_rpms.lr_rpm_names:
+                continue
+            if (rpm_type in LUSTRE_ZFS_RPM_TYPES and
+                    (not lustre_rpms.lr_zfs_support)):
+                continue
+            rpm_name = lustre_rpms.lr_rpm_names[rpm_type]
             logging.debug("checking whether RPM [%s] is installed on "
                           "host [%s]", rpm_name, self.sh_hostname)
             name, ext = os.path.splitext(rpm_name)
