@@ -163,7 +163,7 @@ def esmon_command_help(arg_string):
    h         print this menu
    ls [-r]   list config content under current directory
    m         print the manual of this option
-   q         quit without saving changes
+   q [-f]    quit without saving changes
    rm        remove the current item from parent
    w         write config file to disk"""
 
@@ -276,55 +276,51 @@ ESMON_CONFIG_COMMNADS[ESMON_CONFIG_COMMNAD_QUIT] = \
 
 def esmon_command_remove(arg_string):
     """
-    REMOVE the current item
+    remove one or more children
     """
-    # pylint: disable=unused-argument
+    # pylint: disable=global-statement
     length = len(ESMON_CONFIG_WALK_STACK)
     assert length > 0
     current = ESMON_CONFIG_WALK_STACK[-1]
+    current_config = current.ewe_config
     current_key = current.ewe_key
 
-    if length == 1:
-        console_error('can not remove ROOT"')
+    if arg_string == "":
+        console_error('missing operand for "rm" command')
         return -1
 
-    parent = ESMON_CONFIG_WALK_STACK[-2]
-    parent_config = parent.ewe_config
-    parent_key = parent.ewe_key
+    args = arg_string.split()
 
-    if not isinstance(parent_config, list):
-        console_error('cannot remove because parent of "%s" has "%s" type, '
-                      'not list' %
-                      (current_key, type(parent_config).__name__))
+    if not isinstance(current_config, list):
+        console_error('cannot remove any child of current directory "%s", '
+                      'because it has "%s" type, not list' %
+                      (current_key, type(current_config).__name__))
         return -1
 
-    if parent_key not in ESMON_CONFIG_STRINGS:
-        console_error('illegal configuration: option "%s" is not supported' %
-                      (parent_key))
-        return -1
-
-    parent_cstring = ESMON_CONFIG_STRINGS[parent_key]
-    if parent_cstring.ecs_type != ESMON_CONFIG_CSTR_LIST:
+    current_cstring = ESMON_CONFIG_STRINGS[current_key]
+    if current_cstring.ecs_type != ESMON_CONFIG_CSTR_LIST:
         console_error('illegal configuration: option "%s" should not be a '
-                      'list' % (parent_key))
+                      'list' % (current_key))
         return -1
 
-    child_index = None
-    i = 0
-    for child in parent_config:
-        if child[parent_cstring.ecs_item_key] == current_key:
-            child_index = i
-            break
-        i += 1
+    for arg in args:
+        child_index = None
+        i = 0
+        for child in current_config:
+            if child[current_cstring.ecs_item_key] == arg:
+                child_index = i
+                break
+            i += 1
 
-    assert child_index is not None
-
-    del parent_config[child_index]
-    ESMON_CONFIG_WALK_STACK.pop()
+        if child_index is None:
+            console_error('cannot remove "%s", no such child in current '
+                          'directory' % (arg))
+            continue
+        del current_config[child_index]
     return 0
 
 ESMON_CONFIG_COMMNADS[ESMON_CONFIG_COMMNAD_REMOVE] = \
-    EsmonConfigCommand(ESMON_CONFIG_COMMNAD_REMOVE, esmon_command_remove)
+    EsmonConfigCommand(ESMON_CONFIG_COMMNAD_REMOVE, esmon_command_remove, need_child=True)
 
 
 def esmon_command_write(arg_string):
@@ -651,15 +647,6 @@ ESMON_CONFIG_STRINGS[esmon_common.CSTR_SSH_IDENTITY_FILE] = \
 the host. If the default SSH identity file works, this option can be set to\n\"""" +
                       esmon_common.ESMON_CONFIG_CSTR_NONE + '".',
                       allow_none=True)
-
-ESMON_CONFIG_OPTIONS = {ESMON_CONFIG_COMMNAD_ADD: [],
-                        ESMON_CONFIG_COMMNAD_CD: [],
-                        ESMON_CONFIG_COMMNAD_EDIT: [],
-                        ESMON_CONFIG_COMMNAD_HELP: [],
-                        ESMON_CONFIG_COMMNAD_LS: ["-r"],
-                        ESMON_CONFIG_COMMNAD_QUIT: ["-f"],
-                        ESMON_CONFIG_COMMNAD_REMOVE: [],
-                        ESMON_CONFIG_COMMNAD_WRITE: []}
 
 ESMON_CONFIG_CANDIDATES = []
 ESMON_CONFIG_RUNNING = True
