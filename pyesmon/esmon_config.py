@@ -478,7 +478,7 @@ ESMON_CONFIG_STRINGS[esmon_common.CSTR_DROP_DATABASE] = \
                       ESMON_CONFIG_CSTR_BOOL,
                       """This option determines whether to drop existing ESMON database of Influxdb.
 Important: This option should ONLY be set to "True" if the data/metadata in
-           ESMON database of Influxdb is not needed any more""")
+           ESMON database of Influxdb is not needed any more.""")
 
 ESMON_CONFIG_STRINGS[esmon_common.CSTR_ERASE_INFLUXDB] = \
     EsmonConfigString(esmon_common.CSTR_ERASE_INFLUXDB,
@@ -486,7 +486,9 @@ ESMON_CONFIG_STRINGS[esmon_common.CSTR_ERASE_INFLUXDB] = \
                       """This option determines whether to erase all data and metadata of Influxdb.
 Important: This option should ONLY be set to "True" if the data/metadata of
            Influxdb is not needed any more. When Influxdb is totally
-           corrupted, please enable this option to erase and fix.""")
+           corrupted, please enable this option to erase and fix. And please
+           double check the influxdb_path option is properly configured before
+           enabling this option.""")
 
 ESMON_CONFIG_STRINGS[esmon_common.CSTR_LUSTRE_EXP_MDT] = \
     EsmonConfigString(esmon_common.CSTR_LUSTRE_EXP_MDT,
@@ -534,6 +536,14 @@ ESMON_CONFIG_STRINGS[esmon_common.CSTR_INFINIBAND] = \
     EsmonConfigString(esmon_common.CSTR_INFINIBAND,
                       ESMON_CONFIG_CSTR_BOOL,
                       INFO)
+
+ESMON_CONFIG_STRINGS[esmon_common.CSTR_INFLUXDB_PATH] = \
+    EsmonConfigString(esmon_common.CSTR_INFLUXDB_PATH,
+                      ESMON_CONFIG_CSTR_PATH,
+                      """This option is Influxdb directory path on ESMON server node.
+Important: Please do not put any other files/directries under this directory of
+           ESMON server node, because, with "erase_influxdb" option enabled,
+           all of the files/directries under that directory will be removed.""")
 
 ESMON_CONFIG_STRINGS[esmon_common.CSTR_ISO_PATH] = \
     EsmonConfigString(esmon_common.CSTR_ISO_PATH,

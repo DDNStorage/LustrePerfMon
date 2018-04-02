@@ -77,6 +77,13 @@ def grafana_dashboard_check(name, dashboard):
     return 0
 
 
+def sed_replacement_escape(path):
+    """
+    Escape the '/' so "sed s///" can use it for replacement
+    """
+    return path.replace("/", r"\/")
+
+
 class EsmonServer(object):
     """
     ESMON server host has an object of this type
@@ -214,7 +221,8 @@ class EsmonServer(object):
             return -1
         return 0
 
-    def es_influxdb_reinstall(self, erase_influxdb, drop_database):
+    def es_influxdb_reinstall(self, erase_influxdb, drop_database,
+                              influxdb_path):
         """
         Reinstall influxdb RPM
         """
@@ -225,17 +233,22 @@ class EsmonServer(object):
             return ret
 
         if erase_influxdb:
-            command = ('rm %s -fr' % (esmon_common.INFLUXDB_PATH))
-            retval = self.es_host.sh_run(command)
-            if retval.cr_exit_status:
-                logging.error("failed to run command [%s] on host [%s], "
-                              "ret = [%d], stdout = [%s], stderr = [%s]",
-                              command,
-                              self.es_host.sh_hostname,
-                              retval.cr_exit_status,
-                              retval.cr_stdout,
-                              retval.cr_stderr)
-                return -1
+            # Only remove the Influxdb subdirs not the directory itself.
+            # This will prevent disaster when influxdb_path is set to a
+            # improper directory.
+            influxdb_subdirs = ["data", "meta", "wal"]
+            for subdir in influxdb_subdirs:
+                command = ('rm %s/%s -fr' % (influxdb_path, subdir))
+                retval = self.es_host.sh_run(command)
+                if retval.cr_exit_status:
+                    logging.error("failed to run command [%s] on host [%s], "
+                                  "ret = [%d], stdout = [%s], stderr = [%s]",
+                                  command,
+                                  self.es_host.sh_hostname,
+                                  retval.cr_exit_status,
+                                  retval.cr_stdout,
+                                  retval.cr_stderr)
+                    return -1
 
         ret = self.es_client.ec_rpm_install("influxdb", RPM_TYPE_SERVER)
         if ret:
@@ -244,8 +257,7 @@ class EsmonServer(object):
             return ret
 
         command = ('mkdir -p %s && chown influxdb %s && chgrp influxdb %s' %
-                   (esmon_common.INFLUXDB_PATH, esmon_common.INFLUXDB_PATH,
-                    esmon_common.INFLUXDB_PATH))
+                   (influxdb_path, influxdb_path, influxdb_path))
         retval = self.es_host.sh_run(command)
         if retval.cr_exit_status:
             logging.error("failed to run command [%s] on host [%s], "
@@ -257,8 +269,37 @@ class EsmonServer(object):
                           retval.cr_stderr)
             return -1
 
+        # Copy the diff file to workspace to edit
         config_diff = self.es_iso_dir + "/" + INFLUXDB_CONFIG_DIFF
-        command = ("patch -i %s %s" % (config_diff, INFLUXDB_CONFIG_FPATH))
+        final_diff = self.es_workspace + "/" + INFLUXDB_CONFIG_DIFF
+        command = ("cp %s %s" % (config_diff, self.es_workspace))
+        retval = self.es_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.es_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        # Replace INFLUXDB_PATH to the configured path
+        command = ("sed -i 's/INFLUXDB_PATH/" +
+                   sed_replacement_escape(influxdb_path) + "'" + '/g ' +
+                   final_diff)
+        retval = self.es_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.es_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        command = ("patch -i %s %s" % (final_diff, INFLUXDB_CONFIG_FPATH))
         retval = self.es_host.sh_run(command)
         if retval.cr_exit_status:
             logging.error("failed to run command [%s] on host [%s], "
@@ -722,7 +763,8 @@ class EsmonServer(object):
             return ret
         return 0
 
-    def es_reinstall(self, erase_influxdb, drop_database, mnt_path):
+    def es_reinstall(self, erase_influxdb, drop_database, mnt_path,
+                     influxdb_path):
         """
         Reinstall RPMs
         """
@@ -746,7 +788,8 @@ class EsmonServer(object):
                           "operations mght faill")
             return -1
 
-        ret = self.es_influxdb_reinstall(erase_influxdb, drop_database)
+        ret = self.es_influxdb_reinstall(erase_influxdb, drop_database,
+                                         influxdb_path)
         if ret:
             logging.error("failed to reinstall influxdb on host [%s]",
                           self.es_host.sh_hostname)
@@ -1972,6 +2015,15 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
                      esmon_common.CSTR_DROP_DATABASE, config_fpath)
         drop_database = False
 
+    influxdb_path = esmon_common.config_value(server_host_config,
+                                              esmon_common.CSTR_INFLUXDB_PATH)
+    if influxdb_path is None:
+        logging.info("[%s] is not configured in file [%s], use [%s] as "
+                     "default",
+                     esmon_common.CSTR_INFLUXDB_PATH, config_fpath,
+                     esmon_common.DEFAULT_INFLUXDB_PATH)
+        influxdb_path = esmon_common.DEFAULT_INFLUXDB_PATH
+
     server_reinstall = esmon_common.config_value(server_host_config,
                                                  esmon_common.CSTR_REINSTALL)
     if server_reinstall is None:
@@ -1997,7 +2049,8 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
                          esmon_client.ec_host.sh_hostname)
 
     if server_reinstall:
-        ret = esmon_server.es_reinstall(erase_influxdb, drop_database, mnt_path)
+        ret = esmon_server.es_reinstall(erase_influxdb, drop_database,
+                                        mnt_path, influxdb_path)
         if ret:
             logging.error("failed to reinstall ESMON server on host [%s]",
                           esmon_server.es_host.sh_hostname)
