@@ -1042,8 +1042,8 @@ class EsmonClient(object):
     # pylint: disable=too-few-public-methods,too-many-instance-attributes
     # pylint: disable=too-many-arguments
     def __init__(self, host, workspace, esmon_server, collect_interval,
-                 lustre_oss=False, lustre_mds=False, ime=False,
-                 infiniband=False, sfas=None, enabled_plugins="",
+                 enable_disk=False, lustre_oss=False, lustre_mds=False,
+                 ime=False, infiniband=False, sfas=None, enabled_plugins="",
                  lustre_exp_ost=False, lustre_exp_mdt=False):
         self.ec_host = host
         self.ec_workspace = workspace
@@ -1053,6 +1053,7 @@ class EsmonClient(object):
         self.ec_needed_collectd_rpms = ["libcollectdclient", "collectd"]
         self.ec_collect_interval = collect_interval
         self.ec_enabled_plugins = enabled_plugins
+        self.ec_enable_disk = enable_disk
         self.ec_enable_lustre_oss = lustre_oss
         self.ec_enable_lustre_mds = lustre_mds
         self.ec_enable_ime = ime
@@ -1191,6 +1192,8 @@ class EsmonClient(object):
             if ret:
                 logging.error("failed to config Lustre plugin of Collectd")
                 return -1
+        if self.ec_enable_disk:
+            config.cc_plugin_disk()
         if self.ec_enable_ime:
             config.cc_plugin_ime()
         if self.ec_sfas is not None:
@@ -1210,6 +1213,8 @@ class EsmonClient(object):
             if ret:
                 logging.error("failed to config Lustre plugin of Collectd")
                 return -1
+        if self.ec_enable_disk:
+            config.cc_plugin_disk()
         if self.ec_enable_ime:
             config.cc_plugin_ime()
         if self.ec_sfas is not None:
@@ -1877,10 +1882,17 @@ def esmon_install_parse_config(workspace, config, config_fpath):
                           host_id, config_fpath)
             return -1, esmon_server, esmon_clients
 
-        enabled_plugins = ("memory, CPU, df(/), load, sensors, disk, uptime, "
+        host = hosts[host_id]
+
+        enabled_plugins = ("memory, CPU, df(/), load, sensors, uptime, "
                            "users")
 
-        host = hosts[host_id]
+        enable_disk = esmon_common.config_value(client_host_config, esmon_common.CSTR_ENABLE_DISK)
+        if enable_disk is None:
+            enable_disk = False
+        if enable_disk:
+            enabled_plugins += ", disk"
+
         lustre_oss = esmon_common.config_value(client_host_config, esmon_common.CSTR_LUSTRE_OSS)
         if lustre_oss is None:
             lustre_oss = False
@@ -1960,6 +1972,7 @@ def esmon_install_parse_config(workspace, config, config_fpath):
             enabled_plugins += ", SFA"
 
         esmon_client = EsmonClient(host, workspace, esmon_server, collect_interval,
+                                   enable_disk=enable_disk,
                                    lustre_oss=lustre_oss,
                                    lustre_mds=lustre_mds, ime=ime,
                                    infiniband=infiniband,

@@ -480,6 +480,11 @@ ESMON_CONFIG_STRINGS[esmon_common.CSTR_DROP_DATABASE] = \
 Important: This option should ONLY be set to "True" if the data/metadata in
            ESMON database of Influxdb is not needed any more.""")
 
+ESMON_CONFIG_STRINGS[esmon_common.CSTR_ENABLE_DISK] = \
+    EsmonConfigString(esmon_common.CSTR_ENABLE_DISK,
+                      ESMON_CONFIG_CSTR_BOOL,
+                      """This option determines whether to collect disk metrics from this agent.""")
+
 ESMON_CONFIG_STRINGS[esmon_common.CSTR_ERASE_INFLUXDB] = \
     EsmonConfigString(esmon_common.CSTR_ERASE_INFLUXDB,
                       ESMON_CONFIG_CSTR_BOOL,

@@ -85,7 +85,6 @@ class CollectdConfig(object):
         self.cc_plugin_df()
         self.cc_plugin_load()
         self.cc_plugin_sensors()
-        self.cc_plugin_disk()
         self.cc_plugin_uptime()
         self.cc_plugin_users()
 
