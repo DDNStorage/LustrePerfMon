@@ -603,22 +603,25 @@ def esmon_list_ls(current):
     current: the current walk entry
     """
     current_config = current.ewe_config
-    id_key = esmon_list_item_key(current)
-    if id_key is None:
+    item_key = esmon_list_item_key(current)
+    if item_key is None:
         return -1
 
+    id_values = []
     for child_config in current_config:
-        if id_key not in child_config:
+        if item_key not in child_config:
             console_error('illegal configuration: no option "%s" found in '
                           'following config:\n %s' %
-                          (id_key,
+                          (item_key,
                            yaml.dump(child_config, Dumper=EsmonYamlDumper,
                                      default_flow_style=False)))
             return -1
 
-        id_value = child_config[id_key]
+        id_value = child_config[item_key]
+        id_values.append(id_value)
 
-        print "%s: {%s: %s, ...}" % (id_value, id_key, id_value)
+    for id_value in sorted(id_values):
+        print "%s: {%s: %s, ...}" % (id_value, item_key, id_value)
     return 0
 
 
@@ -676,7 +679,8 @@ def esmon_command_ls(arg_string):
 
     if arg_string == "":
         if isinstance(current_config, dict):
-            for key, value in current_config.iteritems():
+            for key in sorted(current_config):
+                value = current_config[key]
                 value_type = type(value)
                 if value_type is dict:
                     print "%s: {...}" % key
