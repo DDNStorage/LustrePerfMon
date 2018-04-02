@@ -69,7 +69,7 @@ class EsmonConfigString(object):
     # pylint: disable=too-many-instance-attributes
     def __init__(self, cstring, ctype, help_info, constants=None,
                  start=0, end=65536, item_helpinfo="", allow_none=False,
-                 add_item=None, item_key=None):
+                 item_add=None, item_key=None):
         self.ecs_string = cstring
         # ESMON_CONFIG_CSTR_*
         self.ecs_type = ctype
@@ -89,10 +89,10 @@ class EsmonConfigString(object):
 
         # Only valid for ESMON_CONFIG_CSTR_LIST
         self.ecs_item_helpinfo = item_helpinfo
-        self.ecs_add_item = add_item
+        self.ecs_item_add = item_add
         self.ecs_item_key = item_key
         if ctype == ESMON_CONFIG_CSTR_LIST:
-            assert add_item is not None
+            assert item_add is not None
             assert item_helpinfo != ""
             assert item_key is not None
 
@@ -124,7 +124,7 @@ ESMON_CONFIG_STRINGS[esmon_common.CSTR_CONTROLLER1_HOST] = \
 ESMON_HOST_ID_NUM = 0
 
 
-def esmon_agent_add_item(config_list):
+def esmon_agent_item_add(config_list):
     """
     Add item to agent list
     """
@@ -155,7 +155,7 @@ ESMON_CONFIG_STRINGS[esmon_common.CSTR_CLIENT_HOSTS] = \
                       ESMON_CONFIG_CSTR_LIST,
                       """This list includes the information of the ESMON agents.""",
                       item_helpinfo=INFO,
-                      add_item=esmon_agent_add_item,
+                      item_add=esmon_agent_item_add,
                       item_key=esmon_common.CSTR_HOST_ID)
 
 ESMON_CONFIG_STRINGS[esmon_common.CSTR_CLIENTS_REINSTALL] = \
@@ -269,7 +269,7 @@ ESMON_CONFIG_STRINGS[esmon_common.CSTR_SERVER_HOST] = \
 ESMON_SFA_NAME_NUM = 0
 
 
-def esmon_sfa_add_item(config_list):
+def esmon_sfa_item_add(config_list):
     """
     Add item to SFA list
     """
@@ -299,11 +299,11 @@ ESMON_CONFIG_STRINGS[esmon_common.CSTR_SFAS] = \
                       ESMON_CONFIG_CSTR_LIST,
                       """This list includes the information of SFAs on this ESMON agent.""",
                       item_helpinfo=INFO,
-                      add_item=esmon_sfa_add_item,
+                      item_add=esmon_sfa_item_add,
                       item_key=esmon_common.CSTR_NAME)
 
 
-def esmon_ssh_host_add_item(config_list):
+def esmon_ssh_host_item_add(config_list):
     """
     Add item into ssh_hosts
     """
@@ -333,7 +333,7 @@ ESMON_CONFIG_STRINGS[esmon_common.CSTR_SSH_HOSTS] = \
                       """This list includes the informations about how to login into the hosts using
 SSH connections.""",
                       item_helpinfo=INFO,
-                      add_item=esmon_ssh_host_add_item,
+                      item_add=esmon_ssh_host_item_add,
                       item_key=esmon_common.CSTR_HOST_ID)
 
 ESMON_CONFIG_STRINGS[esmon_common.CSTR_SSH_IDENTITY_FILE] = \
@@ -626,7 +626,7 @@ def esmon_list_ls(current):
     return 0
 
 
-def esmon_list_cd(current, arg_string):
+def esmon_list_cd(current, arg):
     """
     Change to a subdir of current path
     """
@@ -646,7 +646,7 @@ def esmon_list_cd(current, arg_string):
             return -1
 
         id_value = child_config[id_key]
-        if arg_string == id_value:
+        if arg == id_value:
             if matched_child_config is not None:
                 console_error('illegal configuration: multiple children with '
                               'value "%s" for key "%s" in following config:\n %s' %
@@ -658,10 +658,10 @@ def esmon_list_cd(current, arg_string):
 
     if matched_child_config is None:
         console_error('no child found with value "%s" for key "%s"' %
-                      (id_value, id_key))
+                      (arg, id_key))
         return -1
 
-    child = EsmonWalkEntry(arg_string, matched_child_config)
+    child = EsmonWalkEntry(arg, matched_child_config)
     ESMON_CONFIG_WALK_STACK.append(child)
 
     return 0
@@ -734,23 +734,28 @@ def esmon_command_cd(arg_string):
 
     if arg_string == "":
         ESMON_CONFIG_WALK_STACK = [ESMON_CONFIG_ROOT]
-    elif arg_string == "..":
+        return 0
+
+    args = arg_string.split()
+    arg = args[0]
+
+    if arg == "..":
         if length == 1:
             return 0
         else:
             ESMON_CONFIG_WALK_STACK.pop()
     elif (isinstance(current_config, dict) and
-          (arg_string in current_config)):
-        child_config = current_config[arg_string]
-        child = EsmonWalkEntry(arg_string, child_config)
+          (arg in current_config)):
+        child_config = current_config[arg]
+        child = EsmonWalkEntry(arg, child_config)
         ESMON_CONFIG_WALK_STACK.append(child)
     elif isinstance(current_config, list):
-        ret = esmon_list_cd(current, arg_string)
-    elif str(current_config) == arg_string:
-        console_error('"%s" is not a directory' % arg_string)
+        ret = esmon_list_cd(current, arg)
+    elif str(current_config) == arg:
+        console_error('"%s" is not a directory' % arg)
         ret = -1
     else:
-        console_error('"%s" is not found' % arg_string)
+        console_error('"%s" is not found' % arg)
         ret = -1
     return ret
 
@@ -977,7 +982,7 @@ def esmon_command_add(arg_string):
                       'list' % (current_key))
         return -1
 
-    current_cstring.ecs_add_item(current_config)
+    current_cstring.ecs_item_add(current_config)
     return 0
 
 
