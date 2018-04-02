@@ -26,13 +26,321 @@ ESMON_SAVED_CONFIG_STRING = None
 
 ESMON_CONFIG_COMMNAD_ADD = "a"
 ESMON_CONFIG_COMMNAD_CD = "cd"
-ESMON_CONFIG_COMMNAD_DELETE = "d"
 ESMON_CONFIG_COMMNAD_EDIT = "e"
 ESMON_CONFIG_COMMNAD_HELP = "h"
 ESMON_CONFIG_COMMNAD_LS = "ls"
 ESMON_CONFIG_COMMNAD_MANUAL = "m"
 ESMON_CONFIG_COMMNAD_QUIT = "q"
+ESMON_CONFIG_COMMNAD_REMOVE = "rm"
 ESMON_CONFIG_COMMNAD_WRITE = "w"
+
+
+class EsmonConfigCommand(object):
+    """
+    Config command
+    """
+    # pylint: disable=too-few-public-methods
+    def __init__(self, command, function, arguments=None, need_child=False):
+        self.ecc_command = command
+        self.ecc_function = function
+        self.ecc_need_child = need_child
+        self.ecc_arguments = arguments
+
+ESMON_CONFIG_COMMNADS = {}
+
+
+def esmon_command_add(arg_string):
+    """
+    Add an intem to the current list
+    """
+    # pylint: disable=unused-argument
+    length = len(ESMON_CONFIG_WALK_STACK)
+    assert length > 0
+    current = ESMON_CONFIG_WALK_STACK[-1]
+    current_config = current.ewe_config
+    current_key = current.ewe_key
+
+    if not isinstance(current_config, list):
+        console_error('an item can only be added to a list, not to "%s" with '
+                      'type "%s"' %
+                      (current_key, type(current_config).__name__))
+        return -1
+
+    if current_key not in ESMON_CONFIG_STRINGS:
+        console_error('illegal configuration: option "%s" is not supported' %
+                      (current_key))
+        return -1
+    current_cstring = ESMON_CONFIG_STRINGS[current_key]
+    if current_cstring.ecs_type != ESMON_CONFIG_CSTR_LIST:
+        console_error('illegal configuration: option "%s" should not be a '
+                      'list' % (current_key))
+        return -1
+
+    current_cstring.ecs_item_add(current_config)
+    return 0
+
+ESMON_CONFIG_COMMNADS[ESMON_CONFIG_COMMNAD_ADD] = \
+    EsmonConfigCommand(ESMON_CONFIG_COMMNAD_ADD, esmon_command_add)
+
+
+def esmon_command_cd(arg_string):
+    """
+    Print the config in the current directory
+    """
+    # pylint: disable=global-statement
+    ret = 0
+    global ESMON_CONFIG_WALK_STACK
+    length = len(ESMON_CONFIG_WALK_STACK)
+    assert length > 0
+    current = ESMON_CONFIG_WALK_STACK[-1]
+    current_config = current.ewe_config
+
+    if arg_string == "":
+        ESMON_CONFIG_WALK_STACK = [ESMON_CONFIG_ROOT]
+        return 0
+
+    args = arg_string.split()
+    arg = args[0]
+
+    if arg == "..":
+        if length == 1:
+            return 0
+        else:
+            ESMON_CONFIG_WALK_STACK.pop()
+    elif (isinstance(current_config, dict) and
+          (arg in current_config)):
+        child_config = current_config[arg]
+        child = EsmonWalkEntry(arg, child_config)
+        ESMON_CONFIG_WALK_STACK.append(child)
+    elif isinstance(current_config, list):
+        ret = esmon_list_cd(current, arg)
+    elif str(current_config) == arg:
+        console_error('"%s" is not a directory' % arg)
+        ret = -1
+    else:
+        console_error('"%s" is not found' % arg)
+        ret = -1
+    return ret
+
+ESMON_CONFIG_COMMNADS[ESMON_CONFIG_COMMNAD_CD] = \
+    EsmonConfigCommand(ESMON_CONFIG_COMMNAD_CD, esmon_command_cd,
+                       need_child=True)
+
+
+def esmon_command_edit(arg_string):
+    """
+    Print the config in the current directory
+    """
+    # pylint: disable=unused-argument
+    length = len(ESMON_CONFIG_WALK_STACK)
+    assert length > 0
+    current = ESMON_CONFIG_WALK_STACK[-1]
+    current_config = current.ewe_config
+
+    if (isinstance(current_config, dict) or
+            isinstance(current_config, list)):
+        console_error('cannot edit "%s" directly, please edit its children '
+                      'instead' %
+                      current.ewe_key)
+        return -1
+    else:
+        return esmon_edit(current)
+    return 0
+
+ESMON_CONFIG_COMMNADS[ESMON_CONFIG_COMMNAD_EDIT] = \
+    EsmonConfigCommand(ESMON_CONFIG_COMMNAD_EDIT, esmon_command_edit)
+
+
+def esmon_command_help(arg_string):
+    # pylint: disable=unused-argument
+    """
+    Print the help string
+    """
+    print """Command action:
+   a         add a new item to current list
+   cd $dir   change the current directory to $dir
+   e         edit the current configuration
+   h         print this menu
+   ls [-r]   list config content under current directory
+   m         print the manual of this option
+   q         quit without saving changes
+   rm        remove the current item from parent
+   w         write config file to disk"""
+
+    return 0
+
+ESMON_CONFIG_COMMNADS[ESMON_CONFIG_COMMNAD_HELP] = \
+    EsmonConfigCommand(ESMON_CONFIG_COMMNAD_HELP, esmon_command_help)
+
+
+def esmon_command_ls(arg_string):
+    """
+    Print the config in the current directory
+    """
+    # pylint: disable=unused-argument
+    ret = 0
+    length = len(ESMON_CONFIG_WALK_STACK)
+    assert length > 0
+    current = ESMON_CONFIG_WALK_STACK[-1]
+    current_config = current.ewe_config
+
+    if arg_string == "":
+        if isinstance(current_config, dict):
+            for key in sorted(current_config):
+                value = current_config[key]
+                value_type = type(value)
+                if value_type is dict:
+                    print "%s: {...}" % key
+                elif value_type is list:
+                    print "%s: [...]" % key
+                else:
+                    print '%s: %s' % (key, value)
+        elif isinstance(current_config, list):
+            ret = esmon_list_ls(current)
+        else:
+            print current_config
+    elif arg_string == "-r":
+        if isinstance(current_config, int) or isinstance(current_config, str):
+            print current_config
+        else:
+            print yaml.dump(current_config, Dumper=EsmonYamlDumper,
+                            default_flow_style=False)
+    else:
+        console_error('unknown argument "%s" of command "%s"' %
+                      (arg_string, ESMON_CONFIG_COMMNAD_LS))
+    return ret
+
+ESMON_CONFIG_COMMNADS[ESMON_CONFIG_COMMNAD_LS] = \
+    EsmonConfigCommand(ESMON_CONFIG_COMMNAD_LS, esmon_command_ls)
+
+
+def esmon_command_manual(arg_string):
+    # pylint: disable=unused-argument
+    """
+    Print the help string of current option
+    """
+    # pylint: disable=unused-argument
+    length = len(ESMON_CONFIG_WALK_STACK)
+    assert length > 0
+    current = ESMON_CONFIG_WALK_STACK[-1]
+
+    if length == 1:
+        # ROOT
+        return esmon_command_help("")
+
+    parent = ESMON_CONFIG_WALK_STACK[-2]
+    parent_config = parent.ewe_config
+    parent_key = parent.ewe_key
+
+    if isinstance(parent_config, list):
+        if parent_key not in ESMON_CONFIG_STRINGS:
+            console_error('illegal configuration: option "%s" is not supported' %
+                          (parent_key))
+            return -1
+        parent_cstring = ESMON_CONFIG_STRINGS[parent_key]
+        print parent_cstring.ecs_item_helpinfo
+        return 0
+
+    key = current.ewe_key
+    if key not in ESMON_CONFIG_STRINGS:
+        console_error('illegal configuration: option "%s" is not supported' %
+                      (key))
+        return -1
+
+    cstring = ESMON_CONFIG_STRINGS[key]
+
+    print cstring.ecs_help_info
+    return 0
+
+ESMON_CONFIG_COMMNADS[ESMON_CONFIG_COMMNAD_MANUAL] = \
+    EsmonConfigCommand(ESMON_CONFIG_COMMNAD_MANUAL, esmon_command_manual)
+
+
+def esmon_command_quit(arg_string):
+    """
+    Quit this program
+    """
+    # pylint: disable=unused-argument,global-statement
+    global ESMON_CONFIG_RUNNING
+
+    config_string = esmon_config_string()
+    if arg_string != "-f" and ESMON_SAVED_CONFIG_STRING != config_string:
+        console_error("no write since last change (add -f to override)")
+        return -1
+    ESMON_CONFIG_RUNNING = False
+    return 0
+
+ESMON_CONFIG_COMMNADS[ESMON_CONFIG_COMMNAD_QUIT] = \
+    EsmonConfigCommand(ESMON_CONFIG_COMMNAD_QUIT, esmon_command_quit, arguments=["-f"])
+
+
+def esmon_command_remove(arg_string):
+    """
+    REMOVE the current item
+    """
+    # pylint: disable=unused-argument
+    length = len(ESMON_CONFIG_WALK_STACK)
+    assert length > 0
+    current = ESMON_CONFIG_WALK_STACK[-1]
+    current_key = current.ewe_key
+
+    if length == 1:
+        console_error('can not remove ROOT"')
+        return -1
+
+    parent = ESMON_CONFIG_WALK_STACK[-2]
+    parent_config = parent.ewe_config
+    parent_key = parent.ewe_key
+
+    if not isinstance(parent_config, list):
+        console_error('cannot remove because parent of "%s" has "%s" type, '
+                      'not list' %
+                      (current_key, type(parent_config).__name__))
+        return -1
+
+    if parent_key not in ESMON_CONFIG_STRINGS:
+        console_error('illegal configuration: option "%s" is not supported' %
+                      (parent_key))
+        return -1
+
+    parent_cstring = ESMON_CONFIG_STRINGS[parent_key]
+    if parent_cstring.ecs_type != ESMON_CONFIG_CSTR_LIST:
+        console_error('illegal configuration: option "%s" should not be a '
+                      'list' % (parent_key))
+        return -1
+
+    child_index = None
+    i = 0
+    for child in parent_config:
+        if child[parent_cstring.ecs_item_key] == current_key:
+            child_index = i
+            break
+        i += 1
+
+    assert child_index is not None
+
+    del parent_config[child_index]
+    ESMON_CONFIG_WALK_STACK.pop()
+    return 0
+
+ESMON_CONFIG_COMMNADS[ESMON_CONFIG_COMMNAD_REMOVE] = \
+    EsmonConfigCommand(ESMON_CONFIG_COMMNAD_REMOVE, esmon_command_remove)
+
+
+def esmon_command_write(arg_string):
+    """
+    Write the config into file
+    """
+    # pylint: disable=unused-argument,global-statement
+    global ESMON_SAVED_CONFIG_STRING
+    with open(CONFIG_FPATH, 'w') as yaml_file:
+        config_string = esmon_config_string()
+        yaml_file.write(config_string)
+        ESMON_SAVED_CONFIG_STRING = config_string
+    return 0
+
+ESMON_CONFIG_COMMNADS[ESMON_CONFIG_COMMNAD_WRITE] = \
+    EsmonConfigCommand(ESMON_CONFIG_COMMNAD_WRITE, esmon_command_write)
 
 ESMON_CONFIG_ROOT = None
 ESMON_CONFIG_WALK_STACK = []
@@ -345,12 +653,13 @@ the host. If the default SSH identity file works, this option can be set to\n\""
                       allow_none=True)
 
 ESMON_CONFIG_OPTIONS = {ESMON_CONFIG_COMMNAD_ADD: [],
-                        ESMON_CONFIG_COMMNAD_DELETE: [],
                         ESMON_CONFIG_COMMNAD_CD: [],
                         ESMON_CONFIG_COMMNAD_EDIT: [],
                         ESMON_CONFIG_COMMNAD_HELP: [],
                         ESMON_CONFIG_COMMNAD_LS: ["-r"],
-                        ESMON_CONFIG_COMMNAD_QUIT: ["-f"]}
+                        ESMON_CONFIG_COMMNAD_QUIT: ["-f"],
+                        ESMON_CONFIG_COMMNAD_REMOVE: [],
+                        ESMON_CONFIG_COMMNAD_WRITE: []}
 
 ESMON_CONFIG_CANDIDATES = []
 ESMON_CONFIG_RUNNING = True
@@ -377,7 +686,7 @@ def console_error(message):
     print "error: %s" % message
 
 
-def command_needs_subdir(command):
+def command_needs_child(command):
     """
     If command needs an argument of subdir, return Ture
     """
@@ -386,12 +695,12 @@ def command_needs_subdir(command):
     return False
 
 
-def esmon_list_subdirs(current):
+def esmon_list_children(current):
     """
-    Return a list of the subdirs
+    Return a list of the children
     current: the current walk entry
     """
-    subdirs = []
+    children = []
     current_config = current.ewe_config
     id_key = esmon_list_item_key(current)
     if id_key is None:
@@ -406,31 +715,31 @@ def esmon_list_subdirs(current):
                                      default_flow_style=False)))
             return None
 
-        subdirs.append(child_config[id_key])
-    return subdirs
+        children.append(child_config[id_key])
+    return children
 
 
-def esmon_subdirs():
+def esmon_children():
     """
-    Return the names/IDs of subdirs
+    Return the names/IDs of children
     """
     # pylint: disable=global-statement,unused-variable
-    subdirs = []
+    children = []
     length = len(ESMON_CONFIG_WALK_STACK)
     assert length > 0
     current = ESMON_CONFIG_WALK_STACK[-1]
     current_config = current.ewe_config
 
     if isinstance(current_config, dict):
-        subdirs = []
+        children = []
         for key, value in current_config.iteritems():
-            subdirs.append(key)
+            children.append(key)
     elif isinstance(current_config, list):
-        subdirs = esmon_list_subdirs(current)
+        children = esmon_list_children(current)
     else:
-        subdirs = []
+        children = []
 
-    return subdirs
+    return children
 
 
 def esmon_completer(text, state):
@@ -450,19 +759,22 @@ def esmon_completer(text, state):
         being_completed = origline[begin:end]
         words = origline.split()
         if not words:
-            ESMON_CONFIG_CANDIDATES = sorted(ESMON_CONFIG_OPTIONS.keys())
+            ESMON_CONFIG_CANDIDATES = sorted(ESMON_CONFIG_COMMNADS.keys())
         else:
             try:
                 if begin == 0:
                     # first word
-                    candidates = ESMON_CONFIG_OPTIONS.keys()
+                    candidates = ESMON_CONFIG_COMMNADS.keys()
                 else:
                     # later word
                     first = words[0]
-                    candidates = list(ESMON_CONFIG_OPTIONS[first])
-                    needs_subdir = command_needs_subdir(first)
-                    if needs_subdir:
-                        subdirs = esmon_subdirs()
+                    config_command = ESMON_CONFIG_COMMNADS[first]
+                    if config_command.ecc_arguments is not None:
+                        candidates = list(config_command.ecc_arguments)
+                    else:
+                        candidates = []
+                    if config_command.ecc_need_child:
+                        subdirs = esmon_children()
                         if subdirs is not None:
                             candidates += subdirs
 
@@ -500,64 +812,6 @@ def esmon_input_fini():
     Stop the input completer
     """
     readline.set_completer(None)
-
-
-def esmon_command_help(arg_string):
-    # pylint: disable=unused-argument
-    """
-    Print the help string
-    """
-    print """Command action:
-   a         add a new item to current list
-   cd $dir   change the current directory to $dir
-   d         delete the current item from parent
-   e         edit the current configuration
-   h         print this menu
-   ls [-r]   list config content under current directory
-   m         print the manual of this option
-   q         quit without saving changes
-   w         write config file to disk"""
-
-    return 0
-
-
-def esmon_command_manual(arg_string):
-    # pylint: disable=unused-argument
-    """
-    Print the help string of current option
-    """
-    # pylint: disable=unused-argument
-    length = len(ESMON_CONFIG_WALK_STACK)
-    assert length > 0
-    current = ESMON_CONFIG_WALK_STACK[-1]
-
-    if length == 1:
-        # ROOT
-        return esmon_command_help("")
-
-    parent = ESMON_CONFIG_WALK_STACK[-2]
-    parent_config = parent.ewe_config
-    parent_key = parent.ewe_key
-
-    if isinstance(parent_config, list):
-        if parent_key not in ESMON_CONFIG_STRINGS:
-            console_error('illegal configuration: option "%s" is not supported' %
-                          (parent_key))
-            return -1
-        parent_cstring = ESMON_CONFIG_STRINGS[parent_key]
-        print parent_cstring.ecs_item_helpinfo
-        return 0
-
-    key = current.ewe_key
-    if key not in ESMON_CONFIG_STRINGS:
-        console_error('illegal configuration: option "%s" is not supported' %
-                      (key))
-        return -1
-
-    cstring = ESMON_CONFIG_STRINGS[key]
-
-    print cstring.ecs_help_info
-    return 0
 
 
 def esmon_pwd():
@@ -665,99 +919,6 @@ def esmon_list_cd(current, arg):
     ESMON_CONFIG_WALK_STACK.append(child)
 
     return 0
-
-
-def esmon_command_ls(arg_string):
-    """
-    Print the config in the current directory
-    """
-    # pylint: disable=unused-argument
-    ret = 0
-    length = len(ESMON_CONFIG_WALK_STACK)
-    assert length > 0
-    current = ESMON_CONFIG_WALK_STACK[-1]
-    current_config = current.ewe_config
-
-    if arg_string == "":
-        if isinstance(current_config, dict):
-            for key in sorted(current_config):
-                value = current_config[key]
-                value_type = type(value)
-                if value_type is dict:
-                    print "%s: {...}" % key
-                elif value_type is list:
-                    print "%s: [...]" % key
-                else:
-                    print '%s: %s' % (key, value)
-        elif isinstance(current_config, list):
-            ret = esmon_list_ls(current)
-        else:
-            print current_config
-    elif arg_string == "-r":
-        if isinstance(current_config, int) or isinstance(current_config, str):
-            print current_config
-        else:
-            print yaml.dump(current_config, Dumper=EsmonYamlDumper,
-                            default_flow_style=False)
-    else:
-        console_error('unknown argument "%s" of command "%s"' %
-                      (arg_string, ESMON_CONFIG_COMMNAD_LS))
-    return ret
-
-
-def esmon_command_quit(arg_string):
-    """
-    Quit this program
-    """
-    # pylint: disable=unused-argument,global-statement
-    global ESMON_CONFIG_RUNNING
-
-    config_string = esmon_config_string()
-    if arg_string != "-f" and ESMON_SAVED_CONFIG_STRING != config_string:
-        console_error("no write since last change (add -f to override)")
-        return -1
-    ESMON_CONFIG_RUNNING = False
-    return 0
-
-
-def esmon_command_cd(arg_string):
-    """
-    Print the config in the current directory
-    """
-    # pylint: disable=global-statement
-    ret = 0
-    global ESMON_CONFIG_WALK_STACK
-    length = len(ESMON_CONFIG_WALK_STACK)
-    assert length > 0
-    current = ESMON_CONFIG_WALK_STACK[-1]
-    current_config = current.ewe_config
-
-    if arg_string == "":
-        ESMON_CONFIG_WALK_STACK = [ESMON_CONFIG_ROOT]
-        return 0
-
-    args = arg_string.split()
-    arg = args[0]
-
-    if arg == "..":
-        if length == 1:
-            return 0
-        else:
-            ESMON_CONFIG_WALK_STACK.pop()
-    elif (isinstance(current_config, dict) and
-          (arg in current_config)):
-        child_config = current_config[arg]
-        child = EsmonWalkEntry(arg, child_config)
-        ESMON_CONFIG_WALK_STACK.append(child)
-    elif isinstance(current_config, list):
-        ret = esmon_list_cd(current, arg)
-    elif str(current_config) == arg:
-        console_error('"%s" is not a directory' % arg)
-        ret = -1
-    else:
-        console_error('"%s" is not found' % arg)
-        ret = -1
-    return ret
 
 
 def esmon_edit(current):
@@ -896,27 +1057,6 @@ def esmon_edit_loop(default, cstring):
     return value
 
 
-def esmon_command_edit(arg_string):
-    """
-    Print the config in the current directory
-    """
-    # pylint: disable=unused-argument
-    length = len(ESMON_CONFIG_WALK_STACK)
-    assert length > 0
-    current = ESMON_CONFIG_WALK_STACK[-1]
-    current_config = current.ewe_config
-
-    if (isinstance(current_config, dict) or
-            isinstance(current_config, list)):
-        console_error('cannot edit "%s" directly, please edit its children '
-                      'instead' %
-                      current.ewe_key)
-        return -1
-    else:
-        return esmon_edit(current)
-    return 0
-
-
 def esmon_config_string():
     """
     Return the current configuration string
@@ -942,114 +1082,11 @@ def esmon_config_string():
     return config_string
 
 
-def esmon_command_write(arg_string):
-    """
-    Write the config into file
-    """
-    # pylint: disable=unused-argument,global-statement
-    global ESMON_SAVED_CONFIG_STRING
-    with open(CONFIG_FPATH, 'w') as yaml_file:
-        config_string = esmon_config_string()
-        yaml_file.write(config_string)
-        ESMON_SAVED_CONFIG_STRING = config_string
-    return 0
-
-
-def esmon_command_add(arg_string):
-    """
-    Add an intem to the current list
-    """
-    # pylint: disable=unused-argument
-    length = len(ESMON_CONFIG_WALK_STACK)
-    assert length > 0
-    current = ESMON_CONFIG_WALK_STACK[-1]
-    current_config = current.ewe_config
-    current_key = current.ewe_key
-
-    if not isinstance(current_config, list):
-        console_error('an item can only be added to a list, not to "%s" with '
-                      'type "%s"' %
-                      (current_key, type(current_config).__name__))
-        return -1
-
-    if current_key not in ESMON_CONFIG_STRINGS:
-        console_error('illegal configuration: option "%s" is not supported' %
-                      (current_key))
-        return -1
-    current_cstring = ESMON_CONFIG_STRINGS[current_key]
-    if current_cstring.ecs_type != ESMON_CONFIG_CSTR_LIST:
-        console_error('illegal configuration: option "%s" should not be a '
-                      'list' % (current_key))
-        return -1
-
-    current_cstring.ecs_item_add(current_config)
-    return 0
-
-
-def esmon_command_delete(arg_string):
-    """
-    Delete the current item
-    """
-    # pylint: disable=unused-argument
-    length = len(ESMON_CONFIG_WALK_STACK)
-    assert length > 0
-    current = ESMON_CONFIG_WALK_STACK[-1]
-    current_key = current.ewe_key
-
-    if length == 1:
-        console_error('can not delete ROOT"')
-        return -1
-
-    parent = ESMON_CONFIG_WALK_STACK[-2]
-    parent_config = parent.ewe_config
-    parent_key = parent.ewe_key
-
-    if not isinstance(parent_config, list):
-        console_error('cannot delete because parent of "%s" has "%s" type, '
-                      'not list' %
-                      (current_key, type(parent_config).__name__))
-        return -1
-
-    if parent_key not in ESMON_CONFIG_STRINGS:
-        console_error('illegal configuration: option "%s" is not supported' %
-                      (parent_key))
-        return -1
-
-    parent_cstring = ESMON_CONFIG_STRINGS[parent_key]
-    if parent_cstring.ecs_type != ESMON_CONFIG_CSTR_LIST:
-        console_error('illegal configuration: option "%s" should not be a '
-                      'list' % (parent_key))
-        return -1
-
-    child_index = None
-    i = 0
-    for child in parent_config:
-        if child[parent_cstring.ecs_item_key] == current_key:
-            child_index = i
-            break
-        i += 1
-
-    assert child_index is not None
-
-    del parent_config[child_index]
-    ESMON_CONFIG_WALK_STACK.pop()
-    return 0
-
-
 def esmon_command(cmd_line):
     """
     Run a command in the console
     """
     # pylint: disable=broad-except
-    functions = {ESMON_CONFIG_COMMNAD_ADD: esmon_command_add,
-                 ESMON_CONFIG_COMMNAD_CD: esmon_command_cd,
-                 ESMON_CONFIG_COMMNAD_DELETE: esmon_command_delete,
-                 ESMON_CONFIG_COMMNAD_EDIT: esmon_command_edit,
-                 ESMON_CONFIG_COMMNAD_HELP: esmon_command_help,
-                 ESMON_CONFIG_COMMNAD_LS: esmon_command_ls,
-                 ESMON_CONFIG_COMMNAD_MANUAL: esmon_command_manual,
-                 ESMON_CONFIG_COMMNAD_QUIT: esmon_command_quit,
-                 ESMON_CONFIG_COMMNAD_WRITE: esmon_command_write}
     if ' ' in cmd_line:
         command, arg_string = cmd_line.split(' ', 1)
     else:
@@ -1058,22 +1095,20 @@ def esmon_command(cmd_line):
 
     arg_string = arg_string.strip()
 
-    try:
-        func = functions[command]
-    except (KeyError, IndexError), err:
-        func = None
-
-    # Run system command
-    if func is not None:
-        try:
-            ret = func(arg_string)
-        except Exception, err:
-            console_error('failed to run command "%s", exception: %s, %s' %
-                          (cmd_line, err, traceback.format_exc()))
-            return -1
-    else:
+    if command not in ESMON_CONFIG_COMMNADS:
         console_error('command "%s" is not found' % command)
-        ret = -1
+        return -1
+
+    config_command = ESMON_CONFIG_COMMNADS[command]
+
+    ret = -1
+    try:
+        ret = config_command.ecc_function(arg_string)
+    except Exception, err:
+        console_error('failed to run command "%s", exception: %s, %s' %
+                      (cmd_line, err, traceback.format_exc()))
+        return -1
+
     return ret
 
 
