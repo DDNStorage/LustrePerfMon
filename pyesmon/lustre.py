@@ -17,6 +17,11 @@ EPEL_RPM_RHEL6_RPM = ("http://download.fedoraproject.org/pub/epel/6/x86_64/"
 # The directory path that has Lustre test script
 LUSTRE_TEST_SCRIPT_DIR = "/usr/lib64/lustre/tests"
 
+ZFS = "zfs"
+LDISKFS = "ldiskfs"
+
+LUSTRE_BACKEND_FILESYSTEMS = [LDISKFS, ZFS]
+
 
 def lustre_string2index(index_string):
     """
@@ -202,10 +207,10 @@ class LustreMDT(object):
     """
     Lustre MDT service
     """
-    # pylint: disable=too-few-public-methods
+    # pylint: disable=too-few-public-methods,too-many-instance-attributes
     # index: 0, 1, etc.
     def __init__(self, lustre_fs, index, host, device, mnt,
-                 is_mgs=False):
+                 is_mgs=False, backfs_type=LDISKFS):
         # pylint: disable=too-many-arguments
         self.lmdt_lustre_fs = lustre_fs
         self.lmdt_index = index
@@ -213,6 +218,14 @@ class LustreMDT(object):
         self.lmdt_mnt = mnt
         self.lmdt_device = device
         self.lmdt_is_mgs = is_mgs
+        self.lmdt_backfs_type = backfs_type
+        if backfs_type == ZFS:
+            self.lmdt_zfs_pool = "pool_%s_mdt_%s" % (lustre_fs.lf_fsname, index)
+            self.lmdt_zfs_fsname = "fs_mdt_%s" % index
+        else:
+            self.lmdt_zfs_pool = None
+            self.lmdt_zfs_fsname = None
+
         ret, index_string = lustre_mdt_index2string(index)
         if ret:
             reason = ("invalid MDT index [%s]" % (index))
@@ -247,8 +260,26 @@ class LustreMDT(object):
 
         if self.lmdt_is_mgs:
             command += " --mgs"
-        command += " " + self.lmdt_device
 
+        if self.lmdt_backfs_type == ZFS:
+            command += (" --backfstype zfs %s/%s %s" %
+                        (self.lmdt_zfs_pool,
+                         self.lmdt_zfs_fsname,
+                         self.lmdt_device))
+
+            retval = self.lmdt_host.sh_run(command)
+            if retval.cr_exit_status:
+                logging.debug("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              self.lmdt_host.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
+                return -1
+            return 0
+
+        command += " " + self.lmdt_device
         retval = self.lmdt_host.sh_run(command)
         if retval.cr_exit_status:
             logging.debug("failed to run command [%s] on host [%s], "
@@ -265,6 +296,22 @@ class LustreMDT(object):
         """
         Mount this MDT
         """
+        if self.lmdt_backfs_type == ZFS:
+            command = ("mkdir -p %s && mount -t lustre %s/%s %s" %
+                       (self.lmdt_mnt, self.lmdt_zfs_pool,
+                        self.lmdt_zfs_fsname, self.lmdt_mnt))
+            retval = self.lmdt_host.sh_run(command)
+            if retval.cr_exit_status:
+                logging.debug("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              self.lmdt_host.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
+                return -1
+            return 0
+
         command = ("mkdir -p %s && mount -t lustre %s %s" %
                    (self.lmdt_mnt, self.lmdt_device, self.lmdt_mnt))
         retval = self.lmdt_host.sh_run(command)
@@ -301,15 +348,24 @@ class LustreOST(object):
     """
     Lustre OST service
     """
-    # pylint: disable=too-few-public-methods
+    # pylint: disable=too-few-public-methods,too-many-instance-attributes
     # index: 0, 1, etc.
-    def __init__(self, lustre_fs, index, host, device, mnt):
+    def __init__(self, lustre_fs, index, host, device, mnt,
+                 backfs_type=LDISKFS):
         # pylint: disable=too-many-arguments
         self.lost_lustre_fs = lustre_fs
         self.lost_index = index
         self.lost_host = host
         self.lost_device = device
         self.lost_mnt = mnt
+        self.lost_backfs_type = backfs_type
+        if self.lost_backfs_type == ZFS:
+            self.lost_zfs_pool = "pool_%s_ost_%s" % (lustre_fs.lf_fsname, index)
+            self.lost_zfs_fsname = "fs_ost_%s" % index
+        else:
+            self.lost_zfs_pool = None
+            self.lost_zfs_fsname = None
+
         ret, index_string = lustre_ost_index2string(index)
         if ret:
             reason = ("invalid OST index [%s]" % (index))
@@ -336,6 +392,27 @@ class LustreOST(object):
         """
         Format this OST
         """
+        if self.lost_backfs_type == ZFS:
+            command = ("mkfs.lustre --fsname %s --backfstype zfs --ost "
+                       "--reformat --mgsnode=%s --index=%s %s/%s %s" %
+                       (self.lost_lustre_fs.lf_fsname,
+                        self.lost_lustre_fs.lf_mgs_nid,
+                        self.lost_index,
+                        self.lost_zfs_pool,
+                        self.lost_zfs_fsname,
+                        self.lost_device))
+
+            retval = self.lost_host.sh_run(command)
+            if retval.cr_exit_status:
+                logging.debug("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              self.lost_host.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
+                return -1
+            return 0
         command = ("mkfs.lustre --fsname %s --ost "
                    "--reformat --mgsnode=%s --index=%s %s" %
                    (self.lost_lustre_fs.lf_fsname,
@@ -359,6 +436,22 @@ class LustreOST(object):
         """
         Mount this OST
         """
+        if self.lost_backfs_type == ZFS:
+            command = ("mkdir -p %s && mount -t lustre %s/%s %s" %
+                       (self.lost_mnt, self.lost_zfs_pool,
+                        self.lost_zfs_fsname, self.lost_mnt))
+            retval = self.lost_host.sh_run(command)
+            if retval.cr_exit_status:
+                logging.debug("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              self.lost_host.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
+                return -1
+            return 0
+
         command = ("mkdir -p %s && mount -t lustre %s %s" %
                    (self.lost_mnt, self.lost_device, self.lost_mnt))
         retval = self.lost_host.sh_run(command)
@@ -834,7 +927,11 @@ class LustreServerHost(ssh_host.SSHHost):
         """
         Run e2label on a lustre device
         """
-        command = ("e2label %s" % device)
+        if device[0] == '/':
+            # Likely Ext4 device
+            command = ("e2label %s" % device)
+        else:
+            command = ("zfs get -o value -H lustre:svname %s" % device)
         retval = self.sh_run(command)
         if retval.cr_exit_status != 0:
             logging.error("failed to run command [%s] on host [%s], "

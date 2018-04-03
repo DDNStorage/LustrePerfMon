@@ -313,6 +313,13 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
                               esmon_common.CSTR_NID, config_fpath)
                 return -1
 
+            backfs_type = esmon_common.config_value(mdt_config,
+                                                    esmon_common.CSTR_BACKFS_TYPE)
+            if backfs_type is None:
+                logging.debug("no [%s] is configured, use default value [%s]",
+                              esmon_common.CSTR_BACKFS_TYPE, lustre.LDISKFS)
+                backfs_type = lustre.LDISKFS
+
             is_mgs = esmon_common.config_value(mdt_config, esmon_common.CSTR_IS_MGS)
             if is_mgs is None:
                 logging.debug("no [%s] is configured, use default value [False]",
@@ -338,7 +345,7 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
 
             mnt = "/mnt/%s_mdt_%s" % (fsname, mdt_index)
             lustre.LustreMDT(lustre_fs, mdt_index, lustre_host, device, mnt,
-                             is_mgs=is_mgs)
+                             is_mgs=is_mgs, backfs_type=backfs_type)
 
         if lustre_fs.lf_mgs_nid is None:
             logging.error("None MDT is configured with [%s], "
@@ -372,6 +379,13 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
                               host_id, config_fpath)
                 return -1
 
+            backfs_type = esmon_common.config_value(ost_config,
+                                                    esmon_common.CSTR_BACKFS_TYPE)
+            if backfs_type is None:
+                logging.debug("no [%s] is configured, use default value [%s]",
+                              esmon_common.CSTR_BACKFS_TYPE, lustre.LDISKFS)
+                backfs_type = lustre.LDISKFS
+
             device = esmon_common.config_value(ost_config, esmon_common.CSTR_DEVICE)
             if device is None:
                 logging.error("no [%s] is configured, please correct file [%s]",
@@ -388,7 +402,8 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
                 lustre_hosts[host_id] = lustre_host
 
             mnt = "/mnt/%s_ost_%s" % (fsname, ost_index)
-            lustre.LustreOST(lustre_fs, ost_index, lustre_host, device, mnt)
+            lustre.LustreOST(lustre_fs, ost_index, lustre_host, device, mnt,
+                             backfs_type=backfs_type)
 
         # Parse client configs
         client_configs = esmon_common.config_value(lustre_config,
@@ -710,9 +725,17 @@ def esmon_do_test(workspace, config, config_fpath):
     with open(install_config_fpath, "wt") as install_config_file:
         install_config_file.write(install_config_string)
 
-    ret = esmon_test_install(workspace, install_server, host_iso_path)
-    if ret:
-        return -1
+    skip_install_test = esmon_common.config_value(config,
+                                                  esmon_common.CSTR_SKIP_INSTALL_TEST)
+    if skip_install_test is None:
+        logging.debug("no [%s] is configured, use [false] as default value",
+                      esmon_common.CSTR_SKIP_INSTALL_TEST)
+        skip_install_test = False
+
+    if not skip_install_test:
+        ret = esmon_test_install(workspace, install_server, host_iso_path)
+        if ret:
+            return -1
 
     ret = esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
                             install_config_fpath)

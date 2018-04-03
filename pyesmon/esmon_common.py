@@ -47,6 +47,10 @@ CSTR_SFAS = "sfas"
 CSTR_SSH_HOSTS = "ssh_hosts"
 CSTR_SSH_IDENTITY_FILE = "ssh_identity_file"
 
+# Config used by esmon_test.conf
+CSTR_BACKFS_TYPE = "backfs_type"
+CSTR_SKIP_INSTALL_TEST = "skip_install_test"
+
 CSTR_LUSTRES = "lustres"
 CSTR_FSNAME = "fsname"
 CSTR_MDTS = "mdts"

@@ -18,19 +18,22 @@ ES2_HAS_USED_INODE_SPACE_SUPPORT = False
 # ES4 will add support for used inode/space in the future
 ES4_HAS_USED_INODE_SPACE_SUPPORT = False
 
+XML_FNAME_ES2 = "lustre-ieel-2.5_definition.xml"
+XML_FNAME_ES3 = "lustre-ieel-2.7_definition.xml"
+
 
 def lustre_version_xml_fname(lustre_version):
     """
     Return the XML file of this Lustre version
     """
     if lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES2:
-        xml_fname = "lustre-ieel-2.5_definition.xml"
+        xml_fname = XML_FNAME_ES2
     elif lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3:
-        xml_fname = "lustre-ieel-2.7_definition.xml"
+        xml_fname = XML_FNAME_ES3
     elif lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES4:
-        xml_fname = "lustre-ieel-2.7_definition.xml"
+        xml_fname = XML_FNAME_ES3
     elif lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_2_7:
-        xml_fname = "lustre-ieel-2.7_definition.xml"
+        xml_fname = XML_FNAME_ES3
     else:
         logging.error("unsupported Lustre version of [%s]",
                       lustre_version.lv_name)
@@ -38,11 +41,21 @@ def lustre_version_xml_fname(lustre_version):
     return xml_fname
 
 
+def support_zfs(xml_fname):
+    """
+    Whether this XML file supports zfs
+    """
+    if xml_fname == XML_FNAME_ES3:
+        return True
+    return False
+
+
 def support_acctgroup_acctproject(lustre_version):
     """
     Whether this Lustre version supports acctgroup and acctproject
     """
     if (lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3 or
+            lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_2_7 or
             lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES4):
         return True
     return False
@@ -311,6 +324,9 @@ PostCacheChain "PostCache"
         xml_fname = lustre_version_xml_fname(lustre_version)
         if xml_fname is None:
             return -1
+
+        enable_zfs = support_zfs(xml_fname)
+
         config = """<Plugin "filedata">
     <Common>
         DefinitionFile "/etc/"""
@@ -357,6 +373,11 @@ PostCacheChain "PostCache"
     <Item>
         Type "ost_acctuser"
     </Item>"""
+            if enable_zfs:
+                config += """
+    <Item>
+        Type "zfs_ost_acctuser"
+    </Item>"""
             if support_acctgroup_acctproject(lustre_version):
                 config += """
     <Item>
@@ -364,6 +385,14 @@ PostCacheChain "PostCache"
     </Item>
     <Item>
         Type "ost_acctproject"
+    </Item>"""
+                if enable_zfs:
+                    config += """
+    <Item>
+        Type "zfs_ost_acctgroup"
+    </Item>
+    <Item>
+        Type "zfs_ost_acctproject"
     </Item>
 """
             config += """
@@ -581,6 +610,11 @@ PostCacheChain "PostCache"
     <Item>
         Type "mdt_acctuser"
     </Item>"""
+            if enable_zfs:
+                config += """
+    <Item>
+        Type "zfs_mdt_acctuser"
+    </Item>"""
             if support_acctgroup_acctproject(lustre_version):
                 config += """
     <Item>
@@ -588,6 +622,14 @@ PostCacheChain "PostCache"
     </Item>
     <Item>
         Type "mdt_acctproject"
+    </Item>"""
+                if enable_zfs:
+                    config += """
+    <Item>
+        Type "zfs_mdt_acctgroup"
+    </Item>
+    <Item>
+        Type "zfs_mdt_acctproject"
     </Item>"""
             config += """
     <Item>

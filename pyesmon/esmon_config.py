@@ -66,11 +66,11 @@ def esmon_command_add(arg_string):
                       (current_key, type(current_config).__name__))
         return -1
 
-    if current_key not in ESMON_CONFIG_STRINGS:
+    if current_key not in ESMON_INSTALL_CSTRS:
         console_error('illegal configuration: option "%s" is not supported' %
                       (current_key))
         return -1
-    current_cstring = ESMON_CONFIG_STRINGS[current_key]
+    current_cstring = ESMON_INSTALL_CSTRS[current_key]
     if current_cstring.ecs_type != ESMON_CONFIG_CSTR_LIST:
         console_error('illegal configuration: option "%s" should not be a '
                       'list' % (current_key))
@@ -233,21 +233,21 @@ def esmon_command_manual(arg_string):
     parent_key = parent.ewe_key
 
     if isinstance(parent_config, list):
-        if parent_key not in ESMON_CONFIG_STRINGS:
+        if parent_key not in ESMON_INSTALL_CSTRS:
             console_error('illegal configuration: option "%s" is not supported' %
                           (parent_key))
             return -1
-        parent_cstring = ESMON_CONFIG_STRINGS[parent_key]
+        parent_cstring = ESMON_INSTALL_CSTRS[parent_key]
         print parent_cstring.ecs_item_helpinfo
         return 0
 
     key = current.ewe_key
-    if key not in ESMON_CONFIG_STRINGS:
+    if key not in ESMON_INSTALL_CSTRS:
         console_error('illegal configuration: option "%s" is not supported' %
                       (key))
         return -1
 
-    cstring = ESMON_CONFIG_STRINGS[key]
+    cstring = ESMON_INSTALL_CSTRS[key]
 
     print cstring.ecs_help_info
     return 0
@@ -297,7 +297,7 @@ def esmon_command_remove(arg_string):
                       (current_key, type(current_config).__name__))
         return -1
 
-    current_cstring = ESMON_CONFIG_STRINGS[current_key]
+    current_cstring = ESMON_INSTALL_CSTRS[current_key]
     if current_cstring.ecs_type != ESMON_CONFIG_CSTR_LIST:
         console_error('illegal configuration: option "%s" should not be a '
                       'list' % (current_key))
@@ -401,9 +401,9 @@ class EsmonConfigString(object):
             assert item_key is not None
 
 
-ESMON_CONFIG_STRINGS = {}
+ESMON_INSTALL_CSTRS = {}
 
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL] = \
     EsmonConfigString(esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL,
                       ESMON_CONFIG_CSTR_INT,
                       """This option determines the interval of continuous queries. ESMON uses
@@ -415,12 +415,12 @@ downsample the data and reduce performance impact, this value should be
 larger than "1".""",
                       start=1)
 
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_CONTROLLER0_HOST] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_CONTROLLER0_HOST] = \
     EsmonConfigString(esmon_common.CSTR_CONTROLLER0_HOST,
                       ESMON_CONFIG_CSTR_STRING,
                       """This option is the hostname/IP of the controller 0 of this SFA.""")
 
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_CONTROLLER1_HOST] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_CONTROLLER1_HOST] = \
     EsmonConfigString(esmon_common.CSTR_CONTROLLER1_HOST,
                       ESMON_CONFIG_CSTR_STRING,
                       """This option is the hostname/IP of the controller 1 of this SFA.""")
@@ -454,7 +454,7 @@ def esmon_agent_item_add(config_list):
                         esmon_common.CSTR_SFAS: []})
 
 INFO = "This group of options include the information of this ESMON agent"
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_CLIENT_HOSTS] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_CLIENT_HOSTS] = \
     EsmonConfigString(esmon_common.CSTR_CLIENT_HOSTS,
                       ESMON_CONFIG_CSTR_LIST,
                       """This list includes the information of the ESMON agents.""",
@@ -462,30 +462,30 @@ ESMON_CONFIG_STRINGS[esmon_common.CSTR_CLIENT_HOSTS] = \
                       item_add=esmon_agent_item_add,
                       item_key=esmon_common.CSTR_HOST_ID)
 
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_CLIENTS_REINSTALL] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_CLIENTS_REINSTALL] = \
     EsmonConfigString(esmon_common.CSTR_CLIENTS_REINSTALL,
                       ESMON_CONFIG_CSTR_BOOL,
                       """This option determines whether to reinstall ESMON agents or not.""")
 
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_COLLECT_INTERVAL] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_COLLECT_INTERVAL] = \
     EsmonConfigString(esmon_common.CSTR_COLLECT_INTERVAL,
                       ESMON_CONFIG_CSTR_INT,
                       """This option determines the interval seconds to collect datapoint.""",
                       start=1)
 
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_DROP_DATABASE] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_DROP_DATABASE] = \
     EsmonConfigString(esmon_common.CSTR_DROP_DATABASE,
                       ESMON_CONFIG_CSTR_BOOL,
                       """This option determines whether to drop existing ESMON database of Influxdb.
 Important: This option should ONLY be set to "True" if the data/metadata in
            ESMON database of Influxdb is not needed any more.""")
 
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_ENABLE_DISK] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_ENABLE_DISK] = \
     EsmonConfigString(esmon_common.CSTR_ENABLE_DISK,
                       ESMON_CONFIG_CSTR_BOOL,
                       """This option determines whether to collect disk metrics from this agent.""")
 
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_ERASE_INFLUXDB] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_ERASE_INFLUXDB] = \
     EsmonConfigString(esmon_common.CSTR_ERASE_INFLUXDB,
                       ESMON_CONFIG_CSTR_BOOL,
                       """This option determines whether to erase all data and metadata of Influxdb.
@@ -495,14 +495,14 @@ Important: This option should ONLY be set to "True" if the data/metadata of
            double check the influxdb_path option is properly configured before
            enabling this option.""")
 
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_LUSTRE_EXP_MDT] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_EXP_MDT] = \
     EsmonConfigString(esmon_common.CSTR_LUSTRE_EXP_MDT,
                       ESMON_CONFIG_CSTR_BOOL,
                       """This option determines whether ESMON agents collect exp_md_stats_* metrics
 from Lustre OST. If there are too many Lustre clients on the system, this
 option should be disabled to avoid performance issues.""")
 
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_LUSTRE_EXP_OST] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_EXP_OST] = \
     EsmonConfigString(esmon_common.CSTR_LUSTRE_EXP_OST,
                       ESMON_CONFIG_CSTR_BOOL,
                       """This option determines whether ESMON agents collect exp_ost_stats_[read|
@@ -512,24 +512,24 @@ the system, this option should be disabled to avoid performance issues.""")
 INFO = """This option is the unique name of this controller. This value will be used as
 the value of "fqdn" tag for metrics of this SFA. Thus, two SFAs shouldn't have
 the same name."""
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_NAME] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_NAME] = \
     EsmonConfigString(esmon_common.CSTR_NAME,
                       ESMON_CONFIG_CSTR_STRING,
                       INFO)
 
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_HOST_ID] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_HOST_ID] = \
     EsmonConfigString(esmon_common.CSTR_HOST_ID,
                       ESMON_CONFIG_CSTR_STRING,
                       """This option is the ID of the host. The ID of a host is a unique value to
 identify the host.""")
 
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_HOSTNAME] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_HOSTNAME] = \
     EsmonConfigString(esmon_common.CSTR_HOSTNAME,
                       ESMON_CONFIG_CSTR_STRING,
                       """This option is the hostname or IP of the host. SSH command will use this
 hostname/IP to login into the host""")
 
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_IME] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_IME] = \
     EsmonConfigString(esmon_common.CSTR_IME,
                       ESMON_CONFIG_CSTR_BOOL,
                       """This option determines whether to enable IME metrics collection on this
@@ -537,12 +537,12 @@ ESMON agent.""")
 
 INFO = """This option determines whether to enable Infiniband metrics collection on this
 ESMON agent."""
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_INFINIBAND] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_INFINIBAND] = \
     EsmonConfigString(esmon_common.CSTR_INFINIBAND,
                       ESMON_CONFIG_CSTR_BOOL,
                       INFO)
 
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_INFLUXDB_PATH] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_INFLUXDB_PATH] = \
     EsmonConfigString(esmon_common.CSTR_INFLUXDB_PATH,
                       ESMON_CONFIG_CSTR_PATH,
                       """This option is Influxdb directory path on ESMON server node.
@@ -550,12 +550,12 @@ Important: Please do not put any other files/directries under this directory of
            ESMON server node, because, with "erase_influxdb" option enabled,
            all of the files/directries under that directory will be removed.""")
 
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_ISO_PATH] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_ISO_PATH] = \
     EsmonConfigString(esmon_common.CSTR_ISO_PATH,
                       ESMON_CONFIG_CSTR_PATH,
                       """This option is the path of ESMON ISO.""")
 
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_LUSTRE_MDS] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_MDS] = \
     EsmonConfigString(esmon_common.CSTR_LUSTRE_MDS,
                       ESMON_CONFIG_CSTR_BOOL,
                       """This option determines whether to enable Lustre MDS metrics collection on
@@ -563,24 +563,24 @@ this ESMON agent.""")
 
 INFO = """This option determines whether to enable Lustre OSS metrics collection on this
 ESMON agent."""
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_LUSTRE_OSS] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_OSS] = \
     EsmonConfigString(esmon_common.CSTR_LUSTRE_OSS,
                       ESMON_CONFIG_CSTR_BOOL,
                       INFO)
 
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_REINSTALL] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_REINSTALL] = \
     EsmonConfigString(esmon_common.CSTR_REINSTALL,
                       ESMON_CONFIG_CSTR_BOOL,
                       """This option determines whether to reinstall the ESMON server.""")
 
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_LUSTRE_DEFAULT_VERSION] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_DEFAULT_VERSION] = \
     EsmonConfigString(esmon_common.CSTR_LUSTRE_DEFAULT_VERSION,
                       ESMON_CONFIG_CSTR_CONSTANT,
                       """This option determines the default Lustre version to use, if the Lustre
 RPMs installed on the ESMON client is not with the supported version.""",
                       constants=lustre.LUSTER_VERSION_NAMES)
 
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_SERVER_HOST] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_SERVER_HOST] = \
     EsmonConfigString(esmon_common.CSTR_SERVER_HOST,
                       ESMON_CONFIG_CSTR_DICT,
                       """This group of options includes the information about the ESMON server.""")
@@ -613,7 +613,7 @@ def esmon_sfa_item_add(config_list):
                         esmon_common.CSTR_CONTROLLER1_HOST: controller1})
 
 INFO = "This group of options include the information of this SFA on the ESMON agent"
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_SFAS] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_SFAS] = \
     EsmonConfigString(esmon_common.CSTR_SFAS,
                       ESMON_CONFIG_CSTR_LIST,
                       """This list includes the information of SFAs on this ESMON agent.""",
@@ -646,7 +646,7 @@ def esmon_ssh_host_item_add(config_list):
 
 
 INFO = """This is the information about how to login into this host using SSH connection."""
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_SSH_HOSTS] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_SSH_HOSTS] = \
     EsmonConfigString(esmon_common.CSTR_SSH_HOSTS,
                       ESMON_CONFIG_CSTR_LIST,
                       """This list includes the informations about how to login into the hosts using
@@ -655,13 +655,29 @@ SSH connections.""",
                       item_add=esmon_ssh_host_item_add,
                       item_key=esmon_common.CSTR_HOST_ID)
 
-ESMON_CONFIG_STRINGS[esmon_common.CSTR_SSH_IDENTITY_FILE] = \
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_SSH_IDENTITY_FILE] = \
     EsmonConfigString(esmon_common.CSTR_SSH_IDENTITY_FILE,
                       ESMON_CONFIG_CSTR_PATH,
                       """This option is the SSH key file used when using SSH command to login into
 the host. If the default SSH identity file works, this option can be set to\n\"""" +
                       esmon_common.ESMON_CONFIG_CSTR_NONE + '".',
                       allow_none=True)
+
+ESMON_TEST_CSTRS = ESMON_INSTALL_CSTRS.copy()
+
+ESMON_TEST_CSTRS[esmon_common.CSTR_BACKFS_TYPE] = \
+    EsmonConfigString(esmon_common.CSTR_BACKFS_TYPE,
+                      ESMON_CONFIG_CSTR_CONSTANT,
+                      """This option determines which backend file system to use for Lustre.""",
+                      constants=lustre.LUSTRE_BACKEND_FILESYSTEMS)
+
+ESMON_TEST_CSTRS[esmon_common.CSTR_SKIP_INSTALL_TEST] = \
+    EsmonConfigString(esmon_common.CSTR_SKIP_INSTALL_TEST,
+                      ESMON_CONFIG_CSTR_BOOL,
+                      """This option determines whether to skip ESMON install test or not. When
+this option is enabled, it is assumed that the ESMON has already been
+installed on the current system. If ESMON has not been installed properly, the
+following tests might fail.""")
 
 ESMON_CONFIG_CANDIDATES = []
 ESMON_CONFIG_RUNNING = True
@@ -840,12 +856,12 @@ def esmon_list_item_key(current):
     """
     current_key = current.ewe_key
 
-    if current_key not in ESMON_CONFIG_STRINGS:
+    if current_key not in ESMON_INSTALL_CSTRS:
         console_error('illegal configuration: option "%s" is not supported' %
                       (current_key))
         return None
 
-    current_cstring = ESMON_CONFIG_STRINGS[current_key]
+    current_cstring = ESMON_INSTALL_CSTRS[current_key]
     if current_cstring.ecs_type != ESMON_CONFIG_CSTR_LIST:
         console_error('illegal configuration: option "%s" should not be a '
                       'list' % (current_key))
@@ -952,12 +968,12 @@ def esmon_edit(current):
     parent = ESMON_CONFIG_WALK_STACK[-2]
     parent_config = parent.ewe_config
 
-    if key not in ESMON_CONFIG_STRINGS:
+    if key not in ESMON_INSTALL_CSTRS:
         console_error('illegal configuration: option "%s" is not supported' %
                       (key))
         return -1
 
-    cstring = ESMON_CONFIG_STRINGS[key]
+    cstring = ESMON_INSTALL_CSTRS[key]
     if cstring.ecs_type not in cstring_types:
         console_error('illegal configuration: the type of option "%s" is not '
                       '"%s", it might be "%s"' %
@@ -1074,8 +1090,8 @@ def esmon_config_string():
 # Configuration Guide:
 #
 """
-    for config_name in sorted(ESMON_CONFIG_STRINGS):
-        config = ESMON_CONFIG_STRINGS[config_name]
+    for config_name in sorted(ESMON_INSTALL_CSTRS):
+        config = ESMON_INSTALL_CSTRS[config_name]
         config_string += "# " + config_name + ":\n# "
         config_string += config.ecs_help_info.replace("\n", "\n# ")
         config_string += "\n#\n"
