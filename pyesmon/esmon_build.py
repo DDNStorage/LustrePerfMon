@@ -877,9 +877,9 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
         return -1
 
     server_rpms = {}
-    name = "grafana-4.6.3-1.x86_64.rpm"
+    name = "grafana-5.0.4-1.x86_64.rpm"
     url = ("https://s3-us-west-2.amazonaws.com/grafana-releases/release/"
-           "grafana-4.6.3-1.x86_64.rpm")
+           "grafana-5.0.4-1.x86_64.rpm")
     server_rpms[name] = url
 
     name = "influxdb-1.4.2.x86_64.rpm"
