@@ -454,16 +454,16 @@ def esmon_agent_item_add(config_list):
                         esmon_common.CSTR_SFAS: []})
 
 INFO = "This group of options include the information of this ESMON agent"
-ESMON_INSTALL_CSTRS[esmon_common.CSTR_CLIENT_HOSTS] = \
-    EsmonConfigString(esmon_common.CSTR_CLIENT_HOSTS,
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_AGENTS] = \
+    EsmonConfigString(esmon_common.CSTR_AGENTS,
                       ESMON_CONFIG_CSTR_LIST,
                       """This list includes the information of the ESMON agents.""",
                       item_helpinfo=INFO,
                       item_add=esmon_agent_item_add,
                       item_key=esmon_common.CSTR_HOST_ID)
 
-ESMON_INSTALL_CSTRS[esmon_common.CSTR_CLIENTS_REINSTALL] = \
-    EsmonConfigString(esmon_common.CSTR_CLIENTS_REINSTALL,
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_AGENTS_REINSTALL] = \
+    EsmonConfigString(esmon_common.CSTR_AGENTS_REINSTALL,
                       ESMON_CONFIG_CSTR_BOOL,
                       """This option determines whether to reinstall ESMON agents or not.""")
 
@@ -580,8 +580,8 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_DEFAULT_VERSION] = \
 RPMs installed on the ESMON client is not with the supported version.""",
                       constants=lustre.LUSTER_VERSION_NAMES)
 
-ESMON_INSTALL_CSTRS[esmon_common.CSTR_SERVER_HOST] = \
-    EsmonConfigString(esmon_common.CSTR_SERVER_HOST,
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_SERVER] = \
+    EsmonConfigString(esmon_common.CSTR_SERVER,
                       ESMON_CONFIG_CSTR_DICT,
                       """This group of options includes the information about the ESMON server.""")
 

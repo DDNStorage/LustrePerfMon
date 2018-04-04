@@ -1791,7 +1791,7 @@ def esmon_install_parse_config(workspace, config, config_fpath):
                                 host_id=host_id)
         hosts[host_id] = host
 
-    server_host_config = esmon_common.config_value(config, esmon_common.CSTR_SERVER_HOST)
+    server_host_config = esmon_common.config_value(config, esmon_common.CSTR_SERVER)
     if server_host_config is None:
         logging.error("can NOT find [server_host] in the config file [%s], "
                       "please correct it", config_fpath)
@@ -1861,11 +1861,11 @@ def esmon_install_parse_config(workspace, config, config_fpath):
                       "problem", esmon_server.es_host.sh_hostname)
         return -1, esmon_server, esmon_clients
 
-    client_host_configs = esmon_common.config_value(config, esmon_common.CSTR_CLIENT_HOSTS)
+    client_host_configs = esmon_common.config_value(config, esmon_common.CSTR_AGENTS)
     if client_host_configs is None:
         logging.error("can NOT find [%s] in the config file, "
                       "please correct file [%s]",
-                      esmon_common.CSTR_CLIENT_HOSTS, config_fpath)
+                      esmon_common.CSTR_AGENTS, config_fpath)
         return -1, esmon_server, esmon_clients
 
     for client_host_config in client_host_configs:
@@ -2004,13 +2004,13 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
         return -1
 
     clients_reinstall = esmon_common.config_value(config,
-                                                  esmon_common.CSTR_CLIENTS_REINSTALL)
+                                                  esmon_common.CSTR_AGENTS_REINSTALL)
     if clients_reinstall is None:
         logging.info("[%s] is not configured in file [%s], use True as default",
-                     esmon_common.CSTR_CLIENTS_REINSTALL, config_fpath)
+                     esmon_common.CSTR_AGENTS_REINSTALL, config_fpath)
         clients_reinstall = True
 
-    server_host_config = esmon_common.config_value(config, esmon_common.CSTR_SERVER_HOST)
+    server_host_config = esmon_common.config_value(config, esmon_common.CSTR_SERVER)
     if server_host_config is None:
         logging.error("can NOT find [server_host] in the config file [%s], "
                       "please correct it", config_fpath)
