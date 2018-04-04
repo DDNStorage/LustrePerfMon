@@ -16,7 +16,7 @@ COLLECTD_INTERVAL_TEST = 1
 # ES2 of version ddn18 added support for used inode/space in the future
 ES2_HAS_USED_INODE_SPACE_SUPPORT = False
 # ES4 will add support for used inode/space in the future
-ES4_HAS_USED_INODE_SPACE_SUPPORT = False
+ES4_HAS_USED_INODE_SPACE_SUPPORT = True
 
 XML_FNAME_ES2 = "lustre-ieel-2.5_definition.xml"
 XML_FNAME_ES3 = "lustre-ieel-2.7_definition.xml"
