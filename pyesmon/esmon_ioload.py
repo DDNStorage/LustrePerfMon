@@ -193,6 +193,15 @@ def esmon_io_loading(workspace, config, confpath):
                           "with ID [%s], please correct file [%s]",
                           host_id, confpath)
             return -1
+
+        local = esmon_common.config_value(host_config,
+                                          esmon_common.CSTR_LOCAL_HOST)
+        if local is None:
+            logging.debug("can NOT find [%s] in the config of SSH host "
+                          "with ID [%s], use [false] as default value",
+                          esmon_common.CSTR_LOCAL_HOST, host_id)
+            local = False
+
         mapping_dict = {esmon_common.ESMON_CONFIG_CSTR_NONE: None}
         ssh_identity_file = esmon_common.config_value(host_config,
                                                       esmon_common.CSTR_SSH_IDENTITY_FILE,
@@ -202,7 +211,7 @@ def esmon_io_loading(workspace, config, confpath):
             logging.error("multiple SSH hosts with the same ID [%s], please "
                           "correct file [%s]", host_id, confpath)
             return -1
-        host = ssh_host.SSHHost(hostname, ssh_identity_file)
+        host = ssh_host.SSHHost(hostname, ssh_identity_file, local=local)
         hosts[host_id] = host
 
     # Parse the Lustre client configuration.

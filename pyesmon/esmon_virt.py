@@ -840,19 +840,28 @@ def esmon_vm_install(workspace, config, config_fpath):
 
     hosts = {}
     for host_config in ssh_host_configs:
-        host_id = host_config["host_id"]
+        host_id = host_config[esmon_common.CSTR_HOST_ID]
         if host_id is None:
-            logging.error("can NOT find [host_id] in the config of a "
+            logging.error("can NOT find [%s] in the config of a "
                           "SSH host, please correct file [%s]",
-                          config_fpath)
+                          esmon_common.CSTR_HOST_ID, config_fpath)
             return -1
 
-        hostname = esmon_common.config_value(host_config, "hostname")
+        hostname = esmon_common.config_value(host_config,
+                                             esmon_common.CSTR_HOSTNAME)
         if hostname is None:
-            logging.error("can NOT find [hostname] in the config of SSH host "
+            logging.error("can NOT find [%s] in the config of SSH host "
                           "with ID [%s], please correct file [%s]",
-                          host_id, config_fpath)
+                          esmon_common.CSTR_HOSTNAME, host_id, config_fpath)
             return -1
+
+        local = esmon_common.config_value(host_config,
+                                          esmon_common.CSTR_LOCAL_HOST)
+        if local is None:
+            logging.debug("can NOT find [%s] in the config of SSH host "
+                          "with ID [%s], use [false] as default value",
+                          esmon_common.CSTR_LOCAL_HOST, host_id)
+            local = False
 
         mapping_dict = {esmon_common.ESMON_CONFIG_CSTR_NONE: None}
         ssh_identity_file = esmon_common.config_value(host_config,
@@ -863,7 +872,7 @@ def esmon_vm_install(workspace, config, config_fpath):
             logging.error("multiple SSH hosts with the same ID [%s], please "
                           "correct file [%s]", host_id, config_fpath)
             return -1
-        host = ssh_host.SSHHost(hostname, ssh_identity_file)
+        host = ssh_host.SSHHost(hostname, ssh_identity_file, local=local)
         hosts[host_id] = host
 
     template_configs = esmon_common.config_value(config, esmon_common.CSTR_TEMPLATES)

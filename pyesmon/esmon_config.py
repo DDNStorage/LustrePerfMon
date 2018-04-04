@@ -555,6 +555,11 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_ISO_PATH] = \
                       ESMON_CONFIG_CSTR_PATH,
                       """This option is the path of ESMON ISO.""")
 
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_LOCAL_HOST] = \
+    EsmonConfigString(esmon_common.CSTR_LOCAL_HOST,
+                      ESMON_CONFIG_CSTR_BOOL,
+                      """This option determines whether this host is local host.""")
+
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_MDS] = \
     EsmonConfigString(esmon_common.CSTR_LUSTRE_MDS,
                       ESMON_CONFIG_CSTR_BOOL,
@@ -678,6 +683,12 @@ ESMON_TEST_CSTRS[esmon_common.CSTR_SKIP_INSTALL_TEST] = \
 this option is enabled, it is assumed that the ESMON has already been
 installed on the current system. If ESMON has not been installed properly, the
 following tests might fail.""")
+
+ESMON_TEST_CSTRS[esmon_common.CSTR_ESMON_VIRT] = \
+    EsmonConfigString(esmon_common.CSTR_ESMON_VIRT,
+                      ESMON_CONFIG_CSTR_PATH,
+                      """This option is the config file path of esmon_virt. The config file will be
+read by esmon_virt command to install virtual machines.""")
 
 ESMON_CONFIG_CANDIDATES = []
 ESMON_CONFIG_RUNNING = True

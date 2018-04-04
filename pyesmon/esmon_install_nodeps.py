@@ -1778,6 +1778,14 @@ def esmon_install_parse_config(workspace, config, config_fpath):
                           host_id, config_fpath)
             return -1, esmon_server, esmon_clients
 
+        local = esmon_common.config_value(host_config,
+                                          esmon_common.CSTR_LOCAL_HOST)
+        if local is None:
+            logging.debug("can NOT find [%s] in the config of SSH host "
+                          "with ID [%s], use [false] as default value",
+                          esmon_common.CSTR_LOCAL_HOST, host_id)
+            local = False
+
         mapping_dict = {esmon_common.ESMON_CONFIG_CSTR_NONE: None}
         ssh_identity_file = esmon_common.config_value(host_config,
                                                       esmon_common.CSTR_SSH_IDENTITY_FILE,
@@ -1788,7 +1796,7 @@ def esmon_install_parse_config(workspace, config, config_fpath):
                           "correct file [%s]", host_id, config_fpath)
             return -1, esmon_server, esmon_clients
         host = ssh_host.SSHHost(hostname, identity_file=ssh_identity_file,
-                                host_id=host_id)
+                                host_id=host_id, local=local)
         hosts[host_id] = host
 
     server_host_config = esmon_common.config_value(config, esmon_common.CSTR_SERVER)

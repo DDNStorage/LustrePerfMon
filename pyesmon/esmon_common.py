@@ -36,6 +36,7 @@ CSTR_IME = "ime"
 CSTR_INFINIBAND = "infiniband"
 CSTR_INFLUXDB_PATH = "influxdb_path"
 CSTR_ISO_PATH = "iso_path"
+CSTR_LOCAL_HOST = "local_host"
 CSTR_LUSTRE_EXP_MDT = "lustre_exp_mdt"
 CSTR_LUSTRE_EXP_OST = "lustre_exp_ost"
 CSTR_LUSTRE_MDS = "lustre_mds"
@@ -49,6 +50,8 @@ CSTR_SSH_IDENTITY_FILE = "ssh_identity_file"
 
 # Config used by esmon_test.conf
 CSTR_BACKFS_TYPE = "backfs_type"
+CSTR_ESMON_VIRT = "esmon_virt"
+CSTR_INSTALL_SERVER = "install_server"
 CSTR_SKIP_INSTALL_TEST = "skip_install_test"
 
 CSTR_LUSTRES = "lustres"

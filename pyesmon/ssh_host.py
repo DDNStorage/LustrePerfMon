@@ -578,13 +578,43 @@ class SSHHost(object):
         we should improve to rsync.
         scp has no equivalent to --delete, just drop the entire dest dir
         """
+        # pylint: disable=too-many-branches,too-many-return-statements
         dest = os.path.abspath(dest)
         if isinstance(source, basestring):
             source = [source]
 
+        if self.sh_local:
+            # If the source parent is the same with dest, skip remove and copy
+            source_dir = os.path.basename(source)
+            if os.path.isdir(dest):
+                command = "test %s -ef %s" % (source_dir, dest)
+                ret = self.sh_run(command)
+                if ret.cr_exit_status == 0:
+                    logging.debug("skip copying because parent of source [%s] is "
+                                  "the same with dest [%s]", source_dir, dest)
+                    return 0
+            elif not os.path.isdir(source):
+                command = "test %s -ef %s" % (source, dest)
+                ret = self.sh_run(command)
+                if ret.cr_exit_status == 0:
+                    logging.debug("skip copying because file of source [%s] is "
+                                  "the same with dest [%s]", source, dest)
+                    return 0
+            else:
+                logging.error("not able to copy directory [%s] to file [%s]",
+                              source, dest)
+                return 0
+
         if delete_dest and os.path.isdir(dest):
             shutil.rmtree(dest)
             os.mkdir(dest)
+
+        if self.sh_local:
+            ret = self.sh_run("cp -a %s %s" % (source, dest))
+            if ret.cr_exit_status:
+                logging.error("failed to copy file [%s] to [%s]", source, dest)
+                return -1
+            return 0
 
         remote_source = self.sh_make_rsync_compatible_source(source, False)
         if remote_source:
@@ -658,6 +688,21 @@ class SSHHost(object):
         Otherwise, it will be sent to this host.
         """
         # pylint: disable=too-many-arguments
+        if self.sh_local:
+            source_dir = os.path.basename(source)
+            command = "test %s -ef %s" % (source_dir, dest)
+            ret = self.sh_run(command)
+            if ret.cr_exit_status == 0:
+                logging.debug("skip copying because parent of source [%s] is "
+                              "the same with dest [%s]", source_dir, dest)
+                return 0
+
+            ret = self.sh_run("cp -a %s %s" % (source, dest))
+            if ret.cr_exit_status:
+                logging.error("failed to copy file [%s] to [%s]", source, dest)
+                return -1
+            return 0
+
         if not self.sh_has_rsync():
             logging.debug("host [%s] doesnot have rsync, trying to install",
                           self.sh_hostname)
