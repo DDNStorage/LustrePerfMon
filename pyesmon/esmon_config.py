@@ -11,6 +11,7 @@ import traceback
 import sys
 import os
 import shutil
+import copy
 import yaml
 
 from pyesmon import esmon_install_nodeps
@@ -373,11 +374,18 @@ class EsmonConfigString(object):
     # pylint: disable=too-many-instance-attributes
     def __init__(self, cstring, ctype, help_info, constants=None,
                  start=0, end=65536, item_helpinfo="", allow_none=False,
-                 item_add=None, item_key=None):
+                 item_add=None, item_key=None, children=None, default=None):
         self.ecs_string = cstring
         # ESMON_CONFIG_CSTR_*
         self.ecs_type = ctype
         self.ecs_help_info = help_info
+
+        # Only valid for ESMON_CONFIG_CSTR_[DICT|LIST]
+        self.ecs_children = children
+
+        # Only valid for none ESMON_CONFIG_CSTR_DICT
+        # ESMON_CONFIG_CSTR_LIST always has default value of []
+        self.ecs_default = default
 
         # Only valid for ESMON_CONFIG_CSTR_CONSTANT
         if ctype == ESMON_CONFIG_CSTR_CONSTANT:
@@ -402,6 +410,23 @@ class EsmonConfigString(object):
 
 
 ESMON_INSTALL_CSTRS = {}
+
+ESMON_INSTALL_ROOT = \
+    EsmonConfigString("/",
+                      ESMON_CONFIG_CSTR_DICT,
+                      """ROOT""",
+                      children=[esmon_common.CSTR_AGENTS,
+                                esmon_common.CSTR_AGENTS_REINSTALL,
+                                esmon_common.CSTR_COLLECT_INTERVAL,
+                                esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL,
+                                esmon_common.CSTR_ISO_PATH,
+                                esmon_common.CSTR_LUSTRE_DEFAULT_VERSION,
+                                esmon_common.CSTR_LUSTRE_EXP_MDT,
+                                esmon_common.CSTR_LUSTRE_EXP_OST,
+                                esmon_common.CSTR_SERVER,
+                                esmon_common.CSTR_SSH_HOSTS])
+
+ESMON_INSTALL_CSTRS["/"] = ESMON_INSTALL_ROOT
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL] = \
     EsmonConfigString(esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL,
@@ -460,7 +485,14 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_AGENTS] = \
                       """This list includes the information of the ESMON agents.""",
                       item_helpinfo=INFO,
                       item_add=esmon_agent_item_add,
-                      item_key=esmon_common.CSTR_HOST_ID)
+                      item_key=esmon_common.CSTR_HOST_ID,
+                      children=[esmon_common.CSTR_ENABLE_DISK,
+                                esmon_common.CSTR_HOST_ID,
+                                esmon_common.CSTR_IME,
+                                esmon_common.CSTR_INFINIBAND,
+                                esmon_common.CSTR_LUSTRE_MDS,
+                                esmon_common.CSTR_LUSTRE_OSS,
+                                esmon_common.CSTR_SFAS])
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_AGENTS_REINSTALL] = \
     EsmonConfigString(esmon_common.CSTR_AGENTS_REINSTALL,
@@ -540,7 +572,8 @@ ESMON agent."""
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_INFINIBAND] = \
     EsmonConfigString(esmon_common.CSTR_INFINIBAND,
                       ESMON_CONFIG_CSTR_BOOL,
-                      INFO)
+                      INFO,
+                      default=False)
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_INFLUXDB_PATH] = \
     EsmonConfigString(esmon_common.CSTR_INFLUXDB_PATH,
@@ -558,7 +591,8 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_ISO_PATH] = \
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_LOCAL_HOST] = \
     EsmonConfigString(esmon_common.CSTR_LOCAL_HOST,
                       ESMON_CONFIG_CSTR_BOOL,
-                      """This option determines whether this host is local host.""")
+                      """This option determines whether this host is local host.""",
+                      default=False)
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_MDS] = \
     EsmonConfigString(esmon_common.CSTR_LUSTRE_MDS,
@@ -588,7 +622,12 @@ RPMs installed on the ESMON client is not with the supported version.""",
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_SERVER] = \
     EsmonConfigString(esmon_common.CSTR_SERVER,
                       ESMON_CONFIG_CSTR_DICT,
-                      """This group of options includes the information about the ESMON server.""")
+                      """This group of options includes the information about the ESMON server.""",
+                      children=[esmon_common.CSTR_DROP_DATABASE,
+                                esmon_common.CSTR_ERASE_INFLUXDB,
+                                esmon_common.CSTR_HOST_ID,
+                                esmon_common.CSTR_INFLUXDB_PATH,
+                                esmon_common.CSTR_REINSTALL])
 
 ESMON_SFA_NAME_NUM = 0
 
@@ -600,7 +639,7 @@ def esmon_sfa_item_add(config_list):
     # pylint: disable=global-statement
     global ESMON_SFA_NAME_NUM
     while True:
-        name = "sfa_" + ESMON_SFA_NAME_NUM
+        name = "sfa_" + str(ESMON_SFA_NAME_NUM)
         conflict = False
         for agent in config_list:
             if agent[esmon_common.CSTR_NAME] == name:
@@ -624,7 +663,11 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_SFAS] = \
                       """This list includes the information of SFAs on this ESMON agent.""",
                       item_helpinfo=INFO,
                       item_add=esmon_sfa_item_add,
-                      item_key=esmon_common.CSTR_NAME)
+                      item_key=esmon_common.CSTR_NAME,
+                      children=[esmon_common.CSTR_CONTROLLER0_HOST,
+                                esmon_common.CSTR_CONTROLLER1_HOST,
+                                esmon_common.CSTR_NAME],
+                      default=[])
 
 
 def esmon_ssh_host_item_add(config_list):
@@ -647,7 +690,7 @@ def esmon_ssh_host_item_add(config_list):
 
     config_list.append({esmon_common.CSTR_HOST_ID: host_id,
                         esmon_common.CSTR_HOSTNAME: False,
-                        esmon_common.CSTR_SSH_IDENTITY_FILE: "None"})
+                        esmon_common.CSTR_SSH_IDENTITY_FILE: esmon_common.ESMON_CONFIG_CSTR_NONE})
 
 
 INFO = """This is the information about how to login into this host using SSH connection."""
@@ -658,7 +701,11 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_SSH_HOSTS] = \
 SSH connections.""",
                       item_helpinfo=INFO,
                       item_add=esmon_ssh_host_item_add,
-                      item_key=esmon_common.CSTR_HOST_ID)
+                      item_key=esmon_common.CSTR_HOST_ID,
+                      children=[esmon_common.CSTR_HOST_ID,
+                                esmon_common.CSTR_HOSTNAME,
+                                esmon_common.CSTR_SSH_IDENTITY_FILE,
+                                esmon_common.CSTR_LOCAL_HOST])
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_SSH_IDENTITY_FILE] = \
     EsmonConfigString(esmon_common.CSTR_SSH_IDENTITY_FILE,
@@ -666,7 +713,8 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_SSH_IDENTITY_FILE] = \
                       """This option is the SSH key file used when using SSH command to login into
 the host. If the default SSH identity file works, this option can be set to\n\"""" +
                       esmon_common.ESMON_CONFIG_CSTR_NONE + '".',
-                      allow_none=True)
+                      allow_none=True,
+                      default=esmon_common.ESMON_CONFIG_CSTR_NONE)
 
 ESMON_TEST_CSTRS = ESMON_INSTALL_CSTRS.copy()
 
@@ -1153,6 +1201,243 @@ def esmon_input_loop():
         esmon_command(cmd_line)
 
 
+def esmon_config_bool_check(parent_config, parent_path, parent_cstr):
+    """
+    Check whether the string config is legal or not
+    """
+    # pylint: disable=unused-argument
+    if not isinstance(parent_config, bool):
+        console_error('illegal configuration: config "%s" is not bool' %
+                      parent_path)
+        return -1
+
+    return 0
+
+
+def esmon_config_dict_check(parent_config, parent_path, parent_cstr):
+    """
+    Check whether the dict config is legal or not
+    """
+    if not isinstance(parent_config, dict):
+        console_error('illegal configuration: config "%s" is not dictionary' %
+                      parent_path)
+        return -1
+
+    child_names = parent_cstr.ecs_children
+    for expected_child in child_names:
+        if expected_child not in parent_config:
+            assert expected_child in ESMON_INSTALL_CSTRS
+            child_cstr = ESMON_INSTALL_CSTRS[expected_child]
+            if child_cstr.ecs_default is None:
+                console_error('illegal configuration: config "%s" doesnot have '
+                              'expected child [%s]' % (parent_path, expected_child))
+                return -1
+            else:
+                parent_config[expected_child] = copy.copy(child_cstr.ecs_default)
+
+    for child_name, child_config in parent_config.iteritems():
+        if child_name not in child_names:
+            console_error('illegal configuration: config "%s" should not have '
+                          'child [%s]' % (parent_path, child_name))
+            return -1
+        if child_name not in ESMON_INSTALL_CSTRS:
+            console_error('illegal configuration: child [%s] is not a valid '
+                          'option name' % (child_name))
+            return -1
+        child_cstr = ESMON_INSTALL_CSTRS[child_name]
+        if parent_path == "/":
+            child_path = "/" + child_name
+        else:
+            child_path = parent_path + "/" + child_name
+        ret = esmon_config_check(child_config, child_path, child_cstr)
+        if ret:
+            return ret
+
+    return 0
+
+
+def esmon_config_int_check(parent_config, parent_path, parent_cstr):
+    """
+    Check whether the string config is legal or not
+    """
+    # pylint: disable=unused-argument
+    if not isinstance(parent_config, int):
+        console_error('illegal configuration: config "%s" is not integer' %
+                      parent_path)
+        return -1
+
+    if (parent_config < parent_cstr.ecs_start or
+            parent_config > parent_cstr.ecs_end):
+        console_error('"%s" is out of range [%s-%s]' %
+                      (parent_config, parent_cstr.ecs_start,
+                       parent_cstr.ecs_end))
+        return -1
+
+    return 0
+
+
+def esmon_config_string_check(parent_config, parent_path, parent_cstr):
+    """
+    Check whether the string config is legal or not
+    """
+    # pylint: disable=unused-argument
+    if not isinstance(parent_config, str):
+        console_error('illegal configuration: config "%s" is not string' %
+                      parent_path)
+        return -1
+    return 0
+
+
+def esmon_config_path_check(parent_config, parent_path, parent_cstr):
+    """
+    Check whether the path config is legal or not
+    """
+    if not isinstance(parent_config, str):
+        console_error('illegal configuration: config "%s" is not string' %
+                      parent_path)
+        return -1
+
+    if len(parent_config) <= 1:
+        console_error('illegal configuration: path "%s" is too short' %
+                      parent_config)
+    elif (parent_cstr.ecs_allow_none and
+          parent_config == esmon_common.ESMON_CONFIG_CSTR_NONE):
+        pass
+    elif parent_config[0] != '/':
+        console_error('illegal configuration: path "%s" is not absolute '
+                      'path' % parent_config)
+    return 0
+
+
+def esmon_config_constant_check(parent_config, parent_path, parent_cstr):
+    """
+    Check whether the constant config is legal or not
+    """
+    if not isinstance(parent_config, str):
+        console_error('illegal configuration: config "%s" is not string' %
+                      parent_path)
+        return -1
+
+    found = False
+    for supported_value in parent_cstr.ecs_constants:
+        if parent_config == supported_value:
+            found = True
+            break
+    if not found:
+        console_error('"%s" is not supported value for constant "%s"' %
+                      (parent_config, parent_cstr.ecs_string))
+        return -1
+
+    return 0
+
+
+def esmon_config_list_check(parent_config, parent_path, parent_cstr):
+    """
+    Check whether the dict config is legal or not
+    """
+    # pylint: disable=too-many-return-statements,too-many-branches
+    if not isinstance(parent_config, list):
+        console_error('illegal configuration: config "%s" is not list' %
+                      parent_path)
+        return -1
+
+    item_key = parent_cstr.ecs_item_key
+    grandson_names = parent_cstr.ecs_children
+    for child_config in parent_config:
+        if not isinstance(child_config, dict):
+            console_error('illegal configuration: a child of config "%s" '
+                          'is not dictionary' % (parent_path))
+            return -1
+
+        if item_key not in child_config:
+            console_error('illegal configuration: a child of config "%s" '
+                          'has no key "%s"' %
+                          (parent_path, item_key))
+            return -1
+
+        child_name = child_config[item_key]
+        if parent_path == "/":
+            child_path = "/" + child_name
+        else:
+            child_path = parent_path + "/" + child_name
+
+        for expected_grandon in grandson_names:
+            if expected_grandon not in child_config:
+                assert expected_grandon in ESMON_INSTALL_CSTRS
+                grandson_cstr = ESMON_INSTALL_CSTRS[expected_grandon]
+                if grandson_cstr.ecs_default is None:
+                    console_error('illegal configuration: config "%s" doesnot have '
+                                  'expected child [%s]' % (child_path, expected_grandon))
+                    return -1
+                else:
+                    child_config[expected_grandon] = copy.copy(grandson_cstr.ecs_default)
+
+        for grandson_name, grandson_config in child_config.iteritems():
+            if grandson_name not in grandson_names:
+                console_error('illegal configuration: config "%s" should not '
+                              'have child [%s]' % (child_path, grandson_name))
+                return -1
+            if grandson_name not in ESMON_INSTALL_CSTRS:
+                console_error('illegal configuration: child [%s] is not a '
+                              'valid option name' % (grandson_name))
+                return -1
+            grandson_cstr = ESMON_INSTALL_CSTRS[grandson_name]
+            grandson_path = child_path + "/" + grandson_name
+            ret = esmon_config_check(grandson_config, grandson_path,
+                                     grandson_cstr)
+            if ret:
+                return ret
+    return 0
+
+
+def esmon_config_check(parent_config, parent_path, parent_cstr):
+    """
+    Check whether the config is legal or not
+    """
+    # pylint: disable=too-many-return-statements,too-many-branches
+    logging.debug("checking %s", parent_path)
+    if parent_cstr.ecs_type == ESMON_CONFIG_CSTR_DICT:
+        ret = esmon_config_dict_check(parent_config, parent_path, parent_cstr)
+        if ret:
+            return -1
+    elif parent_cstr.ecs_type == ESMON_CONFIG_CSTR_LIST:
+        ret = esmon_config_list_check(parent_config, parent_path,
+                                      parent_cstr)
+        if ret:
+            return -1
+    elif parent_cstr.ecs_type == ESMON_CONFIG_CSTR_STRING:
+        ret = esmon_config_string_check(parent_config, parent_path,
+                                        parent_cstr)
+        if ret:
+            return -1
+    elif parent_cstr.ecs_type == ESMON_CONFIG_CSTR_INT:
+        ret = esmon_config_int_check(parent_config, parent_path,
+                                     parent_cstr)
+        if ret:
+            return -1
+    elif parent_cstr.ecs_type == ESMON_CONFIG_CSTR_CONSTANT:
+        ret = esmon_config_constant_check(parent_config, parent_path,
+                                          parent_cstr)
+        if ret:
+            return -1
+    elif parent_cstr.ecs_type == ESMON_CONFIG_CSTR_PATH:
+        ret = esmon_config_path_check(parent_config, parent_path,
+                                      parent_cstr)
+        if ret:
+            return -1
+    elif parent_cstr.ecs_type == ESMON_CONFIG_CSTR_BOOL:
+        ret = esmon_config_bool_check(parent_config, parent_path,
+                                      parent_cstr)
+        if ret:
+            return -1
+    else:
+        console_error('unsupported option type "%s" of config "%s"' %
+                      (parent_cstr.ecs_type, parent_path))
+        return -1
+
+    return 0
+
+
 def esmon_config(workspace):
     """
     Start to config the file
@@ -1181,6 +1466,10 @@ def esmon_config(workspace):
 
     ESMON_CONFIG_ROOT = EsmonWalkEntry("/", config)
     ESMON_CONFIG_WALK_STACK = [ESMON_CONFIG_ROOT]
+
+    ret = esmon_config_check(config, "/", ESMON_INSTALL_ROOT)
+    if ret:
+        return -1
 
     esmon_input_init()
     esmon_input_loop()
