@@ -580,37 +580,37 @@ class SSHHost(object):
         """
         # pylint: disable=too-many-branches,too-many-return-statements
         dest = os.path.abspath(dest)
-        if isinstance(source, basestring):
-            source = [source]
 
         if self.sh_local:
-            # If the source parent is the same with dest, skip remove and copy
-            source_dir = os.path.basename(source)
-            if os.path.isdir(dest):
-                command = "test %s -ef %s" % (source_dir, dest)
-                ret = self.sh_run(command)
-                if ret.cr_exit_status == 0:
-                    logging.debug("skip copying because parent of source [%s] is "
-                                  "the same with dest [%s]", source_dir, dest)
-                    return 0
-            elif not os.path.isdir(source):
-                command = "test %s -ef %s" % (source, dest)
-                ret = self.sh_run(command)
-                if ret.cr_exit_status == 0:
-                    logging.debug("skip copying because file of source [%s] is "
-                                  "the same with dest [%s]", source, dest)
-                    return 0
-            else:
-                logging.error("not able to copy directory [%s] to file [%s]",
-                              source, dest)
-                return 0
+            if isinstance(source, basestring):
+                if os.path.isdir(dest):
+                    source_dir = os.path.basename(source)
+                    command = "test %s -ef %s" % (source_dir, dest)
+                    ret = self.sh_run(command)
+                    if ret.cr_exit_status == 0:
+                        logging.debug("skip copying because parent of source [%s] is "
+                                      "the same with dest [%s]", source_dir, dest)
+                        return 0
+                else:
+                    command = "test %s -ef %s" % (source, dest)
+                    ret = self.sh_run(command)
+                    if ret.cr_exit_status == 0:
+                        logging.debug("skip copying because file of source [%s] is "
+                                      "the same with dest [%s]", source, dest)
+                        return 0
+
+        if isinstance(source, basestring):
+            source = [source]
 
         if delete_dest and os.path.isdir(dest):
             shutil.rmtree(dest)
             os.mkdir(dest)
 
         if self.sh_local:
-            ret = self.sh_run("cp -a %s %s" % (source, dest))
+            source_string = ""
+            for path in source:
+                source_string += " " + path
+            ret = self.sh_run("cp -a%s %s" % (source_string, dest))
             if ret.cr_exit_status:
                 logging.error("failed to copy file [%s] to [%s]", source, dest)
                 return -1
@@ -687,17 +687,34 @@ class SSHHost(object):
         If remot_host is not none, the file will be sent to that host;
         Otherwise, it will be sent to this host.
         """
-        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-arguments,too-many-locals,too-many-return-statements
+        # pylint: disable=too-many-branches
         if self.sh_local:
-            source_dir = os.path.basename(source)
-            command = "test %s -ef %s" % (source_dir, dest)
-            ret = self.sh_run(command)
-            if ret.cr_exit_status == 0:
-                logging.debug("skip copying because parent of source [%s] is "
-                              "the same with dest [%s]", source_dir, dest)
-                return 0
+            if isinstance(source, basestring):
+                if os.path.isdir(dest):
+                    source_dir = os.path.basename(source)
+                    command = "test %s -ef %s" % (source_dir, dest)
+                    ret = self.sh_run(command)
+                    if ret.cr_exit_status == 0:
+                        logging.debug("skip copying because parent of source [%s] is "
+                                      "the same with dest [%s]", source_dir, dest)
+                        return 0
+                else:
+                    command = "test %s -ef %s" % (source, dest)
+                    ret = self.sh_run(command)
+                    if ret.cr_exit_status == 0:
+                        logging.debug("skip copying because file of source [%s] is "
+                                      "the same with dest [%s]", source, dest)
+                        return 0
 
-            ret = self.sh_run("cp -a %s %s" % (source, dest))
+        if isinstance(source, basestring):
+            source = [source]
+
+        if self.sh_local:
+            source_string = ""
+            for path in source:
+                source_string += " " + path
+            ret = self.sh_run("cp -a%s %s" % (source_string, dest))
             if ret.cr_exit_status:
                 logging.error("failed to copy file [%s] to [%s]", source, dest)
                 return -1
@@ -712,8 +729,6 @@ class SSHHost(object):
                 return -1
             self.sh_cached_has_rsync = True
 
-        if isinstance(source, basestring):
-            source = [source]
         if remote_host is None:
             remote_host = self
         remote_dest = remote_host.sh_encode_remote_paths([dest], False)
