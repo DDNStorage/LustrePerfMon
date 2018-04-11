@@ -1440,7 +1440,7 @@
               "measurement": "cqm_ost_stats_bytes-optype-fs_name-ost_index",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_ost_stats_bytes-fs_name-optype-ost_index\" WHERE \"fs_name\" = '$fs_name' AND \"optype\" = 'write' AND $timeFilter GROUP BY \"ost_index\"",
+              "query": "SELECT \"sum\" FROM \"cqm_ost_stats_bytes-fs_name-optype-ost_index\" WHERE \"fs_name\" = '$fs_name' AND \"optype\" = 'sum_write_bytes' AND $timeFilter GROUP BY \"ost_index\"",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -1539,7 +1539,7 @@
               "measurement": "cqm_ost_stats_bytes-optype-fs_name-ost_index",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_ost_stats_bytes-fs_name-optype-ost_index\" WHERE \"fs_name\" = '$fs_name' AND \"optype\" = 'read' AND $timeFilter GROUP BY \"ost_index\"",
+              "query": "SELECT \"sum\" FROM \"cqm_ost_stats_bytes-fs_name-optype-ost_index\" WHERE \"fs_name\" = '$fs_name' AND \"optype\" = 'sum_read_bytes' AND $timeFilter GROUP BY \"ost_index\"",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -4488,10 +4488,10 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_jobstats_samples-fs_name-job_id",
+              "measurement": "cqm_ost_jobstats_bytes-fs_name-job_id",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT sum(\"sum\") FROM \"cqm_ost_jobstats_samples\" WHERE ( \"optype\" = 'sum_write_bytes' OR \"optype\" = 'sum_read_bytes' ) AND \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY time(1m), \"job_id\" fill(null)",
+              "query": "SELECT sum(\"sum\") FROM \"cqm_ost_jobstats_bytes\" WHERE ( \"optype\" = 'sum_write_bytes' OR \"optype\" = 'sum_read_bytes' ) AND \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY time(1m), \"job_id\" fill(null)",
               "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
@@ -4580,10 +4580,10 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_jobstats_samples-fs_name-job_id-optype",
+              "measurement": "cqm_ost_jobstats_bytes-fs_name-job_id-optype",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT sum(\"sum\") FROM \"cqm_ost_jobstats_samples\" WHERE \"optype\" = 'sum_write_bytes' AND \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY time(1m), \"job_id\" fill(null)",
+              "query": "SELECT sum(\"sum\") FROM \"cqm_ost_jobstats_bytes\" WHERE \"optype\" = 'sum_write_bytes' AND \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY time(1m), \"job_id\" fill(null)",
               "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
@@ -4678,10 +4678,10 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_jobstats_samples-fs_name-job_id-optype",
+              "measurement": "cqm_ost_jobstats_bytes-fs_name-job_id-optype",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT sum(\"sum\") FROM \"cqm_ost_jobstats_samples\" WHERE ( \"optype\" = 'sum_write_bytes' OR \"optype\" = 'sum_read_bytes' ) AND \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY time(1m), \"job_id\" fill(null)",
+              "query": "SELECT sum(\"sum\") FROM \"cqm_ost_jobstats_bytes\" WHERE ( \"optype\" = 'sum_write_bytes' OR \"optype\" = 'sum_read_bytes' ) AND \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY time(1m), \"job_id\" fill(null)",
               "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",

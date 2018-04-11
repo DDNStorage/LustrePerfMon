@@ -898,14 +898,21 @@ class EsmonServer(object):
         if ret:
             return -1
 
-        ret = self.es_influxdb_cq_create("ost_jobstats_samples",
+        ret = self.es_influxdb_cq_create("ost_jobstats_bytes",
                                          ["fs_name", "job_id", "optype"])
         if ret:
             return -1
 
         where = "WHERE optype = 'sum_read_bytes' OR optype = 'sum_write_bytes'"
-        ret = self.es_influxdb_cq_create("ost_jobstats_samples",
+        ret = self.es_influxdb_cq_create("ost_jobstats_bytes",
                                          ["fs_name", "job_id"],
+                                         where=where)
+        if ret:
+            return -1
+
+        where = "WHERE optype = 'sum_read_bytes' OR optype = 'sum_write_bytes'"
+        ret = self.es_influxdb_cq_create("ost_jobstats_bytes",
+                                         ["fs_name", "job_id", "ost_index"],
                                          where=where)
         if ret:
             return -1

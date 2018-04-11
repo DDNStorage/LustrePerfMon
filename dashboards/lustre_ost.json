@@ -1053,7 +1053,7 @@
                   "condition": "AND",
                   "key": "optype",
                   "operator": "=",
-                  "value": "write"
+                  "value": "sum_write_bytes"
                 }
               ]
             }
@@ -4067,10 +4067,10 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_jobstats_samples-fs_name-job_id",
+              "measurement": "cqm_ost_jobstats_bytes-fs_name-job_id-ost_index",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT sum(\"sum\") FROM \"cqm_ost_jobstats_samples\" WHERE ( \"optype\" = 'sum_write_bytes' OR \"optype\" = 'sum_read_bytes' ) AND \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY time(1m), \"job_id\" fill(null)",
+              "query": "SELECT sum(\"sum\") FROM \"cqm_ost_jobstats_bytes\" WHERE ( \"optype\" = 'sum_write_bytes' OR \"optype\" = 'sum_read_bytes' ) AND \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY time(1m), \"job_id\" fill(null)",
               "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
@@ -4089,6 +4089,12 @@
                   "key": "fs_name",
                   "operator": "=",
                   "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
@@ -4159,10 +4165,10 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_jobstats_samples-fs_name-job_id-optype",
+              "measurement": "ost_jobstats_bytes",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT sum(\"sum\") FROM \"cqm_ost_jobstats_samples\" WHERE \"optype\" = 'sum_write_bytes' AND \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY time(1m), \"job_id\" fill(null)",
+              "query": "SELECT sum(\"sum\") FROM \"cqm_ost_jobstats_bytes\" WHERE \"optype\" = 'sum_write_bytes' AND \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY time(1m), \"job_id\" fill(null)",
               "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
@@ -4170,7 +4176,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -4187,6 +4193,12 @@
                   "key": "fs_name",
                   "operator": "=",
                   "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ost_index",
+                  "operator": "=",
+                  "value": "$ost_index"
                 }
               ]
             }
@@ -4257,10 +4269,10 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_jobstats_samples-fs_name-job_id-optype",
+              "measurement": "ost_jobstats_bytes",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT sum(\"sum\") FROM \"cqm_ost_jobstats_samples\" WHERE ( \"optype\" = 'sum_write_bytes' OR \"optype\" = 'sum_read_bytes' ) AND \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY time(1m), \"job_id\" fill(null)",
+              "query": "SELECT sum(\"sum\") FROM \"cqm_ost_jobstats_bytes\" WHERE ( \"optype\" = 'sum_write_bytes' OR \"optype\" = 'sum_read_bytes' ) AND \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY time(1m), \"job_id\" fill(null)",
               "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
@@ -4268,7 +4280,7 @@
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -4276,15 +4288,21 @@
               ],
               "tags": [
                 {
+                  "key": "fs_name",
+                  "operator": "=",
+                  "value": "$fs_name"
+                },
+                {
+                  "condition": "AND",
                   "key": "optype",
                   "operator": "=",
                   "value": "sum_read_bytes"
                 },
                 {
                   "condition": "AND",
-                  "key": "fs_name",
+                  "key": "ost_index",
                   "operator": "=",
-                  "value": "$fs_name"
+                  "value": "$ost_index"
                 }
               ]
             }
@@ -4741,7 +4759,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "es2",
           "value": "es2"
         },
@@ -4765,8 +4782,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "tags": [],
           "text": "OST0000",
           "value": "OST0000"
         },
