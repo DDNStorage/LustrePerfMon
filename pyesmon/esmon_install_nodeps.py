@@ -1125,9 +1125,18 @@ class EsmonClient(object):
             self.ec_lustre_version = LUSTRE_DEFAULT_VERSION
             return 0
         elif len(possible_versions) != 1:
-            logging.error("the possible RPM version is %d, should be 1",
-                          len(possible_versions))
-            return -1
+            version_string = ""
+            for possible_version in possible_versions:
+                if version_string == "":
+                    version_string += possible_version.lv_name
+                else:
+                    version_string += " " + possible_version.lv_name
+            logging.debug("can't deterimine Lustre version according to RPM "
+                          "names, possible versions are [%s], using "
+                          "default [%s]", version_string,
+                          LUSTRE_DEFAULT_VERSION.lv_name)
+            self.ec_lustre_version = LUSTRE_DEFAULT_VERSION
+            return 0
         self.ec_lustre_version = possible_versions[0]
         return 0
 
