@@ -563,7 +563,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "Used  Inode Number on this OST.",
+          "description": "Used Inode Number on this OST.",
           "fill": 1,
           "id": 74,
           "legend": {
@@ -590,7 +590,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "alias": "Free Inode Number",
+              "alias": "Used Inode Number",
               "dsType": "influxdb",
               "groupBy": [
                 {

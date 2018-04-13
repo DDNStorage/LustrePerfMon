@@ -30,7 +30,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "Free Inode Number on this OST.",
+          "description": "Free Inode Number on this MDT.",
           "fill": 1,
           "id": 73,
           "legend": {
@@ -135,7 +135,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": null,
-          "description": "Used  Inode Number on this OST.",
+          "description": "Used Inode Number on this MDT.",
           "fill": 1,
           "id": 74,
           "legend": {
