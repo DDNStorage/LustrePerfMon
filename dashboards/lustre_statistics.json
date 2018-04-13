@@ -1437,18 +1437,18 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_stats_bytes-optype-fs_name-ost_index",
+              "measurement": "ost_stats_bytes",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT \"sum\" FROM \"cqm_ost_stats_bytes-fs_name-optype-ost_index\" WHERE \"fs_name\" = '$fs_name' AND \"optype\" = 'sum_write_bytes' AND $timeFilter GROUP BY \"ost_index\"",
-              "rawQuery": true,
+              "query": "SELECT \"sum\" FROM \"ost_stats_bytes\" WHERE \"fs_name\" = '$fs_name' AND \"optype\" = 'write' AND $timeFilter GROUP BY \"ost_index\"",
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }
@@ -1536,18 +1536,18 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "cqm_ost_stats_bytes-optype-fs_name-ost_index",
+              "measurement": "ost_stats_bytes",
               "orderByTime": "ASC",
               "policy": "default",
               "query": "SELECT \"sum\" FROM \"cqm_ost_stats_bytes-fs_name-optype-ost_index\" WHERE \"fs_name\" = '$fs_name' AND \"optype\" = 'sum_read_bytes' AND $timeFilter GROUP BY \"ost_index\"",
-              "rawQuery": true,
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "sum"
+                      "value"
                     ],
                     "type": "field"
                   }

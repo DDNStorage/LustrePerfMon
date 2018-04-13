@@ -1053,7 +1053,7 @@
                   "condition": "AND",
                   "key": "optype",
                   "operator": "=",
-                  "value": "sum_write_bytes"
+                  "value": "write"
                 }
               ]
             }
