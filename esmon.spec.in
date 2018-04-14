@@ -63,7 +63,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/esmon_test
 %{_bindir}/esmon_virt
 %{python_sitelib}/pyesmon
-%{_sysconfdir}/esmon_install.conf
+%config(noreplace) %{_sysconfdir}/esmon_install.conf
 %{_mandir}/man1/esmon_install.1*
 
 %changelog
