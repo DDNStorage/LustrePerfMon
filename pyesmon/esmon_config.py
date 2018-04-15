@@ -224,34 +224,49 @@ def esmon_command_manual(arg_string):
     length = len(ESMON_CONFIG_WALK_STACK)
     assert length > 0
     current = ESMON_CONFIG_WALK_STACK[-1]
+    current_config = current.ewe_config
+    cstring = None
 
-    if length == 1:
-        # ROOT
-        return esmon_command_help("")
+    if length > 1:
+        parent = ESMON_CONFIG_WALK_STACK[-2]
+        parent_config = parent.ewe_config
+        parent_key = parent.ewe_key
 
-    parent = ESMON_CONFIG_WALK_STACK[-2]
-    parent_config = parent.ewe_config
-    parent_key = parent.ewe_key
+        if isinstance(parent_config, list):
+            # If current option is an item in a list, print the item help information
+            # of the parent. Because the config itself is using the index name as its
+            # config string.
+            if parent_key not in ESMON_INSTALL_CSTRS:
+                console_error('illegal configuration: option "%s" is not supported' %
+                              (parent_key))
+                return -1
+            cstring = ESMON_INSTALL_CSTRS[parent_key]
+            print cstring.ecs_item_helpinfo
 
-    if isinstance(parent_config, list):
-        if parent_key not in ESMON_INSTALL_CSTRS:
+    if cstring is None:
+        key = current.ewe_key
+        if key not in ESMON_INSTALL_CSTRS:
             console_error('illegal configuration: option "%s" is not supported' %
-                          (parent_key))
+                          (key))
             return -1
-        parent_cstring = ESMON_INSTALL_CSTRS[parent_key]
-        print parent_cstring.ecs_item_helpinfo
+        cstring = ESMON_INSTALL_CSTRS[key]
+        print cstring.ecs_help_info
+
+    if isinstance(current_config, list):
+        print ""
+        print """The listed entries of "ls" are the IDs of each item in this list. Please use
+"cd" to enter each entry."""
         return 0
 
-    key = current.ewe_key
-    if key not in ESMON_INSTALL_CSTRS:
-        console_error('illegal configuration: option "%s" is not supported' %
-                      (key))
-        return -1
-
-    cstring = ESMON_INSTALL_CSTRS[key]
-
-    print cstring.ecs_help_info
+    if cstring.ecs_children is not None:
+        print "Following are the children of this option:"
+        for child in cstring.ecs_children:
+            child_cstring = ESMON_INSTALL_CSTRS[child]
+            print ""
+            print child 
+            print child_cstring.ecs_help_info
     return 0
+
 
 ESMON_CONFIG_COMMNADS[ESMON_CONFIG_COMMNAD_MANUAL] = \
     EsmonConfigCommand(ESMON_CONFIG_COMMNAD_MANUAL, esmon_command_manual)
@@ -414,7 +429,7 @@ ESMON_INSTALL_CSTRS = {}
 ESMON_INSTALL_ROOT = \
     EsmonConfigString("/",
                       ESMON_CONFIG_CSTR_DICT,
-                      """ROOT""",
+                      """This is the root of the config.""",
                       children=[esmon_common.CSTR_AGENTS,
                                 esmon_common.CSTR_AGENTS_REINSTALL,
                                 esmon_common.CSTR_COLLECT_INTERVAL,
@@ -478,7 +493,7 @@ def esmon_agent_item_add(config_list):
                         esmon_common.CSTR_LUSTRE_OSS: True,
                         esmon_common.CSTR_SFAS: []})
 
-INFO = "This group of options include the information of this ESMON agent"
+INFO = "This group of options include the information of this ESMON agent."
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_AGENTS] = \
     EsmonConfigString(esmon_common.CSTR_AGENTS,
                       ESMON_CONFIG_CSTR_LIST,
@@ -559,7 +574,7 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_HOSTNAME] = \
     EsmonConfigString(esmon_common.CSTR_HOSTNAME,
                       ESMON_CONFIG_CSTR_STRING,
                       """This option is the hostname or IP of the host. SSH command will use this
-hostname/IP to login into the host""")
+hostname/IP to login into the host.""")
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_IME] = \
     EsmonConfigString(esmon_common.CSTR_IME,
@@ -622,7 +637,7 @@ RPMs installed on the ESMON client is not with the supported version.""",
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_SERVER] = \
     EsmonConfigString(esmon_common.CSTR_SERVER,
                       ESMON_CONFIG_CSTR_DICT,
-                      """This group of options includes the information about the ESMON server.""",
+                      """This group of options include the information about the ESMON server.""",
                       children=[esmon_common.CSTR_DROP_DATABASE,
                                 esmon_common.CSTR_ERASE_INFLUXDB,
                                 esmon_common.CSTR_HOST_ID,
@@ -656,7 +671,7 @@ def esmon_sfa_item_add(config_list):
                         esmon_common.CSTR_CONTROLLER0_HOST: controller0,
                         esmon_common.CSTR_CONTROLLER1_HOST: controller1})
 
-INFO = "This group of options include the information of this SFA on the ESMON agent"
+INFO = "This group of options include the information of this SFA on the ESMON agent."
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_SFAS] = \
     EsmonConfigString(esmon_common.CSTR_SFAS,
                       ESMON_CONFIG_CSTR_LIST,
