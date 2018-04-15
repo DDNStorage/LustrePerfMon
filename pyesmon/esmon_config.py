@@ -1134,6 +1134,34 @@ def esmon_edit_loop(default, cstring):
     return value
 
 
+def esmon_config_guide(cstring, section):
+    """
+    Return the guide of this cstring
+    """
+    if section == "":
+        guide_string = ""
+    else:
+        
+        guide_string = "# " + section
+        if "." not in section:
+            guide_string += "."
+        guide_string += " " + cstring.ecs_string + "\n# "
+        guide_string += cstring.ecs_help_info.replace("\n", "\n# ")
+        guide_string += "\n#\n"
+    if cstring.ecs_children is None:
+        return guide_string
+    child_index = 1
+    for child_string in cstring.ecs_children:
+        child_cstr = ESMON_INSTALL_CSTRS[child_string]
+        if section == "":
+            child_section = str(child_index)
+        else:
+            child_section = section + "." + str(child_index)
+        child_index += 1
+        guide_string += esmon_config_guide(child_cstr, child_section)
+    return guide_string
+
+
 def esmon_config_string():
     """
     Return the current configuration string
@@ -1149,11 +1177,7 @@ def esmon_config_string():
 # Configuration Guide:
 #
 """
-    for config_name in sorted(ESMON_INSTALL_CSTRS):
-        config = ESMON_INSTALL_CSTRS[config_name]
-        config_string += "# " + config_name + ":\n# "
-        config_string += config.ecs_help_info.replace("\n", "\n# ")
-        config_string += "\n#\n"
+    config_string += esmon_config_guide(ESMON_INSTALL_ROOT, "")
     config_string += yaml.dump(root_config, Dumper=EsmonYamlDumper,
                                default_flow_style=False)
     return config_string
