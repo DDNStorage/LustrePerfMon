@@ -54,7 +54,7 @@ def esmon_command_add(arg_string):
     """
     Add an intem to the current list
     """
-    # pylint: disable=unused-argument
+    # pylint: disable=unused-argument,too-many-locals,too-many-statements,too-many-branches
     length = len(ESMON_CONFIG_WALK_STACK)
     assert length > 0
     current = ESMON_CONFIG_WALK_STACK[-1]
@@ -71,13 +71,132 @@ def esmon_command_add(arg_string):
         console_error('illegal configuration: option "%s" is not supported' %
                       (current_key))
         return -1
+
     current_cstring = ESMON_INSTALL_CSTRS[current_key]
     if current_cstring.ecs_type != ESMON_CONFIG_CSTR_LIST:
         console_error('illegal configuration: option "%s" should not be a '
                       'list' % (current_key))
         return -1
 
-    current_cstring.ecs_item_add(current_config)
+    print ESMON_CONFIG_ADD_MULTIPLE.ecs_help_info
+    prompt = "Press F/f to add only single item, press T/t to add multiple ones: "
+    add_multiple = esmon_edit_loop(ESMON_CONFIG_ADD_MULTIPLE,
+                                   prompt=prompt)
+
+    if add_multiple:
+        print "Multiple items will be added."
+        print ""
+
+        prompt = "Please input the common prefix of the adding items: "
+        prefix = esmon_edit_loop(ESMON_CONFIG_ADD_PREFIX,
+                                 prompt=prompt)
+        print 'The newly addded items will have names like "%s..."' % prefix
+        print ""
+
+        print """Start index of the item names is needed. The start index will be included in
+the added items."""
+        start_cstr = EsmonConfigString("start_index",
+                                       ESMON_CONFIG_CSTR_INT,
+                                       "")
+        prompt = ("Please input the start index, an integer in [%s, %s]: " %
+                  (start_cstr.ecs_start, start_cstr.ecs_end))
+
+        start_index = esmon_edit_loop(start_cstr,
+                                      prompt=prompt)
+        print 'The index of the first item will be "%s".' % (start_index)
+        print ""
+
+        print """End index of the item names is needed. The end index will be included in
+the added items."""
+        end_cstr = EsmonConfigString("end_index",
+                                     ESMON_CONFIG_CSTR_INT,
+                                     "",
+                                     start=start_index)
+        prompt = ("Please input the end index, an integer in [%s, %s]: " %
+                  (end_cstr.ecs_start, end_cstr.ecs_end))
+        end_index = esmon_edit_loop(end_cstr,
+                                    prompt=prompt)
+        print ('The index of the last item will be "%s".' %
+               (end_index))
+        print ""
+
+        names = ""
+        names_filled = ""
+        name_index = start_index
+        digit_number = len(str(end_index))
+        fill_format = "%0" + str(digit_number) + "d"
+        number = 0
+        while name_index <= end_index:
+            name = "%s%d" % (prefix, name_index)
+            if names != "":
+                names += ", "
+            names += name
+            name_filled = prefix + fill_format % name_index
+            if names_filled != "":
+                names_filled += ", "
+            names_filled += name_filled
+            name_index += 1
+            number += 1
+            if number >= 3:
+                break
+
+        # Add the last item into the output string
+        if name_index <= end_index:
+            if name_index < end_index:
+                names += ", ..."
+                names_filled += ", ..."
+            name = "%s%d" % (prefix, end_index)
+            if names != "":
+                names += ", "
+            names += name
+            name_filled = prefix + fill_format % end_index
+            if names_filled != "":
+                names_filled += ", "
+            names_filled += name_filled
+
+        helpinfo = """Do you want to fill the empty spaces of the names with "0"?
+If yes, then the names of newly created items will be: """
+        helpinfo += '"%s".\n' % (names_filled)
+        helpinfo += 'If not, then the names will be "%s".' % (names)
+        print helpinfo
+        fill_zero_cstr = EsmonConfigString("fill_zero",
+                                           ESMON_CONFIG_CSTR_BOOL,
+                                           "")
+        prompt = "Press T/t to fill empty space with 0, press F/f not to: "
+        fill_zero = esmon_edit_loop(fill_zero_cstr,
+                                    prompt=prompt)
+        if fill_zero:
+            print 'The names of newly created items will be "%s"' % names_filled
+        else:
+            print 'The names of newly created items will be "%s"' % names
+        print ""
+
+        name_index = start_index
+        while name_index <= end_index:
+            if fill_zero:
+                name = prefix + fill_format % name_index
+            else:
+                name = "%s%d" % (prefix, name_index)
+            name_index += 1
+            number += 1
+
+            ret = esmon_item_add(current_config, current_cstring, name)
+            if ret == 0:
+                print 'Item with name "%s" is added' % name
+    else:
+        print "Only a single item will be added."
+        print ""
+        name_cstr = EsmonConfigString("name",
+                                      ESMON_CONFIG_CSTR_STRING,
+                                      "")
+        prompt = "Please input the name of this item: "
+        name = esmon_edit_loop(name_cstr,
+                               prompt=prompt)
+        ret = esmon_item_add(current_config, current_cstring, name)
+        if ret:
+            return ret
+        print 'Item with name "%s" is added' % name
+
     return 0
 
 ESMON_CONFIG_COMMNADS[ESMON_CONFIG_COMMNAD_ADD] = \
@@ -263,7 +382,7 @@ def esmon_command_manual(arg_string):
         for child in cstring.ecs_children:
             child_cstring = ESMON_INSTALL_CSTRS[child]
             print ""
-            print child 
+            print child
             print child_cstring.ecs_help_info
     return 0
 
@@ -399,7 +518,10 @@ class EsmonConfigString(object):
         self.ecs_children = children
 
         # Only valid for none ESMON_CONFIG_CSTR_DICT
+        # If it is ID of a list, then it has no default value
         # ESMON_CONFIG_CSTR_LIST always has default value of []
+        if ctype == ESMON_CONFIG_CSTR_DICT:
+            assert default is None
         self.ecs_default = default
 
         # Only valid for ESMON_CONFIG_CSTR_CONSTANT
@@ -453,45 +575,56 @@ the "collect_interval" option. If this number is "1", the interval of
 continous queries would be "collect_interval" seconds. Usually, in order to
 downsample the data and reduce performance impact, this value should be
 larger than "1".""",
-                      start=1)
+                      start=1,
+                      default=4)
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_CONTROLLER0_HOST] = \
     EsmonConfigString(esmon_common.CSTR_CONTROLLER0_HOST,
                       ESMON_CONFIG_CSTR_STRING,
-                      """This option is the hostname/IP of the controller 0 of this SFA.""")
+                      """This option is the hostname/IP of the controller 0 of this SFA.""",
+                      default="controller0_host")
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_CONTROLLER1_HOST] = \
     EsmonConfigString(esmon_common.CSTR_CONTROLLER1_HOST,
                       ESMON_CONFIG_CSTR_STRING,
-                      """This option is the hostname/IP of the controller 1 of this SFA.""")
+                      """This option is the hostname/IP of the controller 1 of this SFA.""",
+                      default="controller1_host")
 
 ESMON_HOST_ID_NUM = 0
 
 
-def esmon_agent_item_add(config_list):
+def esmon_agent_item_add():
+    """
+    TMP
+    """
+    return 0
+
+def esmon_item_add(config_list, list_cstr, id_value):
     """
     Add item to agent list
     """
     # pylint: disable=global-statement
-    global ESMON_HOST_ID_NUM
-    while True:
-        host_id = "host_" + str(ESMON_HOST_ID_NUM)
-        conflict = False
-        for agent in config_list:
-            if agent[esmon_common.CSTR_HOST_ID] == host_id:
-                conflict = True
-                break
-        if conflict:
-            ESMON_HOST_ID_NUM += 1
-        else:
-            break
+    for item_config in config_list:
+        if item_config[list_cstr.ecs_item_key] == id_value:
+            console_error('cannot add item with id "%s" because it already exists' %
+                          (id_value))
+            return -1
 
-    config_list.append({esmon_common.CSTR_HOST_ID: host_id,
-                        esmon_common.CSTR_IME: False,
-                        esmon_common.CSTR_INFINIBAND: False,
-                        esmon_common.CSTR_LUSTRE_MDS: True,
-                        esmon_common.CSTR_LUSTRE_OSS: True,
-                        esmon_common.CSTR_SFAS: []})
+    item_config = {}
+    for child in list_cstr.ecs_children:
+        child_cstr = ESMON_INSTALL_CSTRS[child]
+        if child == list_cstr.ecs_item_key:
+            item_config[child] = id_value
+        else:
+            if child_cstr.ecs_default is None:
+                console_error('fix me: config "%s" doesnot have default value' %
+                              (child_cstr.ecs_string))
+                return -1
+            else:
+                item_config[child] = copy.copy(child_cstr.ecs_default)
+    config_list.append(item_config)
+    return 0
+
 
 INFO = "This group of options include the information of this ESMON agent."
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_AGENTS] = \
@@ -507,30 +640,35 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_AGENTS] = \
                                 esmon_common.CSTR_INFINIBAND,
                                 esmon_common.CSTR_LUSTRE_MDS,
                                 esmon_common.CSTR_LUSTRE_OSS,
-                                esmon_common.CSTR_SFAS])
+                                esmon_common.CSTR_SFAS],
+                      default=[])
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_AGENTS_REINSTALL] = \
     EsmonConfigString(esmon_common.CSTR_AGENTS_REINSTALL,
                       ESMON_CONFIG_CSTR_BOOL,
-                      """This option determines whether to reinstall ESMON agents or not.""")
+                      """This option determines whether to reinstall ESMON agents or not.""",
+                      default=False)
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_COLLECT_INTERVAL] = \
     EsmonConfigString(esmon_common.CSTR_COLLECT_INTERVAL,
                       ESMON_CONFIG_CSTR_INT,
                       """This option determines the interval seconds to collect datapoint.""",
-                      start=1)
+                      start=1,
+                      default=60)
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_DROP_DATABASE] = \
     EsmonConfigString(esmon_common.CSTR_DROP_DATABASE,
                       ESMON_CONFIG_CSTR_BOOL,
                       """This option determines whether to drop existing ESMON database of Influxdb.
 Important: This option should ONLY be set to "True" if the data/metadata in
-           ESMON database of Influxdb is not needed any more.""")
+           ESMON database of Influxdb is not needed any more.""",
+                      default=False)
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_ENABLE_DISK] = \
     EsmonConfigString(esmon_common.CSTR_ENABLE_DISK,
                       ESMON_CONFIG_CSTR_BOOL,
-                      """This option determines whether to collect disk metrics from this agent.""")
+                      """This option determines whether to collect disk metrics from this agent.""",
+                      default=False)
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_ERASE_INFLUXDB] = \
     EsmonConfigString(esmon_common.CSTR_ERASE_INFLUXDB,
@@ -540,21 +678,24 @@ Important: This option should ONLY be set to "True" if the data/metadata of
            Influxdb is not needed any more. When Influxdb is totally
            corrupted, please enable this option to erase and fix. And please
            double check the influxdb_path option is properly configured before
-           enabling this option.""")
+           enabling this option.""",
+                      default=False)
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_EXP_MDT] = \
     EsmonConfigString(esmon_common.CSTR_LUSTRE_EXP_MDT,
                       ESMON_CONFIG_CSTR_BOOL,
                       """This option determines whether ESMON agents collect exp_md_stats_* metrics
 from Lustre OST. If there are too many Lustre clients on the system, this
-option should be disabled to avoid performance issues.""")
+option should be disabled to avoid performance issues.""",
+                      default=False)
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_EXP_OST] = \
     EsmonConfigString(esmon_common.CSTR_LUSTRE_EXP_OST,
                       ESMON_CONFIG_CSTR_BOOL,
                       """This option determines whether ESMON agents collect exp_ost_stats_[read|
 write] metrics from Lustre OST or not. If there are too many Lustre clients on
-the system, this option should be disabled to avoid performance issues.""")
+the system, this option should be disabled to avoid performance issues.""",
+                      default=False)
 
 INFO = """This option is the unique name of this controller. This value will be used as
 the value of "fqdn" tag for metrics of this SFA. Thus, two SFAs shouldn't have
@@ -580,7 +721,8 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_IME] = \
     EsmonConfigString(esmon_common.CSTR_IME,
                       ESMON_CONFIG_CSTR_BOOL,
                       """This option determines whether to enable IME metrics collection on this
-ESMON agent.""")
+ESMON agent.""",
+                      default=False)
 
 INFO = """This option determines whether to enable Infiniband metrics collection on this
 ESMON agent."""
@@ -596,12 +738,14 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_INFLUXDB_PATH] = \
                       """This option is Influxdb directory path on ESMON server node.
 Important: Please do not put any other files/directries under this directory of
            ESMON server node, because, with "erase_influxdb" option enabled,
-           all of the files/directries under that directory will be removed.""")
+           all of the files/directries under that directory will be removed.""",
+                      default="/esmon/influxdb")
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_ISO_PATH] = \
     EsmonConfigString(esmon_common.CSTR_ISO_PATH,
                       ESMON_CONFIG_CSTR_PATH,
-                      """This option is the path of ESMON ISO.""")
+                      """This option is the path of ESMON ISO.""",
+                      default="/root/esmon.iso")
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_LOCAL_HOST] = \
     EsmonConfigString(esmon_common.CSTR_LOCAL_HOST,
@@ -613,26 +757,30 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_MDS] = \
     EsmonConfigString(esmon_common.CSTR_LUSTRE_MDS,
                       ESMON_CONFIG_CSTR_BOOL,
                       """This option determines whether to enable Lustre MDS metrics collection on
-this ESMON agent.""")
+this ESMON agent.""",
+                      default=True)
 
 INFO = """This option determines whether to enable Lustre OSS metrics collection on this
 ESMON agent."""
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_OSS] = \
     EsmonConfigString(esmon_common.CSTR_LUSTRE_OSS,
                       ESMON_CONFIG_CSTR_BOOL,
-                      INFO)
+                      INFO,
+                      default=True)
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_REINSTALL] = \
     EsmonConfigString(esmon_common.CSTR_REINSTALL,
                       ESMON_CONFIG_CSTR_BOOL,
-                      """This option determines whether to reinstall the ESMON server.""")
+                      """This option determines whether to reinstall the ESMON server.""",
+                      default=True)
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_DEFAULT_VERSION] = \
     EsmonConfigString(esmon_common.CSTR_LUSTRE_DEFAULT_VERSION,
                       ESMON_CONFIG_CSTR_CONSTANT,
                       """This option determines the default Lustre version to use, if the Lustre
 RPMs installed on the ESMON client is not with the supported version.""",
-                      constants=lustre.LUSTER_VERSION_NAMES)
+                      constants=lustre.LUSTER_VERSION_NAMES,
+                      default="es3")
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_SERVER] = \
     EsmonConfigString(esmon_common.CSTR_SERVER,
@@ -720,7 +868,8 @@ SSH connections.""",
                       children=[esmon_common.CSTR_HOST_ID,
                                 esmon_common.CSTR_HOSTNAME,
                                 esmon_common.CSTR_SSH_IDENTITY_FILE,
-                                esmon_common.CSTR_LOCAL_HOST])
+                                esmon_common.CSTR_LOCAL_HOST],
+                      default=[])
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_SSH_IDENTITY_FILE] = \
     EsmonConfigString(esmon_common.CSTR_SSH_IDENTITY_FILE,
@@ -756,6 +905,15 @@ read by esmon_virt command to install virtual machines.""")
 ESMON_CONFIG_CANDIDATES = []
 ESMON_CONFIG_RUNNING = True
 
+INFO = """Multiple items with the same name prefix can be added using the same template,
+e.g. OSS01, OSS02, ..., OSS099, or OSS1, OSS2, ..., OSS99."""
+ESMON_CONFIG_ADD_MULTIPLE = EsmonConfigString("whether_multiple",
+                                              ESMON_CONFIG_CSTR_BOOL,
+                                              INFO)
+
+ESMON_CONFIG_ADD_PREFIX = EsmonConfigString("prefix",
+                                            ESMON_CONFIG_CSTR_STRING,
+                                            "")
 
 class EsmonWalkEntry(object):
     """
@@ -1057,43 +1215,46 @@ def esmon_edit(current):
     print cstring.ecs_help_info, "\n"
     print 'Current value: "%s"' % current_config
 
-    value = esmon_edit_loop(current_config, cstring)
+    value = esmon_edit_loop(cstring)
+    if value == current_config:
+        print 'Keep it as "%s"' % value
+    else:
+        print 'Changed it to "%s"' % value
     parent_config[key] = value
     current.ewe_config = value
     return 0
 
 
-def esmon_edit_loop(default, cstring):
+def esmon_edit_loop(cstring, prompt=None):
     """
     Loop until allowed string is inputed
     """
     # pylint: disable=too-many-branches,redefined-variable-type,bare-except
     # pylint: disable=too-many-statements
-    value = default
-
-    if cstring.ecs_type == ESMON_CONFIG_CSTR_BOOL:
-        prompt = 'To set it to True/False, press t/f: '
-    elif cstring.ecs_type == ESMON_CONFIG_CSTR_CONSTANT:
-        if len(cstring.ecs_constants) == 1:
-            prompt = 'The supported value is: '
+    if prompt is None:
+        if cstring.ecs_type == ESMON_CONFIG_CSTR_BOOL:
+            prompt = 'To set it to True/False, press t/f: '
+        elif cstring.ecs_type == ESMON_CONFIG_CSTR_CONSTANT:
+            if len(cstring.ecs_constants) == 1:
+                prompt = 'The supported value is: '
+            else:
+                prompt = 'The supported values are: '
+            value_string = ""
+            for supported_value in cstring.ecs_constants:
+                if value_string != "":
+                    value_string += ", "
+                value_string += '"%s"' % supported_value
+            prompt += value_string + ".\n"
+            prompt += 'Please select one of the supported values: '
+        elif cstring.ecs_type == ESMON_CONFIG_CSTR_PATH:
+            prompt = 'Please input the new path: '
+        elif cstring.ecs_type == ESMON_CONFIG_CSTR_STRING:
+            prompt = 'Please input the new value (a string): '
+        elif cstring.ecs_type == ESMON_CONFIG_CSTR_INT:
+            prompt = ('Please input an integer in [%s-%s]: ' %
+                      (cstring.ecs_start, cstring.ecs_end))
         else:
-            prompt = 'The supported values are: '
-        value_string = ""
-        for supported_value in cstring.ecs_constants:
-            if value_string != "":
-                value_string += ", "
-            value_string += '"%s"' % supported_value
-        prompt += value_string + ".\n"
-        prompt += 'Please select one of the supported values: '
-    elif cstring.ecs_type == ESMON_CONFIG_CSTR_PATH:
-        prompt = 'Please input the new path: '
-    elif cstring.ecs_type == ESMON_CONFIG_CSTR_STRING:
-        prompt = 'Please input the new value (a string): '
-    elif cstring.ecs_type == ESMON_CONFIG_CSTR_INT:
-        prompt = ('Please input the new integer of [%s-%s]: ' %
-                  (cstring.ecs_start, cstring.ecs_end))
-    else:
-        console_error('unknown type "%s"' % cstring.ecs_type)
+            console_error('unknown type "%s"' % cstring.ecs_type)
 
     value = None
     while ESMON_CONFIG_RUNNING:
@@ -1142,10 +1303,6 @@ def esmon_edit_loop(default, cstring):
         if value is not None:
             break
 
-    if value == default:
-        print 'Keep it as "%s"' % value
-    else:
-        print 'Changed it to "%s"' % value
     return value
 
 
@@ -1156,7 +1313,6 @@ def esmon_config_guide(cstring, section):
     if section == "":
         guide_string = ""
     else:
-        
         guide_string = "# " + section
         if "." not in section:
             guide_string += "."
