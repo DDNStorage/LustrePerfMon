@@ -507,7 +507,7 @@ class EsmonConfigString(object):
     # pylint: disable=too-many-instance-attributes
     def __init__(self, cstring, ctype, help_info, constants=None,
                  start=0, end=65536, item_helpinfo="", allow_none=False,
-                 item_key=None, children=None, default=None):
+                 item_child_value=None, item_key=None, children=None, default=None):
         self.ecs_string = cstring
         # ESMON_CONFIG_CSTR_*
         self.ecs_type = ctype
@@ -536,6 +536,7 @@ class EsmonConfigString(object):
         self.ecs_end = end
 
         # Only valid for ESMON_CONFIG_CSTR_LIST
+        self.ecs_item_child_value = item_child_value
         self.ecs_item_helpinfo = item_helpinfo
         self.ecs_item_key = item_key
         if ctype == ESMON_CONFIG_CSTR_LIST:
@@ -590,6 +591,15 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_CONTROLLER1_HOST] = \
 ESMON_HOST_ID_NUM = 0
 
 
+def esmon_ssh_host_item_child_value(item_id, child_key):
+    """
+    Return the default value according to the item_id
+    """
+    if child_key == esmon_common.CSTR_HOSTNAME:
+        return 0, item_id
+    return -1, None
+
+
 def esmon_item_add(config_list, list_cstr, id_value):
     """
     Add item to agent list
@@ -608,9 +618,18 @@ def esmon_item_add(config_list, list_cstr, id_value):
             item_config[child] = id_value
         else:
             if child_cstr.ecs_default is None:
-                console_error('fix me: config "%s" doesnot have default value' %
-                              (child_cstr.ecs_string))
-                return -1
+                if list_cstr.ecs_item_child_value is not None:
+                    ret, value = list_cstr.ecs_item_child_value(id_value, child)
+                    if ret:
+                        console_error('fix me: can not generate value of "%s" '
+                                      'according to id "%s"' %
+                                      (child, id_value))
+                        return -1
+                    item_config[child] = value
+                else:
+                    console_error('fix me: config "%s" doesnot have default value' %
+                                  (child_cstr.ecs_string))
+                    return -1
             else:
                 item_config[child] = copy.copy(child_cstr.ecs_default)
     config_list.append(item_config)
@@ -806,6 +825,7 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_SSH_HOSTS] = \
 SSH connections.""",
                       item_helpinfo=INFO,
                       item_key=esmon_common.CSTR_HOST_ID,
+                      item_child_value=esmon_ssh_host_item_child_value,
                       children=[esmon_common.CSTR_HOST_ID,
                                 esmon_common.CSTR_HOSTNAME,
                                 esmon_common.CSTR_SSH_IDENTITY_FILE,
