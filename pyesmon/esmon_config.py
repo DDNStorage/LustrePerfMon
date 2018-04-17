@@ -1280,6 +1280,8 @@ def esmon_config_guide(cstring, section):
             guide_string += "."
         guide_string += " " + cstring.ecs_string + "\n# "
         guide_string += cstring.ecs_help_info.replace("\n", "\n# ")
+        if cstring.ecs_default is not None:
+            guide_string += "\n# Default value: %s" % cstring.ecs_default
         guide_string += "\n#\n"
     if cstring.ecs_children is None:
         return guide_string
@@ -1301,6 +1303,7 @@ def esmon_config_string():
     """
     root = ESMON_CONFIG_WALK_STACK[0]
     root_config = root.ewe_config
+    simplifed_config = copy.deepcopy(root_config)
     config_string = """#
 # Configuration file of ESPerfMon from DDN
 #
@@ -1311,8 +1314,16 @@ def esmon_config_string():
 #
 """
     config_string += esmon_config_guide(ESMON_INSTALL_ROOT, "")
-    config_string += yaml.dump(root_config, Dumper=EsmonYamlDumper,
-                               default_flow_style=False)
+    ret = esmon_config_check(simplifed_config, "/", ESMON_INSTALL_ROOT,
+                             simplify=True)
+    if ret:
+        console_error('fix me: failed to simplify config, skip simplifying')
+        config_string += yaml.dump(root_config, Dumper=EsmonYamlDumper,
+                                   default_flow_style=False)
+    else:
+        config_string += yaml.dump(simplifed_config, Dumper=EsmonYamlDumper,
+                                   default_flow_style=False)
+        print "Saved the simplified config to the file."
     return config_string
 
 
@@ -1371,10 +1382,12 @@ def esmon_config_bool_check(parent_config, parent_path, parent_cstr):
     return 0
 
 
-def esmon_config_dict_check(parent_config, parent_path, parent_cstr):
+def esmon_config_dict_check(parent_config, parent_path, parent_cstr,
+                            simplify=False):
     """
     Check whether the dict config is legal or not
     """
+    # pylint: disable=too-many-branches
     if not isinstance(parent_config, dict):
         console_error('illegal configuration: config "%s" is not dictionary' %
                       parent_path)
@@ -1389,10 +1402,10 @@ def esmon_config_dict_check(parent_config, parent_path, parent_cstr):
                 console_error('illegal configuration: config "%s" doesnot have '
                               'expected child [%s]' % (parent_path, expected_child))
                 return -1
-            else:
+            elif not simplify:
                 parent_config[expected_child] = copy.copy(child_cstr.ecs_default)
 
-    for child_name, child_config in parent_config.iteritems():
+    for child_name, child_config in parent_config.items():
         if child_name not in child_names:
             console_error('illegal configuration: config "%s" should not have '
                           'child [%s]' % (parent_path, child_name))
@@ -1406,10 +1419,22 @@ def esmon_config_dict_check(parent_config, parent_path, parent_cstr):
             child_path = "/" + child_name
         else:
             child_path = parent_path + "/" + child_name
-        ret = esmon_config_check(child_config, child_path, child_cstr)
+        ret = esmon_config_check(child_config, child_path, child_cstr,
+                                 simplify=simplify)
         if ret:
             return ret
 
+        if simplify:
+            if child_cstr.ecs_type == ESMON_CONFIG_CSTR_LIST:
+                if len(child_config) == 0:
+                    del parent_config[child_name]
+                    logging.debug("simplified %s/%s", parent_path, child_name)
+            elif child_cstr.ecs_type == ESMON_CONFIG_CSTR_DICT:
+                assert child_cstr.ecs_default is None
+            elif child_cstr.ecs_default is not None:
+                if child_config == child_cstr.ecs_default:
+                    del parent_config[child_name]
+                    logging.debug("simplified %s/%s", parent_path, child_name)
     return 0
 
 
@@ -1488,7 +1513,8 @@ def esmon_config_constant_check(parent_config, parent_path, parent_cstr):
     return 0
 
 
-def esmon_config_list_check(parent_config, parent_path, parent_cstr):
+def esmon_config_list_check(parent_config, parent_path, parent_cstr,
+                            simplify=False):
     """
     Check whether the dict config is legal or not
     """
@@ -1526,10 +1552,10 @@ def esmon_config_list_check(parent_config, parent_path, parent_cstr):
                     console_error('illegal configuration: config "%s" doesnot have '
                                   'expected child [%s]' % (child_path, expected_grandon))
                     return -1
-                else:
+                elif not simplify:
                     child_config[expected_grandon] = copy.copy(grandson_cstr.ecs_default)
 
-        for grandson_name, grandson_config in child_config.iteritems():
+        for grandson_name, grandson_config in child_config.items():
             if grandson_name not in grandson_names:
                 console_error('illegal configuration: config "%s" should not '
                               'have child [%s]' % (child_path, grandson_name))
@@ -1541,25 +1567,40 @@ def esmon_config_list_check(parent_config, parent_path, parent_cstr):
             grandson_cstr = ESMON_INSTALL_CSTRS[grandson_name]
             grandson_path = child_path + "/" + grandson_name
             ret = esmon_config_check(grandson_config, grandson_path,
-                                     grandson_cstr)
+                                     grandson_cstr, simplify=simplify)
             if ret:
                 return ret
+
+            if simplify:
+                if grandson_cstr.ecs_type == ESMON_CONFIG_CSTR_LIST:
+                    if len(grandson_config) == 0:
+                        del child_config[grandson_name]
+                        logging.debug("simplified %s", grandson_path)
+                elif grandson_cstr.ecs_type == ESMON_CONFIG_CSTR_DICT:
+                    assert grandson_cstr.ecs_default is None
+                elif grandson_cstr.ecs_default is not None:
+                    if grandson_config == grandson_cstr.ecs_default:
+                        del child_config[grandson_name]
+                        logging.debug("simplified %s", grandson_path)
     return 0
 
 
-def esmon_config_check(parent_config, parent_path, parent_cstr):
+def esmon_config_check(parent_config, parent_path, parent_cstr,
+                       simplify=False):
     """
     Check whether the config is legal or not
     """
     # pylint: disable=too-many-return-statements,too-many-branches
     logging.debug("checking %s", parent_path)
     if parent_cstr.ecs_type == ESMON_CONFIG_CSTR_DICT:
-        ret = esmon_config_dict_check(parent_config, parent_path, parent_cstr)
+        ret = esmon_config_dict_check(parent_config, parent_path, parent_cstr,
+                                      simplify=simplify)
         if ret:
             return -1
     elif parent_cstr.ecs_type == ESMON_CONFIG_CSTR_LIST:
         ret = esmon_config_list_check(parent_config, parent_path,
-                                      parent_cstr)
+                                      parent_cstr,
+                                      simplify=simplify)
         if ret:
             return -1
     elif parent_cstr.ecs_type == ESMON_CONFIG_CSTR_STRING:
