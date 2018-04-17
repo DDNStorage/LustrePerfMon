@@ -14,7 +14,6 @@ import shutil
 import copy
 import yaml
 
-from pyesmon import esmon_install_nodeps
 from pyesmon import utils
 from pyesmon import time_util
 from pyesmon import esmon_common
@@ -508,7 +507,7 @@ class EsmonConfigString(object):
     # pylint: disable=too-many-instance-attributes
     def __init__(self, cstring, ctype, help_info, constants=None,
                  start=0, end=65536, item_helpinfo="", allow_none=False,
-                 item_add=None, item_key=None, children=None, default=None):
+                 item_key=None, children=None, default=None):
         self.ecs_string = cstring
         # ESMON_CONFIG_CSTR_*
         self.ecs_type = ctype
@@ -538,10 +537,8 @@ class EsmonConfigString(object):
 
         # Only valid for ESMON_CONFIG_CSTR_LIST
         self.ecs_item_helpinfo = item_helpinfo
-        self.ecs_item_add = item_add
         self.ecs_item_key = item_key
         if ctype == ESMON_CONFIG_CSTR_LIST:
-            assert item_add is not None
             assert item_helpinfo != ""
             assert item_key is not None
 
@@ -593,12 +590,6 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_CONTROLLER1_HOST] = \
 ESMON_HOST_ID_NUM = 0
 
 
-def esmon_agent_item_add():
-    """
-    TMP
-    """
-    return 0
-
 def esmon_item_add(config_list, list_cstr, id_value):
     """
     Add item to agent list
@@ -632,7 +623,6 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_AGENTS] = \
                       ESMON_CONFIG_CSTR_LIST,
                       """This list includes the information of the ESMON agents.""",
                       item_helpinfo=INFO,
-                      item_add=esmon_agent_item_add,
                       item_key=esmon_common.CSTR_HOST_ID,
                       children=[esmon_common.CSTR_ENABLE_DISK,
                                 esmon_common.CSTR_HOST_ID,
@@ -647,7 +637,7 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_AGENTS_REINSTALL] = \
     EsmonConfigString(esmon_common.CSTR_AGENTS_REINSTALL,
                       ESMON_CONFIG_CSTR_BOOL,
                       """This option determines whether to reinstall ESMON agents or not.""",
-                      default=False)
+                      default=True)
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_COLLECT_INTERVAL] = \
     EsmonConfigString(esmon_common.CSTR_COLLECT_INTERVAL,
@@ -795,65 +785,17 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_SERVER] = \
 ESMON_SFA_NAME_NUM = 0
 
 
-def esmon_sfa_item_add(config_list):
-    """
-    Add item to SFA list
-    """
-    # pylint: disable=global-statement
-    global ESMON_SFA_NAME_NUM
-    while True:
-        name = "sfa_" + str(ESMON_SFA_NAME_NUM)
-        conflict = False
-        for agent in config_list:
-            if agent[esmon_common.CSTR_NAME] == name:
-                conflict = True
-                break
-        if conflict:
-            ESMON_SFA_NAME_NUM += 1
-        else:
-            break
-
-    controller0 = name + "_controller0_host"
-    controller1 = name + "_controller1_host"
-    config_list.append({esmon_common.CSTR_NAME: name,
-                        esmon_common.CSTR_CONTROLLER0_HOST: controller0,
-                        esmon_common.CSTR_CONTROLLER1_HOST: controller1})
-
 INFO = "This group of options include the information of this SFA on the ESMON agent."
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_SFAS] = \
     EsmonConfigString(esmon_common.CSTR_SFAS,
                       ESMON_CONFIG_CSTR_LIST,
                       """This list includes the information of SFAs on this ESMON agent.""",
                       item_helpinfo=INFO,
-                      item_add=esmon_sfa_item_add,
                       item_key=esmon_common.CSTR_NAME,
                       children=[esmon_common.CSTR_CONTROLLER0_HOST,
                                 esmon_common.CSTR_CONTROLLER1_HOST,
                                 esmon_common.CSTR_NAME],
                       default=[])
-
-
-def esmon_ssh_host_item_add(config_list):
-    """
-    Add item into ssh_hosts
-    """
-    # pylint: disable=global-statement
-    global ESMON_HOST_ID_NUM
-    while True:
-        host_id = "host_" + str(ESMON_HOST_ID_NUM)
-        conflict = False
-        for host in config_list:
-            if host[esmon_common.CSTR_HOST_ID] == host_id:
-                conflict = True
-                break
-        if conflict:
-            ESMON_HOST_ID_NUM += 1
-        else:
-            break
-
-    config_list.append({esmon_common.CSTR_HOST_ID: host_id,
-                        esmon_common.CSTR_HOSTNAME: False,
-                        esmon_common.CSTR_SSH_IDENTITY_FILE: esmon_common.ESMON_CONFIG_CSTR_NONE})
 
 
 INFO = """This is the information about how to login into this host using SSH connection."""
@@ -863,7 +805,6 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_SSH_HOSTS] = \
                       """This list includes the informations about how to login into the hosts using
 SSH connections.""",
                       item_helpinfo=INFO,
-                      item_add=esmon_ssh_host_item_add,
                       item_key=esmon_common.CSTR_HOST_ID,
                       children=[esmon_common.CSTR_HOST_ID,
                                 esmon_common.CSTR_HOSTNAME,
@@ -914,6 +855,7 @@ ESMON_CONFIG_ADD_MULTIPLE = EsmonConfigString("whether_multiple",
 ESMON_CONFIG_ADD_PREFIX = EsmonConfigString("prefix",
                                             ESMON_CONFIG_CSTR_STRING,
                                             "")
+
 
 class EsmonWalkEntry(object):
     """
@@ -1672,6 +1614,31 @@ def esmon_config(workspace):
     return 0
 
 
+def install_config_value(config, key, mapping_dict=None):
+    """
+    Return the config value
+    """
+    if key not in ESMON_INSTALL_CSTRS:
+        logging.error("invalid config option [%s]", key)
+        return -1, None
+
+    cstring = ESMON_INSTALL_CSTRS[key]
+    if key not in config:
+        if cstring.ecs_default is None:
+            logging.error("config option [%s] is not configured and has no "
+                          "default value", key)
+            return -1, None
+        value = cstring.ecs_default
+        logging.debug("config option [%s] is not configured and use "
+                      "default value [%s]", key, cstring.ecs_default)
+    else:
+        value = config[key]
+
+    if mapping_dict is not None and value in mapping_dict:
+        value = mapping_dict[value]
+    return 0, value
+
+
 def usage():
     """
     Print usage string
@@ -1688,7 +1655,7 @@ def main():
     global CONFIG_FPATH
     reload(sys)
     sys.setdefaultencoding("utf-8")
-    CONFIG_FPATH = esmon_install_nodeps.ESMON_INSTALL_CONFIG
+    CONFIG_FPATH = esmon_common.ESMON_INSTALL_CONFIG
 
     if len(sys.argv) == 2:
         CONFIG_FPATH = sys.argv[1]

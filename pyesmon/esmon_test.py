@@ -14,6 +14,7 @@ import yaml
 import filelock
 
 # Local libs
+from pyesmon import esmon_config
 from pyesmon import utils
 from pyesmon import time_util
 from pyesmon import esmon_common
@@ -678,6 +679,12 @@ def esmon_do_test(workspace, config, config_fpath):
                       config_fpath)
         return -1
 
+    ret, agents_reinstall = \
+        esmon_config.install_config_value(config,
+                                          esmon_common.CSTR_AGENTS_REINSTALL)
+    if ret:
+        return -1
+
     local_host = ssh_host.SSHHost("localhost", local=True)
     command = "ls esmon-*.iso"
     retval = local_host.sh_run(command)
@@ -725,6 +732,7 @@ def esmon_do_test(workspace, config, config_fpath):
     install_config = {}
     install_config[esmon_common.CSTR_ISO_PATH] = host_iso_path
     install_config[esmon_common.CSTR_SSH_HOSTS] = ssh_host_configs
+    install_config[esmon_common.CSTR_AGENTS_REINSTALL] = agents_reinstall
     install_config[esmon_common.CSTR_AGENTS] = agent_configs
     install_config[esmon_common.CSTR_SERVER] = server_config
     install_config[esmon_common.CSTR_COLLECT_INTERVAL] = collect_interval

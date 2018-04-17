@@ -10,10 +10,10 @@ import logging
 from pyesmon import utils
 
 ESMON_INSTALL_CONFIG_FNAME = "esmon_install.conf"
+ESMON_INSTALL_CONFIG = "/etc/" + ESMON_INSTALL_CONFIG_FNAME
 RPM_PATTERN_RHEL7 = r"^%s-\d.+(\.el7|).*\.(x86_64|noarch)\.rpm$"
 RPM_PATTERN_RHEL6 = r"^%s-\d.+(\.el6|).*\.(x86_64|noarch)\.rpm$"
 PATTERN_PYTHON_LIBRARY = r"^%s-\d+\.\d+\.\d+\.tar\.gz$"
-DEFAULT_INFLUXDB_PATH = "/esmon/influxdb"
 
 # Config strings
 
