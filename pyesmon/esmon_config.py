@@ -463,9 +463,10 @@ def esmon_command_write(arg_string):
     """
     # pylint: disable=unused-argument,global-statement
     global ESMON_SAVED_CONFIG_STRING
-    with open(CONFIG_FPATH, 'w') as yaml_file:
+    with open(CONFIG_FPATH, 'r+') as yaml_file:
         config_string = esmon_config_string()
         yaml_file.write(config_string)
+        print "Saved the config to the file."
         ESMON_SAVED_CONFIG_STRING = config_string
     return 0
 
@@ -1323,7 +1324,6 @@ def esmon_config_string():
     else:
         config_string += yaml.dump(simplifed_config, Dumper=EsmonYamlDumper,
                                    default_flow_style=False)
-        print "Saved the simplified config to the file."
     return config_string
 
 
