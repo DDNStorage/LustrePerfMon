@@ -463,11 +463,11 @@ def esmon_command_write(arg_string):
     """
     # pylint: disable=unused-argument,global-statement
     global ESMON_SAVED_CONFIG_STRING
-    with open(CONFIG_FPATH, 'r+') as yaml_file:
-        config_string = esmon_config_string()
+    config_string = esmon_config_string()
+    with open(CONFIG_FPATH, 'w') as yaml_file:
         yaml_file.write(config_string)
-        print "Saved the config to the file."
-        ESMON_SAVED_CONFIG_STRING = config_string
+    print "Saved the config to the file."
+    ESMON_SAVED_CONFIG_STRING = config_string
     return 0
 
 ESMON_CONFIG_COMMNADS[ESMON_CONFIG_COMMNAD_WRITE] = \
