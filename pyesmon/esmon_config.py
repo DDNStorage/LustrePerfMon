@@ -1316,8 +1316,9 @@ def esmon_config_string():
 #
 """
     config_string += esmon_config_guide(ESMON_INSTALL_ROOT, "")
+    simplify_list = []
     ret = esmon_config_check(simplifed_config, "/", ESMON_INSTALL_ROOT,
-                             simplify=True)
+                             simplify=simplify_list)
     if ret:
         console_error('fix me: failed to simplify config, skip simplifying')
         config_string += yaml.dump(root_config, Dumper=EsmonYamlDumper,
@@ -1428,13 +1429,19 @@ def esmon_config_dict_check(parent_config, parent_path, parent_cstr,
         if simplify:
             if child_cstr.ecs_type == ESMON_CONFIG_CSTR_LIST:
                 if len(child_config) == 0:
-                    del parent_config[child_name]
+                    if child_name in simplify:
+                        del parent_config[child_name]
+                    else:
+                        simplify.append(child_name)
                     logging.debug("simplified %s/%s", parent_path, child_name)
             elif child_cstr.ecs_type == ESMON_CONFIG_CSTR_DICT:
                 assert child_cstr.ecs_default is None
             elif child_cstr.ecs_default is not None:
                 if child_config == child_cstr.ecs_default:
-                    del parent_config[child_name]
+                    if child_name in simplify:
+                        del parent_config[child_name]
+                    else:
+                        simplify.append(child_name)
                     logging.debug("simplified %s/%s", parent_path, child_name)
     return 0
 
@@ -1515,7 +1522,7 @@ def esmon_config_constant_check(parent_config, parent_path, parent_cstr):
 
 
 def esmon_config_list_check(parent_config, parent_path, parent_cstr,
-                            simplify=False):
+                            simplify=None):
     """
     Check whether the dict config is legal or not
     """
@@ -1553,7 +1560,7 @@ def esmon_config_list_check(parent_config, parent_path, parent_cstr,
                     console_error('illegal configuration: config "%s" doesnot have '
                                   'expected child [%s]' % (child_path, expected_grandon))
                     return -1
-                elif not simplify:
+                elif simplify is None:
                     child_config[expected_grandon] = copy.copy(grandson_cstr.ecs_default)
 
         for grandson_name, grandson_config in child_config.items():
@@ -1572,22 +1579,28 @@ def esmon_config_list_check(parent_config, parent_path, parent_cstr,
             if ret:
                 return ret
 
-            if simplify:
+            if simplify is not None:
                 if grandson_cstr.ecs_type == ESMON_CONFIG_CSTR_LIST:
                     if len(grandson_config) == 0:
-                        del child_config[grandson_name]
+                        if grandson_name in simplify:
+                            del child_config[grandson_name]
+                        else:
+                            simplify.append(grandson_name)
                         logging.debug("simplified %s", grandson_path)
                 elif grandson_cstr.ecs_type == ESMON_CONFIG_CSTR_DICT:
                     assert grandson_cstr.ecs_default is None
                 elif grandson_cstr.ecs_default is not None:
                     if grandson_config == grandson_cstr.ecs_default:
-                        del child_config[grandson_name]
+                        if grandson_name in simplify:
+                            del child_config[grandson_name]
+                        else:
+                            simplify.append(grandson_name)
                         logging.debug("simplified %s", grandson_path)
     return 0
 
 
 def esmon_config_check(parent_config, parent_path, parent_cstr,
-                       simplify=False):
+                       simplify=None):
     """
     Check whether the config is legal or not
     """
