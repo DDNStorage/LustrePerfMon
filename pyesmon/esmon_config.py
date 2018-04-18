@@ -33,6 +33,7 @@ ESMON_CONFIG_COMMNAD_MANUAL = "m"
 ESMON_CONFIG_COMMNAD_QUIT = "q"
 ESMON_CONFIG_COMMNAD_REMOVE = "rm"
 ESMON_CONFIG_COMMNAD_WRITE = "w"
+ESMON_CONFIG_COMMNAD_WRITE_QUIT = "wq"
 
 
 class EsmonConfigCommand(object):
@@ -284,7 +285,8 @@ def esmon_command_help(arg_string):
    m         print the manual of this option
    q [-f]    quit without saving changes
    rm        remove the current item from parent
-   w         write config file to disk"""
+   w         write config file to disk
+   wq        write config file to disk and quit"""
 
     return 0
 
@@ -472,6 +474,25 @@ def esmon_command_write(arg_string):
 
 ESMON_CONFIG_COMMNADS[ESMON_CONFIG_COMMNAD_WRITE] = \
     EsmonConfigCommand(ESMON_CONFIG_COMMNAD_WRITE, esmon_command_write)
+
+
+def esmon_command_write_quit(arg_string):
+    """
+    Write the config into file and quit
+    """
+    # pylint: disable=unused-argument,global-statement
+    ret = esmon_command_write(arg_string)
+    if ret:
+        return ret
+
+    ret = esmon_command_quit(arg_string)
+    return ret
+
+
+ESMON_CONFIG_COMMNADS[ESMON_CONFIG_COMMNAD_WRITE_QUIT] = \
+    EsmonConfigCommand(ESMON_CONFIG_COMMNAD_WRITE_QUIT,
+                       esmon_command_write_quit)
+
 
 ESMON_CONFIG_ROOT = None
 ESMON_CONFIG_WALK_STACK = []
