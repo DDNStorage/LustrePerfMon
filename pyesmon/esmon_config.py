@@ -719,7 +719,8 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_HOST_ID] = \
     EsmonConfigString(esmon_common.CSTR_HOST_ID,
                       ESMON_CONFIG_CSTR_STRING,
                       """This option is the ID of the host. The ID of a host is a unique value to
-identify the host.""")
+identify the host.""",
+                      default="localhost")
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_HOSTNAME] = \
     EsmonConfigString(esmon_common.CSTR_HOSTNAME,
@@ -1636,6 +1637,20 @@ def esmon_config_check(parent_config, parent_path, parent_cstr,
     return 0
 
 
+def esmon_scratch_dict(cstring):
+    """
+    Return the scratch config of a dictionary
+    """
+    config = {}
+    for child in cstring.ecs_children:
+        child_cstr = ESMON_INSTALL_CSTRS[child]
+        if child_cstr.ecs_type == ESMON_CONFIG_CSTR_DICT:
+            config[child] = esmon_scratch_dict(child_cstr)
+        else:
+            config[child] = copy.copy(child_cstr.ecs_default)
+    return config
+
+
 def esmon_config(workspace):
     """
     Start to config the file
@@ -1644,23 +1659,38 @@ def esmon_config(workspace):
     # pylint: disable=global-statement
     global ESMON_CONFIG_ROOT, ESMON_CONFIG_WALK_STACK, ESMON_SAVED_CONFIG_STRING
     save_fpath = workspace + "/" + esmon_common.ESMON_INSTALL_CONFIG_FNAME
-    logging.debug("copying config file from [%s] to [%s]", CONFIG_FPATH,
-                  save_fpath)
-    shutil.copyfile(CONFIG_FPATH, save_fpath)
 
-    config_fd = open(CONFIG_FPATH)
-    ret = 0
-    try:
-        config = yaml.load(config_fd)
-    except:
-        logging.error("not able to load [%s] as yaml file: %s", CONFIG_FPATH,
-                      traceback.format_exc())
-        ret = -1
-    config_fd.seek(0)
-    ESMON_SAVED_CONFIG_STRING = config_fd.read()
-    config_fd.close()
-    if ret:
-        return -1
+    if os.path.exists(CONFIG_FPATH):
+        logging.debug("copying config file from [%s] to [%s]", CONFIG_FPATH,
+                      save_fpath)
+        shutil.copyfile(CONFIG_FPATH, save_fpath)
+
+        config_fd = open(CONFIG_FPATH)
+        ret = 0
+        try:
+            config = yaml.load(config_fd)
+        except:
+            logging.error("not able to load [%s] as yaml file: %s", CONFIG_FPATH,
+                          traceback.format_exc())
+            ret = -1
+        config_fd.seek(0)
+        ESMON_SAVED_CONFIG_STRING = config_fd.read()
+        config_fd.close()
+        if ret:
+            return -1
+    else:
+        print 'File "%s" doesnot exist.' % CONFIG_FPATH
+        prompt = "Press T/t to create it from scratch, press F/f to quit: "
+        create_cstring = EsmonConfigString("create",
+                                           ESMON_CONFIG_CSTR_BOOL,
+                                           "")
+        create_new = esmon_edit_loop(create_cstring,
+                                     prompt=prompt)
+        if not create_new:
+            return 0
+
+        open(CONFIG_FPATH, 'a').close()
+        config = esmon_scratch_dict(ESMON_INSTALL_ROOT)
 
     ESMON_CONFIG_ROOT = EsmonWalkEntry("/", config)
     ESMON_CONFIG_WALK_STACK = [ESMON_CONFIG_ROOT]
