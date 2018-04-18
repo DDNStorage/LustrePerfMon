@@ -1385,7 +1385,7 @@ def esmon_config_bool_check(parent_config, parent_path, parent_cstr):
 
 
 def esmon_config_dict_check(parent_config, parent_path, parent_cstr,
-                            simplify=False):
+                            simplify=None):
     """
     Check whether the dict config is legal or not
     """
@@ -1404,7 +1404,7 @@ def esmon_config_dict_check(parent_config, parent_path, parent_cstr,
                 console_error('illegal configuration: config "%s" doesnot have '
                               'expected child [%s]' % (parent_path, expected_child))
                 return -1
-            elif not simplify:
+            elif simplify is None:
                 parent_config[expected_child] = copy.copy(child_cstr.ecs_default)
 
     for child_name, child_config in parent_config.items():
@@ -1426,7 +1426,7 @@ def esmon_config_dict_check(parent_config, parent_path, parent_cstr,
         if ret:
             return ret
 
-        if simplify:
+        if simplify is not None:
             if child_cstr.ecs_type == ESMON_CONFIG_CSTR_LIST:
                 if len(child_config) == 0:
                     if child_name in simplify:
@@ -1527,6 +1527,7 @@ def esmon_config_list_check(parent_config, parent_path, parent_cstr,
     Check whether the dict config is legal or not
     """
     # pylint: disable=too-many-return-statements,too-many-branches
+    # pylint: disable=too-many-nested-blocks
     if not isinstance(parent_config, list):
         console_error('illegal configuration: config "%s" is not list' %
                       parent_path)
@@ -1673,6 +1674,7 @@ def esmon_config(workspace):
     global ESMON_CONFIG_ROOT, ESMON_CONFIG_WALK_STACK, ESMON_SAVED_CONFIG_STRING
     save_fpath = workspace + "/" + esmon_common.ESMON_INSTALL_CONFIG_FNAME
 
+    create_reason = None
     if os.path.exists(CONFIG_FPATH):
         logging.debug("copying config file from [%s] to [%s]", CONFIG_FPATH,
                       save_fpath)
@@ -1691,8 +1693,14 @@ def esmon_config(workspace):
         config_fd.close()
         if ret:
             return -1
+        if config is None:
+            create_reason = 'File "%s" is an empty config.' % CONFIG_FPATH
     else:
-        print 'File "%s" doesnot exist.' % CONFIG_FPATH
+        create_reason = 'File "%s" doesnot exist.' % CONFIG_FPATH
+
+    if create_reason is not None:
+        ESMON_SAVED_CONFIG_STRING = ""
+        print create_reason
         prompt = "Press T/t to create it from scratch, press F/f to quit: "
         create_cstring = EsmonConfigString("create",
                                            ESMON_CONFIG_CSTR_BOOL,
