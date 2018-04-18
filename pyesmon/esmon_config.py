@@ -517,11 +517,8 @@ class EsmonConfigString(object):
         # Only valid for ESMON_CONFIG_CSTR_[DICT|LIST]
         self.ecs_children = children
 
-        # Only valid for none ESMON_CONFIG_CSTR_DICT
         # If it is ID of a list, then it has no default value
         # ESMON_CONFIG_CSTR_LIST always has default value of []
-        if ctype == ESMON_CONFIG_CSTR_DICT:
-            assert default is None
         self.ecs_default = default
 
         # Only valid for ESMON_CONFIG_CSTR_CONSTANT
@@ -636,7 +633,9 @@ def esmon_item_add(config_list, list_cstr, id_value):
     config_list.append(item_config)
     return 0
 
-
+LOCALHOST_AGENT = {
+    esmon_common.CSTR_HOST_ID: "localhost",
+}
 INFO = "This group of options include the information of this ESMON agent."
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_AGENTS] = \
     EsmonConfigString(esmon_common.CSTR_AGENTS,
@@ -651,7 +650,7 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_AGENTS] = \
                                 esmon_common.CSTR_LUSTRE_MDS,
                                 esmon_common.CSTR_LUSTRE_OSS,
                                 esmon_common.CSTR_SFAS],
-                      default=[])
+                      default=[LOCALHOST_AGENT])
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_AGENTS_REINSTALL] = \
     EsmonConfigString(esmon_common.CSTR_AGENTS_REINSTALL,
@@ -719,14 +718,15 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_HOST_ID] = \
     EsmonConfigString(esmon_common.CSTR_HOST_ID,
                       ESMON_CONFIG_CSTR_STRING,
                       """This option is the ID of the host. The ID of a host is a unique value to
-identify the host.""",
-                      default="localhost")
+identify the host.""")
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_HOSTNAME] = \
     EsmonConfigString(esmon_common.CSTR_HOSTNAME,
                       ESMON_CONFIG_CSTR_STRING,
-                      """This option is the hostname or IP of the host. SSH command will use this
-hostname/IP to login into the host.""")
+                      """This option is the hostname or IP of the host. "ssh" command will use this
+hostname/IP to login into the host. If the host is the ESMON server, this
+hostname/IP will be used as the server host in the write_tsdb plugin of
+ESMON client.""")
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_IME] = \
     EsmonConfigString(esmon_common.CSTR_IME,
@@ -793,6 +793,9 @@ RPMs installed on the ESMON client is not with the supported version.""",
                       constants=lustre.LUSTER_VERSION_NAMES,
                       default="es3")
 
+SERVER_DEFAULT = {
+    esmon_common.CSTR_HOST_ID: "localhost"
+}
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_SERVER] = \
     EsmonConfigString(esmon_common.CSTR_SERVER,
                       ESMON_CONFIG_CSTR_DICT,
@@ -801,7 +804,8 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_SERVER] = \
                                 esmon_common.CSTR_ERASE_INFLUXDB,
                                 esmon_common.CSTR_HOST_ID,
                                 esmon_common.CSTR_INFLUXDB_PATH,
-                                esmon_common.CSTR_REINSTALL])
+                                esmon_common.CSTR_REINSTALL],
+                      default=SERVER_DEFAULT)
 
 ESMON_SFA_NAME_NUM = 0
 
@@ -818,6 +822,11 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_SFAS] = \
                                 esmon_common.CSTR_NAME],
                       default=[])
 
+LOCALHOST_SSH_HOST = {
+    esmon_common.CSTR_HOST_ID: "localhost",
+    esmon_common.CSTR_HOSTNAME: "localhost",
+    esmon_common.CSTR_LOCAL_HOST: True,
+}
 
 INFO = """This is the information about how to login into this host using SSH connection."""
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_SSH_HOSTS] = \
@@ -832,7 +841,7 @@ SSH connections.""",
                                 esmon_common.CSTR_HOSTNAME,
                                 esmon_common.CSTR_SSH_IDENTITY_FILE,
                                 esmon_common.CSTR_LOCAL_HOST],
-                      default=[])
+                      default=[LOCALHOST_SSH_HOST])
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_SSH_IDENTITY_FILE] = \
     EsmonConfigString(esmon_common.CSTR_SSH_IDENTITY_FILE,
@@ -1434,8 +1443,6 @@ def esmon_config_dict_check(parent_config, parent_path, parent_cstr,
                     else:
                         simplify.append(child_name)
                     logging.debug("simplified %s/%s", parent_path, child_name)
-            elif child_cstr.ecs_type == ESMON_CONFIG_CSTR_DICT:
-                assert child_cstr.ecs_default is None
             elif child_cstr.ecs_default is not None:
                 if child_config == child_cstr.ecs_default:
                     if child_name in simplify:
@@ -1658,7 +1665,7 @@ def esmon_scratch_dict(cstring):
     config = {}
     for child in cstring.ecs_children:
         child_cstr = ESMON_INSTALL_CSTRS[child]
-        if child_cstr.ecs_type == ESMON_CONFIG_CSTR_DICT:
+        if child_cstr.ecs_default is None:
             config[child] = esmon_scratch_dict(child_cstr)
         else:
             config[child] = copy.copy(child_cstr.ecs_default)
