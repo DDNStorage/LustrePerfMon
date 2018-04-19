@@ -463,11 +463,16 @@ def esmon_command_write(arg_string):
     """
     Write the config into file
     """
-    # pylint: disable=unused-argument,global-statement
+    # pylint: disable=unused-argument,global-statement,bare-except
     global ESMON_SAVED_CONFIG_STRING
     config_string = esmon_config_string()
-    with open(CONFIG_FPATH, 'w') as yaml_file:
-        yaml_file.write(config_string)
+    try:
+        with open(CONFIG_FPATH, 'w') as yaml_file:
+            yaml_file.write(config_string)
+    except:
+        console_error("""Failed to save the config file. To avoid data lose, please save the
+following config manually:""")
+        sys.stdout.write(config_string)
     print "Saved the config to the file."
     ESMON_SAVED_CONFIG_STRING = config_string
     return 0
