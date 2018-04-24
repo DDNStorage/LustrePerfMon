@@ -633,14 +633,33 @@ def esmon_ssh_host_item_child_value(item_id, child_key):
     return -1, None
 
 
-def esmon_item_add(config_list, list_cstr, id_value):
+def esmon_config_check_add_def(id_value, key_cstring):
     """
-    Add item to agent list
+    Check the config, if the definition is missing, add one
     """
-    # pylint: disable=global-statement
     root = ESMON_CONFIG_WALK_STACK[0]
     root_config = root.ewe_config
 
+    ret = esmon_config_check(root_config, id_value, esmon_pwd(), key_cstring,
+                             silent_on_missing=True)
+    if ret == ESMON_DEF_MISSING:
+        print ('Defintion of "%s" with value "%s" is not found, adding one' %
+               (key_cstring.ecs_string, id_value))
+        ret = esmon_config_def_add(root_config, key_cstring, id_value)
+        if ret == 0:
+            print ('Definition of "%s" with value "%s" is added' %
+                   (key_cstring.ecs_string, id_value))
+        else:
+            return -1
+    return 0
+
+
+def esmon_item_add(config_list, list_cstr, id_value, definition=False):
+    """
+    Add item to agent list
+    definition: whether the item is added for definition
+    """
+    # pylint: disable=global-statement
     for item_config in config_list:
         if item_config[list_cstr.ecs_item_key] == id_value:
             console_error('cannot add item with id "%s" because it already exists' %
@@ -670,23 +689,21 @@ def esmon_item_add(config_list, list_cstr, id_value):
                     return -1
             else:
                 item_config[child] = copy.copy(child_cstr.ecs_default)
-    config_list.append(item_config)
 
     if key_cstring is None:
         console_error('fix me: config "%s" doesnot have child "%s"' %
                       (list_cstr.ecs_string, list_cstr.ecs_item_key))
         return -1
 
-    ret = esmon_config_check(root_config, id_value, esmon_pwd(), key_cstring,
-                             silent_on_missing=True)
-    if ret == ESMON_DEF_MISSING:
-        print ('Defintion of "%s" with value "%s" is not found, adding one' %
-               (key_cstring.ecs_string, id_value))
-        ret = esmon_config_def_add(root_config, key_cstring, id_value)
-        if ret == 0:
-            print ('Definition of "%s" with value "%s" is added' %
-                   (key_cstring.ecs_string, id_value))
+    ret = 0
+    if not definition:
+        ret = esmon_config_check_add_def(id_value, key_cstring)
+
+    if ret == 0:
+        config_list.append(item_config)
+
     return ret
+
 
 LOCALHOST_AGENT = {
     esmon_common.CSTR_HOST_ID: "localhost",
@@ -1212,7 +1229,8 @@ def esmon_edit(current):
     elif isinstance(current_config, str):
         cstring_types = [ESMON_CONFIG_CSTR_CONSTANT,
                          ESMON_CONFIG_CSTR_PATH,
-                         ESMON_CONFIG_CSTR_STRING]
+                         ESMON_CONFIG_CSTR_STRING,
+                         ESMON_CONFIG_CSTR_DEF]
     elif isinstance(current_config, int):
         cstring_types = [ESMON_CONFIG_CSTR_INT]
     else:
@@ -1248,8 +1266,12 @@ def esmon_edit(current):
     value = esmon_edit_loop(cstring)
     if value == current_config:
         print 'Keep it as "%s"' % value
-    else:
-        print 'Changed it to "%s"' % value
+
+    ret = esmon_config_check_add_def(value, cstring)
+    if ret:
+        return -1
+    print 'Changed it to "%s"' % value
+
     parent_config[key] = value
     current.ewe_config = value
     return 0
@@ -1283,6 +1305,8 @@ def esmon_edit_loop(cstring, prompt=None):
         elif cstring.ecs_type == ESMON_CONFIG_CSTR_INT:
             prompt = ('Please input an integer in [%s-%s]: ' %
                       (cstring.ecs_start, cstring.ecs_end))
+        elif cstring.ecs_type == ESMON_CONFIG_CSTR_DEF:
+            prompt = 'Please input the new value (a string): '
         else:
             console_error('unknown type "%s"' % cstring.ecs_type)
 
@@ -1327,6 +1351,8 @@ def esmon_edit_loop(cstring, prompt=None):
                     value = None
             except:
                 console_error('"%s" is not an integer' % cmd_line)
+        elif cstring.ecs_type == ESMON_CONFIG_CSTR_DEF:
+            value = cmd_line
         else:
             console_error('unknown type "%s"' % cstring.ecs_type)
 
@@ -1764,7 +1790,7 @@ def esmon_config_def_add(root_config, cstr, new_value):
     if ret:
         return -1
 
-    ret = esmon_item_add(parent_config, parent_cstr, new_value)
+    ret = esmon_item_add(parent_config, parent_cstr, new_value, definition=True)
     return ret
 
 
