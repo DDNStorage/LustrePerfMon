@@ -124,14 +124,6 @@
 		<pattern>0</pattern>
 	</test>
 
-	<!-- osd 2 -->
-	<test>
-		<name>mdt_filesused</name>
-		<path>collection/testfs-MDT0000-filesinfo/gauge-filesused.rrd</path>
-		<type>derive</type>
-		<pattern>238</pattern>
-	</test>
-
 	<test>
 		<name>ost_jobstats</name>
 		<path>scratch-OST0012-jobstat_root/derive-read_samples.rrd</path>

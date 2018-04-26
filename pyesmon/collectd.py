@@ -61,19 +61,6 @@ def support_acctgroup_acctproject(lustre_version):
     return False
 
 
-def support_space_inode_used(lustre_version):
-    """
-    Whether this Lustre version supports used inode/space
-    """
-    if ((lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3) or
-            (lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES2 and
-             ES2_HAS_USED_INODE_SPACE_SUPPORT) or
-            (lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES4 and
-             ES4_HAS_USED_INODE_SPACE_SUPPORT)):
-        return True
-    return False
-
-
 class CollectdConfig(object):
     """
     Each collectd config has an object of this type
@@ -463,24 +450,12 @@ PostCacheChain "PostCache"
     </Item>
     <Item>
         Type "ost_kbytesfree"
-    </Item>"""
-
-            if support_space_inode_used(lustre_version):
-                config += """
-    <Item>
-        Type "ost_kbytesused"
-    </Item>"""
-            config += """
+    </Item>
     <Item>
         Type "ost_filestotal"
     </Item>
     <Item>
         Type "ost_filesfree"
-    </Item>"""
-            if support_space_inode_used(lustre_version):
-                config += """
-    <Item>
-        Type "ost_filesused"
     </Item>"""
             config += """
 
@@ -708,13 +683,6 @@ PostCacheChain "PostCache"
     <Item>
         Type "mdt_filesfree"
     </Item>"""
-            if support_space_inode_used(lustre_version):
-                config += """
-    <Item>
-        Type "mdt_filesused"
-    </Item>
-"""
-
         config += """
     <Item>
         Type "mdt_stats_req_waittime"

@@ -160,16 +160,12 @@ def lustre_host_metric_check(lustre_host, esmon_client):
         logging.error("unsupported Lustre version of [%s]",
                       esmon_client.ec_lustre_version.lv_name)
         return -1
-    support_used = collectd.support_space_inode_used(esmon_client.ec_lustre_version)
-
     measurements = ["ost_filesinfo_total",
                     "ost_filesinfo_free",
                     "ost_kbytesinfo_free",
-                    "ost_kbytesinfo_total"]
-
-    if support_used:
-        measurements.append("ost_filesinfo_used")
-        measurements.append("ost_kbytesinfo_used")
+                    "ost_kbytesinfo_total",
+                    "ost_filesinfo_used",
+                    "ost_kbytesinfo_used"]
 
     for ost in lustre_host.lsh_osts.values():
         lustre_fs = ost.lost_lustre_fs
@@ -193,10 +189,8 @@ def lustre_host_metric_check(lustre_host, esmon_client):
                 return ret
 
     measurements = ["mdt_filesinfo_free",
-                    "mdt_filesinfo_total"]
-
-    if support_used:
-        measurements.append("mdt_filesinfo_used")
+                    "mdt_filesinfo_total",
+                    "mdt_filesinfo_used"]
 
     for mdt in lustre_host.lsh_mdts.values():
         lustre_fs = mdt.lmdt_lustre_fs

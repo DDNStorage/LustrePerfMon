@@ -1,7 +1,35 @@
 include(`lustre.m4')dnl
-HEAD(Lustre-ieel-2.5)
+HEAD(Lustre-ieel-2.7)
 <definition>
-	<version>2.5.52</version>
+	<version>2.7</version>
+	<math_entry>
+		<left_operand>mdt_filesinfo_total</left_operand>
+		<operation>-</operation>
+		<right_operand>mdt_filesinfo_free</right_operand>
+		<tsdb_name>mdt_filesinfo_used</tsdb_name>
+		<type_instance>filesused</type_instance>
+	</math_entry>
+	<math_entry>
+		<left_operand>mdt_kbytesinfo_total</left_operand>
+		<operation>-</operation>
+		<right_operand>mdt_kbytesinfo_free</right_operand>
+		<tsdb_name>mdt_kbytesinfo_used</tsdb_name>
+		<type_instance>kbytesused</type_instance>
+	</math_entry>
+	<math_entry>
+		<left_operand>ost_filesinfo_total</left_operand>
+		<operation>-</operation>
+		<right_operand>ost_filesinfo_free</right_operand>
+		<tsdb_name>ost_filesinfo_used</tsdb_name>
+		<type_instance>filesused</type_instance>
+	</math_entry>
+	<math_entry>
+		<left_operand>ost_kbytesinfo_total</left_operand>
+		<operation>-</operation>
+		<right_operand>ost_kbytesinfo_free</right_operand>
+		<tsdb_name>ost_kbytesinfo_used</tsdb_name>
+		<type_instance>kbytesused</type_instance>
+	</math_entry>
 	<entry>
 		<subpath>
 			<subpath_type>constant</subpath_type>
