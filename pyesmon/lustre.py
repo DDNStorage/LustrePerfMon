@@ -616,7 +616,7 @@ ES3_PATTERNS = {
     RPM_OSD_LDISKFS: r"^(kmod-lustre-el7\.\d-osd-ldiskfs-2\.7.+\.x86_64\.rpm)$",
     RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.7.+\.x86_64\.rpm)$",
     RPM_TESTS: r"^(lustre-tests-2\.7.+\.x86_64\.rpm)$",
-    RPM_MLNX_OFA: r"^(mlnx-ofa_kernel-3.+\.x86_64\.rpm)$",
+    RPM_MLNX_OFA: r"^(mlnx-ofa_kernel-\d.+\.x86_64\.rpm)$",
     RPM_MLNX_KMOD: r"^(kmod-mlnx-ofa_kernel-el7\.\d-lustre-3.+\.x86_64\.rpm)$"}
 
 LUSTRE_VERSION_NAME_ES3 = "es3"
@@ -656,8 +656,8 @@ B2_7_PATTERNS = {
     RPM_OSD_ZFS: r"^(lustre-osd-zfs-2\.7.+\.x86_64\.rpm)$",
     RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.7.+\.x86_64\.rpm)$",
     RPM_TESTS: r"^(lustre-tests-2\.7.+\.x86_64\.rpm)$",
-    RPM_MLNX_OFA: r"^(mlnx-ofa_kernel-3.+\.x86_64\.rpm)$",
-    RPM_MLNX_KMOD: r"^(mlnx-ofa_kernel-modules-3.+\.x86_64\.rpm)$"}
+    RPM_MLNX_OFA: r"^(mlnx-ofa_kernel-\d.+\.x86_64\.rpm)$",
+    RPM_MLNX_KMOD: r"^(mlnx-ofa_kernel-modules-\d.+\.x86_64\.rpm)$"}
 
 LUSTRE_VERSION_NAME_2_7 = "2.7"
 
