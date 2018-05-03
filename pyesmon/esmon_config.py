@@ -34,6 +34,7 @@ ESMON_CONFIG_COMMNAD_QUIT = "q"
 ESMON_CONFIG_COMMNAD_REMOVE = "rm"
 ESMON_CONFIG_COMMNAD_WRITE = "w"
 ESMON_CONFIG_COMMNAD_WRITE_QUIT = "wq"
+ESMON_CONFIG_EDIT_QUIT = 1
 
 
 class EsmonConfigCommand(object):
@@ -80,16 +81,21 @@ def esmon_command_add(arg_string):
 
     print ESMON_CONFIG_ADD_MULTIPLE.ecs_help_info
     prompt = "Press F/f to add only single item, press T/t to add multiple ones: "
-    add_multiple = esmon_edit_loop(ESMON_CONFIG_ADD_MULTIPLE,
-                                   prompt=prompt)
+    ret, add_multiple = esmon_edit_loop(ESMON_CONFIG_ADD_MULTIPLE,
+                                        prompt=prompt)
+    if ret == ESMON_CONFIG_EDIT_QUIT:
+        return 0
 
     if add_multiple:
         print "Multiple items will be added."
         print ""
 
         prompt = "Please input the common prefix of the adding items: "
-        prefix = esmon_edit_loop(ESMON_CONFIG_ADD_PREFIX,
-                                 prompt=prompt)
+        ret, prefix = esmon_edit_loop(ESMON_CONFIG_ADD_PREFIX,
+                                      prompt=prompt)
+        if ret == ESMON_CONFIG_EDIT_QUIT:
+            return 0
+
         print 'The newly addded items will have names like "%s..."' % prefix
         print ""
 
@@ -101,8 +107,10 @@ the added items."""
         prompt = ("Please input the start index, an integer in [%s, %s]: " %
                   (start_cstr.ecs_start, start_cstr.ecs_end))
 
-        start_index = esmon_edit_loop(start_cstr,
-                                      prompt=prompt)
+        ret, start_index = esmon_edit_loop(start_cstr,
+                                           prompt=prompt)
+        if ret == ESMON_CONFIG_EDIT_QUIT:
+            return 0
         print 'The index of the first item will be "%s".' % (start_index)
         print ""
 
@@ -114,8 +122,10 @@ the added items."""
                                      start=start_index)
         prompt = ("Please input the end index, an integer in [%s, %s]: " %
                   (end_cstr.ecs_start, end_cstr.ecs_end))
-        end_index = esmon_edit_loop(end_cstr,
-                                    prompt=prompt)
+        ret, end_index = esmon_edit_loop(end_cstr,
+                                         prompt=prompt)
+        if ret == ESMON_CONFIG_EDIT_QUIT:
+            return 0
         print ('The index of the last item will be "%s".' %
                (end_index))
         print ""
@@ -163,8 +173,10 @@ If yes, then the names of newly created items will be: """
                                            ESMON_CONFIG_CSTR_BOOL,
                                            "")
         prompt = "Press T/t to fill empty space with 0, press F/f not to: "
-        fill_zero = esmon_edit_loop(fill_zero_cstr,
-                                    prompt=prompt)
+        ret, fill_zero = esmon_edit_loop(fill_zero_cstr,
+                                         prompt=prompt)
+        if ret == ESMON_CONFIG_EDIT_QUIT:
+            return 0
         if fill_zero:
             print 'The names of newly created items will be "%s"' % names_filled
         else:
@@ -190,8 +202,10 @@ If yes, then the names of newly created items will be: """
                                       ESMON_CONFIG_CSTR_STRING,
                                       "")
         prompt = "Please input the name of this item: "
-        name = esmon_edit_loop(name_cstr,
-                               prompt=prompt)
+        ret, name = esmon_edit_loop(name_cstr,
+                                    prompt=prompt)
+        if ret == ESMON_CONFIG_EDIT_QUIT:
+            return 0
         ret = esmon_item_add(current_config, current_cstring, name)
         if ret:
             return ret
@@ -1263,7 +1277,7 @@ def esmon_edit(current):
     print cstring.ecs_help_info, "\n"
     print 'Current value: "%s"' % current_config
 
-    value = esmon_edit_loop(cstring)
+    ret, value = esmon_edit_loop(cstring)
     if value == current_config:
         print 'Keep it as "%s"' % value
 
@@ -1311,8 +1325,15 @@ def esmon_edit_loop(cstring, prompt=None):
             console_error('unknown type "%s"' % cstring.ecs_type)
 
     value = None
+    ret = 0
     while ESMON_CONFIG_RUNNING:
-        cmd_line = raw_input(prompt)
+        try:
+            cmd_line = raw_input(prompt)
+        except KeyboardInterrupt:
+            ret = ESMON_CONFIG_EDIT_QUIT
+            print ""
+            break
+
         cmd_line = cmd_line.strip()
         if len(cmd_line) == 0:
             continue
@@ -1359,7 +1380,7 @@ def esmon_edit_loop(cstring, prompt=None):
         if value is not None:
             break
 
-    return value
+    return ret, value
 
 
 def esmon_config_guide(cstring, section):
@@ -1457,7 +1478,13 @@ def esmon_input_loop():
     Loop and excute the command
     """
     while ESMON_CONFIG_RUNNING:
-        cmd_line = raw_input('[%s]$ (h for help): ' % esmon_pwd())
+        try:
+            cmd_line = raw_input('[%s]$ (h for help): ' % esmon_pwd())
+        except KeyboardInterrupt:
+            print ""
+            print "Type q to exit"
+            continue
+
         cmd_line = cmd_line.strip()
         if len(cmd_line) == 0:
             continue
@@ -1908,9 +1935,9 @@ def esmon_config(workspace):
         create_cstring = EsmonConfigString("create",
                                            ESMON_CONFIG_CSTR_BOOL,
                                            "")
-        create_new = esmon_edit_loop(create_cstring,
-                                     prompt=prompt)
-        if not create_new:
+        ret, create_new = esmon_edit_loop(create_cstring,
+                                          prompt=prompt)
+        if ret == ESMON_CONFIG_EDIT_QUIT or not create_new:
             return 0
 
         open(CONFIG_FPATH, 'a').close()
