@@ -52,7 +52,7 @@ ESMON_CONFIG_COMMNADS = {}
 
 def esmon_command_add(arg_string):
     """
-    Add an intem to the current list
+    Add an item to the current list
     """
     # pylint: disable=unused-argument,too-many-locals,too-many-statements,too-many-branches
     length = len(ESMON_CONFIG_WALK_STACK)
