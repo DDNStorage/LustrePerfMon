@@ -17,7 +17,7 @@ dnl $9: type OPTION
 dnl $10: type_instance OPTION
 dnl $11: tsdb_name OPTION
 dnl $12: tsdb_tags OPTION
-dnl $13: is first child of parent ELEMENT
+dnl $13: is first child of parent definition
 define(`CONSTANT_FILE_ENTRY',
 	`ELEMENT($1, entry,
 SUBPATH($1+1, constant, $2, 1)
@@ -31,7 +31,7 @@ dnl $4: plugin_instance OPTION
 dnl $5: type OPTION
 dnl $6: type_instance OPTION
 dnl $7: tsdb_name OPTION
-dnl $8: is first child of parent ELEMENT
+dnl $8: is first child of parent definition
 define(`MDC_MDT_CONSTANT_FILE_ENTRY',
 `CONSTANT_FILE_ENTRY($1, $2, $2, $3, number, ${key:hostname}, ${subpath:fs_name}-${subpath:mdt_index}-${subpath:mdc_tag}, $4, $5, $6, $7,
 fs_name=${subpath:fs_name} mdt_index=${subpath:mdt_index} mdc_tag=${subpath:mdc_tag}, $8)')dnl
@@ -41,7 +41,7 @@ dnl $2: item name prefix
 dnl $3: plugin OPTION
 dnl $4: plugin_instance OPTION
 dnl $5: type OPTION
-dnl $6: is first child of parent ELEMENT
+dnl $6: is first child of parent definition
 define(`THREAD_INFO_ENTRIES',
 `CONSTANT_FILE_ENTRY($1, threads_max, $2_threads_max, (.+), number, ${key:hostname}, $3, $4, $5, threads_max, $2_thread_max, , 1)
 CONSTANT_FILE_ENTRY($1, threads_min, $2_threads_min, (.+), number, ${key:hostname}, $3, $4, $5, threads_min, $2_thread_min, , 0)
@@ -50,7 +50,7 @@ dnl
 dnl $1: number of INDENT
 dnl $2: "mdt" or "ost"
 dnl $3: plugin OPTION
-dnl $4: is first child of parent ELEMENT
+dnl $4: is first child of parent definition
 define(`FILES_KBYTES_INFO_ENTRIES',
 `CONSTANT_FILE_ENTRY($1, filestotal, $2_filestotal, (.+), number, ${key:hostname}, $3, filesinfo, gauge, filestotal, $2_filesinfo_total, fs_name=${subpath:fs_name} $2_index=${subpath:$2_index}, 1)
 CONSTANT_FILE_ENTRY($1, filesfree, $2_filesfree, (.+), number, ${key:hostname}, $3, filesinfo, gauge, filesfree, $2_filesinfo_free, fs_name=${subpath:fs_name} $2_index=${subpath:$2_index}, 0)
@@ -61,7 +61,7 @@ dnl
 dnl $1: number of INDENT
 dnl $2: "mdt" or "ost"
 dnl $3: plugin OPTION
-dnl $4: is first child of parent ELEMENT
+dnl $4: is first child of parent definition
 define(`LDLM_LOCK_INFO_ENTRIES',
 `CONSTANT_FILE_ENTRY($1, lock_count, $2_lock_count, (.+), number, ${key:hostname}, $3, locksinfo, gauge, lock_count, $2_lock_count, fs_name=${subpath:fs_name} $2_index=${subpath:$2_index}, 1)
 CONSTANT_FILE_ENTRY($1, lock_timeouts, $2_lock_timeouts, (.+), number, ${key:hostname}, $3, locksinfo, gauge, lock_timeouts, $2_lock_timeouts, fs_name=${subpath:fs_name} $2_index=${subpath:$2_index}, 0)')dnl
@@ -71,7 +71,7 @@ dnl $2: name of RECOVERY_STATUS_ITEM
 dnl $3: "mdt" or "ost"
 dnl $4: match pattern RegEx str
 dnl $5: type of item
-dnl $6: is first child of parent ELEMENT
+dnl $6: is first child of parent definition
 define(`RECOVERY_STATUS_ITEM',
 	`ELEMENT($1, item, 
 	`NAME($1 + 1, $3_recovery_status_$2, 1)
@@ -81,7 +81,7 @@ dnl
 dnl $1: number of INDENT
 dnl $2: name of RECOVERY_STATUS_CONNECTED_ITEM
 dnl $3: "mdt" or "ost"
-dnl $4: is first child of parent ELEMENT
+dnl $4: is first child of parent definition
 define(`RECOVERY_STATUS_CONNECTED_ITEM',
 	`ELEMENT($1, item, 
 	`NAME($1 + 1, $3_recovery_status_$2, 1)
@@ -91,7 +91,7 @@ FIELD($1 + 1, 2, recoverable_clients, number, ${key:hostname}, ${subpath:fs_name
 dnl
 dnl $1: number of INDENT
 dnl $2: name of MD_STATS_ITEM
-dnl $3: is first child of parent ELEMENT
+dnl $3: is first child of parent definition
 define(`MD_STATS_ITEM',
 	`ELEMENT($1, item, 
 	`NAME($1 + 1, md_stats_$2, 1)
@@ -100,7 +100,7 @@ FIELD($1 + 1, 1, $2, number, ${key:hostname}, ${subpath:fs_name}-${subpath:mdt_i
 dnl
 dnl $1: number of INDENT
 dnl $2: name of EXPORT_MD_STATS_ITEM
-dnl $3: is first child of parent ELEMENT
+dnl $3: is first child of parent definition
 define(`EXPORT_MD_STATS_ITEM',
 	`ELEMENT($1, item,
 	`NAME($1 + 1, exp_md_stats_$2, 1)
@@ -111,56 +111,56 @@ dnl $1: number of INDENT
 dnl $2: name of OST_STATS_ITEM_PREFIX
 dnl $3: prefix of the regular expression
 dnl $4: type of item
-dnl $5: is first child of parent ELEMENT
+dnl $5: is first child of parent definition
 define(`OST_STATS_ITEM_PREFIX',
-        `ELEMENT($1, item,
-        `NAME($1 + 1, ost_stats_$2, 1)
+	`ELEMENT($1, item,
+	`NAME($1 + 1, ost_stats_$2, 1)
 PATTERN($1 + 1, `$3 +([[:digit:]]+) samples \[$4\]', 0)
 FIELD($1 + 1, 1, $2, number, ${key:hostname}, ${subpath:fs_name}-${subpath:ost_index}, stats, derive, $2, ost_stats_samples, optype=$2 fs_name=${subpath:fs_name} ost_index=${subpath:ost_index}, 0)', $5)')dnl
 dnl
 dnl $1: number of INDENT
 dnl $2: name of OST_STATS_ITEM
 dnl $3: type of item 
-dnl $4: is first child of parent ELEMENT
+dnl $4: is first child of parent definition
 define(`OST_STATS_ITEM',
-        `OST_STATS_ITEM_PREFIX($1, $2, $2, $3, $4)')dnl
+	`OST_STATS_ITEM_PREFIX($1, $2, $2, $3, $4)')dnl
 dnl
 dnl $1: number of INDENT
 dnl $2: name of EXPORT_OST_STATS_ITEM
 dnl $3: type of item
-dnl $4: is first child of parent ELEMENT
+dnl $4: is first child of parent definition
 define(`EXPORT_OST_STATS_ITEM',
-        `ELEMENT($1, item,
-        `NAME($1 + 1, exp_ost_stats_$2, 1)
+	`ELEMENT($1, item,
+	    `NAME($1 + 1, exp_ost_stats_$2, 1)
 PATTERN($1 + 1, `$2 +([[:digit:]]+) samples \[$3\]', 0)
 FIELD($1 + 1, 1, $2, number, ${key:hostname}, ${subpath:ost_exp_client}-${subpath:ost_exp_type}_${subpath:fs_name}-${subpath:ost_index}, stats, derive, $2, exp_ost_stats_samples, optype=$2 exp_client=${subpath:ost_exp_client} exp_type=${subpath:ost_exp_type} fs_name=${subpath:fs_name} ost_index=${subpath:ost_index}, 0)', $4)')dnl
 dnl
 dnl $1: number of INDENT
 dnl $2: name of OST_STATS_ITEM_RW
-dnl $3: is first child of parent ELEMENT
+dnl $3: is first child of parent definition
 define(`OST_STATS_ITEM_RW',
-        `ELEMENT($1, item,
-        `NAME($1 + 1, ost_stats_$2, 1)
+	`ELEMENT($1, item,
+	`NAME($1 + 1, ost_stats_$2, 1)
 PATTERN($1 + 1, `$2_bytes +([[:digit:]]+) samples \[bytes\] [[:digit:]]+ [[:digit:]]+ ([[:digit:]]+)', 0)
 FIELD($1 + 1, 1, $2_samples, number, ${key:hostname}, ${subpath:fs_name}-${subpath:ost_index}, stats, derive, $2_samples, ost_stats_samples, optype=$2 fs_name=${subpath:fs_name} ost_index=${subpath:ost_index}, 0)
 FIELD($1 + 1, 2, $2_bytes, number, ${key:hostname}, ${subpath:fs_name}-${subpath:ost_index}, stats, derive, $2_bytes, ost_stats_bytes, optype=$2 fs_name=${subpath:fs_name} ost_index=${subpath:ost_index}, 0)', $3)')dnl
 dnl
 dnl $1: number of INDENT
 dnl $2: name of EXPORT_OST_STATS_ITEM_RW
-dnl $3: is first child of parent ELEMENT
+dnl $3: is first child of parent definition
 define(`EXPORT_OST_STATS_ITEM_RW',
-        `ELEMENT($1, item,
-        `NAME($1 + 1, exp_ost_stats_$2, 1)
+	`ELEMENT($1, item,
+	`NAME($1 + 1, exp_ost_stats_$2, 1)
 PATTERN($1 + 1, `$2_bytes +([[:digit:]]+) samples \[bytes\] [[:digit:]]+ [[:digit:]]+ ([[:digit:]]+)', 0)
 FIELD($1 + 1, 1, $2_samples, number, ${key:hostname}, ${subpath:ost_exp_client}-${subpath:ost_exp_type}_${subpath:fs_name}-${subpath:ost_index}, stats, derive, $2_samples, exp_ost_stats_samples, optype=$2 exp_client=${subpath:ost_exp_client} exp_type=${subpath:ost_exp_type} fs_name=${subpath:fs_name} ost_index=${subpath:ost_index}, 0)
 FIELD($1 + 1, 2, $2_bytes, number, ${key:hostname}, ${subpath:ost_exp_client}-${subpath:ost_exp_type}_${subpath:fs_name}-${subpath:ost_index}, stats, derive, $2_bytes, exp_ost_stats_bytes, optype=$2 exp_client=${subpath:ost_exp_client} exp_type=${subpath:ost_exp_type} fs_name=${subpath:fs_name} ost_index=${subpath:ost_index}, 0)', $3)')dnl
 dnl
 dnl $1: number of INDENT
 dnl $2: additional items
-dnl $3: is first child of parent ELEMENT
+dnl $3: is first child of parent definition
 define(`EXPORT_OST_STATS_ENTRY',
-        `ELEMENT($1, entry,
-        `SUBPATH($1 + 1, constant, stats, 1)
+	`ELEMENT($1, entry,
+	`SUBPATH($1 + 1, constant, stats, 1)
 MODE($1 + 1, file, 0)
 EXPORT_OST_STATS_ITEM_RW($1 + 1, read, 0)
 EXPORT_OST_STATS_ITEM_RW($1 + 1, write, 0)
@@ -177,10 +177,10 @@ $2', $3)')dnl
 dnl
 dnl $1: number of INDENT
 dnl $2: additional items
-dnl $3: is first child of parent ELEMENT
+dnl $3: is first child of parent definition
 define(`EXPORT_MD_STATS_ENTRY',
-        `ELEMENT($1, entry,
-        `SUBPATH($1 + 1, constant, stats, 1)
+	`ELEMENT($1, entry,
+	`SUBPATH($1 + 1, constant, stats, 1)
 MODE($1 + 1, file, 0)
 EXPORT_MD_STATS_ITEM($1 + 1, open, 0)
 EXPORT_MD_STATS_ITEM($1 + 1, close, 0)
@@ -201,17 +201,26 @@ dnl
 dnl $1: number of INDENT
 dnl $2: name of SERVICE_STATS_ITEM
 dnl $3: type of item
-dnl $4: is first child of parent ELEMENT
+dnl $4: unit of the item
+dnl $5: is first child of parent definition
 define(`SERVICE_STATS_ITEM',
-        `ELEMENT($1, item,
-        `NAME($1 + 1, $2_stats_$3, 1)
+	`ELEMENT($1, item,
+	`NAME($1 + 1, $2_stats_$3, 1)
 PATTERN($1 + 1, `$3 +([[:digit:]]+) samples \[$4\] +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+)', 0)
-FIELD($1 + 1, 1, $3, number, ${key:hostname}, $2, stats, gauge, $3_samples, $2_stats_$3, type=samples, 0)
-FIELD($1 + 1, 2, $3, number, ${key:hostname}, $2, stats, gauge, $3_min, $2_stats_$3, type=min, 0)
-FIELD($1 + 1, 3, $3, number, ${key:hostname}, $2, stats, gauge, $3_max, $2_stats_$3, type=max, 0)
-FIELD($1 + 1, 4, $3, number, ${key:hostname}, $2, stats, gauge, $3_sum, $2_stats_$3, type=sum, 0)
-FIELD($1 + 1, 5, $3, number, ${key:hostname}, $2, stats, gauge, $3_sum_square, $2_stats_$3, type=sum_square, 0)
+FIELD($1 + 1, 1, $3, number, ${key:hostname}, $2, stats, gauge, $3_samples, $2_stats_$3_samples, , 0)
+FIELD($1 + 1, 2, $3, number, ${key:hostname}, $2, stats, gauge, $3_min, $2_stats_$3_min, , 0)
+FIELD($1 + 1, 3, $3, number, ${key:hostname}, $2, stats, gauge, $3_max, $2_stats_$3_max, , 0)
+FIELD($1 + 1, 4, $3, number, ${key:hostname}, $2, stats, gauge, $3_sum, $2_stats_$3_sum, , 0)
+FIELD($1 + 1, 5, $3, number, ${key:hostname}, $2, stats, gauge, $3_sum_square, $2_stats_$3_sum_square, , 0)
 ', $5)')dnl
+dnl
+dnl $1: number of INDENT
+dnl $2: name of SERVICE_STATS_MEAN
+dnl $3: type of item
+dnl $4: unit of the stat, not used currently
+define(`SERVICE_STATS_MEAN',
+	`MATH_ENTRY($1, $2_stats_$3_sum, /, $2_stats_$3_samples, $2_stats_$3_mean, $3_mean, 1)
+MATH_ENTRY($1, $2_stats_$3_sum_square, /, $2_stats_$3_samples, $2_stats_$3_mean_square, $3_mean_square, 0)')dnl
 dnl
 dnl $1: number of INDENT
 dnl $2: index of FIELD
@@ -224,7 +233,7 @@ dnl $8: type_instance OPTION
 dnl $9: tsdb_name OPTION
 dnl $10: tsdb_index OPTION
 dnl $11: size of the field
-dnl $12: is first child of parent ELEMENT
+dnl $12: is first child of parent definition
 define(`OST_BRW_STATS_FIELD',
 	`ELEMENT($1, field,
 	`INDEX($1 + 1, $2, 1)
@@ -255,10 +264,10 @@ dnl $2: name of OST_BRW_STATS_ITEM
 dnl $3: context regular expression
 dnl $4: start pattern of item
 dnl $5: first field name
-dnl $6: is first child of parent ELEMENT
+dnl $6: is first child of parent definition
 define(`OST_BRW_STATS_ITEM',
-        `ELEMENT($1, item,
-        `NAME($1 + 1, ost_brw_stats_$2, 1)
+	`ELEMENT($1, item,
+	`NAME($1 + 1, ost_brw_stats_$2, 1)
 CONTEXT($1 + 1, $3, 0)
 PATTERN($1 + 1, `^($4):[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+)[[:blank:]]+\|[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+).*', 0)
 OST_BRW_STATS_FIELD($1 + 1, 1, $5, string, OST_COMMON_PLUGIN, brw_stats_$2_${content:$5}_$5, , $5, ost_brw_stats_$2_string, OST_COMMON_INDEX, ${content:$5}_$5, 0)
@@ -274,10 +283,10 @@ dnl $2: name of EXP_OST_BRW_STATS_ITEM
 dnl $3: context regular expression
 dnl $4: start pattern of item
 dnl $5: first field name
-dnl $6: is first child of parent ELEMENT
+dnl $6: is first child of parent definition
 define(`EXP_OST_BRW_STATS_ITEM',
-        `ELEMENT($1, item,
-        `NAME($1 + 1, exp_ost_brw_stats_$2, 1)
+	`ELEMENT($1, item,
+	`NAME($1 + 1, exp_ost_brw_stats_$2, 1)
 CONTEXT($1 + 1, $3, 0)
 PATTERN($1 + 1, `^($4):[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+)[[:blank:]]+\|[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+)[[:blank:]]+([[:digit:]]+).*', 0)
 OST_BRW_STATS_FIELD($1 + 1, 1, $5, string, EXP_COMMON_PLUGIN()-OST_COMMON_PLUGIN(), brw_stats_$2_${content:$5}_$5, , $5, exp_ost_brw_stats_$2_string, EXP_COMMON_INDEX() OST_COMMON_INDEX(), ${content:$5}_$5, 0)
@@ -295,7 +304,7 @@ dnl $4: type of FIELD
 dnl $5: type OPTION
 dnl $6: "mdt" or "ost"
 dnl $7: "samples" or "bytes"
-dnl $8: is first child of parent ELEMENT
+dnl $8: is first child of parent definition
 define(`JOBSTAT_FIELD',
 	`ELEMENT($1, field,
 	`INDEX($1 + 1, $2, 1)
@@ -314,7 +323,7 @@ dnl $2: index of FIELD
 dnl $3: name of FIELD
 dnl $4: type of FIELD
 dnl $5: type OPTION
-dnl $6: is first child of parent ELEMENT
+dnl $6: is first child of parent definition
 define(`OST_JOBSTAT_FIELD',
 	`JOBSTAT_FIELD($1, $2, $3, $4, $5, ost, samples, $6)')dnl
 dnl
@@ -323,7 +332,7 @@ dnl $2: index of FIELD
 dnl $3: name of FIELD
 dnl $4: type of FIELD
 dnl $5: type OPTION
-dnl $6: is first child of parent ELEMENT
+dnl $6: is first child of parent definition
 define(`OST_JOBSTAT_FIELD_BYTES',
 	`JOBSTAT_FIELD($1, $2, $3, $4, $5, ost, bytes, $6)')dnl
 dnl
@@ -332,7 +341,7 @@ dnl $2: index of FIELD
 dnl $3: name of FIELD
 dnl $4: type of FIELD
 dnl $5: type OPTION
-dnl $6: is first child of parent ELEMENT
+dnl $6: is first child of parent definition
 define(`MDT_JOBSTAT_FIELD',
 	`JOBSTAT_FIELD($1, $2, $3, $4, $5, mdt, samples, $6)')dnl
 dnl
@@ -344,10 +353,10 @@ dnl $5: type OPTION
 dnl $6: "mdt" or "ost"
 dnl $7: "samples" or "kbytes"
 dnl $8: "user", "group" or "project"
-dnl $9: is first child of parent ELEMENT
+dnl $9: is first child of parent definition
 define(`ACCTQUOTA_FIELD',
-        `ELEMENT($1, field,
-        `INDEX($1 + 1, $2, 1)
+	`ELEMENT($1, field,
+	`INDEX($1 + 1, $2, 1)
 NAME($1 + 1, $3, 0)
 TYPE($1 + 1, $4, 0)
 OPTION($1 + 1, host, ${key:hostname}, 0)
@@ -363,7 +372,7 @@ dnl $2: index of FIELD
 dnl $3: name of FIELD
 dnl $4: type of FIELD
 dnl $5: type OPTION
-dnl $6: is first child of parent ELEMENT
+dnl $6: is first child of parent definition
 define(`MDT_ACCTUSER_FIELD',
 	`ACCTQUOTA_FIELD($1, $2, $3, $4, $5, mdt, samples, user, $6)')dnl
 dnl
@@ -372,7 +381,7 @@ dnl $2: index of FIELD
 dnl $3: name of FIELD
 dnl $4: type of FIELD
 dnl $5: type OPTION
-dnl $6: is first child of parent ELEMENT
+dnl $6: is first child of parent definition
 define(`OST_ACCTUSER_FIELD',
 	`ACCTQUOTA_FIELD($1, $2, $3, $4, $5, ost, samples, user, $6)')dnl
 dnl
@@ -381,7 +390,7 @@ dnl $2: index of FIELD
 dnl $3: name of FIELD
 dnl $4: type of FIELD
 dnl $5: type OPTION
-dnl $6: is first child of parent ELEMENT
+dnl $6: is first child of parent definition
 define(`MDT_ACCTGROUP_FIELD',
 	`ACCTQUOTA_FIELD($1, $2, $3, $4, $5, mdt, samples, group, $6)')dnl
 dnl
@@ -390,7 +399,7 @@ dnl $2: index of FIELD
 dnl $3: name of FIELD
 dnl $4: type of FIELD
 dnl $5: type OPTION
-dnl $6: is first child of parent ELEMENT
+dnl $6: is first child of parent definition
 define(`OST_ACCTGROUP_FIELD',
 	`ACCTQUOTA_FIELD($1, $2, $3, $4, $5, ost, samples, group, $6)')dnl
 dnl
@@ -399,7 +408,7 @@ dnl $2: index of FIELD
 dnl $3: name of FIELD
 dnl $4: type of FIELD
 dnl $5: type OPTION
-dnl $6: is first child of parent ELEMENT
+dnl $6: is first child of parent definition
 define(`MDT_ACCTPROJECT_FIELD',
 	`ACCTQUOTA_FIELD($1, $2, $3, $4, $5, mdt, samples, project, $6)')dnl
 dnl
@@ -408,9 +417,9 @@ dnl $2: index of FIELD
 dnl $3: name of FIELD
 dnl $4: type of FIELD
 dnl $5: type OPTION
-dnl $6: is first child of parent ELEMENT
+dnl $6: is first child of parent definition
 define(`OST_ACCTPROJECT_FIELD',
-        `ACCTQUOTA_FIELD($1, $2, $3, $4, $5, ost, samples, project, $6)')dnl
+	`ACCTQUOTA_FIELD($1, $2, $3, $4, $5, ost, samples, project, $6)')dnl
 dnl
 dnl $1: number of INDENT
 dnl $2: index of FIELD

@@ -2,34 +2,87 @@ include(`lustre.m4')dnl
 HEAD(Lustre-ieel-2.7)
 <definition>
 	<version>2.7</version>
-	<math_entry>
-		<left_operand>mdt_filesinfo_total</left_operand>
-		<operation>-</operation>
-		<right_operand>mdt_filesinfo_free</right_operand>
-		<tsdb_name>mdt_filesinfo_used</tsdb_name>
-		<type_instance>filesused</type_instance>
-	</math_entry>
-	<math_entry>
-		<left_operand>mdt_kbytesinfo_total</left_operand>
-		<operation>-</operation>
-		<right_operand>mdt_kbytesinfo_free</right_operand>
-		<tsdb_name>mdt_kbytesinfo_used</tsdb_name>
-		<type_instance>kbytesused</type_instance>
-	</math_entry>
-	<math_entry>
-		<left_operand>ost_filesinfo_total</left_operand>
-		<operation>-</operation>
-		<right_operand>ost_filesinfo_free</right_operand>
-		<tsdb_name>ost_filesinfo_used</tsdb_name>
-		<type_instance>filesused</type_instance>
-	</math_entry>
-	<math_entry>
-		<left_operand>ost_kbytesinfo_total</left_operand>
-		<operation>-</operation>
-		<right_operand>ost_kbytesinfo_free</right_operand>
-		<tsdb_name>ost_kbytesinfo_used</tsdb_name>
-		<type_instance>kbytesused</type_instance>
-	</math_entry>
+	MATH_ENTRY(1, mdt_filesinfo_total, -, mdt_filesinfo_free, mdt_filesinfo_used, filesused, 1)
+	MATH_ENTRY(1, mdt_kbytesinfo_total, -, mdt_kbytesinfo_free, mdt_kbytesinfo_used, kbytesused, 1)
+	MATH_ENTRY(1, ost_filesinfo_total, -, ost_filesinfo_free, ost_filesinfo_used, filesused, 1)
+	MATH_ENTRY(1, ost_kbytesinfo_total, -, ost_kbytesinfo_free, ost_kbytesinfo_used, kbytesused, 1)
+	SERVICE_STATS_MEAN(1, mdt, req_waittime, usec)
+	SERVICE_STATS_MEAN(1, mdt, req_qdepth, reqs)
+	SERVICE_STATS_MEAN(1, mdt, req_active, reqs)
+	SERVICE_STATS_MEAN(1, mdt, req_timeout, sec)
+	SERVICE_STATS_MEAN(1, mdt, reqbuf_avail, bufs)
+	SERVICE_STATS_MEAN(1, mdt, ldlm_ibits_enqueue, reqs)
+	SERVICE_STATS_MEAN(1, mdt, mds_getattr, usec)
+	SERVICE_STATS_MEAN(1, mdt, mds_connect, usec)
+	SERVICE_STATS_MEAN(1, mdt, mds_get_root, usec)
+	SERVICE_STATS_MEAN(1, mdt, mds_statfs, usec)
+	SERVICE_STATS_MEAN(1, mdt, mds_getxattr, usec)
+	SERVICE_STATS_MEAN(1, mdt, obd_ping, usec)
+	SERVICE_STATS_MEAN(1, mdt_readpage, req_waittime, usec)
+	SERVICE_STATS_MEAN(1, mdt_readpage, req_qdepth, reqs)
+	SERVICE_STATS_MEAN(1, mdt_readpage, req_active, reqs)
+	SERVICE_STATS_MEAN(1, mdt_readpage, req_timeout, sec)
+	SERVICE_STATS_MEAN(1, mdt_readpage, reqbuf_avail, bufs)
+	SERVICE_STATS_MEAN(1, mdt_readpage, mds_close, usec)
+	SERVICE_STATS_MEAN(1, mdt_readpage, mds_readpage, usec)
+	SERVICE_STATS_MEAN(1, mdt_setattr, req_waittime, usec)
+	SERVICE_STATS_MEAN(1, mdt_setattr, req_qdepth, reqs)
+	SERVICE_STATS_MEAN(1, mdt_setattr, req_active, reqs)
+	SERVICE_STATS_MEAN(1, mdt_setattr, req_timeout, sec)
+	SERVICE_STATS_MEAN(1, mdt_setattr, reqbuf_avail, bufs)
+	SERVICE_STATS_MEAN(1, mdt_fld, req_waittime, usec)
+	SERVICE_STATS_MEAN(1, mdt_fld, req_qdepth, reqs)
+	SERVICE_STATS_MEAN(1, mdt_fld, req_active, reqs)
+	SERVICE_STATS_MEAN(1, mdt_fld, req_timeout, sec)
+	SERVICE_STATS_MEAN(1, mdt_fld, reqbuf_avail, bufs)
+	SERVICE_STATS_MEAN(1, mdt_out, req_waittime, usec)
+	SERVICE_STATS_MEAN(1, mdt_out, req_qdepth, reqs)
+	SERVICE_STATS_MEAN(1, mdt_out, req_active, reqs)
+	SERVICE_STATS_MEAN(1, mdt_out, req_timeout, sec)
+	SERVICE_STATS_MEAN(1, mdt_out, reqbuf_avail, bufs)
+	SERVICE_STATS_MEAN(1, mdt_seqm, req_waittime, usec)
+	SERVICE_STATS_MEAN(1, mdt_seqm, req_qdepth, reqs)
+	SERVICE_STATS_MEAN(1, mdt_seqm, req_active, reqs)
+	SERVICE_STATS_MEAN(1, mdt_seqm, req_timeout, sec)
+	SERVICE_STATS_MEAN(1, mdt_seqm, reqbuf_avail, bufs)
+	SERVICE_STATS_MEAN(1, mdt_seqs, req_waittime, usec)
+	SERVICE_STATS_MEAN(1, mdt_seqs, req_qdepth, reqs)
+	SERVICE_STATS_MEAN(1, mdt_seqs, req_active, reqs)
+	SERVICE_STATS_MEAN(1, mdt_seqs, req_timeout, sec)
+	SERVICE_STATS_MEAN(1, mdt_seqs, reqbuf_avail, bufs)
+	SERVICE_STATS_MEAN(1, ost, req_waittime, usec)
+	SERVICE_STATS_MEAN(1, ost, req_qdepth, reqs)
+	SERVICE_STATS_MEAN(1, ost, req_active, reqs)
+	SERVICE_STATS_MEAN(1, ost, req_timeout, sec)
+	SERVICE_STATS_MEAN(1, ost, reqbuf_avail, bufs)
+	SERVICE_STATS_MEAN(1, ost_io, req_waittime, usec)
+	SERVICE_STATS_MEAN(1, ost_io, req_qdepth, reqs)
+	SERVICE_STATS_MEAN(1, ost_io, req_active, reqs)
+	SERVICE_STATS_MEAN(1, ost_io, req_timeout, sec)
+	SERVICE_STATS_MEAN(1, ost_io, reqbuf_avail, bufs)
+	SERVICE_STATS_MEAN(1, ost_io, ost_read, usec)
+	SERVICE_STATS_MEAN(1, ost_io, ost_write, usec)
+	SERVICE_STATS_MEAN(1, ost_io, ost_punch, usec)
+	SERVICE_STATS_MEAN(1, ost_create, req_waittime, usec)
+	SERVICE_STATS_MEAN(1, ost_create, req_qdepth, reqs)
+	SERVICE_STATS_MEAN(1, ost_create, req_active, reqs)
+	SERVICE_STATS_MEAN(1, ost_create, req_timeout, sec)
+	SERVICE_STATS_MEAN(1, ost_create, reqbuf_avail, bufs)
+	SERVICE_STATS_MEAN(1, ost_seq, req_waittime, usec)
+	SERVICE_STATS_MEAN(1, ost_seq, req_qdepth, reqs)
+	SERVICE_STATS_MEAN(1, ost_seq, req_active, reqs)
+	SERVICE_STATS_MEAN(1, ost_seq, req_timeout, sec)
+	SERVICE_STATS_MEAN(1, ost_seq, reqbuf_avail, bufs)
+	SERVICE_STATS_MEAN(1, ldlm_canceld, req_waittime, usec)
+	SERVICE_STATS_MEAN(1, ldlm_canceld, req_qdepth, reqs)
+	SERVICE_STATS_MEAN(1, ldlm_canceld, req_active, reqs)
+	SERVICE_STATS_MEAN(1, ldlm_canceld, req_timeout, sec)
+	SERVICE_STATS_MEAN(1, ldlm_canceld, reqbuf_avail, bufs)
+	SERVICE_STATS_MEAN(1, ldlm_cbd, req_waittime, usec)
+	SERVICE_STATS_MEAN(1, ldlm_cbd, req_qdepth, reqs)
+	SERVICE_STATS_MEAN(1, ldlm_cbd, req_active, reqs)
+	SERVICE_STATS_MEAN(1, ldlm_cbd, req_timeout, sec)
+	SERVICE_STATS_MEAN(1, ldlm_cbd, reqbuf_avail, bufs)
 	<entry>
 		<subpath>
 			<subpath_type>constant</subpath_type>
