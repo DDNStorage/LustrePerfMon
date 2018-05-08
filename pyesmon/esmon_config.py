@@ -1237,6 +1237,7 @@ def esmon_edit(current):
     """
     Edit a value
     """
+    # pylint: disable=too-many-return-statements
     key = current.ewe_key
     current_config = current.ewe_config
     if isinstance(current_config, bool):
@@ -1279,8 +1280,9 @@ def esmon_edit(current):
     print 'Current value: "%s"' % current_config
 
     ret, value = esmon_edit_loop(cstring)
-    if value == current_config:
-        print 'Keep it as "%s"' % value
+    if ret == ESMON_CONFIG_EDIT_QUIT or value == current_config:
+        print 'Keep it as "%s"' % current_config
+        return 0
 
     ret = esmon_config_check_add_def(value, cstring)
     if ret:
@@ -1330,7 +1332,7 @@ def esmon_edit_loop(cstring, prompt=None):
     while ESMON_CONFIG_RUNNING:
         try:
             cmd_line = raw_input(prompt)
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, EOFError):
             ret = ESMON_CONFIG_EDIT_QUIT
             print ""
             break
@@ -1481,7 +1483,7 @@ def esmon_input_loop():
     while ESMON_CONFIG_RUNNING:
         try:
             cmd_line = raw_input('[%s]$ (h for help): ' % esmon_pwd())
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, EOFError):
             print ""
             print "Type q to exit"
             continue
