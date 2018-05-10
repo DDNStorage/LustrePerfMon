@@ -4832,7 +4832,7 @@
         "multi": false,
         "name": "fs_name",
         "options": [],
-        "query": "SHOW TAG VALUES FROM \"md_stats\" WITH KEY = fs_name",
+        "query": "SHOW TAG VALUES FROM \"ost_kbytesinfo_free\" WITH KEY = fs_name",
         "refresh": 1,
         "regex": "",
         "sort": 3,
