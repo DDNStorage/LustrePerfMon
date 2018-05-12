@@ -225,6 +225,7 @@ class CommandJob(object):
         """
         Process the stdout or stderr
         """
+        # pylint: disable=too-many-branches
         buf = None
         if is_stdout:
             pipe = self.cj_subprocess.stdout
@@ -240,10 +241,23 @@ class CommandJob(object):
         if final_read:
             # read in all the data we can from pipe and then stop
             tmp_data = []
-            while select.select([pipe], [], [], 0)[0]:
-                tmp_data.append(os.read(pipe.fileno(), 1024))
-                if len(tmp_data[-1]) == 0:
+            epoll_fd = select.epoll()
+            epoll_fd.register(pipe, select.EPOLLIN)
+
+            loop = True
+            while loop:
+                epoll_list = epoll_fd.poll(timeout=0)
+                if len(epoll_list) == 0:
                     break
+                for file_no, events in epoll_list:
+                    if select.EPOLLIN & events:
+                        tmp_data.append(os.read(file_no, 1024))
+                        if len(tmp_data[-1]) == 0:
+                            loop = False
+                    elif select.EPOLLHUP & events:
+                        loop = False
+                    else:
+                        continue
             data = "".join(tmp_data)
         else:
             # perform a single read
@@ -266,53 +280,44 @@ class CommandJob(object):
         Wait until the command exits
         """
         # pylint: disable=too-many-branches
-        read_list = []
-        write_list = []
-        reverse_dict = {}
-
-        read_list.append(self.cj_subprocess.stdout)
-        read_list.append(self.cj_subprocess.stderr)
-        reverse_dict[self.cj_subprocess.stdout] = True
-        reverse_dict[self.cj_subprocess.stderr] = False
-
+        epoll_fd = select.epoll()
+        epoll_fd.register(self.cj_subprocess.stdout, select.EPOLLIN)
+        epoll_fd.register(self.cj_subprocess.stderr, select.EPOLLIN)
         if self.cj_string_stdin is not None:
-            write_list.append(self.cj_subprocess.stdin)
+            epoll_fd.register(self.cj_subprocess.stdin, select.EPOLLOUT)
+
+        is_stdout_dict = {}
+        is_stdout_dict[self.cj_subprocess.stdout.fileno()] = True
+        is_stdout_dict[self.cj_subprocess.stderr.fileno()] = False
 
         if self.cj_timeout:
             time_left = self.cj_max_stop_time - time.time()
         else:
             time_left = None  # so that select never times out
 
-        while not self.cj_timeout or time_left > 0:
-            # select will return when we may write to stdin or when there is
-            # stdout/stderr output we can read (including when it is
-            # EOF, that is the process has terminated).
+        loop = True
+        while loop and (not self.cj_timeout or time_left > 0):
             # To check for processes which terminate without producing any
-            # output, a 1 second timeout is used in select.
-            read_ready, write_ready, _ = select.select(read_list, write_list,
-                                                       [], 1)
-
-            # os.read() has to be used instead of
-            # subproc.stdout.read() which will otherwise block
-            for file_obj in read_ready:
-                is_stdout = reverse_dict[file_obj]
-                self.cj_process_output(is_stdout)
-                if self.cj_flush_tee:
-                    if is_stdout:
-                        self.cj_stdout_tee.flush()
-                    else:
-                        self.cj_stderr_tee.flush()
-
-            for file_obj in write_ready:
-                # we can write PIPE_BUF bytes without blocking
-                # POSIX requires PIPE_BUF is >= 512
-                file_obj.write(self.cj_string_stdin[:512])
-                self.cj_string_stdin = self.cj_string_stdin[512:]
-                # no more input data, close stdin, remove it from the select
-                # set
-                if not self.cj_string_stdin:
-                    file_obj.close()
-                    write_list.remove(file_obj)
+            # output, a 1 second timeout is used in poll.
+            epoll_list = epoll_fd.poll(timeout=1)
+            for file_no, events in epoll_list:
+                if select.EPOLLIN & events:
+                    is_stdout = is_stdout_dict[file_no]
+                    self.cj_process_output(is_stdout)
+                elif select.EPOLLOUT & events:
+                    # we can write PIPE_BUF bytes without blocking
+                    # POSIX requires PIPE_BUF is >= 512
+                    file_no.write(self.cj_string_stdin[:512])
+                    self.cj_string_stdin = self.cj_string_stdin[512:]
+                    # no more input data, remove it from the epoll and close
+                    # it
+                    if not self.cj_string_stdin:
+                        epoll_fd.unregister(file_no)
+                        file_no.close()
+                elif select.EPOLLHUP & events:
+                    loop = False
+                else:
+                    continue
 
             self.cj_result.cr_exit_status = self.cj_subprocess.poll()
             if self.cj_result.cr_exit_status is not None:
@@ -324,9 +329,14 @@ class CommandJob(object):
             if self.cj_quit_func is not None and self.cj_quit_func():
                 break
 
+        epoll_fd.unregister(self.cj_subprocess.stdout)
+        epoll_fd.unregister(self.cj_subprocess.stderr)
+        if self.cj_string_stdin is not None:
+            epoll_fd.unregister(self.cj_subprocess.stdin)
+        epoll_fd.close()
+
         # Kill process if timeout
         self.cj_kill()
-        return
 
 
 def run(command, timeout=None, stdout_tee=None, stderr_tee=None, stdin=None,
