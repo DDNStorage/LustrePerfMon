@@ -295,8 +295,7 @@ class CommandJob(object):
         else:
             time_left = None  # so that select never times out
 
-        loop = True
-        while loop and (not self.cj_timeout or time_left > 0):
+        while not self.cj_timeout or time_left > 0:
             # To check for processes which terminate without producing any
             # output, a 1 second timeout is used in poll.
             epoll_list = epoll_fd.poll(timeout=1)
@@ -309,13 +308,6 @@ class CommandJob(object):
                     # POSIX requires PIPE_BUF is >= 512
                     file_no.write(self.cj_string_stdin[:512])
                     self.cj_string_stdin = self.cj_string_stdin[512:]
-                    # no more input data, remove it from the epoll and close
-                    # it
-                    if not self.cj_string_stdin:
-                        epoll_fd.unregister(file_no)
-                        file_no.close()
-                elif select.EPOLLHUP & events:
-                    loop = False
                 else:
                     continue
 
