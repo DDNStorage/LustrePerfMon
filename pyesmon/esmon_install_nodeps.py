@@ -1042,6 +1042,86 @@ class EsmonServer(object):
         return ret
 
 
+class EsmonSFA(object):
+    """
+    Each SFA config block on a ESMON agent has an object of this type
+    """
+    # pylint: disable=too-few-public-methods
+    def __init__(self, agent_host, name, controller0_host, controller1_host):
+        self.esfa_agent_host = agent_host
+        self.esfa_name = name
+        self.esfa_controller0_host = controller0_host
+        self.esfa_controller1_host = controller1_host
+        self.esfa_controller0_active = False
+        self.esfa_controller1_active = False
+        self.esfa_subsystem_name = None
+
+    def esfa_run(self, command):
+        """
+        Try to run the command on both controllers
+        """
+        host = self.esfa_agent_host
+        # The return value of SFA will always be 0 if it is alive
+        full_command = ("sshpass -p user ssh user@%s %s" %
+                        (self.esfa_controller0_host, command))
+        retval = host.sh_run(full_command)
+        if retval.cr_exit_status == 0:
+            self.esfa_controller0_active = True
+            return retval
+
+        full_command = ("sshpass -p user ssh user@%s %s" %
+                        (self.esfa_controller1_host, command))
+        retval = host.sh_run(full_command)
+        if retval.cr_exit_status == 0:
+            self.esfa_controller1_active = True
+
+        return retval
+
+    def esfa_prepare(self):
+        """
+        Prepare SFA collection
+        """
+        host = self.esfa_agent_host
+        ret = host.sh_run("which sshpass")
+        if ret.cr_exit_status != 0:
+            logging.warning("sshpass is missing on host [%s], trying to "
+                            "install it", host.sh_hostname)
+            ret = host.sh_run("yum install sshpass -y")
+            if ret.cr_exit_status != 0:
+                logging.error("failed to install sshpass on host [%s], "
+                              "please install it manually")
+                return -1
+
+        command = "show subsystem all"
+        ret = self.esfa_run(command)
+        if ret.cr_exit_status != 0:
+            logging.error("failed to run command [%s] on SFA [%s]",
+                          command, self.esfa_name)
+            return -1
+
+        subsystem_name_pattern = (r"^RP Subsystem Name: +(?P<subsystem_name>\S*)$")
+        subsystem_name_regular = re.compile(subsystem_name_pattern)
+
+        subsystem_name = None
+        for line in ret.cr_stdout.splitlines():
+            logging.debug("checking line [%s]", line)
+            match = subsystem_name_regular.match(line)
+            if not match:
+                continue
+
+            subsystem_name = match.group("subsystem_name")
+            break
+
+        if subsystem_name is None:
+            logging.error("failed to get subsystem name from outout of "
+                          "command [%s] on SFA [%s], unsupported version of SFA? "
+                          "Output:\n%s",
+                          command, self.esfa_name, ret.cr_stdout)
+            return -1
+        self.esfa_subsystem_name = subsystem_name
+        return 0
+
+
 class EsmonClient(object):
     """
     Each client ESMON host has an object of this type
@@ -1158,12 +1238,6 @@ class EsmonClient(object):
                           retval.cr_stderr)
             return -1
 
-        ret = self.ec_check_lustre_version()
-        if ret:
-            logging.error("failed to check Lustre version on host [%s]",
-                          self.ec_host.sh_hostname)
-            return -1
-
         distro = self.ec_host.sh_distro()
         self.ec_distro = distro
         if distro == ssh_host.DISTRO_RHEL6:
@@ -1197,6 +1271,20 @@ class EsmonClient(object):
                           self.ec_host.sh_hostname)
             return -1
 
+        ret = self.ec_check_lustre_version()
+        if ret:
+            logging.error("failed to check Lustre version on host [%s]",
+                          self.ec_host.sh_hostname)
+            return -1
+
+        if self.ec_sfas is not None:
+            for sfa in self.ec_sfas:
+                ret = sfa.esfa_prepare()
+                if ret:
+                    logging.error("failed to prepare SFA collection on "
+                                  "host [%s]", self.ec_host.sh_hostname)
+                    return -1
+
         config = collectd.CollectdConfig(self, self.ec_collect_interval)
         config.cc_configs["Interval"] = collectd.COLLECTD_INTERVAL_TEST
         if self.ec_enable_lustre_oss or self.ec_enable_lustre_mds:
@@ -1212,9 +1300,11 @@ class EsmonClient(object):
             config.cc_plugin_disk()
         if self.ec_enable_ime:
             config.cc_plugin_ime()
+
         if self.ec_sfas is not None:
             for sfa in self.ec_sfas:
                 config.cc_plugin_sfa(sfa)
+
         if self.ec_enable_infiniband:
             config.cc_plugin_infiniband()
         self.ec_collectd_config_test = config
@@ -1229,13 +1319,17 @@ class EsmonClient(object):
             if ret:
                 logging.error("failed to config Lustre plugin of Collectd")
                 return -1
+
         if self.ec_enable_disk:
             config.cc_plugin_disk()
+
         if self.ec_enable_ime:
             config.cc_plugin_ime()
+
         if self.ec_sfas is not None:
             for sfa in self.ec_sfas:
                 config.cc_plugin_sfa(sfa)
+
         if self.ec_enable_infiniband:
             config.cc_plugin_infiniband()
         self.ec_collectd_config_final = config
@@ -1919,14 +2013,17 @@ def esmon_install_parse_config(workspace, config, config_fpath):
         if infiniband:
             enabled_plugins += ", IB"
 
-        ret, sfas = esmon_config.install_config_value(client_host_config, esmon_common.CSTR_SFAS)
+        ret, sfa_configs = esmon_config.install_config_value(client_host_config,
+                                                             esmon_common.CSTR_SFAS)
         if ret:
             return -1, esmon_server, esmon_clients
         sfa_names = []
         sfa_hosts = []
-        if sfas is not None:
-            for sfa in sfas:
-                ret, name = esmon_config.install_config_value(sfa, esmon_common.CSTR_NAME)
+        sfas = []
+        if sfa_configs is not None and len(sfa_configs) != 0:
+            for sfa_config in sfa_configs:
+                ret, name = esmon_config.install_config_value(sfa_config,
+                                                              esmon_common.CSTR_NAME)
                 if ret:
                     return -1, esmon_server, esmon_clients
 
@@ -1938,7 +2035,7 @@ def esmon_install_parse_config(workspace, config, config_fpath):
                 sfa_names.append(name)
 
                 ret, controller0_host = \
-                    esmon_config.install_config_value(sfa,
+                    esmon_config.install_config_value(sfa_config,
                                                       esmon_common.CSTR_CONTROLLER0_HOST)
                 if ret:
                     return -1, esmon_server, esmon_clients
@@ -1952,7 +2049,7 @@ def esmon_install_parse_config(workspace, config, config_fpath):
                 sfa_hosts.append(controller0_host)
 
                 ret, controller1_host = \
-                    esmon_config.install_config_value(sfa,
+                    esmon_config.install_config_value(sfa_config,
                                                       esmon_common.CSTR_CONTROLLER1_HOST)
                 if ret:
                     return -1, esmon_server, esmon_clients
@@ -1964,6 +2061,9 @@ def esmon_install_parse_config(workspace, config, config_fpath):
                                   config_fpath)
                     return -1, esmon_server, esmon_clients
                 sfa_hosts.append(controller1_host)
+
+                sfa = EsmonSFA(host, name, controller0_host, controller1_host)
+                sfas.append(sfa)
             enabled_plugins += ", SFA"
 
         esmon_client = EsmonClient(host, workspace, esmon_server, collect_interval,

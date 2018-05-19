@@ -142,7 +142,7 @@ PostCacheChain "PostCache"
             HostName "%s"
             UserName "user"
             UserPassword "user"
-            SshTerminator "RAID[0]$ "
+            SshTerminator "%sRAID[0]$ "
             IpcDir "/tmp"
             #KnownhostsFile "/root/.ssh/known_hosts"
             #PublicKeyfile "/root/.ssh/id_dsa.pub"
@@ -153,7 +153,7 @@ PostCacheChain "PostCache"
             HostName "%s"
             UserName "user"
             UserPassword "user"
-            SshTerminator "RAID[1]$ "
+            SshTerminator "%sRAID[1]$ "
             IpcDir "/tmp"
             #KnownhostsFile "/root/.ssh/known_hosts"
             #PublicKeyfile "/root/.ssh/id_dsa.pub"
@@ -195,9 +195,15 @@ PostCacheChain "PostCache"
 
 """
                 for sfa in self.cc_sfas.values():
-                    config = (template % (sfa["name"],
-                                          sfa["controller0_host"],
-                                          sfa["controller1_host"]))
+                    if sfa.esfa_subsystem_name == "":
+                        name = ""
+                    else:
+                        name = sfa.esfa_subsystem_name + " "
+                    config = (template % (sfa.esfa_name,
+                                          sfa.esfa_controller0_host,
+                                          name,
+                                          sfa.esfa_controller1_host,
+                                          name))
                     fout.write(config)
 
             if any(self.cc_filedatas):
@@ -1003,38 +1009,10 @@ PostCacheChain "PostCache"
         Check the SFA plugin
         """
         client = self.cc_esmon_client
-        host = client.ec_host
         measurement = "vd_rate"
 
-        ret = host.sh_run("which sshpass")
-        if ret.cr_exit_status != 0:
-            logging.warning("sshpass is missing on host [%s], so skip "
-                            "testing SFAs on that host", host.sh_hostname)
-            return 0
-
         for sfa in self.cc_sfas.values():
-            controller0 = sfa["controller0_host"]
-            controller1 = sfa["controller1_host"]
-            fqdn = sfa["name"]
-            host_dead = True
-
-            # IMPROVE: Use "SET CLI $COMMAND" to configure SFA CLI for proper
-            # output
-            command = ("sshpass -p user ssh user@%s SHOW SUBSYSTEM" %
-                       controller0)
-            retval = host.sh_run(command)
-            if retval.cr_exit_status == 0:
-                host_dead = False
-
-            if host_dead:
-                command = ("sshpass -p user ssh user@%s SHOW SUBSYSTEM" %
-                           controller1)
-                retval = host.sh_run(command)
-                if retval.cr_exit_status == 0:
-                    host_dead = False
-
-            if host_dead:
-                continue
+            fqdn = sfa.esfa_name
 
             ret = client.ec_influxdb_measurement_check(measurement, fqdn=fqdn)
             if ret:
@@ -1045,7 +1023,7 @@ PostCacheChain "PostCache"
         """
         Add SFA configuration
         """
-        name = sfa["name"]
+        name = sfa.esfa_name
         self.cc_sfas[name] = sfa
         if self.cc_plugin_sfa_check not in self.cc_checks:
             self.cc_checks.append(self.cc_plugin_sfa_check)
