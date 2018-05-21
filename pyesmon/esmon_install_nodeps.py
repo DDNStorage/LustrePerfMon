@@ -58,6 +58,8 @@ SERVER_STRING = "server"
 RPM_TYPE_SERVER = SERVER_STRING
 RPM_TYPE_XML = "xml"
 LUSTRE_DEFAULT_VERSION = None
+XML_FNAME_SFA3 = "sfa-3.0_definition.xml"
+XML_FNAME_SFA11 = "sfa-11.0_definition.xml"
 
 
 def grafana_dashboard_check(name, dashboard):
@@ -1046,7 +1048,8 @@ class EsmonSFA(object):
     """
     Each SFA config block on a ESMON agent has an object of this type
     """
-    # pylint: disable=too-few-public-methods
+    # pylint: disable=too-few-public-methods,too-many-instance-attributes
+    # pylint: disable=too-many-return-statements,too-many-branches
     def __init__(self, agent_host, name, controller0_host, controller1_host):
         self.esfa_agent_host = agent_host
         self.esfa_name = name
@@ -1055,6 +1058,7 @@ class EsmonSFA(object):
         self.esfa_controller0_active = False
         self.esfa_controller1_active = False
         self.esfa_subsystem_name = None
+        self.esfa_xml_fname = None
 
     def esfa_run(self, command):
         """
@@ -1119,6 +1123,45 @@ class EsmonSFA(object):
                           command, self.esfa_name, ret.cr_stdout)
             return -1
         self.esfa_subsystem_name = subsystem_name
+
+        command = "show controller all"
+        ret = self.esfa_run(command)
+        if ret.cr_exit_status != 0:
+            logging.error("failed to run command [%s] on SFA [%s]",
+                          command, self.esfa_name)
+            return -1
+
+        release_pattern = (r" +Release: +(?P<release>\S*)$")
+        release_regular = re.compile(release_pattern)
+
+        release = None
+        for line in ret.cr_stdout.splitlines():
+            logging.debug("checking line [%s]", line)
+            match = release_regular.match(line)
+            if not match:
+                continue
+
+            release = match.group("release")
+            break
+
+        if release is None:
+            logging.error("failed to get release of SFA from outout of "
+                          "command [%s] on SFA [%s], unsupported version of SFA? "
+                          "Output:\n%s",
+                          command, self.esfa_name, ret.cr_stdout)
+            return -1
+
+        if release.startswith("3."):
+            xml_fname = XML_FNAME_SFA3
+        elif release.startswith("11."):
+            xml_fname = XML_FNAME_SFA11
+        else:
+            logging.error("unsupported firmware release [%s] of SFA [%s]",
+                          release, self.esfa_name)
+            return -1
+
+        self.esfa_xml_fname = xml_fname
+
         return 0
 
 

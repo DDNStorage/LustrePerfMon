@@ -136,7 +136,7 @@ PostCacheChain "PostCache"
                 fout.write(config)
                 template = """<Plugin "ssh">
     <Common>
-        DefinitionFile "/etc/sfa-3.0_definition.xml"
+        DefinitionFile "/etc/%s"
         Extra_tags "extrahost=%s"
         <ServerHost>
             HostName "%s"
@@ -199,7 +199,9 @@ PostCacheChain "PostCache"
                         name = ""
                     else:
                         name = sfa.esfa_subsystem_name + " "
-                    config = (template % (sfa.esfa_name,
+
+                    config = (template % (sfa.esfa_xml_fname,
+                                          sfa.esfa_name,
                                           sfa.esfa_controller0_host,
                                           name,
                                           sfa.esfa_controller1_host,
