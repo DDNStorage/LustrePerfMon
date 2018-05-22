@@ -614,7 +614,7 @@ ESMON_INSTALL_CSTRS["/"] = ESMON_INSTALL_ROOT
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL] = \
     EsmonConfigString(esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL,
                       ESMON_CONFIG_CSTR_INT,
-                      """This option determines the interval of continuous queries. ESMON uses
+                      """This option determines the interval of continuous queries. ES PERFMON uses
 continuous queries of Influxdb to aggregate data. To calculate the interval
 seconds of continuous queries, please multiply this number by the value of
 the "collect_interval" option. If this number is "1", the interval of
@@ -723,11 +723,11 @@ def esmon_item_add(config_list, list_cstr, id_value, definition=False):
 LOCALHOST_AGENT = {
     esmon_common.CSTR_HOST_ID: "localhost",
 }
-INFO = "This group of options include the information of this ESMON agent."
+INFO = "This group of options include the information of this ES PERFMON agent."
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_AGENTS] = \
     EsmonConfigString(esmon_common.CSTR_AGENTS,
                       ESMON_CONFIG_CSTR_LIST,
-                      """This list includes the information of the ESMON agents.""",
+                      """This list includes the information of the ES PERFMON agents.""",
                       item_helpinfo=INFO,
                       item_key=esmon_common.CSTR_HOST_ID,
                       children=[esmon_common.CSTR_ENABLE_DISK,
@@ -755,9 +755,10 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_COLLECT_INTERVAL] = \
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_DROP_DATABASE] = \
     EsmonConfigString(esmon_common.CSTR_DROP_DATABASE,
                       ESMON_CONFIG_CSTR_BOOL,
-                      """This option determines whether to drop existing ESMON database of Influxdb.
+                      """This option determines whether to drop existing ES PERFMON database of
+Influxdb.
 Important: This option should ONLY be set to "True" if the data/metadata in
-           ESMON database of Influxdb is not needed any more.""",
+           ES PERFMON database of Influxdb is not needed any more.""",
                       default=False)
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_ENABLE_DISK] = \
@@ -780,17 +781,19 @@ Important: This option should ONLY be set to "True" if the data/metadata of
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_EXP_MDT] = \
     EsmonConfigString(esmon_common.CSTR_LUSTRE_EXP_MDT,
                       ESMON_CONFIG_CSTR_BOOL,
-                      """This option determines whether ESMON agents collect exp_md_stats_* metrics
-from Lustre OST. If there are too many Lustre clients on the system, this
-option should be disabled to avoid performance issues.""",
+                      """This option determines whether ES PERFMON agents collect exp_md_stats_*
+metrics from Lustre MDT. If there are too many Lustre clients on the system,
+this option should be disabled to avoid performance issues.""",
                       default=False)
+
+INFO = """This option determines whether ES PERFMON agents collect exp_ost_stats_[read|
+write] metrics from Lustre OST or not. If there are too many Lustre clients on
+the system, this option should be disabled to avoid performance issues."""
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_EXP_OST] = \
     EsmonConfigString(esmon_common.CSTR_LUSTRE_EXP_OST,
                       ESMON_CONFIG_CSTR_BOOL,
-                      """This option determines whether ESMON agents collect exp_ost_stats_[read|
-write] metrics from Lustre OST or not. If there are too many Lustre clients on
-the system, this option should be disabled to avoid performance issues.""",
+                      INFO,
                       default=False)
 
 INFO = """This option is the unique name of this controller. This value will be used as
@@ -812,19 +815,19 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_HOSTNAME] = \
     EsmonConfigString(esmon_common.CSTR_HOSTNAME,
                       ESMON_CONFIG_CSTR_STRING,
                       """This option is the hostname or IP of the host. "ssh" command will use this
-hostname/IP to login into the host. If the host is the ESMON server, this
+hostname/IP to login into the host. If the host is the ES PERFMON server, this
 hostname/IP will be used as the server host in the write_tsdb plugin of
-ESMON client.""")
+ES PERFMON agent.""")
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_IME] = \
     EsmonConfigString(esmon_common.CSTR_IME,
                       ESMON_CONFIG_CSTR_BOOL,
                       """This option determines whether to enable IME metrics collection on this
-ESMON agent.""",
+ES PERFMON agent.""",
                       default=False)
 
 INFO = """This option determines whether to enable Infiniband metrics collection on this
-ESMON agent."""
+ES PERFMON agent."""
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_INFINIBAND] = \
     EsmonConfigString(esmon_common.CSTR_INFINIBAND,
                       ESMON_CONFIG_CSTR_BOOL,
@@ -834,16 +837,17 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_INFINIBAND] = \
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_INFLUXDB_PATH] = \
     EsmonConfigString(esmon_common.CSTR_INFLUXDB_PATH,
                       ESMON_CONFIG_CSTR_PATH,
-                      """This option is Influxdb directory path on ESMON server node.
+                      """This option is Influxdb directory path on ES PERFMON server node.
 Important: Please do not put any other files/directries under this directory of
-           ESMON server node, because, with "erase_influxdb" option enabled,
-           all of the files/directries under that directory will be removed.""",
+           ES PERFMON server node, because, with "erase_influxdb" option
+           enabled, all of the files/directries under that directory will be
+           removed.""",
                       default="/esmon/influxdb")
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_ISO_PATH] = \
     EsmonConfigString(esmon_common.CSTR_ISO_PATH,
                       ESMON_CONFIG_CSTR_PATH,
-                      """This option is the path of ESMON ISO.""",
+                      """This option is the path of ES PERFMON ISO.""",
                       default="/root/esmon.iso")
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_LOCAL_HOST] = \
@@ -856,11 +860,11 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_MDS] = \
     EsmonConfigString(esmon_common.CSTR_LUSTRE_MDS,
                       ESMON_CONFIG_CSTR_BOOL,
                       """This option determines whether to enable Lustre MDS metrics collection on
-this ESMON agent.""",
+this ES PERFMON agent.""",
                       default=True)
 
 INFO = """This option determines whether to enable Lustre OSS metrics collection on this
-ESMON agent."""
+ES PERFMON agent."""
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_OSS] = \
     EsmonConfigString(esmon_common.CSTR_LUSTRE_OSS,
                       ESMON_CONFIG_CSTR_BOOL,
@@ -870,24 +874,25 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_OSS] = \
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_REINSTALL] = \
     EsmonConfigString(esmon_common.CSTR_REINSTALL,
                       ESMON_CONFIG_CSTR_BOOL,
-                      """This option determines whether to reinstall the ESMON server.""",
+                      """This option determines whether to reinstall the ES PERFMON server.""",
                       default=True)
 
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_DEFAULT_VERSION] = \
     EsmonConfigString(esmon_common.CSTR_LUSTRE_DEFAULT_VERSION,
                       ESMON_CONFIG_CSTR_CONSTANT,
                       """This option determines the default Lustre version to use, if the Lustre
-RPMs installed on the ESMON client is not with the supported version.""",
+RPMs installed on the ES PERFMON agent is not with the supported version.""",
                       constants=lustre.LUSTER_VERSION_NAMES,
                       default="es3")
 
+INFO = """This group of options include the information about the ES PERFMON server."""
 SERVER_DEFAULT = {
     esmon_common.CSTR_HOST_ID: "localhost"
 }
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_SERVER] = \
     EsmonConfigString(esmon_common.CSTR_SERVER,
                       ESMON_CONFIG_CSTR_DICT,
-                      """This group of options include the information about the ESMON server.""",
+                      INFO,
                       children=[esmon_common.CSTR_DROP_DATABASE,
                                 esmon_common.CSTR_ERASE_INFLUXDB,
                                 esmon_common.CSTR_HOST_ID,
@@ -898,11 +903,11 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_SERVER] = \
 ESMON_SFA_NAME_NUM = 0
 
 
-INFO = "This group of options include the information of this SFA on the ESMON agent."
+INFO = "This group of options include the information of this SFA on the ES PERFMON agent."
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_SFAS] = \
     EsmonConfigString(esmon_common.CSTR_SFAS,
                       ESMON_CONFIG_CSTR_LIST,
-                      """This list includes the information of SFAs on this ESMON agent.""",
+                      """This list includes the information of SFAs on this ES PERFMON agent.""",
                       item_helpinfo=INFO,
                       item_key=esmon_common.CSTR_NAME,
                       children=[esmon_common.CSTR_CONTROLLER0_HOST,
@@ -951,9 +956,9 @@ ESMON_TEST_CSTRS[esmon_common.CSTR_BACKFS_TYPE] = \
 ESMON_TEST_CSTRS[esmon_common.CSTR_SKIP_INSTALL_TEST] = \
     EsmonConfigString(esmon_common.CSTR_SKIP_INSTALL_TEST,
                       ESMON_CONFIG_CSTR_BOOL,
-                      """This option determines whether to skip ESMON install test or not. When
-this option is enabled, it is assumed that the ESMON has already been
-installed on the current system. If ESMON has not been installed properly, the
+                      """This option determines whether to skip ES PERFMON install test or not. When
+this option is enabled, it is assumed that the ES PERFMON has already been
+installed on the current system. If ES PERFMON has not been installed properly, the
 following tests might fail.""")
 
 ESMON_TEST_CSTRS[esmon_common.CSTR_ESMON_VIRT] = \
@@ -2030,7 +2035,7 @@ def main():
         logging.error("config failed, please check [%s] for more log",
                       workspace)
         sys.exit(ret)
-    logging.info("Please check [%s] for the ESMON configuration "
+    logging.info("Please check [%s] for the ES PERFMON configuration "
                  "and [%s] for more log",
                  CONFIG_FPATH, workspace)
     sys.exit(0)
