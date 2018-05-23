@@ -628,7 +628,7 @@ class EsmonConfigString(object):
     def __init__(self, cstring, ctype, help_info, constants=None,
                  start=0, end=65536, item_helpinfo="", allow_none=False,
                  item_child_value=None, item_key=None, children=None, default=None,
-                 define_entries=None):
+                 define_entries=None, mapping_dict=None):
         self.ecs_string = cstring
         # ESMON_CONFIG_CSTR_*
         self.ecs_type = ctype
@@ -666,6 +666,7 @@ class EsmonConfigString(object):
         else:
             assert define_entries is None
         self.ecs_define_entries = define_entries
+        self.ecs_mapping_dict = mapping_dict
 
 
 ESMON_INSTALL_CSTRS = {}
@@ -953,13 +954,15 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_REINSTALL] = \
                       """This option determines whether to reinstall the ES PERFMON server.""",
                       default=True)
 
+MAPPING_DICT = {lustre.LUSTRE_VERSION_NAME_ERROR: None}
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_DEFAULT_VERSION] = \
     EsmonConfigString(esmon_common.CSTR_LUSTRE_DEFAULT_VERSION,
                       ESMON_CONFIG_CSTR_CONSTANT,
                       """This option determines the default Lustre version to use, if the Lustre
 RPMs installed on the ES PERFMON agent is not with the supported version.""",
                       constants=lustre.LUSTER_VERSION_NAMES,
-                      default="es3")
+                      default="es3",
+                      mapping_dict=MAPPING_DICT)
 
 INFO = """This group of options include the information about the ES PERFMON server."""
 SERVER_DEFAULT = {
@@ -1012,6 +1015,8 @@ SSH connections.""",
                                 esmon_common.CSTR_LOCAL_HOST],
                       default=[LOCALHOST_SSH_HOST])
 
+MAPPING_DICT = {esmon_common.ESMON_CONFIG_CSTR_NONE: None}
+
 ESMON_INSTALL_CSTRS[esmon_common.CSTR_SSH_IDENTITY_FILE] = \
     EsmonConfigString(esmon_common.CSTR_SSH_IDENTITY_FILE,
                       ESMON_CONFIG_CSTR_PATH,
@@ -1019,7 +1024,8 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_SSH_IDENTITY_FILE] = \
 the host. If the default SSH identity file works, this option can be set to\n\"""" +
                       esmon_common.ESMON_CONFIG_CSTR_NONE + '".',
                       allow_none=True,
-                      default=esmon_common.ESMON_CONFIG_CSTR_NONE)
+                      default=esmon_common.ESMON_CONFIG_CSTR_NONE,
+                      mapping_dict=MAPPING_DICT)
 
 ESMON_TEST_CSTRS = ESMON_INSTALL_CSTRS.copy()
 
@@ -1988,7 +1994,7 @@ def esmon_config(workspace):
     return 0
 
 
-def install_config_value(config, key, mapping_dict=None):
+def install_config_value(config, key):
     """
     Return the config value
     """
@@ -2008,6 +2014,7 @@ def install_config_value(config, key, mapping_dict=None):
     else:
         value = config[key]
 
+    mapping_dict = cstring.ecs_mapping_dict
     if mapping_dict is not None and value in mapping_dict:
         value = mapping_dict[value]
     return 0, value

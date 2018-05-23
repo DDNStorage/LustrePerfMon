@@ -1210,10 +1210,16 @@ class EsmonClient(object):
         """
         Check the Lustre version according to the installed RPMs
         """
+        # pylint: disable=too-many-return-statements,too-many-branches
         command = ("rpm -qa | grep lustre")
         retval = self.ec_host.sh_run(command)
         if (retval.cr_exit_status == 1 and retval.cr_stdout == "" and
                 retval.cr_stderr == ""):
+            if LUSTRE_DEFAULT_VERSION is None:
+                logging.error("no Lustre is installed on the host [%s], and "
+                              "no Lustre default version is configured",
+                              self.ec_host.sh_hostname)
+                return -1
             self.ec_lustre_version = LUSTRE_DEFAULT_VERSION
             return 0
         elif retval.cr_exit_status:
@@ -1242,8 +1248,15 @@ class EsmonClient(object):
                               rpm_file)
                 return -1
         if len(possible_versions) == 0:
+            if LUSTRE_DEFAULT_VERSION is None:
+                logging.error("can't match Lustre version according to RPM "
+                              "on host [%s], and no Lustre default version "
+                              "is configured",
+                              self.ec_host.sh_hostname)
+                return -1
             logging.info("can't match Lustre version according to RPM "
-                         "names, using default [%s]",
+                         "names on host [%s], using default [%s]",
+                         self.ec_host.sh_hostname,
                          LUSTRE_DEFAULT_VERSION.lv_name)
             self.ec_lustre_version = LUSTRE_DEFAULT_VERSION
             return 0
@@ -1254,10 +1267,17 @@ class EsmonClient(object):
                     version_string += possible_version.lv_name
                 else:
                     version_string += " " + possible_version.lv_name
-            logging.debug("can't deterimine Lustre version according to RPM "
-                          "names, possible versions are [%s], using "
-                          "default [%s]", version_string,
-                          LUSTRE_DEFAULT_VERSION.lv_name)
+            if LUSTRE_DEFAULT_VERSION is None:
+                logging.error("can't deterimine Lustre version according to "
+                              "RPM names on host [%s], possible versions are "
+                              "[%s], and no Lustre default version is "
+                              "configured",
+                              self.ec_host.sh_hostname, version_string)
+                return -1
+            logging.info("can't deterimine Lustre version according to RPM "
+                         "names on host [%s], possible versions are [%s], using "
+                         "default [%s]", self.ec_host.sh_hostname,
+                         version_string, LUSTRE_DEFAULT_VERSION.lv_name)
             self.ec_lustre_version = LUSTRE_DEFAULT_VERSION
             return 0
         self.ec_lustre_version = possible_versions[0]
@@ -1931,11 +1951,9 @@ def esmon_install_parse_config(workspace, config, config_fpath):
         if ret:
             return -1, esmon_server, esmon_clients
 
-        mapping_dict = {esmon_common.ESMON_CONFIG_CSTR_NONE: None}
         ret, ssh_identity_file = \
             esmon_config.install_config_value(host_config,
-                                              esmon_common.CSTR_SSH_IDENTITY_FILE,
-                                              mapping_dict=mapping_dict)
+                                              esmon_common.CSTR_SSH_IDENTITY_FILE)
 
         if ret:
             return -1, esmon_server, esmon_clients
@@ -1968,18 +1986,22 @@ def esmon_install_parse_config(workspace, config, config_fpath):
         return -1, esmon_server, esmon_clients
 
     ret, version_name = \
-        esmon_config.install_config_value(config, esmon_common.CSTR_LUSTRE_DEFAULT_VERSION)
+        esmon_config.install_config_value(config,
+                                          esmon_common.CSTR_LUSTRE_DEFAULT_VERSION)
     if ret:
         return -1, esmon_server, esmon_clients
     global LUSTRE_DEFAULT_VERSION
-    for version in lustre.LUSTER_VERSIONS:
-        if version.lv_name == version_name:
-            LUSTRE_DEFAULT_VERSION = version
-            break
-    if LUSTRE_DEFAULT_VERSION is None:
-        logging.error("unsupported Lustre version [%s], please correct file [%s]",
-                      version_name, config_fpath)
-        return -1, esmon_server, esmon_clients
+    if version_name is None:
+        LUSTRE_DEFAULT_VERSION = None
+    else:
+        for version in lustre.LUSTER_VERSIONS:
+            if version.lv_name == version_name:
+                LUSTRE_DEFAULT_VERSION = version
+                break
+        if LUSTRE_DEFAULT_VERSION is None:
+            logging.error("unsupported Lustre version [%s], please correct "
+                          "file [%s]", version_name, config_fpath)
+            return -1, esmon_server, esmon_clients
 
     ret, lustre_exp_ost = \
         esmon_config.install_config_value(config, esmon_common.CSTR_LUSTRE_EXP_OST)
