@@ -37,6 +37,82 @@ ESMON_CONFIG_COMMNAD_WRITE_QUIT = "wq"
 ESMON_CONFIG_EDIT_QUIT = 1
 
 
+class EsmonConfigInputStatus(object):
+    """
+    Input status
+    """
+    # pylint: disable=too-few-public-methods
+    STATUS_COMMAND = "command"
+    STATUS_CSTR = "cstr"
+
+    def __init__(self):
+        self.ecis_status = None
+        self.ecis_candidates = []
+        self.ecis_cstr_candidates = []
+
+    def ecis_completer(self, text, state):
+        # pylint: disable=global-statement,too-many-branches,unused-argument
+        # pylint: disable=too-many-nested-blocks
+        """
+        The complete function of the input completer
+        """
+        response = None
+        if state == 0:
+            # This is the first time for this text,
+            # so build a match list.
+            origline = readline.get_line_buffer()
+            begin = readline.get_begidx()
+            end = readline.get_endidx()
+            being_completed = origline[begin:end]
+            words = origline.split()
+            if not words:
+                if self.ecis_status == self.STATUS_COMMAND:
+                    self.ecis_candidates = sorted(ESMON_CONFIG_COMMNADS.keys())
+                else:
+                    self.ecis_candidates = sorted(self.ecis_cstr_candidates)
+            else:
+                try:
+                    if self.ecis_status == self.STATUS_COMMAND:
+                        if begin == 0:
+                            # first word
+                            candidates = ESMON_CONFIG_COMMNADS.keys()
+                        else:
+                            # later word
+                            first = words[0]
+                            config_command = ESMON_CONFIG_COMMNADS[first]
+                            if config_command.ecc_arguments is not None:
+                                candidates = list(config_command.ecc_arguments)
+                            else:
+                                candidates = []
+                            if config_command.ecc_need_child:
+                                subdirs = esmon_children()
+                                if subdirs is not None:
+                                    candidates += subdirs
+                    else:
+                        candidates = sorted(self.ecis_cstr_candidates)
+
+                    if being_completed:
+                        # match options with portion of input
+                        # being completed
+                        self.ecis_candidates = []
+                        for candidate in candidates:
+                            if not candidate.startswith(being_completed):
+                                continue
+                            self.ecis_candidates.append(candidate)
+                    else:
+                        # matching empty string so use all candidates
+                        self.ecis_candidates = candidates
+                except (KeyError, IndexError):
+                    self.ecis_candidates = []
+        try:
+            response = self.ecis_candidates[state]
+        except IndexError:
+            response = None
+        return response
+
+ESMON_INPUT_STATUS = EsmonConfigInputStatus()
+
+
 class EsmonConfigCommand(object):
     """
     Config command
@@ -82,8 +158,8 @@ def esmon_command_add(arg_string):
 
     print ESMON_CONFIG_ADD_MULTIPLE.ecs_help_info
     prompt = "Press F/f to add only single item, press T/t to add multiple ones: "
-    ret, add_multiple = esmon_edit_loop(ESMON_CONFIG_ADD_MULTIPLE,
-                                        prompt=prompt)
+    ret, add_multiple = esmon_cstr_input_loop(ESMON_CONFIG_ADD_MULTIPLE,
+                                              prompt=prompt)
     if ret == ESMON_CONFIG_EDIT_QUIT:
         return 0
 
@@ -92,8 +168,8 @@ def esmon_command_add(arg_string):
         print ""
 
         prompt = "Please input the common prefix of the adding items: "
-        ret, prefix = esmon_edit_loop(ESMON_CONFIG_ADD_PREFIX,
-                                      prompt=prompt)
+        ret, prefix = esmon_cstr_input_loop(ESMON_CONFIG_ADD_PREFIX,
+                                            prompt=prompt)
         if ret == ESMON_CONFIG_EDIT_QUIT:
             return 0
 
@@ -108,8 +184,8 @@ the added items."""
         prompt = ("Please input the start index, an integer in [%s, %s]: " %
                   (start_cstr.ecs_start, start_cstr.ecs_end))
 
-        ret, start_index = esmon_edit_loop(start_cstr,
-                                           prompt=prompt)
+        ret, start_index = esmon_cstr_input_loop(start_cstr,
+                                                 prompt=prompt)
         if ret == ESMON_CONFIG_EDIT_QUIT:
             return 0
         print 'The index of the first item will be "%s".' % (start_index)
@@ -123,8 +199,8 @@ the added items."""
                                      start=start_index)
         prompt = ("Please input the end index, an integer in [%s, %s]: " %
                   (end_cstr.ecs_start, end_cstr.ecs_end))
-        ret, end_index = esmon_edit_loop(end_cstr,
-                                         prompt=prompt)
+        ret, end_index = esmon_cstr_input_loop(end_cstr,
+                                               prompt=prompt)
         if ret == ESMON_CONFIG_EDIT_QUIT:
             return 0
         print ('The index of the last item will be "%s".' %
@@ -174,8 +250,8 @@ If yes, then the names of newly created items will be: """
                                            ESMON_CONFIG_CSTR_BOOL,
                                            "")
         prompt = "Press T/t to fill empty space with 0, press F/f not to: "
-        ret, fill_zero = esmon_edit_loop(fill_zero_cstr,
-                                         prompt=prompt)
+        ret, fill_zero = esmon_cstr_input_loop(fill_zero_cstr,
+                                               prompt=prompt)
         if ret == ESMON_CONFIG_EDIT_QUIT:
             return 0
         if fill_zero:
@@ -203,8 +279,8 @@ If yes, then the names of newly created items will be: """
                                       ESMON_CONFIG_CSTR_STRING,
                                       "")
         prompt = "Please input the name of this item: "
-        ret, name = esmon_edit_loop(name_cstr,
-                                    prompt=prompt)
+        ret, name = esmon_cstr_input_loop(name_cstr,
+                                          prompt=prompt)
         if ret == ESMON_CONFIG_EDIT_QUIT:
             return 0
         ret = esmon_item_add(current_config, current_cstring, name)
@@ -967,7 +1043,6 @@ ESMON_TEST_CSTRS[esmon_common.CSTR_ESMON_VIRT] = \
                       """This option is the config file path of esmon_virt. The config file will be
 read by esmon_virt command to install virtual machines.""")
 
-ESMON_CONFIG_CANDIDATES = []
 ESMON_CONFIG_RUNNING = True
 
 INFO = """Multiple items with the same name prefix can be added using the same template,
@@ -1059,69 +1134,13 @@ def esmon_children():
     return children
 
 
-def esmon_completer(text, state):
-    # pylint: disable=global-statement,too-many-branches,unused-argument
-    # pylint: disable=too-many-nested-blocks
-    """
-    The complete function of the input completer
-    """
-    global ESMON_CONFIG_CANDIDATES
-    response = None
-    if state == 0:
-        # This is the first time for this text,
-        # so build a match list.
-        origline = readline.get_line_buffer()
-        begin = readline.get_begidx()
-        end = readline.get_endidx()
-        being_completed = origline[begin:end]
-        words = origline.split()
-        if not words:
-            ESMON_CONFIG_CANDIDATES = sorted(ESMON_CONFIG_COMMNADS.keys())
-        else:
-            try:
-                if begin == 0:
-                    # first word
-                    candidates = ESMON_CONFIG_COMMNADS.keys()
-                else:
-                    # later word
-                    first = words[0]
-                    config_command = ESMON_CONFIG_COMMNADS[first]
-                    if config_command.ecc_arguments is not None:
-                        candidates = list(config_command.ecc_arguments)
-                    else:
-                        candidates = []
-                    if config_command.ecc_need_child:
-                        subdirs = esmon_children()
-                        if subdirs is not None:
-                            candidates += subdirs
-
-                if being_completed:
-                    # match options with portion of input
-                    # being completed
-                    ESMON_CONFIG_CANDIDATES = []
-                    for candidate in candidates:
-                        if not candidate.startswith(being_completed):
-                            continue
-                        ESMON_CONFIG_CANDIDATES.append(candidate)
-                else:
-                    # matching empty string so use all candidates
-                    ESMON_CONFIG_CANDIDATES = candidates
-            except (KeyError, IndexError):
-                ESMON_CONFIG_CANDIDATES = []
-    try:
-        response = ESMON_CONFIG_CANDIDATES[state]
-    except IndexError:
-        response = None
-    return response
-
-
 def esmon_input_init():
     """
     Initialize the input completer
     """
     readline.parse_and_bind("tab: complete")
     readline.parse_and_bind("set editing-mode vi")
-    readline.set_completer(esmon_completer)
+    readline.set_completer(ESMON_INPUT_STATUS.ecis_completer)
 
 
 def esmon_input_fini():
@@ -1284,7 +1303,7 @@ def esmon_edit(current):
     print cstring.ecs_help_info, "\n"
     print 'Current value: "%s"' % current_config
 
-    ret, value = esmon_edit_loop(cstring)
+    ret, value = esmon_cstr_input_loop(cstring)
     if ret == ESMON_CONFIG_EDIT_QUIT or value == current_config:
         print 'Keep it as "%s"' % current_config
         return 0
@@ -1299,25 +1318,29 @@ def esmon_edit(current):
     return 0
 
 
-def esmon_edit_loop(cstring, prompt=None):
+def esmon_cstr_input_loop(cstring, prompt=None):
     """
     Loop until allowed string is inputed
     """
     # pylint: disable=too-many-branches,redefined-variable-type,bare-except
     # pylint: disable=too-many-statements
+    ESMON_INPUT_STATUS.ecis_status = ESMON_INPUT_STATUS.STATUS_CSTR
     if prompt is None:
         if cstring.ecs_type == ESMON_CONFIG_CSTR_BOOL:
             prompt = 'To set it to True/False, press t/f: '
+            ESMON_INPUT_STATUS.ecis_cstr_candidates = ["t", "f"]
         elif cstring.ecs_type == ESMON_CONFIG_CSTR_CONSTANT:
             if len(cstring.ecs_constants) == 1:
                 prompt = 'The supported value is: '
             else:
                 prompt = 'The supported values are: '
             value_string = ""
+            ESMON_INPUT_STATUS.ecis_cstr_candidates = []
             for supported_value in cstring.ecs_constants:
                 if value_string != "":
                     value_string += ", "
                 value_string += '"%s"' % supported_value
+                ESMON_INPUT_STATUS.ecis_cstr_candidates.append(supported_value)
             prompt += value_string + ".\n"
             prompt += 'Please select one of the supported values: '
         elif cstring.ecs_type == ESMON_CONFIG_CSTR_PATH:
@@ -1481,11 +1504,12 @@ def esmon_command(cmd_line):
     return ret
 
 
-def esmon_input_loop():
+def esmon_command_input_loop():
     """
     Loop and excute the command
     """
     while ESMON_CONFIG_RUNNING:
+        ESMON_INPUT_STATUS.ecis_status = ESMON_INPUT_STATUS.STATUS_COMMAND
         try:
             cmd_line = raw_input('[%s]$ (h for help): ' % esmon_pwd())
         except (KeyboardInterrupt, EOFError):
@@ -1943,8 +1967,8 @@ def esmon_config(workspace):
         create_cstring = EsmonConfigString("create",
                                            ESMON_CONFIG_CSTR_BOOL,
                                            "")
-        ret, create_new = esmon_edit_loop(create_cstring,
-                                          prompt=prompt)
+        ret, create_new = esmon_cstr_input_loop(create_cstring,
+                                                prompt=prompt)
         if ret == ESMON_CONFIG_EDIT_QUIT or not create_new:
             return 0
 
@@ -1959,7 +1983,7 @@ def esmon_config(workspace):
         return -1
 
     esmon_input_init()
-    esmon_input_loop()
+    esmon_command_input_loop()
     esmon_input_fini()
     return 0
 
