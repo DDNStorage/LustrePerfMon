@@ -1287,8 +1287,7 @@ def esmon_edit(current):
     assert length > 0
 
     if length <= 1:
-        console_error('illegal configuration: option with boolen type "%s"'
-                      'should NOT be the ROOT' % (key))
+        console_error('illegal configuration: ROOT should not be editable')
         return -1
 
     parent = ESMON_CONFIG_WALK_STACK[-2]
@@ -1317,10 +1316,25 @@ def esmon_edit(current):
     ret = esmon_config_check_add_def(value, cstring)
     if ret:
         return -1
-    print 'Changed it to "%s"' % value
+
+    # If changing the item key of the grandparent, then update the
+    # key in the stack for a correct path
+    if length > 2:
+        grandparent = ESMON_CONFIG_WALK_STACK[-3]
+        grandparent_key = grandparent.ewe_key
+
+        if grandparent_key not in ESMON_INSTALL_CSTRS:
+            console_error('illegal configuration: option "%s" is not supported' %
+                          (grandparent_key))
+            return -1
+        grandparent_cstr = ESMON_INSTALL_CSTRS[grandparent_key]
+        if ((grandparent_cstr.ecs_type == ESMON_CONFIG_CSTR_LIST) and
+                (grandparent_cstr.ecs_item_key == key)):
+            parent.ewe_key = value
 
     parent_config[key] = value
     current.ewe_config = value
+    print 'Changed it to "%s"' % value
     return 0
 
 
