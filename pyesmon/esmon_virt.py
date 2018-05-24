@@ -628,7 +628,7 @@ EOF
     if distro == ssh_host.DISTRO_RHEL6:
         install_timeout = 300
     elif distro == ssh_host.DISTRO_RHEL7:
-        install_timeout = 600
+        install_timeout = 1200
 
     retval = server_host.sh_run(command, timeout=install_timeout)
     if retval.cr_exit_status:
@@ -954,7 +954,7 @@ def esmon_vm_install(workspace, config, config_fpath):
         if server_host_id not in hosts:
             logging.error("SSH host with ID [%s] is NOT configured in "
                           "[%s], please correct file [%s]",
-                          esmon_common.CSTR_SERVER_HOST_ID, esmon_common.CSTR_SSH_HOSTS,
+                          server_host_id, esmon_common.CSTR_SSH_HOSTS,
                           config_fpath)
             return -1
 
