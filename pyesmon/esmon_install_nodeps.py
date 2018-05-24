@@ -666,6 +666,102 @@ class EsmonServer(object):
                 return -1
         return 0
 
+    def es_grafana_user_info(self, name):
+        """
+        Add viewer user
+        """
+        # pylint: disable=bare-except
+        headers = {"Content-type": "application/json",
+                   "Accept": "application/json"}
+
+        url = self.es_grafana_url("/api/users/lookup?loginOrEmail=%s" %
+                                  (slugify.slugify(name.decode('unicode-escape'))))
+        try:
+            response = requests.get(url, headers=headers)
+        except:
+            logging.error("not able to get users through [%s]: %s",
+                          url, traceback.format_exc())
+            return -1, None
+        if response.status_code == httplib.OK:
+            return 1, response.json()
+        elif response.status_code == httplib.NOT_FOUND:
+            return 0, None
+        logging.error("got grafana status [%d] when getting user info",
+                      response.status_code)
+        return -1, None
+
+    def es_grafana_user_delete(self, user_id):
+        """
+        Add viewer user
+        """
+        # pylint: disable=bare-except
+        headers = {"Content-type": "application/json",
+                   "Accept": "application/json"}
+
+        url = self.es_grafana_url("/api/admin/users/%s" % user_id)
+        try:
+            response = requests.delete(url, headers=headers)
+        except:
+            logging.error("not able to delete users through [%s]: %s",
+                          url, traceback.format_exc())
+            return -1
+        if response.status_code == httplib.OK:
+            return 0
+        logging.error("got grafana status [%d] when deleting user",
+                      response.status_code)
+        return -1
+
+    def es_grafana_user_add(self, name, email_address, login, password):
+        """
+        Add user of grafana
+        """
+        # pylint: disable=bare-except
+        data = {
+            "name": name,
+            "email": email_address,
+            "login": login,
+            "password": password,
+        }
+
+        headers = {"Content-type": "application/json",
+                   "Accept": "application/json"}
+
+        url = self.es_grafana_url("/api/admin/users")
+        try:
+            response = requests.post(url, json=data, headers=headers)
+        except:
+            logging.error("not able to add user through [%s]: %s",
+                          url, traceback.format_exc())
+            return -1
+        if response.status_code != httplib.OK:
+            logging.error("got grafana status [%d] when adding user [%s]",
+                          response.status_code, name)
+            return -1
+        return 0
+
+    def es_grafana_user_check_add(self, name, email_address, login, password):
+        """
+        If user exists, do nothing
+        If user doesn't exist, add the user
+        """
+        ret, json_info = self.es_grafana_user_info("viewer")
+        if ret < 0:
+            return -1
+        elif ret == 1:
+            user_id = json_info["id"]
+            logging.debug("User [%s] exists with id [%d], deleting it",
+                          name, user_id)
+            ret = self.es_grafana_user_delete(user_id)
+            if ret:
+                return ret
+
+        ret = self.es_grafana_user_add(name, email_address, login,
+                                       password)
+        if ret:
+            return ret
+        logging.debug("User [%s] added", name)
+        return 0
+
     def es_grafana_reinstall(self, mnt_path):
         """
         Reinstall grafana RPM
@@ -761,6 +857,13 @@ class EsmonServer(object):
             return ret
 
         ret = self.es_grafana_install_plugins()
+        if ret:
+            return ret
+
+        ret = self.es_grafana_user_check_add("Viewer",
+                                             "viewer@localhost",
+                                             "viewer",
+                                             "viewer")
         if ret:
             return ret
         return 0
