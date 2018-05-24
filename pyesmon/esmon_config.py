@@ -155,7 +155,7 @@ def esmon_command_add(arg_string):
                       'list', current_key)
         return -1
 
-    print ESMON_CONFIG_ADD_MULTIPLE.ecs_help_info
+    logging.info(ESMON_CONFIG_ADD_MULTIPLE.ecs_help_info)
     prompt = "Press F/f to add only single item, press T/t to add multiple ones: "
     ret, add_multiple = esmon_cstr_input_loop(ESMON_CONFIG_ADD_MULTIPLE,
                                               prompt=prompt)
@@ -163,8 +163,8 @@ def esmon_command_add(arg_string):
         return 0
 
     if add_multiple:
-        print "Multiple items will be added."
-        print ""
+        logging.info("Multiple items will be added.")
+        logging.info("")
 
         prompt = "Please input the common prefix of the adding items: "
         ret, prefix = esmon_cstr_input_loop(ESMON_CONFIG_ADD_PREFIX,
@@ -172,11 +172,12 @@ def esmon_command_add(arg_string):
         if ret == ESMON_CONFIG_EDIT_QUIT:
             return 0
 
-        print 'The newly addded items will have names like "%s..."' % prefix
-        print ""
+        logging.info('The newly addded items will have names like "%s..."',
+                     prefix)
+        logging.info("")
 
-        print """Start index of the item names is needed. The start index will be included in
-the added items."""
+        logging.info("""Start index of the item names is needed. The start index will be included in
+the added items.""")
         start_cstr = EsmonConfigString("start_index",
                                        ESMON_CONFIG_CSTR_INT,
                                        "")
@@ -187,11 +188,11 @@ the added items."""
                                                  prompt=prompt)
         if ret == ESMON_CONFIG_EDIT_QUIT:
             return 0
-        print 'The index of the first item will be "%s".' % (start_index)
-        print ""
+        logging.info('The index of the first item will be "%s".\n',
+                     start_index)
 
-        print """End index of the item names is needed. The end index will be included in
-the added items."""
+        logging.info("""End index of the item names is needed. The end index will be included in
+the added items.""")
         end_cstr = EsmonConfigString("end_index",
                                      ESMON_CONFIG_CSTR_INT,
                                      "",
@@ -202,9 +203,8 @@ the added items."""
                                                prompt=prompt)
         if ret == ESMON_CONFIG_EDIT_QUIT:
             return 0
-        print ('The index of the last item will be "%s".' %
-               (end_index))
-        print ""
+        logging.info('The index of the last item will be "%s".\n',
+                     end_index)
 
         names = ""
         names_filled = ""
@@ -244,7 +244,7 @@ the added items."""
 If yes, then the names of newly created items will be: """
         helpinfo += '"%s".\n' % (names_filled)
         helpinfo += 'If not, then the names will be "%s".' % (names)
-        print helpinfo
+        logging.info(helpinfo)
         fill_zero_cstr = EsmonConfigString("fill_zero",
                                            ESMON_CONFIG_CSTR_BOOL,
                                            "")
@@ -254,10 +254,12 @@ If yes, then the names of newly created items will be: """
         if ret == ESMON_CONFIG_EDIT_QUIT:
             return 0
         if fill_zero:
-            print 'The names of newly created items will be "%s"' % names_filled
+            logging.info('The names of newly created items will be "%s"',
+                         names_filled)
         else:
-            print 'The names of newly created items will be "%s"' % names
-        print ""
+            logging.info('The names of newly created items will be "%s"',
+                         names)
+        logging.info("")
 
         name_index = start_index
         while name_index <= end_index:
@@ -270,10 +272,10 @@ If yes, then the names of newly created items will be: """
 
             ret = esmon_item_add(current_config, current_cstring, name)
             if ret == 0:
-                print 'Item with name "%s" is added' % name
+                logging.info('Item with name "%s" is added', name)
     else:
-        print "Only a single item will be added."
-        print ""
+        logging.info("Only a single item will be added.")
+        logging.info("")
         name_cstr = EsmonConfigString("name",
                                       ESMON_CONFIG_CSTR_STRING,
                                       "")
@@ -285,7 +287,7 @@ If yes, then the names of newly created items will be: """
         ret = esmon_item_add(current_config, current_cstring, name)
         if ret:
             return ret
-        print 'Item with name "%s" is added' % name
+        logging.info('Item with name "%s" is added', name)
 
     return 0
 
@@ -365,7 +367,7 @@ def esmon_command_help(arg_string):
     """
     Print the help string
     """
-    print """Command action:
+    logging.info("""Command action:
    a         add a new item to current list
    cd $dir   change the current directory to $dir
    e         edit the current configuration
@@ -375,7 +377,7 @@ def esmon_command_help(arg_string):
    q [-f]    quit without saving changes
    rm        remove the current item from parent
    w         write config file to disk
-   wq        write config file to disk and quit"""
+   wq        write config file to disk and quit""")
 
     return 0
 
@@ -400,21 +402,21 @@ def esmon_command_ls(arg_string):
                 value = current_config[key]
                 value_type = type(value)
                 if value_type is dict:
-                    print "%s: {...}" % key
+                    logging.info("%s: {...}", key)
                 elif value_type is list:
-                    print "%s: [...]" % key
+                    logging.info("%s: [...]", key)
                 else:
-                    print '%s: %s' % (key, value)
+                    logging.info('%s: %s', key, value)
         elif isinstance(current_config, list):
             ret = esmon_list_ls(current)
         else:
-            print current_config
+            logging.info(current_config)
     elif arg_string == "-r":
         if isinstance(current_config, int) or isinstance(current_config, str):
-            print current_config
+            logging.info(current_config)
         else:
-            print yaml.dump(current_config, Dumper=EsmonYamlDumper,
-                            default_flow_style=False)
+            logging.info(yaml.dump(current_config, Dumper=EsmonYamlDumper,
+                                   default_flow_style=False))
     else:
         logging.error('unknown argument "%s" of command "%s"',
                       arg_string, ESMON_CONFIG_COMMNAD_LS)
@@ -450,7 +452,7 @@ def esmon_command_manual(arg_string):
                               'supported', parent_key)
                 return -1
             cstring = ESMON_INSTALL_CSTRS[parent_key]
-            print cstring.ecs_item_helpinfo
+            logging.info(cstring.ecs_item_helpinfo)
 
     if cstring is None:
         key = current.ewe_key
@@ -459,21 +461,21 @@ def esmon_command_manual(arg_string):
                           'supported', key)
             return -1
         cstring = ESMON_INSTALL_CSTRS[key]
-        print cstring.ecs_help_info
+        logging.info(cstring.ecs_help_info)
 
     if isinstance(current_config, list):
-        print ""
-        print """The listed entries of "ls" are the IDs of each item in this list. Please use
-"cd" to enter each entry."""
+        logging.info("")
+        logging.info("""The listed entries of "ls" are the IDs of each item in this list. Please use
+"cd" to enter each entry.""")
         return 0
 
     if cstring.ecs_children is not None:
-        print "Following are the children of this option:"
+        logging.info("Following are the children of this option:")
         for child in cstring.ecs_children:
             child_cstring = ESMON_INSTALL_CSTRS[child]
-            print ""
-            print child
-            print child_cstring.ecs_help_info
+            logging.info("")
+            logging.info(child)
+            logging.info(child_cstring.ecs_help_info)
     return 0
 
 
@@ -562,7 +564,7 @@ def esmon_command_write(arg_string):
         logging.error("""Failed to save the config file. To avoid data lose, please save the
 following config manually:""")
         sys.stdout.write(config_string)
-    print "Saved the config to the file."
+    logging.info("Saved the config to the file.")
     ESMON_SAVED_CONFIG_STRING = config_string
     return 0
 
@@ -733,12 +735,12 @@ def esmon_config_check_add_def(id_value, key_cstring):
     ret = esmon_config_check(root_config, id_value, esmon_pwd(), key_cstring,
                              silent_on_missing=True)
     if ret == ESMON_DEF_MISSING:
-        print ('Defintion of "%s" with value "%s" is not found, adding one' %
-               (key_cstring.ecs_string, id_value))
+        logging.info('Defintion of "%s" with value "%s" is not found, adding one',
+                     key_cstring.ecs_string, id_value)
         ret = esmon_config_def_add(root_config, key_cstring, id_value)
         if ret == 0:
-            print ('Definition of "%s" with value "%s" is added' %
-                   (key_cstring.ecs_string, id_value))
+            logging.info('Definition of "%s" with value "%s" is added',
+                         key_cstring.ecs_string, id_value)
         else:
             return -1
     return 0
@@ -1206,7 +1208,7 @@ def esmon_list_ls(current):
         id_values.append(id_value)
 
     for id_value in sorted(id_values):
-        print "%s: {%s: %s, ...}" % (id_value, item_key, id_value)
+        logging.info("%s: {%s: %s, ...}", id_value, item_key, id_value)
     return 0
 
 
@@ -1292,12 +1294,12 @@ def esmon_edit(current):
                       key, cstring.ecs_type, cstring_types)
         return -1
 
-    print cstring.ecs_help_info, "\n"
-    print 'Current value: "%s"' % current_config
+    logging.info(cstring.ecs_help_info + "\n")
+    logging.info('Current value: "%s"', current_config)
 
     ret, value = esmon_cstr_input_loop(cstring)
     if ret == ESMON_CONFIG_EDIT_QUIT or value == current_config:
-        print 'Keep it as "%s"' % current_config
+        logging.info('Keep it as "%s"', current_config)
         return 0
 
     ret = esmon_config_check_add_def(value, cstring)
@@ -1321,7 +1323,7 @@ def esmon_edit(current):
 
     parent_config[key] = value
     current.ewe_config = value
-    print 'Changed it to "%s"' % value
+    logging.info('Changed it to "%s"', value)
     return 0
 
 
@@ -1366,12 +1368,15 @@ def esmon_cstr_input_loop(cstring, prompt=None):
     ret = 0
     while ESMON_CONFIG_RUNNING:
         try:
+            logging.debug(prompt)
             cmd_line = raw_input(prompt)
         except (KeyboardInterrupt, EOFError):
+            logging.debug("keyboard interrupt recieved")
             ret = ESMON_CONFIG_EDIT_QUIT
-            print ""
+            logging.info("")
             break
 
+        logging.debug("input: %s", cmd_line)
         cmd_line = cmd_line.strip()
         if len(cmd_line) == 0:
             continue
@@ -1518,12 +1523,15 @@ def esmon_command_input_loop():
     while ESMON_CONFIG_RUNNING:
         ESMON_INPUT_STATUS.ecis_status = ESMON_INPUT_STATUS.STATUS_COMMAND
         try:
-            cmd_line = raw_input('[%s]$ (h for help): ' % esmon_pwd())
+            prompt = '[%s]$ (h for help): ' % esmon_pwd()
+            logging.debug(prompt)
+            cmd_line = raw_input(prompt)
         except (KeyboardInterrupt, EOFError):
-            print ""
-            print "Type q to exit"
+            logging.debug("keryboard interrupt recieved")
+            logging.info("")
+            logging.info("Type q to exit")
             continue
-
+        logging.debug("input: %s", cmd_line)
         cmd_line = cmd_line.strip()
         if len(cmd_line) == 0:
             continue
@@ -1967,7 +1975,7 @@ def esmon_config(workspace):
 
     if create_reason is not None:
         ESMON_SAVED_CONFIG_STRING = ""
-        print create_reason
+        logging.info(create_reason)
         prompt = "Press T/t to create it from scratch, press F/f to quit: "
         create_cstring = EsmonConfigString("create",
                                            ESMON_CONFIG_CSTR_BOOL,
