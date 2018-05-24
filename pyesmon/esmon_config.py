@@ -140,20 +140,19 @@ def esmon_command_add(arg_string):
     current_key = current.ewe_key
 
     if not isinstance(current_config, list):
-        console_error('an item can only be added to a list, not to "%s" with '
-                      'type "%s"' %
-                      (current_key, type(current_config).__name__))
+        logging.error('an item can only be added to a list, not to "%s" with '
+                      'type "%s"', current_key, type(current_config).__name__)
         return -1
 
     if current_key not in ESMON_INSTALL_CSTRS:
-        console_error('illegal configuration: option "%s" is not supported' %
-                      (current_key))
+        logging.error('illegal configuration: option "%s" is not supported',
+                      current_key)
         return -1
 
     current_cstring = ESMON_INSTALL_CSTRS[current_key]
     if current_cstring.ecs_type != ESMON_CONFIG_CSTR_LIST:
-        console_error('illegal configuration: option "%s" should not be a '
-                      'list' % (current_key))
+        logging.error('illegal configuration: option "%s" should not be a '
+                      'list', current_key)
         return -1
 
     print ESMON_CONFIG_ADD_MULTIPLE.ecs_help_info
@@ -326,10 +325,10 @@ def esmon_command_cd(arg_string):
     elif isinstance(current_config, list):
         ret = esmon_list_cd(current, arg)
     elif str(current_config) == arg:
-        console_error('"%s" is not a directory' % arg)
+        logging.error('"%s" is not a directory', arg)
         ret = -1
     else:
-        console_error('"%s" is not found' % arg)
+        logging.error('"%s" is not found', arg)
         ret = -1
     return ret
 
@@ -350,9 +349,8 @@ def esmon_command_edit(arg_string):
 
     if (isinstance(current_config, dict) or
             isinstance(current_config, list)):
-        console_error('cannot edit "%s" directly, please edit its children '
-                      'instead' %
-                      current.ewe_key)
+        logging.error('cannot edit "%s" directly, please edit its children '
+                      'instead', current.ewe_key)
         return -1
     else:
         return esmon_edit(current)
@@ -418,8 +416,8 @@ def esmon_command_ls(arg_string):
             print yaml.dump(current_config, Dumper=EsmonYamlDumper,
                             default_flow_style=False)
     else:
-        console_error('unknown argument "%s" of command "%s"' %
-                      (arg_string, ESMON_CONFIG_COMMNAD_LS))
+        logging.error('unknown argument "%s" of command "%s"',
+                      arg_string, ESMON_CONFIG_COMMNAD_LS)
     return ret
 
 ESMON_CONFIG_COMMNADS[ESMON_CONFIG_COMMNAD_LS] = \
@@ -448,8 +446,8 @@ def esmon_command_manual(arg_string):
             # of the parent. Because the config itself is using the index name as its
             # config string.
             if parent_key not in ESMON_INSTALL_CSTRS:
-                console_error('illegal configuration: option "%s" is not supported' %
-                              (parent_key))
+                logging.error('illegal configuration: option "%s" is not '
+                              'supported', parent_key)
                 return -1
             cstring = ESMON_INSTALL_CSTRS[parent_key]
             print cstring.ecs_item_helpinfo
@@ -457,8 +455,8 @@ def esmon_command_manual(arg_string):
     if cstring is None:
         key = current.ewe_key
         if key not in ESMON_INSTALL_CSTRS:
-            console_error('illegal configuration: option "%s" is not supported' %
-                          (key))
+            logging.error('illegal configuration: option "%s" is not '
+                          'supported', key)
             return -1
         cstring = ESMON_INSTALL_CSTRS[key]
         print cstring.ecs_help_info
@@ -492,7 +490,7 @@ def esmon_command_quit(arg_string):
 
     config_string = esmon_config_string()
     if arg_string != "-f" and ESMON_SAVED_CONFIG_STRING != config_string:
-        console_error("no write since last change (add -f to override)")
+        logging.error("no write since last change (add -f to override)")
         return -1
     ESMON_CONFIG_RUNNING = False
     return 0
@@ -513,21 +511,21 @@ def esmon_command_remove(arg_string):
     current_key = current.ewe_key
 
     if arg_string == "":
-        console_error('missing operand for "rm" command')
+        logging.error('missing operand for "rm" command')
         return -1
 
     args = arg_string.split()
 
     if not isinstance(current_config, list):
-        console_error('cannot remove any child of current directory "%s", '
-                      'because it has "%s" type, not list' %
-                      (current_key, type(current_config).__name__))
+        logging.error('cannot remove any child of current directory "%s", '
+                      'because it has "%s" type, not list',
+                      current_key, type(current_config).__name__)
         return -1
 
     current_cstring = ESMON_INSTALL_CSTRS[current_key]
     if current_cstring.ecs_type != ESMON_CONFIG_CSTR_LIST:
-        console_error('illegal configuration: option "%s" should not be a '
-                      'list' % (current_key))
+        logging.error('illegal configuration: option "%s" should not be a '
+                      'list', current_key)
         return -1
 
     for arg in args:
@@ -540,8 +538,8 @@ def esmon_command_remove(arg_string):
             i += 1
 
         if child_index is None:
-            console_error('cannot remove "%s", no such child in current '
-                          'directory' % (arg))
+            logging.error('cannot remove "%s", no such child in current '
+                          'directory', arg)
             continue
         del current_config[child_index]
     return 0
@@ -561,7 +559,7 @@ def esmon_command_write(arg_string):
         with open(CONFIG_FPATH, 'w') as yaml_file:
             yaml_file.write(config_string)
     except:
-        console_error("""Failed to save the config file. To avoid data lose, please save the
+        logging.error("""Failed to save the config file. To avoid data lose, please save the
 following config manually:""")
         sys.stdout.write(config_string)
     print "Saved the config to the file."
@@ -754,8 +752,8 @@ def esmon_item_add(config_list, list_cstr, id_value, definition=False):
     # pylint: disable=global-statement
     for item_config in config_list:
         if item_config[list_cstr.ecs_item_key] == id_value:
-            console_error('cannot add item with id "%s" because it already exists' %
-                          (id_value))
+            logging.error('cannot add item with id "%s" because it already '
+                          'exists', id_value)
             return -1
 
     item_config = {}
@@ -770,21 +768,21 @@ def esmon_item_add(config_list, list_cstr, id_value, definition=False):
                 if list_cstr.ecs_item_child_value is not None:
                     ret, value = list_cstr.ecs_item_child_value(id_value, child)
                     if ret:
-                        console_error('fix me: can not generate value of "%s" '
-                                      'according to id "%s"' %
-                                      (child, id_value))
+                        logging.error('fix me: can not generate value of "%s" '
+                                      'according to id "%s"',
+                                      child, id_value)
                         return -1
                     item_config[child] = value
                 else:
-                    console_error('fix me: config "%s" doesnot have default value' %
-                                  (child_cstr.ecs_string))
+                    logging.error('fix me: config "%s" doesnot have default '
+                                  'value', child_cstr.ecs_string)
                     return -1
             else:
                 item_config[child] = copy.copy(child_cstr.ecs_default)
 
     if key_cstring is None:
-        console_error('fix me: config "%s" doesnot have child "%s"' %
-                      (list_cstr.ecs_string, list_cstr.ecs_item_key))
+        logging.error('fix me: config "%s" doesnot have child "%s"',
+                      list_cstr.ecs_string, list_cstr.ecs_item_key)
         return -1
 
     ret = 0
@@ -1076,14 +1074,6 @@ class EsmonWalkEntry(object):
         self.ewe_config = current_config
 
 
-def console_error(message):
-    """
-    Print error to console
-    """
-    message = "error: %s" % message
-    print message
-
-
 def command_needs_child(command):
     """
     If command needs an argument of subdir, return Ture
@@ -1106,11 +1096,10 @@ def esmon_list_children(current):
 
     for child_config in current_config:
         if id_key not in child_config:
-            console_error('illegal configuration: no option "%s" found in '
-                          'following config:\n %s' %
-                          (id_key,
-                           yaml.dump(current_config, Dumper=EsmonYamlDumper,
-                                     default_flow_style=False)))
+            logging.error('illegal configuration: no option "%s" found in '
+                          'following config:\n %s', id_key,
+                          yaml.dump(current_config, Dumper=EsmonYamlDumper,
+                                    default_flow_style=False))
             return None
 
         children.append(child_config[id_key])
@@ -1181,14 +1170,14 @@ def esmon_list_item_key(current):
     current_key = current.ewe_key
 
     if current_key not in ESMON_INSTALL_CSTRS:
-        console_error('illegal configuration: option "%s" is not supported' %
-                      (current_key))
+        logging.error('illegal configuration: option "%s" is not supported',
+                      current_key)
         return None
 
     current_cstring = ESMON_INSTALL_CSTRS[current_key]
     if current_cstring.ecs_type != ESMON_CONFIG_CSTR_LIST:
-        console_error('illegal configuration: option "%s" should not be a '
-                      'list' % (current_key))
+        logging.error('illegal configuration: option "%s" should not be a '
+                      'list', current_key)
         return None
 
     return current_cstring.ecs_item_key
@@ -1207,11 +1196,10 @@ def esmon_list_ls(current):
     id_values = []
     for child_config in current_config:
         if item_key not in child_config:
-            console_error('illegal configuration: no option "%s" found in '
-                          'following config:\n %s' %
-                          (item_key,
-                           yaml.dump(child_config, Dumper=EsmonYamlDumper,
-                                     default_flow_style=False)))
+            logging.error('illegal configuration: no option "%s" found in '
+                          'following config:\n %s', item_key,
+                          yaml.dump(child_config, Dumper=EsmonYamlDumper,
+                                    default_flow_style=False))
             return -1
 
         id_value = child_config[item_key]
@@ -1234,27 +1222,26 @@ def esmon_list_cd(current, arg):
 
     for child_config in current_config:
         if id_key not in child_config:
-            console_error('illegal configuration: no option "%s" found in '
-                          'following config:\n%s' %
-                          (id_key,
-                           yaml.dump(current_config, Dumper=EsmonYamlDumper,
-                                     default_flow_style=False)))
+            logging.error('illegal configuration: no option "%s" found in '
+                          'following config:\n%s', id_key,
+                          yaml.dump(current_config, Dumper=EsmonYamlDumper,
+                                    default_flow_style=False))
             return -1
 
         id_value = child_config[id_key]
         if arg == id_value:
             if matched_child_config is not None:
-                console_error('illegal configuration: multiple children with '
-                              'value "%s" for key "%s" in following config:\n %s' %
-                              (id_value, id_key,
-                               yaml.dump(current_config, Dumper=EsmonYamlDumper,
-                                         default_flow_style=False)))
+                logging.error('illegal configuration: multiple children with '
+                              'value "%s" for key "%s" in following config:\n %s',
+                              id_value, id_key,
+                              yaml.dump(current_config, Dumper=EsmonYamlDumper,
+                                        default_flow_style=False))
                 return -1
             matched_child_config = child_config
 
     if matched_child_config is None:
-        console_error('no child found with value "%s" for key "%s"' %
-                      (arg, id_key))
+        logging.error('no child found with value "%s" for key "%s"',
+                      arg, id_key)
         return -1
 
     child = EsmonWalkEntry(arg, matched_child_config)
@@ -1280,29 +1267,29 @@ def esmon_edit(current):
     elif isinstance(current_config, int):
         cstring_types = [ESMON_CONFIG_CSTR_INT]
     else:
-        console_error('unsupported type of config value "%s"' %
-                      (current_config))
+        logging.error('unsupported type of config value "%s"',
+                      current_config)
         return -1
     length = len(ESMON_CONFIG_WALK_STACK)
     assert length > 0
 
     if length <= 1:
-        console_error('illegal configuration: ROOT should not be editable')
+        logging.error('illegal configuration: ROOT should not be editable')
         return -1
 
     parent = ESMON_CONFIG_WALK_STACK[-2]
     parent_config = parent.ewe_config
 
     if key not in ESMON_INSTALL_CSTRS:
-        console_error('illegal configuration: option "%s" is not supported' %
-                      (key))
+        logging.error('illegal configuration: option "%s" is not supported',
+                      key)
         return -1
 
     cstring = ESMON_INSTALL_CSTRS[key]
     if cstring.ecs_type not in cstring_types:
-        console_error('illegal configuration: the type of option "%s" is not '
-                      '"%s", it might be "%s"' %
-                      (key, cstring.ecs_type, cstring_types))
+        logging.error('illegal configuration: the type of option "%s" is not '
+                      '"%s", it might be "%s"',
+                      key, cstring.ecs_type, cstring_types)
         return -1
 
     print cstring.ecs_help_info, "\n"
@@ -1324,8 +1311,8 @@ def esmon_edit(current):
         grandparent_key = grandparent.ewe_key
 
         if grandparent_key not in ESMON_INSTALL_CSTRS:
-            console_error('illegal configuration: option "%s" is not supported' %
-                          (grandparent_key))
+            logging.error('illegal configuration: option "%s" is not supported',
+                          grandparent_key)
             return -1
         grandparent_cstr = ESMON_INSTALL_CSTRS[grandparent_key]
         if ((grandparent_cstr.ecs_type == ESMON_CONFIG_CSTR_LIST) and
@@ -1373,7 +1360,7 @@ def esmon_cstr_input_loop(cstring, prompt=None):
         elif cstring.ecs_type == ESMON_CONFIG_CSTR_DEF:
             prompt = 'Please input the new value (a string): '
         else:
-            console_error('unknown type "%s"' % cstring.ecs_type)
+            logging.error('unknown type "%s"', cstring.ecs_type)
 
     value = None
     ret = 0
@@ -1395,21 +1382,21 @@ def esmon_cstr_input_loop(cstring, prompt=None):
             elif cmd_line == 'F' or cmd_line == 'f':
                 value = False
             else:
-                console_error('"%s" is neither "t" nor "f"' % cmd_line)
+                logging.error('"%s" is neither "t" nor "f"', cmd_line)
         elif cstring.ecs_type == ESMON_CONFIG_CSTR_CONSTANT:
             for supported_value in cstring.ecs_constants:
                 if cmd_line == supported_value:
                     value = cmd_line
                     break
             if value is None:
-                console_error('"%s" is not supported value' % cmd_line)
+                logging.error('"%s" is not supported value', cmd_line)
         elif cstring.ecs_type == ESMON_CONFIG_CSTR_PATH:
             if len(cmd_line) <= 1:
-                console_error('path "%s" is too short' % cmd_line)
+                logging.error('path "%s" is too short', cmd_line)
             elif cstring.ecs_allow_none and cmd_line == esmon_common.ESMON_CONFIG_CSTR_NONE:
                 value = esmon_common.ESMON_CONFIG_CSTR_NONE
             elif cmd_line[0] != '/':
-                console_error('"%s" is not absolute path' % cmd_line)
+                logging.error('"%s" is not absolute path', cmd_line)
             else:
                 value = cmd_line
         elif cstring.ecs_type == ESMON_CONFIG_CSTR_STRING:
@@ -1418,15 +1405,15 @@ def esmon_cstr_input_loop(cstring, prompt=None):
             try:
                 value = int(cmd_line)
                 if value < cstring.ecs_start or value > cstring.ecs_end:
-                    console_error('"%s" is out of range [%s-%s]' %
-                                  (value, cstring.ecs_start, cstring.ecs_end))
+                    logging.error('"%s" is out of range [%s-%s]', value,
+                                  cstring.ecs_start, cstring.ecs_end)
                     value = None
             except:
-                console_error('"%s" is not an integer' % cmd_line)
+                logging.error('"%s" is not an integer', cmd_line)
         elif cstring.ecs_type == ESMON_CONFIG_CSTR_DEF:
             value = cmd_line
         else:
-            console_error('unknown type "%s"' % cstring.ecs_type)
+            logging.error('unknown type "%s"', cstring.ecs_type)
 
         if value is not None:
             break
@@ -1485,7 +1472,7 @@ def esmon_config_string():
                              ESMON_INSTALL_ROOT,
                              simplify=simplify_list)
     if ret:
-        console_error('fix me: failed to simplify config, skip simplifying')
+        logging.error('fix me: failed to simplify config, skip simplifying')
         config_string += yaml.dump(root_config, Dumper=EsmonYamlDumper,
                                    default_flow_style=False)
     else:
@@ -1508,7 +1495,7 @@ def esmon_command(cmd_line):
     arg_string = arg_string.strip()
 
     if command not in ESMON_CONFIG_COMMNADS:
-        console_error('command "%s" is not found' % command)
+        logging.error('command "%s" is not found', command)
         return -1
 
     config_command = ESMON_CONFIG_COMMNADS[command]
@@ -1517,8 +1504,8 @@ def esmon_command(cmd_line):
     try:
         ret = config_command.ecc_function(arg_string)
     except Exception, err:
-        console_error('failed to run command "%s", exception: %s, %s' %
-                      (cmd_line, err, traceback.format_exc()))
+        logging.error('failed to run command "%s", exception: %s, %s',
+                      cmd_line, err, traceback.format_exc())
         return -1
 
     return ret
@@ -1551,7 +1538,7 @@ def esmon_config_bool_check(config, path, cstr):
     """
     # pylint: disable=unused-argument
     if not isinstance(config, bool):
-        console_error('illegal configuration: config "%s" is not bool' %
+        logging.error('illegal configuration: config "%s" is not bool',
                       path)
         return -1
 
@@ -1565,7 +1552,7 @@ def esmon_config_dict_check(root_config, config, path, cstr,
     """
     # pylint: disable=too-many-branches,too-many-arguments
     if not isinstance(config, dict):
-        console_error('illegal configuration: config "%s" is not dictionary' %
+        logging.error('illegal configuration: config "%s" is not dictionary',
                       path)
         return -1
 
@@ -1575,20 +1562,20 @@ def esmon_config_dict_check(root_config, config, path, cstr,
             assert expected_child in ESMON_INSTALL_CSTRS
             child_cstr = ESMON_INSTALL_CSTRS[expected_child]
             if child_cstr.ecs_default is None:
-                console_error('illegal configuration: config "%s" doesnot have '
-                              'expected child [%s]' % (path, expected_child))
+                logging.error('illegal configuration: config "%s" doesnot have '
+                              'expected child [%s]', path, expected_child)
                 return -1
             elif simplify is None:
                 config[expected_child] = copy.copy(child_cstr.ecs_default)
 
     for child_name, child_config in config.items():
         if child_name not in child_names:
-            console_error('illegal configuration: config "%s" should not have '
-                          'child [%s]' % (path, child_name))
+            logging.error('illegal configuration: config "%s" should not have '
+                          'child [%s]', path, child_name)
             return -1
         if child_name not in ESMON_INSTALL_CSTRS:
-            console_error('illegal configuration: child [%s] is not a valid '
-                          'option name' % (child_name))
+            logging.error('illegal configuration: child [%s] is not a valid '
+                          'option name', child_name)
             return -1
         child_cstr = ESMON_INSTALL_CSTRS[child_name]
         if path == "/":
@@ -1625,15 +1612,15 @@ def esmon_config_int_check(config, path, cstr):
     """
     # pylint: disable=unused-argument
     if not isinstance(config, int):
-        console_error('illegal configuration: config "%s" is not integer' %
+        logging.error('illegal configuration: config "%s" is not integer',
                       path)
         return -1
 
     if (config < cstr.ecs_start or
             config > cstr.ecs_end):
-        console_error('"%s" is out of range [%s-%s]' %
-                      (config, cstr.ecs_start,
-                       cstr.ecs_end))
+        logging.error('"%s" is out of range [%s-%s]',
+                      config, cstr.ecs_start,
+                      cstr.ecs_end)
         return -1
 
     return 0
@@ -1645,7 +1632,7 @@ def esmon_config_string_check(config, path, cstr):
     """
     # pylint: disable=unused-argument
     if not isinstance(config, str):
-        console_error('illegal configuration: config "%s" is not string' %
+        logging.error('illegal configuration: config "%s" is not string',
                       path)
         return -1
     return 0
@@ -1656,19 +1643,19 @@ def esmon_config_path_check(config, path, cstr):
     Check whether the path config is legal or not
     """
     if not isinstance(config, str):
-        console_error('illegal configuration: config "%s" is not string' %
+        logging.error('illegal configuration: config "%s" is not string',
                       path)
         return -1
 
     if len(config) <= 1:
-        console_error('illegal configuration: path "%s" is too short' %
+        logging.error('illegal configuration: path "%s" is too short',
                       config)
     elif (cstr.ecs_allow_none and
           config == esmon_common.ESMON_CONFIG_CSTR_NONE):
         pass
     elif config[0] != '/':
-        console_error('illegal configuration: path "%s" is not absolute '
-                      'path' % config)
+        logging.error('illegal configuration: path "%s" is not absolute '
+                      'path', config)
     return 0
 
 
@@ -1677,7 +1664,7 @@ def esmon_config_constant_check(config, path, cstr):
     Check whether the constant config is legal or not
     """
     if not isinstance(config, str):
-        console_error('illegal configuration: config "%s" is not string' %
+        logging.error('illegal configuration: config "%s" is not string',
                       path)
         return -1
 
@@ -1687,8 +1674,8 @@ def esmon_config_constant_check(config, path, cstr):
             found = True
             break
     if not found:
-        console_error('"%s" is not supported value for constant "%s"' %
-                      (config, cstr.ecs_string))
+        logging.error('"%s" is not supported value for constant "%s"',
+                      config, cstr.ecs_string)
         return -1
 
     return 0
@@ -1703,7 +1690,7 @@ def esmon_config_list_check(root_config, config, path, cstr,
     # pylint: disable=too-many-nested-blocks,too-many-locals
     # pylint: disable=too-many-arguments
     if not isinstance(config, list):
-        console_error('illegal configuration: config "%s" is not list' %
+        logging.error('illegal configuration: config "%s" is not list',
                       path)
         return -1
 
@@ -1711,14 +1698,13 @@ def esmon_config_list_check(root_config, config, path, cstr,
     grandson_names = cstr.ecs_children
     for child_config in config:
         if not isinstance(child_config, dict):
-            console_error('illegal configuration: a child of config "%s" '
-                          'is not dictionary' % (path))
+            logging.error('illegal configuration: a child of config "%s" '
+                          'is not dictionary', path)
             return -1
 
         if item_key not in child_config:
-            console_error('illegal configuration: a child of config "%s" '
-                          'has no key "%s"' %
-                          (path, item_key))
+            logging.error('illegal configuration: a child of config "%s" '
+                          'has no key "%s"', path, item_key)
             return -1
 
         child_name = child_config[item_key]
@@ -1732,20 +1718,20 @@ def esmon_config_list_check(root_config, config, path, cstr,
                 assert expected_grandon in ESMON_INSTALL_CSTRS
                 grandson_cstr = ESMON_INSTALL_CSTRS[expected_grandon]
                 if grandson_cstr.ecs_default is None:
-                    console_error('illegal configuration: config "%s" doesnot have '
-                                  'expected child [%s]' % (child_path, expected_grandon))
+                    logging.error('illegal configuration: config "%s" doesnot have '
+                                  'expected child [%s]', child_path, expected_grandon)
                     return -1
                 elif simplify is None:
                     child_config[expected_grandon] = copy.copy(grandson_cstr.ecs_default)
 
         for grandson_name, grandson_config in child_config.items():
             if grandson_name not in grandson_names:
-                console_error('illegal configuration: config "%s" should not '
-                              'have child [%s]' % (child_path, grandson_name))
+                logging.error('illegal configuration: config "%s" should not '
+                              'have child [%s]', child_path, grandson_name)
                 return -1
             if grandson_name not in ESMON_INSTALL_CSTRS:
-                console_error('illegal configuration: child [%s] is not a '
-                              'valid option name' % (grandson_name))
+                logging.error('illegal configuration: child [%s] is not a '
+                              'valid option name', grandson_name)
                 return -1
             grandson_cstr = ESMON_INSTALL_CSTRS[grandson_name]
             grandson_path = child_path + "/" + grandson_name
@@ -1784,22 +1770,22 @@ def esmon_config_def_parent(root_config, cstr):
     parent_cstr = ESMON_INSTALL_ROOT
     for entry in cstr.ecs_define_entries:
         if not isinstance(parent_config, dict):
-            console_error('illegal configuration: config "%s" is not a dictionary' %
+            logging.error('illegal configuration: config "%s" is not a dictionary',
                           parent_path)
             return -1, None, None, None
         if entry not in parent_config:
-            console_error('illegal configuration: config "%s" has no child "%s"' %
-                          (parent_path, entry))
+            logging.error('illegal configuration: config "%s" has no child "%s"',
+                          parent_path, entry)
             return -1, None, None, None
 
         if entry not in parent_cstr.ecs_children:
-            console_error('fix me: cstring "%s" has no child "%s"' %
-                          (parent_path, entry))
+            logging.error('fix me: cstring "%s" has no child "%s"',
+                          parent_path, entry)
             return -1, None, None, None
 
         if entry not in ESMON_INSTALL_CSTRS:
-            console_error('fix me: "%s" is not supported cstring' %
-                          (entry))
+            logging.error('fix me: "%s" is not supported cstring',
+                          entry)
             return -1, None, None, None
 
         parent_config = parent_config[entry]
@@ -1809,7 +1795,7 @@ def esmon_config_def_parent(root_config, cstr):
         parent_cstr = ESMON_INSTALL_CSTRS[entry]
 
     if not isinstance(parent_config, list):
-        console_error('illegal configuration: config "%s" is not a list' %
+        logging.error('illegal configuration: config "%s" is not a list',
                       parent_path)
         return -1, None, None, None
 
@@ -1823,7 +1809,7 @@ def esmon_config_def_check(root_config, config, path, cstr,
     """
     # pylint: disable=too-many-return-statements,unused-variable
     if not isinstance(config, str):
-        console_error('illegal configuration: config "%s" is not a string' %
+        logging.error('illegal configuration: config "%s" is not a string',
                       path)
         return -1
 
@@ -1839,21 +1825,20 @@ def esmon_config_def_check(root_config, config, path, cstr,
     found = False
     for definition in parent_config:
         if not isinstance(definition, dict):
-            console_error('illegal configuration: a item of list "%s" is not a dictionary' %
-                          path)
+            logging.error('illegal configuration: a item of list "%s" is not '
+                          'a dictionary', path)
             return -1
         if cstr.ecs_string not in definition:
-            console_error('illegal configuration: a item of list "%s" has no "%s" option' %
-                          (path, cstr.ecs_string))
+            logging.error('illegal configuration: a item of list "%s" has '
+                          'no "%s" option', path, cstr.ecs_string)
             return -1
         value = definition[cstr.ecs_string]
         if value == config:
             found = True
     if not found:
         if not silent_on_missing:
-            console_error('illegal configuration: definition of "%s" can not '
-                          'be found in list "%s"' %
-                          (config, parent_path))
+            logging.error('illegal configuration: definition of "%s" can not '
+                          'be found in list "%s"', config, parent_path)
         return ESMON_DEF_MISSING
 
     return 0
@@ -1926,8 +1911,8 @@ def esmon_config_check(root_config, config, path, cstr,
         if ret:
             return ret
     else:
-        console_error('unsupported option type "%s" of config "%s"' %
-                      (cstr.ecs_type, path))
+        logging.error('unsupported option type "%s" of config "%s"',
+                      cstr.ecs_type, path)
         return -1
 
     return 0
@@ -2073,7 +2058,7 @@ def main():
         logging.error("[%s] is not a directory", workspace)
         sys.exit(-1)
 
-    utils.configure_logging(workspace)
+    utils.configure_logging(workspace, simple_console=True)
 
     ret = esmon_config(workspace)
     if ret:

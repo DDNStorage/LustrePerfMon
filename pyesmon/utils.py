@@ -345,7 +345,7 @@ def run(command, timeout=None, stdout_tee=None, stderr_tee=None, stdin=None,
     return job.cj_run()
 
 
-def configure_logging(resultsdir=None):
+def configure_logging(resultsdir=None, simple_console=False):
     """
     Configure the logging levels
     """
@@ -373,7 +373,8 @@ def configure_logging(resultsdir=None):
 
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
-    console_handler.setFormatter(default_formatter)
+    if not simple_console:
+        console_handler.setFormatter(default_formatter)
 
     logging.root.handlers = []
     logging.root.setLevel(logging.DEBUG)
