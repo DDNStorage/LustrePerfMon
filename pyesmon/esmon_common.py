@@ -140,16 +140,23 @@ def clone_src_from_git(build_dir, git_url, branch,
         return -1
     return 0
 
+#
 # python-requests, PyYAML, python2-filelock, python-slugify, pytz,
 # python-dateutil are needed by esmon_install.
+#
 # python-chardet and python-urllib3 are needed by python-requests.
+#
 # python-backports-ssl_match_hostname and python-six are needed by
 # python-urllib3.
-# python-backports is needed by python-backports-ssl_match_hostname.
+#
+# python-ipaddress and python-backports are needed by
+# python-backports-ssl_match_hostname.
+#
 # libyaml is needed by PyYAML.
 ESMON_INSTALL_DEPENDENT_RPMS = ["rsync",
                                 "python-chardet",
                                 "python-backports",
+                                "python-ipaddress",
                                 "python-backports-ssl_match_hostname",
                                 "python-six",
                                 "python-urllib3",

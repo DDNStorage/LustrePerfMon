@@ -147,7 +147,8 @@ def dependency_install(local_host):
 
     ret = dependency_do_install(local_host, mnt_path)
     if ret:
-        logging.error("failed to install dependent libraries: %s")
+        logging.error("failed to install dependent libraries on local host")
+        return ret
 
     command = ("umount %s" % (mnt_path))
     retval = local_host.sh_run(command)
@@ -219,6 +220,6 @@ def main():
             logging.error("not able to install ESMON because some depdendency "
                           "RPMs are missing and not able to be installed: %s",
                           missing_dependencies)
-            return
+            sys.exit(-1)
     from pyesmon import esmon_install_nodeps
     esmon_install_nodeps.main()
