@@ -1308,6 +1308,7 @@ class EsmonClient(object):
         self.ec_rpm_server_dir = None
         self.ec_rpm_server_fnames = None
         self.ec_lustre_version = None
+        self.ec_fqdn = None
 
     def ec_check_lustre_version(self):
         """
@@ -1436,6 +1437,19 @@ class EsmonClient(object):
             logging.error("failed to check status on host [%s]",
                           self.ec_host.sh_hostname)
             return -1
+
+        command = ("hostname")
+        retval = self.ec_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.ec_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        self.ec_fqdn = retval.cr_stdout.strip()
 
         ret = self.ec_check_lustre_version()
         if ret:
@@ -1876,7 +1890,7 @@ class EsmonClient(object):
 
         response = client.ic_query(query, epoch="s")
         if response is None:
-            logging.debug("failed to drop continuous query with query [%s]",
+            logging.debug("failed to with query Influxdb with query [%s]",
                           query)
             return -1
 
@@ -1957,7 +1971,7 @@ class EsmonClient(object):
         Check whether influxdb has datapoint
         """
         if "fqdn" not in tags:
-            tags["fqdn"] = self.ec_host.sh_hostname
+            tags["fqdn"] = self.ec_fqdn
         ret = utils.wait_condition(self._ec_influxdb_measurement_check,
                                    [measurement_name, tags])
         if ret:

@@ -179,7 +179,7 @@ def lustre_host_metric_check(lustre_host, esmon_client):
                           "of file system [%s]", measurement, ost.lost_index,
                           fsname)
             ret = esmon_client.ec_influxdb_measurement_check(measurement,
-                                                             fqdn=lustre_host.sh_hostname,
+                                                             fqdn=esmon_client.ec_fqdn,
                                                              fs_name=fsname,
                                                              ost_index=ost_index)
             if ret:
@@ -204,7 +204,7 @@ def lustre_host_metric_check(lustre_host, esmon_client):
                           "of file system [%s]", measurement, mdt.lmdt_index,
                           fsname)
             ret = esmon_client.ec_influxdb_measurement_check(measurement,
-                                                             fqdn=lustre_host.sh_hostname,
+                                                             fqdn=esmon_client.ec_fqdn,
                                                              fs_name=fsname,
                                                              mdt_index=mdt_index)
             if ret:
