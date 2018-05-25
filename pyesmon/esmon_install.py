@@ -6,6 +6,7 @@ Install python RPMs for esmon_install to work properly first
 # Local libs
 import logging
 import re
+import sys
 from pyesmon import ssh_host
 from pyesmon import esmon_install_common
 from pyesmon import utils

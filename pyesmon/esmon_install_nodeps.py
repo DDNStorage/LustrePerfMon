@@ -1169,14 +1169,14 @@ class EsmonSFA(object):
         """
         host = self.esfa_agent_host
         # The return value of SFA will always be 0 if it is alive
-        full_command = ("sshpass -p user ssh user@%s %s" %
+        full_command = ("sshpass -p user ssh -o StrictHostKeyChecking=no user@%s %s" %
                         (self.esfa_controller0_host, command))
         retval = host.sh_run(full_command)
         if retval.cr_exit_status == 0:
             self.esfa_controller0_active = True
             return retval
 
-        full_command = ("sshpass -p user ssh user@%s %s" %
+        full_command = ("sshpass -p user ssh -o StrictHostKeyChecking=no user@%s %s" %
                         (self.esfa_controller1_host, command))
         retval = host.sh_run(full_command)
         if retval.cr_exit_status == 0:
