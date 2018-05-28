@@ -104,7 +104,7 @@ dnl $3: is first child of parent definition
 define(`EXPORT_MD_STATS_ITEM',
 	`ELEMENT($1, item,
 	`NAME($1 + 1, exp_md_stats_$2, 1)
-PATTERN($1 + 1, `$2 +([[:digit:]]+) samples .+', 0)
+PATTERN($1 + 1, `^$2 +([[:digit:]]+) samples .+', 0)
 FIELD($1 + 1, 1, $2, number, ${key:hostname}, ${subpath:mdt_exp_client}-${subpath:mdt_exp_type}_${subpath:fs_name}-${subpath:mdt_index}, stats, derive, $2, exp_md_stats, optype=$2 exp_client=${subpath:mdt_exp_client} exp_type=${subpath:mdt_exp_type} fs_name=${subpath:fs_name} mdt_index=${subpath:mdt_index}, 0)', $3)')dnl
 dnl
 dnl $1: number of INDENT
@@ -196,6 +196,8 @@ EXPORT_MD_STATS_ITEM($1 + 1, getxattr, 0)
 EXPORT_MD_STATS_ITEM($1 + 1, setxattr, 0)
 EXPORT_MD_STATS_ITEM($1 + 1, statfs, 0)
 EXPORT_MD_STATS_ITEM($1 + 1, sync, 0)
+EXPORT_MD_STATS_ITEM($1 + 1, samedir_rename, 0)
+EXPORT_MD_STATS_ITEM($1 + 1, crossdir_rename, 0)
 $2', $3)')dnl
 dnl
 dnl $1: number of INDENT
