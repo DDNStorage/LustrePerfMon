@@ -284,7 +284,7 @@ def collectd_build(workspace, build_host, local_host, collectd_git_path,
                '--without amqp --without gmond --without nut --without pinba '
                '--without ping --without varnish --without dpdkstat '
                '--without turbostat --without redis --without write_redis '
-               '--without gps --define "_topdir %s" '
+               '--without gps --without lvm --define "_topdir %s" '
                '--define="rev $(git rev-parse --short HEAD)" '
                '--define="dist .el%s" '
                'contrib/redhat/collectd.spec' %
