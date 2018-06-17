@@ -1158,30 +1158,96 @@ class EsmonSFA(object):
         self.esfa_name = name
         self.esfa_controller0_host = controller0_host
         self.esfa_controller1_host = controller1_host
-        self.esfa_controller0_active = False
-        self.esfa_controller1_active = False
         self.esfa_subsystem_name = None
         self.esfa_xml_fname = None
+        self.esfa_controller_index_swapped = False
+
+    def esfa_index2controller(self, controller0=True):
+        """
+        Return the real controller with correct index
+        """
+        if self.esfa_controller_index_swapped:
+            if controller0:
+                return self.esfa_controller1_host
+            else:
+                return self.esfa_controller0_host
+        else:
+            if controller0:
+                return self.esfa_controller0_host
+            else:
+                return self.esfa_controller1_host
+
+    def esfa_check_controller_index(self):
+        """
+        Check whether controller index is swapped, i.e. the controller0 in the
+        esmon_install.conf has an index of 0.
+        """
+        controller = "0"
+        command = "show controller local all"
+        retval = self.esfa_controller_run(command, True)
+        if retval.cr_exit_status != 0:
+            controller = "1"
+            retval = self.esfa_controller_run(command, False)
+            if retval.cr_exit_status != 0:
+                logging.error("failed to run command [%s] on both "
+                              "controllers of SFA [%s], SFA is not up?",
+                              command, self.esfa_name)
+                return -1
+
+        index_pattern = (r"^Index: +(?P<index>\S*)$")
+        index_regular = re.compile(index_pattern)
+
+        controller_index = None
+        for line in retval.cr_stdout.splitlines():
+            logging.debug("checking line [%s]", line)
+            match = index_regular.match(line)
+            if not match:
+                continue
+
+            controller_index = match.group("index")
+            break
+
+        if controller_index is None:
+            logging.error("failed to get index from outout of "
+                          "command [%s] on SFA [%s], unsupported version of "
+                          "SFA? Output:\n%s",
+                          command, self.esfa_name, retval.cr_stdout)
+            return -1
+
+        if controller_index != "0" and controller_index != "1":
+            logging.error("unexpected index [%s] from output of command [%s] "
+                          "on controller [%s] of SFA [%s], unsupported "
+                          "version of SFA? Output:\n%s",
+                          controller_index, command, controller,
+                          self.esfa_name, retval.cr_stdout)
+            return -1
+        self.esfa_controller_index_swapped = bool(controller_index != controller)
+        return 0
+
+    def esfa_controller_run(self, command, controller0):
+        """
+        Run command on controller
+        """
+        host = self.esfa_agent_host
+        if controller0:
+            controller_host = self.esfa_controller0_host
+        else:
+            controller_host = self.esfa_controller1_host
+        # The return value of SFA will always be 0 if it is alive
+        full_command = ("sshpass -p user ssh -o StrictHostKeyChecking=no user@%s %s" %
+                        (controller_host, command))
+        retval = host.sh_run(full_command)
+        return retval
 
     def esfa_run(self, command):
         """
-        Try to run the command on both controllers
+        Try to run the command on either controllers
         """
-        host = self.esfa_agent_host
-        # The return value of SFA will always be 0 if it is alive
-        full_command = ("sshpass -p user ssh -o StrictHostKeyChecking=no user@%s %s" %
-                        (self.esfa_controller0_host, command))
-        retval = host.sh_run(full_command)
+        retval = self.esfa_controller_run(command, True)
         if retval.cr_exit_status == 0:
-            self.esfa_controller0_active = True
             return retval
 
-        full_command = ("sshpass -p user ssh -o StrictHostKeyChecking=no user@%s %s" %
-                        (self.esfa_controller1_host, command))
-        retval = host.sh_run(full_command)
-        if retval.cr_exit_status == 0:
-            self.esfa_controller1_active = True
-
+        retval = self.esfa_controller_run(command, False)
         return retval
 
     def esfa_prepare(self):
@@ -1264,6 +1330,12 @@ class EsmonSFA(object):
             return -1
 
         self.esfa_xml_fname = xml_fname
+
+        ret = self.esfa_check_controller_index()
+        if ret:
+            logging.error("failed to check the controller index of SFA [%s]",
+                          self.esfa_name)
+            return -1
 
         return 0
 

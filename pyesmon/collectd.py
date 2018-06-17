@@ -200,11 +200,13 @@ PostCacheChain "PostCache"
                     else:
                         name = sfa.esfa_subsystem_name + " "
 
+                    controller0 = sfa.esfa_index2controller(controller0=True)
+                    controller1 = sfa.esfa_index2controller(controller0=False)
                     config = (template % (sfa.esfa_xml_fname,
                                           sfa.esfa_name,
-                                          sfa.esfa_controller0_host,
+                                          controller0,
                                           name,
-                                          sfa.esfa_controller1_host,
+                                          controller1,
                                           name))
                     fout.write(config)
 
