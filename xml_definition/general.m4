@@ -80,6 +80,12 @@ define(`TYPE',
 	`ELEMENT_ONELINE($1, type, $2, $3)')dnl
 dnl
 dnl $1: number of INDENT
+dnl $2: value of FIRST_VALUE
+dnl $3: is first child of parent definition
+define(`FIRST_VALUE',
+	`ELEMENT_ONELINE($1, first_value, $2, $3)')dnl
+dnl
+dnl $1: number of INDENT
 dnl $2: index of FIELD
 dnl $3: name of FIELD
 dnl $4: type of FIELD
@@ -294,8 +300,9 @@ define(`HEAD',
 	<!ELEMENT start_string   (#PCDATA)> 
 	<!ELEMENT end_string     (#PCDATA)>
 
-	<!ELEMENT field          (index,name,type,option+)>
+	<!ELEMENT field          (index,name,type,first_value?,option+)>
 	<!ELEMENT type           (#PCDATA)>
+	<!ELEMENT first_value	 (#PCDATA)>
 
 	<!ELEMENT option         (name,string)>
 	<!ELEMENT string         (#PCDATA)>

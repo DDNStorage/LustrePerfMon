@@ -312,6 +312,7 @@ define(`JOBSTAT_FIELD',
 	`INDEX($1 + 1, $2, 1)
 NAME($1 + 1, $3, 0)
 TYPE($1 + 1, $4, 0)
+FIRST_VALUE($1 + 1, 0, 0)
 OPTION($1 + 1, host, ${key:hostname}, 0)
 OPTION($1 + 1, plugin, ${subpath:fs_name}-${subpath:$6_index}, 0)
 OPTION($1 + 1, plugin_instance, jobstat_${content:job_id}, 0)
