@@ -66,7 +66,7 @@ class CollectdConfig(object):
     Each collectd config has an object of this type
     """
     # pylint: disable=too-many-public-methods,too-many-instance-attributes
-    def __init__(self, esmon_client, collect_internal):
+    def __init__(self, esmon_client, collect_internal, job_id_var):
         self.cc_configs = collections.OrderedDict()
         self.cc_plugins = collections.OrderedDict()
         self.cc_filedatas = collections.OrderedDict()
@@ -74,6 +74,7 @@ class CollectdConfig(object):
         self.cc_post_cache_chain_rules = collections.OrderedDict()
         self.cc_sfas = collections.OrderedDict()
         self.cc_checks = []
+        self.cc_job_id_var = job_id_var
         self.cc_configs["Interval"] = collect_internal
         self.cc_configs["WriteQueueLimitHigh"] = 1000000
         self.cc_configs["WriteQueueLimitLow"] = 800000
@@ -577,7 +578,27 @@ PostCacheChain "PostCache"
         Type "ost_recovery_status_evicted_clients"
     </Item>
 """
-
+            if self.cc_job_id_var == lustre.JOB_ID_PROCNAME_UID:
+                config += """
+    <ItemType>
+        Type "ost_jobstats"
+        <ExtendedParse>
+            # Parse the field job_id
+            Field "job_id"
+            # Match the pattern
+            Pattern "(.+)[.]([[:digit:]]+)"
+            <ExtendedField>
+                Index 1
+                Name procname
+            </ExtendedField>
+            <ExtendedField>
+                Index 2
+                Name uid
+            </ExtendedField>
+        </ExtendedParse>
+        TsdbTags "procname=${extendfield:procname} uid=${extendfield:uid}"
+    </ItemType>
+"""
         if lustre_exp_ost:
             config += """
     <Item>
@@ -693,6 +714,29 @@ PostCacheChain "PostCache"
     <Item>
         Type "mdt_filesfree"
     </Item>"""
+
+            if self.cc_job_id_var == lustre.JOB_ID_PROCNAME_UID:
+                config += """
+    <ItemType>
+        Type "mdt_jobstats"
+        <ExtendedParse>
+            # Parse the field job_id
+            Field "job_id"
+            # Match the pattern
+            Pattern "(.+)[.]([[:digit:]]+)"
+            <ExtendedField>
+                Index 1
+                Name procname
+            </ExtendedField>
+            <ExtendedField>
+                Index 2
+                Name uid
+            </ExtendedField>
+        </ExtendedParse>
+        TsdbTags "procname=${extendfield:procname} uid=${extendfield:uid}"
+    </ItemType>
+"""
+
         config += """
     <Item>
         Type "mdt_stats_req_waittime"

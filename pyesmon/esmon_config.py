@@ -684,7 +684,8 @@ ESMON_INSTALL_ROOT = \
                                 esmon_common.CSTR_LUSTRE_EXP_MDT,
                                 esmon_common.CSTR_LUSTRE_EXP_OST,
                                 esmon_common.CSTR_SERVER,
-                                esmon_common.CSTR_SSH_HOSTS])
+                                esmon_common.CSTR_SSH_HOSTS,
+                                esmon_common.CSTR_JOBID_VAR])
 
 ESMON_INSTALL_CSTRS["/"] = ESMON_INSTALL_ROOT
 
@@ -961,7 +962,19 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_DEFAULT_VERSION] = \
                       """This option determines the default Lustre version to use, if the Lustre
 RPMs installed on the ES PERFMON agent is not with the supported version.""",
                       constants=lustre.LUSTER_VERSION_NAMES,
-                      default="es3",
+                      default=lustre.LUSTRE_VERSION_NAME_ES3,
+                      mapping_dict=MAPPING_DICT)
+
+JOB_ID_VARS = [lustre.JOB_ID_PROCNAME_UID, lustre.JOB_ID_UNKNOWN]
+MAPPING_DICT = {lustre.JOB_ID_UNKNOWN: None}
+
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_JOBID_VAR] = \
+    EsmonConfigString(esmon_common.CSTR_JOBID_VAR,
+                      ESMON_CONFIG_CSTR_CONSTANT,
+                      """This option determines the job ID var used by the file system, which can
+be read by command \"lctl get_param jobid_var\"""",
+                      constants=JOB_ID_VARS,
+                      default=lustre.JOB_ID_UNKNOWN,
                       mapping_dict=MAPPING_DICT)
 
 INFO = """This group of options include the information about the ES PERFMON server."""

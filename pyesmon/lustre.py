@@ -19,6 +19,8 @@ LUSTRE_TEST_SCRIPT_DIR = "/usr/lib64/lustre/tests"
 
 ZFS = "zfs"
 LDISKFS = "ldiskfs"
+JOB_ID_PROCNAME_UID = "procname_uid"
+JOB_ID_UNKNOWN = "unknown"
 
 LUSTRE_BACKEND_FILESYSTEMS = [LDISKFS, ZFS]
 

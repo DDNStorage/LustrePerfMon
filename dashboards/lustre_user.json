@@ -1,0 +1,691 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "$$hashKey": "object:84",
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "limit": 100,
+        "name": "Annotations & Alerts",
+        "showIn": 0,
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": null,
+  "iteration": 1532008438865,
+  "links": [],
+  "panels": [
+    {
+      "columns": [
+        {
+          "text": "Avg",
+          "value": "avg"
+        },
+        {
+          "text": "Max",
+          "value": "max"
+        },
+        {
+          "text": "Current",
+          "value": "current"
+        }
+      ],
+      "datasource": null,
+      "filterNull": false,
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "height": "",
+      "id": 46,
+      "links": [],
+      "pageSize": null,
+      "scroll": true,
+      "showHeader": true,
+      "sort": {
+        "col": 3,
+        "desc": true
+      },
+      "styles": [
+        {
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "pattern": "Time",
+          "type": "date"
+        },
+        {
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "decimals": 2,
+          "pattern": "/.*/",
+          "thresholds": [],
+          "type": "number",
+          "unit": "Bps"
+        }
+      ],
+      "targets": [
+        {
+          "alias": "$tag_uid",
+          "dsType": "influxdb",
+          "groupBy": [
+            {
+              "params": [
+                "uid"
+              ],
+              "type": "tag"
+            }
+          ],
+          "measurement": "cqm_ost_jobstats_bytes-fs_name-uid",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT sum(\"sum\") FROM \"cqm_ost_jobstats_bytes\" WHERE ( \"optype\" = 'sum_write_bytes' OR \"optype\" = 'sum_read_bytes' ) AND \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY time(1m), \"job_id\" fill(null)",
+          "rawQuery": false,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "sum"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "fs_name",
+              "operator": "=",
+              "value": "$fs_name"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "title": "I/O Throughput per User",
+      "transform": "timeseries_aggregations",
+      "type": "table"
+    },
+    {
+      "columns": [
+        {
+          "text": "Avg",
+          "value": "avg"
+        },
+        {
+          "text": "Max",
+          "value": "max"
+        },
+        {
+          "text": "Current",
+          "value": "current"
+        }
+      ],
+      "datasource": null,
+      "filterNull": false,
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "height": "",
+      "id": 10,
+      "links": [],
+      "pageSize": null,
+      "scroll": true,
+      "showHeader": true,
+      "sort": {
+        "col": 3,
+        "desc": true
+      },
+      "styles": [
+        {
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "pattern": "Time",
+          "type": "date"
+        },
+        {
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "decimals": 2,
+          "pattern": "/.*/",
+          "thresholds": [],
+          "type": "number",
+          "unit": "Bps"
+        }
+      ],
+      "targets": [
+        {
+          "alias": "$tag_uid",
+          "dsType": "influxdb",
+          "groupBy": [
+            {
+              "params": [
+                "uid"
+              ],
+              "type": "tag"
+            }
+          ],
+          "measurement": "cqm_ost_jobstats_bytes-fs_name-optype-uid",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT sum(\"sum\") FROM \"cqm_ost_jobstats_bytes\" WHERE \"optype\" = 'sum_write_bytes' AND \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY time(1m), \"job_id\" fill(null)",
+          "rawQuery": false,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "sum"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "optype",
+              "operator": "=",
+              "value": "sum_write_bytes"
+            },
+            {
+              "condition": "AND",
+              "key": "fs_name",
+              "operator": "=",
+              "value": "$fs_name"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "title": "Write Throughput per User",
+      "transform": "timeseries_aggregations",
+      "type": "table"
+    },
+    {
+      "columns": [
+        {
+          "text": "Avg",
+          "value": "avg"
+        },
+        {
+          "text": "Max",
+          "value": "max"
+        },
+        {
+          "text": "Current",
+          "value": "current"
+        }
+      ],
+      "datasource": null,
+      "filterNull": false,
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "height": "",
+      "id": 47,
+      "links": [],
+      "pageSize": null,
+      "scroll": true,
+      "showHeader": true,
+      "sort": {
+        "col": 3,
+        "desc": true
+      },
+      "styles": [
+        {
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "pattern": "Time",
+          "type": "date"
+        },
+        {
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "decimals": 2,
+          "pattern": "/.*/",
+          "thresholds": [],
+          "type": "number",
+          "unit": "Bps"
+        }
+      ],
+      "targets": [
+        {
+          "alias": "$tag_uid",
+          "dsType": "influxdb",
+          "groupBy": [
+            {
+              "params": [
+                "uid"
+              ],
+              "type": "tag"
+            }
+          ],
+          "measurement": "cqm_ost_jobstats_bytes-fs_name-optype-uid",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT sum(\"sum\") FROM \"cqm_ost_jobstats_bytes\" WHERE \"optype\" = 'sum_write_bytes' AND \"fs_name\" = '$fs_name' AND $timeFilter GROUP BY time(1m), \"job_id\" fill(null)",
+          "rawQuery": false,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "sum"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "optype",
+              "operator": "=",
+              "value": "sum_read_bytes"
+            },
+            {
+              "condition": "AND",
+              "key": "fs_name",
+              "operator": "=",
+              "value": "$fs_name"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "title": "Read Throughput per User",
+      "transform": "timeseries_aggregations",
+      "type": "table"
+    },
+    {
+      "columns": [
+        {
+          "text": "Avg",
+          "value": "avg"
+        },
+        {
+          "text": "Max",
+          "value": "max"
+        },
+        {
+          "text": "Current",
+          "value": "current"
+        }
+      ],
+      "datasource": null,
+      "filterNull": false,
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "id": 9,
+      "links": [],
+      "pageSize": null,
+      "scroll": true,
+      "showHeader": true,
+      "sort": {
+        "col": 3,
+        "desc": true
+      },
+      "styles": [
+        {
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "pattern": "Time",
+          "type": "date"
+        },
+        {
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "decimals": 2,
+          "pattern": "/.*/",
+          "thresholds": [],
+          "type": "number",
+          "unit": "ops"
+        }
+      ],
+      "targets": [
+        {
+          "alias": "$tag_uid",
+          "dsType": "influxdb",
+          "groupBy": [
+            {
+              "params": [
+                "uid"
+              ],
+              "type": "tag"
+            }
+          ],
+          "measurement": "cqm_mdt_jobstats_samples-fs_name-uid",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "sum"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "fs_name",
+              "operator": "=",
+              "value": "$fs_name"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Metadata Performance per User",
+      "transform": "timeseries_aggregations",
+      "type": "table"
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 49,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "$tag_uid",
+          "groupBy": [
+            {
+              "params": [
+                "uid"
+              ],
+              "type": "tag"
+            }
+          ],
+          "measurement": "cqm_ost_jobstats_bytes-fs_name-uid",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "sum"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "fs_name",
+              "operator": "=",
+              "value": "$fs_name"
+            }
+          ]
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "I/O Throughput per User",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ]
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 50,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "$tag_uid",
+          "groupBy": [
+            {
+              "params": [
+                "uid"
+              ],
+              "type": "tag"
+            }
+          ],
+          "measurement": "cqm_mdt_jobstats_samples-fs_name-uid",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "sum"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "fs_name",
+              "operator": "=",
+              "value": "$fs_name"
+            }
+          ]
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Metadata Performance per User",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ]
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 16,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "allValue": null,
+        "current": {
+          "text": "ime02",
+          "value": "ime02"
+        },
+        "datasource": "esmon_datasource",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Filesystem Name",
+        "multi": false,
+        "name": "fs_name",
+        "options": [],
+        "query": "SHOW TAG VALUES FROM \"ost_kbytesinfo_free\" WITH KEY = fs_name",
+        "refresh": 1,
+        "regex": "",
+        "sort": 3,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "1m"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "timezone": "browser",
+  "title": "Lustre User",
+  "uid": null,
+  "version": 1
+}

@@ -43,9 +43,11 @@ GRAFANA_DASHBOARDS = {}
 GRAFANA_DASHBOARDS["Cluster Status"] = "cluster_status.json"
 GRAFANA_DASHBOARDS["Lustre MDT"] = "lustre_mdt.json"
 GRAFANA_DASHBOARDS["Lustre MDS"] = "lustre_mds.json"
-GRAFANA_DASHBOARDS["Lustre Statistics"] = "lustre_statistics.json"
 GRAFANA_DASHBOARDS["Lustre OSS"] = "lustre_oss.json"
 GRAFANA_DASHBOARDS["Lustre OST"] = "lustre_ost.json"
+GRAFANA_DASHBOARDS["Lustre Statistics"] = "lustre_statistics.json"
+DASHBOARD_NAME_LUSTRE_USER = "Lustre User"
+GRAFANA_DASHBOARDS[DASHBOARD_NAME_LUSTRE_USER] = "lustre_user.json"
 GRAFANA_DASHBOARDS["Server Statistics"] = "server_statistics.json"
 GRAFANA_DASHBOARDS["SFA Physical Disk"] = "SFA_physical_disk.json"
 GRAFANA_DASHBOARDS["SFA Virtual Disk"] = "SFA_virtual_disk.json"
@@ -91,7 +93,9 @@ class EsmonServer(object):
     ESMON server host has an object of this type
     """
     # pylint: disable=too-many-public-methods,too-many-instance-attributes
-    def __init__(self, host, workspace, collect_interval, continuous_query_interval):
+    # pylint: disable=too-many-arguments
+    def __init__(self, host, workspace, collect_interval,
+                 continuous_query_interval, job_id_var):
         self.es_host = host
         self.es_workspace = workspace
         self.es_iso_dir = workspace + "/ISO"
@@ -104,6 +108,7 @@ class EsmonServer(object):
         self.es_client = EsmonClient(host, workspace, self, collect_interval)
         self.es_collect_interval = collect_interval
         self.es_continuous_query_interval = continuous_query_interval
+        self.es_job_id_var = job_id_var
 
     def es_check(self):
         """
@@ -767,6 +772,7 @@ class EsmonServer(object):
         Reinstall grafana RPM
         """
         # pylint: disable=too-many-return-statements,too-many-branches
+        # pylint: disable=too-many-statements
         ret = self.es_host.sh_rpm_query("grafana")
         if ret == 0:
             command = "rpm -e --nodeps grafana"
@@ -847,6 +853,19 @@ class EsmonServer(object):
 
             with open(dashboard_json_fpath) as json_file:
                 dashboard = json.load(json_file)
+
+            if (name == DASHBOARD_NAME_LUSTRE_USER and
+                    self.es_job_id_var != lustre.JOB_ID_PROCNAME_UID):
+                # If Job ID var is not procename_uid, delete the
+                # Lustre User dashboard
+                ret = self.es_grafana_has_dashboard(name)
+                if ret < 0:
+                    return -1
+                elif ret == 1:
+                    ret = self.es_grafana_dashboard_delete(name)
+                    if ret:
+                        return ret
+                continue
 
             ret = self.es_grafana_dashboard_replace(name, dashboard)
             if ret:
@@ -948,6 +967,12 @@ class EsmonServer(object):
         if ret:
             return -1
 
+        if self.es_job_id_var == lustre.JOB_ID_PROCNAME_UID:
+            ret = self.es_influxdb_cq_create("mdt_jobstats_samples",
+                                             ["fs_name", "uid"])
+            if ret:
+                return -1
+
         ret = self.es_influxdb_cq_create("ost_stats_bytes",
                                          ["fs_name", "optype", "fqdn"])
         if ret:
@@ -1021,6 +1046,26 @@ class EsmonServer(object):
                                          where=where)
         if ret:
             return -1
+
+        if self.es_job_id_var == lustre.JOB_ID_PROCNAME_UID:
+            ret = self.es_influxdb_cq_create("ost_jobstats_bytes",
+                                             ["fs_name", "uid", "optype"])
+            if ret:
+                return -1
+
+            where = "WHERE optype = 'sum_read_bytes' OR optype = 'sum_write_bytes'"
+            ret = self.es_influxdb_cq_create("ost_jobstats_bytes",
+                                             ["fs_name", "uid"],
+                                             where=where)
+            if ret:
+                return -1
+
+            where = "WHERE optype = 'sum_read_bytes' OR optype = 'sum_write_bytes'"
+            ret = self.es_influxdb_cq_create("ost_jobstats_bytes",
+                                             ["fs_name", "uid", "ost_index"],
+                                             where=where)
+            if ret:
+                return -1
 
         ret = self.es_influxdb_cq_create("ost_brw_stats_rpc_bulk_samples",
                                          ["field", "fs_name", "size"])
@@ -1349,7 +1394,8 @@ class EsmonClient(object):
     def __init__(self, host, workspace, esmon_server, collect_interval,
                  enable_disk=False, lustre_oss=False, lustre_mds=False,
                  ime=False, infiniband=False, sfas=None, enabled_plugins="",
-                 lustre_exp_ost=False, lustre_exp_mdt=False):
+                 lustre_exp_ost=False, lustre_exp_mdt=False,
+                 job_id_var=lustre.JOB_ID_UNKNOWN):
         self.ec_host = host
         self.ec_workspace = workspace
         self.ec_iso_basename = "ISO"
@@ -1381,6 +1427,7 @@ class EsmonClient(object):
         self.ec_rpm_server_fnames = None
         self.ec_lustre_version = None
         self.ec_fqdn = None
+        self.ec_job_id_var = job_id_var
 
     def ec_check_lustre_version(self):
         """
@@ -1537,7 +1584,8 @@ class EsmonClient(object):
                                   "host [%s]", self.ec_host.sh_hostname)
                     return -1
 
-        config = collectd.CollectdConfig(self, self.ec_collect_interval)
+        config = collectd.CollectdConfig(self, self.ec_collect_interval,
+                                         self.ec_job_id_var)
         config.cc_configs["Interval"] = collectd.COLLECTD_INTERVAL_TEST
         if self.ec_enable_lustre_oss or self.ec_enable_lustre_mds:
             ret = config.cc_plugin_lustre(self.ec_lustre_version,
@@ -1561,7 +1609,8 @@ class EsmonClient(object):
             config.cc_plugin_infiniband()
         self.ec_collectd_config_test = config
 
-        config = collectd.CollectdConfig(self, self.ec_collect_interval)
+        config = collectd.CollectdConfig(self, self.ec_collect_interval,
+                                         self.ec_job_id_var)
         if self.ec_enable_lustre_oss or self.ec_enable_lustre_mds:
             ret = config.cc_plugin_lustre(self.ec_lustre_version,
                                           lustre_oss=self.ec_enable_lustre_oss,
@@ -2202,8 +2251,14 @@ def esmon_install_parse_config(workspace, config, config_fpath):
     if ret:
         return -1, esmon_server, esmon_clients
 
+    ret, job_id_var =\
+        esmon_config.install_config_value(config, esmon_common.CSTR_JOBID_VAR)
+    if ret:
+        return -1, esmon_server, esmon_clients
+
     host = hosts[host_id]
-    esmon_server = EsmonServer(host, workspace, collect_interval, continuous_query_interval)
+    esmon_server = EsmonServer(host, workspace, collect_interval,
+                               continuous_query_interval, job_id_var)
     ret = esmon_server.es_check()
     if ret:
         logging.error("checking of ESMON server [%s] failed, please fix the "
@@ -2328,7 +2383,8 @@ def esmon_install_parse_config(workspace, config, config_fpath):
                                    sfas=sfas,
                                    enabled_plugins=enabled_plugins,
                                    lustre_exp_ost=lustre_exp_ost,
-                                   lustre_exp_mdt=lustre_exp_mdt)
+                                   lustre_exp_mdt=lustre_exp_mdt,
+                                   job_id_var=job_id_var)
         esmon_clients[host_id] = esmon_client
         ret = esmon_client.ec_prepare()
         if ret:
