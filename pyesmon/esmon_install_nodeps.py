@@ -1434,7 +1434,10 @@ class EsmonClient(object):
         Check the Lustre version according to the installed RPMs
         """
         # pylint: disable=too-many-return-statements,too-many-branches
-        command = ("rpm -qa | grep lustre")
+
+        # ES upgrade might cause uninstalled old kernel RPM, so ignore
+        # kernel RPMs.
+        command = ("rpm -qa | grep lustre | grep -v kernel")
         retval = self.ec_host.sh_run(command)
         if (retval.cr_exit_status == 1 and retval.cr_stdout == "" and
                 retval.cr_stderr == ""):
