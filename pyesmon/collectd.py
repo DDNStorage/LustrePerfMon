@@ -20,7 +20,7 @@ ES4_HAS_USED_INODE_SPACE_SUPPORT = True
 
 XML_FNAME_ES2 = "lustre-ieel-2.5_definition.xml"
 XML_FNAME_ES3 = "lustre-ieel-2.7_definition.xml"
-
+XML_FNAME_ES4 = "lustre-es4-2.10.xml"
 
 def lustre_version_xml_fname(lustre_version):
     """
@@ -31,7 +31,7 @@ def lustre_version_xml_fname(lustre_version):
     elif lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3:
         xml_fname = XML_FNAME_ES3
     elif lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES4:
-        xml_fname = XML_FNAME_ES3
+        xml_fname = XML_FNAME_ES4
     elif lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_2_7:
         xml_fname = XML_FNAME_ES3
     else:
@@ -45,7 +45,7 @@ def support_zfs(xml_fname):
     """
     Whether this XML file supports zfs
     """
-    if xml_fname == XML_FNAME_ES3:
+    if xml_fname == XML_FNAME_ES3 or xml_fname == XML_FNAME_ES4:
         return True
     return False
 
