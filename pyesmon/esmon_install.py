@@ -177,11 +177,37 @@ def dependency_install(local_host):
     return ret
 
 
+def usage():
+    """
+    Print usage string
+    """
+    utils.eprint("Usage: %s [-h|--help]" %
+                 sys.argv[0])
+    utils.eprint("To install EXASCaler Performance Monitoring System, "
+                 "please run command \"%s\"." % (sys.argv[0]))
+    utils.eprint("To change the configuration, please edit "
+                 "file \"%s\"." % (esmon_common.ESMON_INSTALL_CONFIG))
+
+
 def main():
     """
     Install Exascaler monitoring
     """
-    # pylint: disable=unused-variable
+    # pylint: disable=unused-variable,too-many-branches
+    argc = len(sys.argv)
+    if argc == 2:
+        if sys.argv[1] == "-h" or sys.argv[1] == "--help":
+            usage()
+            sys.exit(0)
+        else:
+            utils.eprint("Unkown options \"%s\"" % sys.argv[1])
+            usage()
+            sys.exit(-1)
+    elif argc > 2:
+        utils.eprint("too many options")
+        usage()
+        sys.exit(-1)
+
     missing_dependencies = []
 
     try:
