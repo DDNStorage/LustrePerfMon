@@ -1,0 +1,2 @@
+[TYPECHECK]
+disable=too-many-branches,too-many-locals

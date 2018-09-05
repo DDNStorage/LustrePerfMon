@@ -2345,34 +2345,43 @@ def esmon_install_parse_config(workspace, config, config_fpath):
                                   config_fpath)
                     return -1, esmon_server, esmon_clients
                 sfa_names.append(name)
+                controller0_host = None
+                controller1_host = None
+                if esmon_common.CSTR_CONTROLLER0_HOST in sfa_config:
+                    ret, controller0_host = \
+                        esmon_config.install_config_value(sfa_config,
+                                                          esmon_common.CSTR_CONTROLLER0_HOST)
+                    if ret:
+                        return -1, esmon_server, esmon_clients
 
-                ret, controller0_host = \
-                    esmon_config.install_config_value(sfa_config,
-                                                      esmon_common.CSTR_CONTROLLER0_HOST)
-                if ret:
-                    return -1, esmon_server, esmon_clients
+                    if controller0_host in sfa_hosts:
+                        logging.error("multiple SFAs with the same controller "
+                                      "host [%s], please correct file [%s]",
+                                      controller0_host,
+                                      config_fpath)
+                        return -1, esmon_server, esmon_clients
+                    sfa_hosts.append(controller0_host)
 
-                if controller0_host in sfa_hosts:
-                    logging.error("multiple SFAs with the same controller "
-                                  "host [%s], please correct file [%s]",
-                                  controller0_host,
-                                  config_fpath)
-                    return -1, esmon_server, esmon_clients
-                sfa_hosts.append(controller0_host)
+                if esmon_common.CSTR_CONTROLLER1_HOST in sfa_config:
+                    ret, controller1_host = \
+                        esmon_config.install_config_value(sfa_config,
+                                                          esmon_common.CSTR_CONTROLLER1_HOST)
+                    if ret:
+                        return -1, esmon_server, esmon_clients
 
-                ret, controller1_host = \
-                    esmon_config.install_config_value(sfa_config,
-                                                      esmon_common.CSTR_CONTROLLER1_HOST)
-                if ret:
-                    return -1, esmon_server, esmon_clients
+                    if controller1_host in sfa_hosts:
+                        logging.error("multiple SFAs with the same controller "
+                                      "host [%s], please correct file [%s]",
+                                      controller1_host,
+                                      config_fpath)
+                        return -1, esmon_server, esmon_clients
+                    sfa_hosts.append(controller1_host)
 
-                if controller1_host in sfa_hosts:
-                    logging.error("multiple SFAs with the same controller "
-                                  "host [%s], please correct file [%s]",
-                                  controller1_host,
-                                  config_fpath)
+                if controller0_host is None and controller1_host is None:
+                    logging.error("SFA with the name [%s] dosen't have any controller "
+                                  "configured, please correct file [%s]",
+                                  name, config_fpath)
                     return -1, esmon_server, esmon_clients
-                sfa_hosts.append(controller1_host)
 
                 sfa = EsmonSFA(host, name, controller0_host, controller1_host)
                 sfas.append(sfa)

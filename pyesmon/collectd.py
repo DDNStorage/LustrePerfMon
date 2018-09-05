@@ -140,10 +140,12 @@ PostCacheChain "PostCache"
             if any(self.cc_sfas):
                 config = 'LoadPlugin ssh\n'
                 fout.write(config)
-                template = """<Plugin "ssh">
+                template_prefix = """<Plugin "ssh">
     <Common>
         DefinitionFile "/etc/%s"
         Extra_tags "extrahost=%s"
+"""
+                template_controller0 = """
         <ServerHost>
             HostName "%s"
             UserName "user"
@@ -155,6 +157,8 @@ PostCacheChain "PostCache"
             #PrivateKeyfile "/root/.ssh/id_dsa"
             #SshKeyPassphrase "passphrase"
         </ServerHost>
+"""
+                template_controller1 = """
         <ServerHost>
             HostName "%s"
             UserName "user"
@@ -166,6 +170,8 @@ PostCacheChain "PostCache"
             #PrivateKeyfile "/root/.ssh/id_dsa"
             #SshKeyPassphrase "passphrase"
         </ServerHost>
+"""
+                template_postfix = """
     </Common>
     <Item>
         Type "vd_c_rates"
@@ -208,12 +214,15 @@ PostCacheChain "PostCache"
 
                     controller0 = sfa.esfa_index2controller(controller0=True)
                     controller1 = sfa.esfa_index2controller(controller0=False)
-                    config = (template % (sfa.esfa_xml_fname,
-                                          sfa.esfa_name,
-                                          controller0,
-                                          name,
-                                          controller1,
-                                          name))
+                    config = (template_prefix % (sfa.esfa_xml_fname,
+                                                 sfa.esfa_name))
+                    if controller0 is not None:
+                        config = config + (template_controller0 %
+                                           (controller0, name))
+                    if controller1 is not None:
+                        config = config + (template_controller1 %
+                                           (controller1, name))
+                    config = config + template_postfix
                     fout.write(config)
 
             if any(self.cc_filedatas):
