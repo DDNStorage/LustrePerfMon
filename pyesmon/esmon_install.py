@@ -101,20 +101,34 @@ class EsmonInstallServer(object):
         return 0
 
 
-def dependency_do_install(local_host, mnt_path):
+def dependency_to_find(local_host):
     """
-    Install the pylibs
+    Find missing pylibs
     """
-    esmon_installer = EsmonInstallServer(local_host, mnt_path)
+    missing_dependencies = []
     for dependent_rpm in esmon_common.ESMON_INSTALL_DEPENDENT_RPMS:
         ret = local_host.sh_rpm_query(dependent_rpm)
         if ret == 0:
             continue
+        missing_dependencies.append(dependent_rpm)
+
+    return missing_dependencies
+
+
+def dependency_do_install(local_host, mnt_path):
+    """
+    Install the pylibs
+    """
+    missing_dependencies = dependency_to_find(local_host)
+    esmon_installer = EsmonInstallServer(local_host, mnt_path)
+    for dependent_rpm in missing_dependencies:
         ret = esmon_installer.eis_rpm_install(dependent_rpm)
         if ret:
-            logging.error("failed to install rpm [%s] on host [%s]",
-                          dependent_rpm, local_host .sh_hostname)
+            logging.error("failed to install rpm [%s] on host [%s] "
+                          "still missing RPMS: %s", dependent_rpm,
+                          local_host .sh_hostname, missing_dependencies)
             return -1
+        missing_dependencies.remove(dependent_rpm)
     return 0
 
 
@@ -208,45 +222,11 @@ def main():
         usage()
         sys.exit(-1)
 
-    missing_dependencies = []
-
-    try:
-        import yaml
-    except ImportError:
-        missing_dependencies.append("PyYAML")
-
-    try:
-        import requests
-    except ImportError:
-        missing_dependencies.append("python-requests")
-
-    try:
-        import filelock
-    except ImportError:
-        missing_dependencies.append("python2-filelock")
-
-    try:
-        import slugify
-    except ImportError:
-        missing_dependencies.append("python-slugify")
-
-    try:
-        import dateutil
-    except ImportError:
-        missing_dependencies.append("python-dateutil")
-
     local_host = ssh_host.SSHHost("localhost", local=True)
-    for dependent_rpm in esmon_common.ESMON_INSTALL_DEPENDENT_RPMS:
-        ret = local_host.sh_rpm_query(dependent_rpm)
-        if ret == 0:
-            missing_dependencies.append(dependent_rpm)
-
+    missing_dependencies = dependency_to_find(local_host)
     if len(missing_dependencies):
         ret = dependency_install(local_host)
         if ret:
-            logging.error("not able to install ESMON because some depdendency "
-                          "RPMs are missing and not able to be installed: %s",
-                          missing_dependencies)
             sys.exit(-1)
     from pyesmon import esmon_install_nodeps
     esmon_install_nodeps.main()
