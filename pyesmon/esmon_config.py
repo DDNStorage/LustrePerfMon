@@ -678,7 +678,7 @@ ESMON_INSTALL_ROOT = \
                       children=[esmon_common.CSTR_AGENTS,
                                 esmon_common.CSTR_AGENTS_REINSTALL,
                                 esmon_common.CSTR_COLLECT_INTERVAL,
-                                esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL,
+                                esmon_common.CSTR_CONTINUOUS_QUERY_PERIODS,
                                 esmon_common.CSTR_ISO_PATH,
                                 esmon_common.CSTR_LUSTRE_DEFAULT_VERSION,
                                 esmon_common.CSTR_LUSTRE_EXP_MDT,
@@ -689,8 +689,8 @@ ESMON_INSTALL_ROOT = \
 
 ESMON_INSTALL_CSTRS["/"] = ESMON_INSTALL_ROOT
 
-ESMON_INSTALL_CSTRS[esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL] = \
-    EsmonConfigString(esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL,
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_CONTINUOUS_QUERY_PERIODS] = \
+    EsmonConfigString(esmon_common.CSTR_CONTINUOUS_QUERY_PERIODS,
                       ESMON_CONFIG_CSTR_INT,
                       """This option determines the interval of continuous queries. ES PERFMON uses
 continuous queries of Influxdb to aggregate data. To calculate the interval

@@ -626,12 +626,12 @@ def esmon_do_test(workspace, config, config_fpath):
                       config_fpath)
         return -1
 
-    continuous_query_interval = \
-        esmon_common.config_value(config, esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL)
-    if continuous_query_interval is None:
+    continuous_query_periods = \
+        esmon_common.config_value(config, esmon_common.CSTR_CONTINUOUS_QUERY_PERIODS)
+    if continuous_query_periods is None:
         logging.error("can NOT find [%s] in the config file, "
                       "please correct file [%s]",
-                      esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL,
+                      esmon_common.CSTR_CONTINUOUS_QUERY_PERIODS,
                       config_fpath)
         return -1
 
@@ -730,7 +730,7 @@ def esmon_do_test(workspace, config, config_fpath):
     install_config[esmon_common.CSTR_AGENTS] = agent_configs
     install_config[esmon_common.CSTR_SERVER] = server_config
     install_config[esmon_common.CSTR_COLLECT_INTERVAL] = collect_interval
-    install_config[esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL] = continuous_query_interval
+    install_config[esmon_common.CSTR_CONTINUOUS_QUERY_PERIODS] = continuous_query_periods
     install_config[esmon_common.CSTR_LUSTRE_DEFAULT_VERSION] = lustre_default_version
     install_config[esmon_common.CSTR_LUSTRE_EXP_OST] = lustre_exp_ost
     install_config[esmon_common.CSTR_LUSTRE_EXP_MDT] = lustre_exp_mdt

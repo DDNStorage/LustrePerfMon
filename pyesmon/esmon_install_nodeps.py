@@ -95,7 +95,7 @@ class EsmonServer(object):
     # pylint: disable=too-many-public-methods,too-many-instance-attributes
     # pylint: disable=too-many-arguments
     def __init__(self, host, workspace, collect_interval,
-                 continuous_query_interval, job_id_var):
+                 continuous_query_periods, job_id_var):
         self.es_host = host
         self.es_workspace = workspace
         self.es_iso_dir = workspace + "/ISO"
@@ -107,7 +107,7 @@ class EsmonServer(object):
                                                                 INFLUXDB_DATABASE_NAME)
         self.es_client = EsmonClient(host, workspace, self, collect_interval)
         self.es_collect_interval = collect_interval
-        self.es_continuous_query_interval = continuous_query_interval
+        self.es_continuous_query_periods = continuous_query_periods
         self.es_job_id_var = job_id_var
 
     def es_check(self):
@@ -1127,13 +1127,13 @@ class EsmonServer(object):
             cq_query += "_%s" % group
             cq_measurement += "-%s" % group
 
-        cq_time = int(self.es_collect_interval) * int(self.es_continuous_query_interval)
+        cq_time = int(self.es_collect_interval) * int(self.es_continuous_query_periods)
         query = ('CREATE CONTINUOUS QUERY %s ON "%s" \n'
                  'BEGIN SELECT sum("value") / %s INTO "%s" \n'
                  '    FROM "%s" %s GROUP BY time(%ds)%s \n'
                  'END;' %
                  (cq_query, INFLUXDB_DATABASE_NAME,
-                  self.es_continuous_query_interval, cq_measurement,
+                  self.es_continuous_query_periods, cq_measurement,
                   measurement, where, cq_time, group_string))
         response = self.es_influxdb_client.ic_query(query)
         if response is None:
@@ -2221,8 +2221,8 @@ def esmon_install_parse_config(workspace, config, config_fpath):
     if ret:
         return -1, esmon_server, esmon_clients
 
-    ret, continuous_query_interval = \
-        esmon_config.install_config_value(config, esmon_common.CSTR_CONTINUOUS_QUERY_INTERVAL)
+    ret, continuous_query_periods = \
+        esmon_config.install_config_value(config, esmon_common.CSTR_CONTINUOUS_QUERY_PERIODS)
     if ret:
         return -1, esmon_server, esmon_clients
 
@@ -2261,7 +2261,7 @@ def esmon_install_parse_config(workspace, config, config_fpath):
 
     host = hosts[host_id]
     esmon_server = EsmonServer(host, workspace, collect_interval,
-                               continuous_query_interval, job_id_var)
+                               continuous_query_periods, job_id_var)
     ret = esmon_server.es_check()
     if ret:
         logging.error("checking of ESMON server [%s] failed, please fix the "

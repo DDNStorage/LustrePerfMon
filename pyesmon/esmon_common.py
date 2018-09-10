@@ -21,7 +21,7 @@ PATTERN_PYTHON_LIBRARY = r"^%s-\d+\.\d+\.\d+\.tar\.gz$"
 ESMON_CONFIG_CSTR_NONE = "None"
 
 # Config used by esmon_install.conf
-CSTR_CONTINUOUS_QUERY_INTERVAL = "continuous_query_interval"
+CSTR_CONTINUOUS_QUERY_PERIODS = "continuous_query_periods"
 CSTR_CONTROLLER0_HOST = "controller0_host"
 CSTR_CONTROLLER1_HOST = "controller1_host"
 CSTR_AGENTS = "agents"
