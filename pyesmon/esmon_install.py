@@ -101,7 +101,7 @@ class EsmonInstallServer(object):
         return 0
 
 
-def dependency_to_find(local_host):
+def dependency_find(local_host):
     """
     Find missing pylibs
     """
@@ -119,16 +119,15 @@ def dependency_do_install(local_host, mnt_path):
     """
     Install the pylibs
     """
-    missing_dependencies = dependency_to_find(local_host)
+    missing_dependencies = dependency_find(local_host)
     esmon_installer = EsmonInstallServer(local_host, mnt_path)
-    for dependent_rpm in missing_dependencies:
+    for i, dependent_rpm in enumerate(missing_dependencies):
         ret = esmon_installer.eis_rpm_install(dependent_rpm)
         if ret:
             logging.error("failed to install rpm [%s] on host [%s] "
                           "still missing RPMS: %s", dependent_rpm,
-                          local_host .sh_hostname, missing_dependencies)
+                          local_host .sh_hostname, missing_dependencies[i:])
             return -1
-        missing_dependencies.remove(dependent_rpm)
     return 0
 
 
@@ -223,7 +222,7 @@ def main():
         sys.exit(-1)
 
     local_host = ssh_host.SSHHost("localhost", local=True)
-    missing_dependencies = dependency_to_find(local_host)
+    missing_dependencies = dependency_find(local_host)
     if len(missing_dependencies):
         ret = dependency_install(local_host)
         if ret:
