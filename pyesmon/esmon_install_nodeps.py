@@ -1304,6 +1304,12 @@ class EsmonSFA(object):
         if ret.cr_exit_status != 0:
             logging.warning("sshpass is missing on host [%s], trying to "
                             "install it", host.sh_hostname)
+            # sshpass rely on epel-release on centos6
+            ret = host.sh_run("yum install epel-release -y")
+            if ret.cr_exit_status != 0:
+                logging.error("failed to install epel-release on host [%s], "
+                              "please install it manually")
+                return -1
             ret = host.sh_run("yum install sshpass -y")
             if ret.cr_exit_status != 0:
                 logging.error("failed to install sshpass on host [%s], "

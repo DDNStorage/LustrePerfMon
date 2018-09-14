@@ -643,6 +643,18 @@ EOF
 
     ret = server_host.sh_run("which sshpass")
     if ret.cr_exit_status != 0:
+        # sshpass rely on epel-release on centos6
+        command = ("yum install epel-release -y")
+        retval = server_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          server_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
         command = ("yum install sshpass -y")
         retval = server_host.sh_run(command)
         if retval.cr_exit_status:
