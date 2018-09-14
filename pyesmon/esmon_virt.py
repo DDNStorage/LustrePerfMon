@@ -988,7 +988,8 @@ def esmon_vm_install(workspace, config, config_fpath):
                                 disk_sizes)
         templates[template_hostname] = template
 
-        if not reinstall:
+        state = server_host.sh_virsh_dominfo_state(template_hostname)
+        if not reinstall and state is not None:
             logging.debug("skipping reinstall of template [%s] according to config",
                           template_hostname)
             continue
@@ -1043,8 +1044,11 @@ def esmon_vm_install(workspace, config, config_fpath):
         template = templates[template_hostname]
 
         reinstall = esmon_common.config_value(vm_host_config, "reinstall")
+        state = template.vt_server_host.sh_virsh_dominfo_state(hostname)
         if reinstall is None:
             reinstall = False
+        if state is None:
+            reinstall = True
 
         if not reinstall:
             ret = vm_start(workspace,
