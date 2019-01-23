@@ -989,7 +989,8 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_SERVER] = \
                                 esmon_common.CSTR_ERASE_INFLUXDB,
                                 esmon_common.CSTR_HOST_ID,
                                 esmon_common.CSTR_INFLUXDB_PATH,
-                                esmon_common.CSTR_REINSTALL],
+                                esmon_common.CSTR_REINSTALL,
+                                esmon_common.CSTR_AUTO_OPEN_PORTS_ON_FIREWALL],
                       default=SERVER_DEFAULT)
 
 ESMON_SFA_NAME_NUM = 0

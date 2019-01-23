@@ -83,6 +83,7 @@ CSTR_IP = "ip"
 CSTR_HOSTS = "hosts"
 CSTR_CLEANUP = "cleanup"
 CSTR_LUSTRE_DEFAULT_VERSION = "lustre_default_version"
+CSTR_AUTO_OPEN_PORTS_ON_FIREWALL = "auto_open_ports_on_firewall"
 
 GRAFANA_STATUS_PANEL = "Grafana_Status_panel"
 GRAFANA_PIECHART_PANEL = "piechart-panel"

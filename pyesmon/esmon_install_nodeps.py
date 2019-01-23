@@ -888,7 +888,7 @@ class EsmonServer(object):
         return 0
 
     def es_reinstall(self, erase_influxdb, drop_database, mnt_path,
-                     influxdb_path):
+                     influxdb_path, open_ports=False):
         """
         Reinstall RPMs
         """
@@ -906,11 +906,13 @@ class EsmonServer(object):
             logging.error("failed to install dependent RPMs to server")
             return -1
 
-        ret = self.es_firewall_open_ports()
-        if ret:
-            logging.error("failed to export ports of ESMON server, later"
-                          "operations mght faill")
-            return -1
+        if open_ports:
+            logging.info("opening network ports of the firewall on ESMON server")
+            ret = self.es_firewall_open_ports()
+            if ret:
+                logging.error("failed to export ports of ESMON server, later"
+                              "operations mght faill")
+                return -1
 
         ret = self.es_influxdb_reinstall(erase_influxdb, drop_database,
                                          influxdb_path)
@@ -2458,6 +2460,12 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
     if ret:
         return -1
 
+    ret, open_ports = \
+        esmon_config.install_config_value(server_host_config,
+                                          esmon_common.CSTR_AUTO_OPEN_PORTS_ON_FIREWALL)
+    if ret:
+        return -1
+
     if not server_reinstall:
         logging.info("ESMON server won't be reinstalled according to the "
                      "config")
@@ -2477,7 +2485,8 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
 
     if server_reinstall:
         ret = esmon_server.es_reinstall(erase_influxdb, drop_database,
-                                        mnt_path, influxdb_path)
+                                        mnt_path, influxdb_path,
+                                        open_ports=open_ports)
         if ret:
             logging.error("failed to reinstall ESMON server on host [%s]",
                           esmon_server.es_host.sh_hostname)
