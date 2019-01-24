@@ -1614,21 +1614,32 @@ class SSHHost(object):
             return -1
         return 0
 
+    def sh_check_network_connection(self, remote_host, quiet=False):
+        """
+        Check whether the Internet connection works well
+        """
+        command = "ping -c 1 %s" % remote_host
+        retval = self.sh_run(command)
+        if retval.cr_exit_status:
+            if not quiet:
+                logging.error("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command, self.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
+            return -1
+        return 0
+
     def sh_check_internet(self):
         """
         Check whether the Internet connection works well
         """
-        command = "ping -c 1 www.bing.com"
-        retval = self.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command, self.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
-        return 0
+        ret = self.sh_check_network_connection("www.bing.com")
+        if ret:
+            return 0
+
+        return self.sh_check_network_connection("www.baidu.com")
 
     def sh_kernel_set_default(self, kernel):
         """

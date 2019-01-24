@@ -874,6 +874,19 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_EXP_OST] = \
                       INFO,
                       default=False)
 
+INFO = """This option determines whether ES PERFMON installation process will open
+the ports on monitoring server node automatically or not. If this options is
+enabled, firewall-cmd will be run on the server node to open ports in the
+firewall. If the option is disabled, administrator need to make sure the ports
+are opened or the firewall is disabled, otherwise there might be access failure
+becaused of banned ports (e.g. 3000, 4242, 8086, 8088, 25826)."""
+
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_AUTO_OPEN_PORTS_ON_FIREWALL] = \
+    EsmonConfigString(esmon_common.CSTR_AUTO_OPEN_PORTS_ON_FIREWALL,
+                      ESMON_CONFIG_CSTR_BOOL,
+                      INFO,
+                      default=False)
+
 INFO = """This option is the unique name of this controller. This value will be used as
 the value of "fqdn" tag for metrics of this SFA. Thus, two SFAs shouldn't have
 the same name."""
