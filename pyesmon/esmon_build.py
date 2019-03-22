@@ -179,7 +179,7 @@ def download_dependent_rpms(host, dependent_dir, distro):
 def collectd_build(workspace, build_host, local_host, collectd_git_path,
                    iso_cached_dir, collectd_tarball_name, distro):
     """
-    Build Collectd on CentOS6 host
+    Build Collectd on CentOS6/7 host
     """
     # pylint: disable=too-many-return-statements,too-many-arguments
      # pylint: disable=too-many-locals,too-many-branches,too-many-statements
@@ -694,19 +694,16 @@ def esmon_download_grafana_plugins(local_host, iso_cached_dir):
     return 0
 
 
-def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
+def parse_host_configs(config, config_fpath, hosts):
     """
-    Build the ISO
+    Parse the host_configs
     """
-    # pylint: disable=too-many-locals,too-many-return-statements
-    # pylint: disable=too-many-branches,too-many-statements
     host_configs = esmon_common.config_value(config, "ssh_hosts")
     if host_configs is None:
-        logging.error("can NOT find [ssh_hosts] in the config file, "
-                      "please correct file [%s]", config_fpath)
-        return -1
+        logging.info("can NOT find [ssh_hosts] in the config file [%s]",
+                     config_fpath)
+        return 0
 
-    hosts = {}
     for host_config in host_configs:
         host_id = host_config["host_id"]
         if host_id is None:
@@ -733,25 +730,38 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
             return -1
         host = ssh_host.SSHHost(hostname, ssh_identity_file)
         hosts[host_id] = host
+    return 0
+
+
+def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
+    """
+    Build the ISO
+    """
+    # pylint: disable=too-many-locals,too-many-return-statements
+    # pylint: disable=too-many-branches,too-many-statements
+    hosts = {}
+    if parse_host_configs(config, config_fpath, hosts):
+        logging.error("failed to parse host configs")
+        return -1
 
     centos6_host_config = esmon_common.config_value(config, "centos6_host")
-    if hostname is None:
-        logging.error("can NOT find [centos6_host] in the config file [%s], "
-                      "please correct it", config_fpath)
-        return -1
+    if centos6_host_config is None:
+        logging.info("can NOT find [centos6_host] in the config file [%s], "
+                     "diableing CentOS6 support")
+        centos6_host = None
+    else:
+        centos6_host_id = esmon_common.config_value(centos6_host_config, "host_id")
+        if centos6_host_id is None:
+            logging.error("can NOT find [host_id] in the config of [centos6_host], "
+                          "please correct file [%s]", config_fpath)
+            return -1
 
-    centos6_host_id = esmon_common.config_value(centos6_host_config, "host_id")
-    if centos6_host_id is None:
-        logging.error("can NOT find [host_id] in the config of [centos6_host], "
-                      "please correct file [%s]", config_fpath)
-        return -1
-
-    if centos6_host_id not in hosts:
-        logging.error("SSH host with ID [%s] is NOT configured in "
-                      "[ssh_hosts], please correct file [%s]",
-                      centos6_host_id, config_fpath)
-        return -1
-    centos6_host = hosts[centos6_host_id]
+        if centos6_host_id not in hosts:
+            logging.error("SSH host with ID [%s] is NOT configured in "
+                          "[ssh_hosts], please correct file [%s]",
+                          centos6_host_id, config_fpath)
+            return -1
+        centos6_host = hosts[centos6_host_id]
 
     local_host = ssh_host.SSHHost("localhost", local=True)
     distro = local_host.sh_distro()
@@ -841,14 +851,15 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
     collectd_release_string = retval.cr_stdout.strip()
     collectd_release = collectd_release_string.replace('%{?dist}', '')
     collectd_version_release = collectd_version + "-" + collectd_release
-    centos6_workspace = ESMON_BUILD_LOG_DIR + "/" + relative_workspace
-    ret = host_build(centos6_workspace, centos6_host, local_host, collectd_git_path,
-                     iso_cached_dir, collectd_version_release,
-                     collectd_tarball_name, ssh_host.DISTRO_RHEL6)
-    if ret:
-        logging.error("failed to prepare RPMs of CentOS6 on host [%s]",
-                      centos6_host.sh_hostname)
-        return -1
+    if centos6_host is not None:
+        centos6_workspace = ESMON_BUILD_LOG_DIR + "/" + relative_workspace
+        ret = host_build(centos6_workspace, centos6_host, local_host, collectd_git_path,
+                         iso_cached_dir, collectd_version_release,
+                         collectd_tarball_name, ssh_host.DISTRO_RHEL6)
+        if ret:
+            logging.error("failed to prepare RPMs of CentOS6 on host [%s]",
+                          centos6_host.sh_hostname)
+            return -1
 
     # The build host of CentOS7 could potentially be another host, not local
     # host
@@ -965,17 +976,18 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
                       retval.cr_stderr)
         return -1
 
-    command = ("rm -fr %s" % (centos6_workspace))
-    retval = centos6_host.sh_run(command)
-    if retval.cr_exit_status:
-        logging.error("failed to run command [%s] on host [%s], "
-                      "ret = [%d], stdout = [%s], stderr = [%s]",
-                      command,
-                      centos6_host.sh_hostname,
-                      retval.cr_exit_status,
-                      retval.cr_stdout,
-                      retval.cr_stderr)
-        return -1
+    if centos6_host is not None:
+        command = ("rm -fr %s" % (centos6_workspace))
+        retval = centos6_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          centos6_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
     return 0
 
 
