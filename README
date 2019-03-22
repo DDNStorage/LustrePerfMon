@@ -8,15 +8,12 @@ Lustre plugins. It can be found at:
     https://github.com/DDNStorage/collectd
 
 To build an ISO, do:
-    1. Edit /etc/esmon_build.conf
+    1. Edit /etc/esmon_build.conf. Most of the time this file can be left untouched, i.e. empty or even missing.
     2. yum install python-dateutil PyYAML pandoc pandoc-pdf tetex-fonts texlive-xetex texlive texlive-* -y
     3. ./esmon_build
 
-In /etc/esmon_build.conf, only collectd_git_branch and collectd_git_url need to be
-configured so that esmon_build knows where to get Collectd.
-
-To run test, do:
-    1. Build the ISO
-    2. Edit /etc/esmon_test.conf 
+To run reguession tests to make sure ESMON works well, do:
+    1. Build the ISO.
+    2. Edit /etc/esmon_test.conf. This configuration is more complex than esmon_build.conf as you can imagine.
     3. ./esmon_test
 

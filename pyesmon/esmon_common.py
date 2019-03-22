@@ -99,6 +99,8 @@ def config_value(config, key, mapping_dict=None):
     """
     Return value of a key in config
     """
+    if config is None:
+        return None
     if key not in config:
         return None
     value = config[key]

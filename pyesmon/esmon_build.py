@@ -786,15 +786,15 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
 
     collectd_git_url = esmon_common.config_value(config, "collectd_git_url")
     if collectd_git_url is None:
-        logging.error("can NOT find [collectd_git_url] in the config, "
-                      "please correct file [%s]", config_fpath)
-        return -1
+        collectd_git_url = "https://github.com/DDNStorage/collectd.git"
+        logging.info("can NOT find [collectd_git_url] in the config, "
+                     "use default value [%s]", collectd_git_url)
 
     collectd_git_branch = esmon_common.config_value(config, "collectd_git_branch")
     if collectd_git_branch is None:
-        logging.error("can NOT find [collectd_git_branch] in the config, "
-                      "please correct file [%s]", config_fpath)
-        return -1
+        collectd_git_branch = "master-ddn"
+        logging.info("can NOT find [collectd_git_branch] in the config, "
+                     "use default value [%s]", collectd_git_branch)
 
     ret = esmon_common.clone_src_from_git(collectd_git_path, collectd_git_url,
                                           collectd_git_branch)
@@ -992,20 +992,23 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
 
 def esmon_build(current_dir, relative_workspace, config_fpath):
     """
-    Build the ISO
+    Build the ISO. If config_fpath is None, then use default config
     """
     # pylint: disable=bare-except
-    config_fd = open(config_fpath)
-    ret = 0
-    try:
-        config = yaml.load(config_fd)
-    except:
-        logging.error("not able to load [%s] as yaml file: %s", config_fpath,
-                      traceback.format_exc())
-        ret = -1
-    config_fd.close()
-    if ret:
-        return -1
+    if config_fpath is None:
+        config = None
+    else:
+        config_fd = open(config_fpath)
+        ret = 0
+        try:
+            config = yaml.load(config_fd)
+        except:
+            logging.error("not able to load [%s] as yaml file: %s", config_fpath,
+                          traceback.format_exc())
+            ret = -1
+        config_fd.close()
+        if ret:
+            return -1
 
     return esmon_do_build(current_dir, relative_workspace, config, config_fpath)
 
@@ -1053,18 +1056,26 @@ def main():
         logging.error("[%s] is not a directory", local_workspace)
         sys.exit(-1)
 
-    print("Started building Exascaler monitoring system using config [%s], "
-          "please check [%s] for more log" %
-          (config_fpath, local_workspace))
+    config_fpath_exists = os.path.exists(config_fpath)
+    if not config_fpath_exists:
+        config_fpath = None
+        print("Started building Exascaler monitoring system using default config, "
+              "please check [%s] for more log" %
+              (local_workspace))
+    else:
+        print("Started building Exascaler monitoring system using config [%s], "
+              "please check [%s] for more log" %
+              (config_fpath, local_workspace))
     utils.configure_logging(local_workspace)
 
     console_handler = utils.LOGGING_HANLDERS["console"]
     console_handler.setLevel(logging.DEBUG)
 
-    save_fpath = local_workspace + "/" + ESMON_BUILD_CONFIG_FNAME
-    logging.debug("copying config file from [%s] to [%s]", config_fpath,
-                  save_fpath)
-    shutil.copyfile(config_fpath, save_fpath)
+    if config_fpath_exists:
+        save_fpath = local_workspace + "/" + ESMON_BUILD_CONFIG_FNAME
+        logging.debug("copying config file from [%s] to [%s]", config_fpath,
+                      save_fpath)
+        shutil.copyfile(config_fpath, save_fpath)
 
     ret = esmon_build(current_dir, relative_workspace, config_fpath)
     if ret:
