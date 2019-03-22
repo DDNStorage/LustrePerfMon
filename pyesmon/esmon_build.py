@@ -889,14 +889,13 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
         return -1
 
     server_rpms = {}
-    name = "grafana-5.0.4-1.x86_64.rpm"
-    url = ("https://s3-us-west-2.amazonaws.com/grafana-releases/release/"
-           "grafana-5.0.4-1.x86_64.rpm")
+    name = "grafana-6.0.2-1.x86_64.rpm"
+    url = ("https://dl.grafana.com/oss/release/grafana-6.0.2-1.x86_64.rpm")
     server_rpms[name] = url
 
-    name = "influxdb-1.4.2.x86_64.rpm"
+    name = "influxdb-1.7.4.x86_64.rpm"
     url = ("https://dl.influxdata.com/influxdb/releases/"
-           "influxdb-1.4.2.x86_64.rpm")
+           "influxdb-1.7.4.x86_64.rpm")
     server_rpms[name] = url
 
     for name, url in server_rpms.iteritems():
@@ -907,7 +906,7 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
             logging.debug("file [%s] doesn't exist, downloading it", fpath)
             command = ("cd %s && wget --no-check-certificate %s" %
                        (local_server_rpm_dir, url))
-            retval = local_host.sh_run(command)
+            retval = local_host.sh_run(command, timeout=3600)
             if retval.cr_exit_status:
                 logging.error("failed to run command [%s] on host [%s], "
                               "ret = [%d], stdout = [%s], stderr = [%s]",
