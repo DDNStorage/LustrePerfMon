@@ -9,7 +9,7 @@ Lustre plugins. It can be found at:
 
 To build an ISO, do:
     1. Edit /etc/esmon_build.conf. Most of the time this file can be left untouched, i.e. empty or even missing.
-    2. yum install python-dateutil PyYAML pandoc pandoc-pdf tetex-fonts texlive-xetex texlive texlive-* -y
+    2. yum install python-dateutil PyYAML -y
     3. ./esmon_build
 
 To run reguession tests to make sure ESMON works well, do:
