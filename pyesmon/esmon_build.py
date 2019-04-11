@@ -182,7 +182,7 @@ def collectd_build(workspace, build_host, local_host, collectd_git_path,
     Build Collectd on CentOS6/7 host
     """
     # pylint: disable=too-many-return-statements,too-many-arguments
-     # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+    # pylint: disable=too-many-locals,too-many-branches,too-many-statements
     if distro == ssh_host.DISTRO_RHEL6:
         distro_number = "6"
     elif distro == ssh_host.DISTRO_RHEL7:
