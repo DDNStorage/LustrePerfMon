@@ -56,7 +56,7 @@ class WatchedIO(io.TextIOWrapper):
         And also, even the encoding should be utf-8
         there will be some error, so need to ignore it.
         """
-        #pylint: disable=bare-except
+        # pylint: disable=bare-except
         self.wi_check_time = time_util.utcnow()
         data = unicode(data, encoding='utf-8', errors='ignore')
         try:
