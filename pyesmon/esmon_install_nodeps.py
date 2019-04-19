@@ -2288,8 +2288,14 @@ def esmon_install_parse_config(workspace, config, config_fpath):
             return -1, esmon_server, esmon_clients
 
         if host_id not in hosts:
-            logging.error("ESMON client with ID [%s] is NOT configured in "
+            logging.error("ESMON agent with ID [%s] is NOT configured in "
                           "[ssh_hosts], please correct file [%s]",
+                          host_id, config_fpath)
+            return -1, esmon_server, esmon_clients
+
+        if host_id in esmon_clients:
+            logging.error("ESMON agent with ID [%s] is configured multiple times, "
+                          "please correct file [%s]",
                           host_id, config_fpath)
             return -1, esmon_server, esmon_clients
 
