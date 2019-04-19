@@ -212,7 +212,7 @@ class EsmonServer(object):
         command = ("service influxdb status")
         ret = self.es_host.sh_wait_update(command, expect_exit_status=3)
         if ret:
-            logging.error("failed to drop Influx database of ESMON")
+            logging.error("failed to wait until influxdb stops")
             return -1
 
         command = "rpm -e --nodeps influxdb"
@@ -1960,15 +1960,9 @@ class EsmonClient(object):
 
         # The start might return 0 even failure happened, so check again
         command = ("service collectd status")
-        retval = self.ec_host.sh_run(command)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          self.ec_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
+        ret = self.ec_host.sh_wait_update(command, expect_exit_status=0)
+        if ret:
+            logging.error("failed to wait until collectd starts")
             return -1
 
         command = ("chkconfig collectd on")
@@ -1986,9 +1980,9 @@ class EsmonClient(object):
 
     def ec_collectd_restart(self):
         """
-        Stop collectd
+        restart collectd
         """
-        command = ("service collectd restart")
+        command = ("service collectd stop")
         retval = self.ec_host.sh_run(command)
         if retval.cr_exit_status:
             logging.error("failed to run command [%s] on host [%s], "
@@ -1998,6 +1992,30 @@ class EsmonClient(object):
                           retval.cr_exit_status,
                           retval.cr_stdout,
                           retval.cr_stderr)
+            return -1
+
+        command = ("service collectd status")
+        ret = self.ec_host.sh_wait_update(command, expect_exit_status=3)
+        if ret:
+            logging.error("failed to wait until collectd stops")
+            return -1
+
+        command = ("service collectd start")
+        retval = self.ec_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.ec_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        command = ("service collectd status")
+        ret = self.ec_host.sh_wait_update(command, expect_exit_status=0)
+        if ret:
+            logging.error("failed to wait until collectd starts")
             return -1
         return 0
 
