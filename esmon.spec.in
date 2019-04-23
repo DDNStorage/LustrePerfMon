@@ -30,8 +30,6 @@ for PYESMON_FILE in $PYESMON_FILES; do
     pylint --disable=I $PYESMON_FILE
     pep8 --ignore=E501 $PYESMON_FILE
 done
-python -m py_compile pyesmon/*.py
-rm -f pyesmon/*.py
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -39,7 +37,6 @@ mkdir -p $RPM_BUILD_ROOT%{_bindir}
 mkdir -p $RPM_BUILD_ROOT%{_libdir}/esmon
 mkdir -p $RPM_BUILD_ROOT%{python_sitelib}
 mkdir -p $RPM_BUILD_ROOT%{_mandir}/man1/
-rm -f $RPM_BUILD_ROOT%{python_sitelib}/pyesmon/*.py
 cp -a esmon_config $RPM_BUILD_ROOT%{_bindir}
 cp -a esmon_influxdb $RPM_BUILD_ROOT%{_bindir}
 cp -a esmon_install $RPM_BUILD_ROOT%{_bindir}
