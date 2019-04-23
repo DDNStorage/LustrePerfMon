@@ -1597,6 +1597,10 @@ class EsmonClient(object):
 
         config = collectd.CollectdConfig(self, self.ec_collect_interval,
                                          self.ec_job_id_var)
+        # On some hosts, Collectd might get an hostname that differs from the
+        # output of command "hostname". Thus, fix the hostname in Collectd
+        # by configuring it.
+        config.cc_configs["Hostname"] = '"' + self.ec_fqdn + '"'
         config.cc_configs["Interval"] = collectd.COLLECTD_INTERVAL_TEST
         if self.ec_enable_lustre_oss or self.ec_enable_lustre_mds:
             ret = config.cc_plugin_lustre(self.ec_lustre_version,
