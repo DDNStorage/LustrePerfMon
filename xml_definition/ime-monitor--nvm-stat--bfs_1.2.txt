@@ -1,0 +1,59 @@
+Data was produced by PID 16367 at Fri Apr 26 21:59:49 2019
+BFS Information:
+Name:             ime_work
+Mount:            /work
+UUID:             1d4d232c-7ee8-4acb-bdc6-3c51a2ff146c
+Type:             Local
+State:            Open  UUIG config found
+rootdir fd:       259
+hashdir fd:       260
+Stride bits:      0
+status:           Queue ready for IO
+Read bytes:       2106648208759
+Write bytes:      48422912
+Reads:            11676431
+Writes:           584
+Creates:          52834
+Unlinks:          52717
+fsync:            0
+fstat:            327615
+ftruncate:        2010
+ns_multi:         84762
+create errors:    0
+unlink errors:    0
+read errors:      0
+write errors:     0
+fsync errors:     0
+fstat errors:     0
+ftruncate errors: 0
+ns_multi errors:  56140
+
+
+CML Device Stats
+| ID |        NAME       |             READ           |            WRITE           |      UNMAP        | %FREE  |      STATUS      |
+|    |                   |   IOs   | Lat (us)|   MBs  |   IOs   | Lat (us)|   MBs  |   IOs   | Lat (us)|        |                  |
+|  0 |   //dev/md/cmtlog |      13 |     141 |    0.3 |       3 |     144 |    0.1 |       0 |       0 |  99.13 |     Device is OK |
+|  1 |    /dev/ime_nvme0 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.72 |     Device is OK |
+|  2 |    /dev/ime_nvme1 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.72 |     Device is OK |
+|  3 |   /dev/ime_nvme10 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.26 |     Device is OK |
+|  4 |   /dev/ime_nvme11 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.26 |     Device is OK |
+|  5 |   /dev/ime_nvme12 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.72 |     Device is OK |
+|  6 |   /dev/ime_nvme13 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.79 |     Device is OK |
+|  7 |   /dev/ime_nvme14 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.79 |     Device is OK |
+|  8 |   /dev/ime_nvme15 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.79 |     Device is OK |
+|  9 |   /dev/ime_nvme16 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.79 |     Device is OK |
+| 10 |   /dev/ime_nvme17 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.79 |     Device is OK |
+| 11 |   /dev/ime_nvme18 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.31 |     Device is OK |
+| 12 |   /dev/ime_nvme19 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.32 |     Device is OK |
+| 13 |    /dev/ime_nvme2 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.72 |     Device is OK |
+| 14 |   /dev/ime_nvme20 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.34 |     Device is OK |
+| 15 |   /dev/ime_nvme21 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.31 |     Device is OK |
+| 16 |   /dev/ime_nvme22 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.27 |     Device is OK |
+| 17 |   /dev/ime_nvme23 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.26 |     Device is OK |
+| 18 |    /dev/ime_nvme3 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.79 |     Device is OK |
+| 19 |    /dev/ime_nvme4 |       1 |      72 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.72 |     Device is OK |
+| 20 |    /dev/ime_nvme5 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.72 |     Device is OK |
+| 21 |    /dev/ime_nvme6 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.26 |     Device is OK |
+| 22 |    /dev/ime_nvme7 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.26 |     Device is OK |
+| 23 |    /dev/ime_nvme8 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.32 |     Device is OK |
+| 24 |    /dev/ime_nvme9 |       0 |       0 |    0.0 |       0 |       0 |    0.0 |       0 |       0 |  97.30 |     Device is OK |

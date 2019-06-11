@@ -22,6 +22,8 @@ XML_FNAME_ES2 = "lustre-ieel-2.5_definition.xml"
 XML_FNAME_ES3 = "lustre-ieel-2.7_definition.xml"
 XML_FNAME_ES4 = "lustre-es4-2.10.xml"
 XML_FNAME_2_12 = "lustre-2.12.xml"
+XML_FNAME_IME_1_1 = "ime-1.1.xml"
+XML_FNAME_IME_1_2 = "ime-1.2.xml"
 
 
 def lustre_version_xml_fname(lustre_version):
@@ -908,13 +910,19 @@ PostCacheChain "PostCache"
             client.ec_needed_collectd_rpms.append(rpm_name)
         return 0
 
-    def cc_plugin_ime(self):
+    def cc_plugin_ime(self, ime_version):
         """
         Config the IME plugin
         """
-        self.cc_plugins["ime"] = """<Plugin "ime">
+        ime_config_file = "ime-%s.xml" % ime_version
+        if ime_config_file != XML_FNAME_IME_1_1 and ime_config_file != XML_FNAME_IME_1_2:
+            logging.error("unsupported IME version [%s]",
+                          ime_version)
+            return -1
+
+        self.cc_plugins["ime"] = ("""<Plugin "ime">
     <Common>
-        DefinitionFile "/etc/ime-0.1_definition.xml"
+        DefinitionFile "/etc/%s"
     </Common>
     <Item>
         Type "nvm-stat"
@@ -922,9 +930,12 @@ PostCacheChain "PostCache"
     <Item>
         Type "bfs-stat"
     </Item>
+    <Item>
+        Type "UM-stat"
+    </Item>
 </Plugin>
 
-"""
+""" % (ime_config_file))
         client = self.cc_esmon_client
         rpm_name = "collectd-ime"
         if rpm_name not in client.ec_needed_collectd_rpms:

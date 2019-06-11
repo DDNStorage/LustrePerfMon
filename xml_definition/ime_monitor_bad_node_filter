@@ -1,0 +1,13 @@
+#!/bin/bash
+#set -x
+
+TEMPF=$(mktemp -q /tmp/.tmp.XXXXX)
+mapfile -t -c 1 -C "echo -e >> $TEMPF"
+timestamp=`grep -Eo '[[:upper:]][[:lower:]]{2} [[:upper:]][[:lower:]]{2} [[:digit:]]{2} [[:digit:]]{2}:[[:digit:]]{2}:[[:digit:]]{2} [[:digit:]]{4}' $TEMPF`
+datenode=`date -d "$timestamp" +%s`
+#datenode=`date +%s`
+datenow=`date +%s`
+if [ `expr $datenode + 60` -gt $datenow ]; then
+	cat $TEMPF | awk '{$1 = null ;print}'
+fi
+unlink $TEMPF

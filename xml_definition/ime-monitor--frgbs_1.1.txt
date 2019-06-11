@@ -1,0 +1,23 @@
+[root@ime2 ~]# ime-monitor -s $(ime-cfg-parse -g | sed -e 's/:/./') --frgbs
+Selecting default config file: /etc/ddn/ime/ime.conf
+Data was produced by PID 14143 at Tue May  7 17:10:49 2019
+
+Utilization and Migration Statistics:
+
+	MinFreeSpaceRatio   = 15
+	FlushThresholdRatio = 40
+
+	Capacity Utilization
+	              InUse |             Total |      Percentage Free |
+	---------------------------------------------------------------
+	          681836544 |    19203738304512 |            99.996449 |
+
+	Data Migration
+	 PrestageQueued |            SyncQueued |            Clean |             Pinned |
+	--------------------------------------------------------------------------------
+	              0 |                     0 |        681782264 |                  0 |
+
+	Frag Bucket Status
+	    FullDirty | PartialDirty |    FullClean |     PartialClean |         Pinned |
+	--------------------------------------------------------------------------------
+	            0 |            0 |           81 |                1 |              0 |

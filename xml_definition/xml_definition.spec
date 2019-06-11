@@ -4,7 +4,7 @@ Release:	1
 Summary:	XML definition files and configure examples
 Group:		Applications/DDN
 License:	Share
-Packager:	Wu Libin <lwu@ddn.com>
+Packager:	Li Xi <lixi@ddn.com>
 Vendor:		DataDirect Networks
 URL:		http://www.ddn.com/
 Source0:	xml_definition.tar.gz
@@ -32,8 +32,10 @@ This package includes XML definition files and configure examples for monitor sy
 %{__install} -Dp -m0644 sfa-3.0.xml %{buildroot}%{_sysconfdir}/sfa-3.0_definition.xml
 %{__install} -Dp -m0644 sfa-11.0.xml %{buildroot}%{_sysconfdir}/sfa-11.0_definition.xml
 %{__install} -Dp -m0644 collectd.conf.all %{buildroot}%{_sysconfdir}/collectd.conf.all
-%{__install} -Dp -m0644 ime-0.1.xml %{buildroot}%{_sysconfdir}/ime-0.1_definition.xml
+%{__install} -Dp -m0644 ime-1.1.xml %{buildroot}%{_sysconfdir}
+%{__install} -Dp -m0644 ime-1.2.xml %{buildroot}%{_sysconfdir}
 %{__install} -Dp -m0644 infiniband-0.1.xml %{buildroot}%{_sysconfdir}/infiniband-0.1_definition.xml
+%{__install} -Dp -m0755 ime_monitor_bad_node_filter %{buildroot}%{_bindir}/ime_monitor_bad_node_filter
 
 %clean
 
@@ -57,8 +59,10 @@ This package includes XML definition files and configure examples for monitor sy
 %{_sysconfdir}/sfa-3.0_definition.xml
 %{_sysconfdir}/sfa-11.0_definition.xml
 %{_sysconfdir}/collectd.conf.all
-%{_sysconfdir}/ime-0.1_definition.xml
+%{_sysconfdir}/ime-1.1.xml
+%{_sysconfdir}/ime-1.2.xml
 %{_sysconfdir}/infiniband-0.1_definition.xml
+%{_bindir}/ime_monitor_bad_node_filter
 
 %changelog
 * Mon Feb 27 2017 Wang Shilong <wshilong@ddn.com> 0.1

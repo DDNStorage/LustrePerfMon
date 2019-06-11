@@ -1416,6 +1416,8 @@ class EsmonClient(object):
         self.ec_enable_lustre_oss = lustre_oss
         self.ec_enable_lustre_mds = lustre_mds
         self.ec_enable_ime = ime
+        # E.g. 1.1 or 1.2
+        self.ec_ime_version = None
         self.ec_enable_infiniband = infiniband
         self.ec_sfas = sfas
         self.ec_enable_lustre_exp_ost = lustre_exp_ost
@@ -1517,6 +1519,49 @@ class EsmonClient(object):
         self.ec_lustre_version = possible_versions[0]
         return 0
 
+    def ec_check_ime_version(self):
+        """
+        Check the IME version, set the version string to something like 1.1 or 1.2
+        """
+        command = "ime-monitor --version"
+        retval = self.ec_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.ec_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        lines = retval.cr_stdout.splitlines()
+        if len(lines) < 1:
+            logging.error("unexpected output of command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.ec_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        line = lines(0)
+        pattern = r"^ime-monitor (?P<version>\d+\.\d+).+$"
+        regular = re.compile(pattern)
+        match = regular.match(line)
+        if not match:
+            logging.error("output [%s] of command [%s] on host [%s] can match pattern [%s]",
+                          retval.cr_stdout,
+                          command,
+                          self.ec_host.sh_hostname,
+                          pattern)
+            return -1
+
+        version = match.group("version")
+        self.ec_ime_version = version
+        return 0
+
     def ec_check(self):
         """
         Sanity check of the host
@@ -1561,7 +1606,7 @@ class EsmonClient(object):
         """
         Do sanity check of the host and then prepare Collectd config
         """
-        # pylint: disable=too-many-branches
+        # pylint: disable=too-many-branches,too-many-return-statements
         ret = self.ec_check()
         if ret:
             logging.error("failed to check status on host [%s]",
@@ -1595,6 +1640,13 @@ class EsmonClient(object):
                                   "host [%s]", self.ec_host.sh_hostname)
                     return -1
 
+        if self.ec_enable_ime:
+            ret = self.ec_check_ime_version()
+            if ret:
+                logging.error("failed to check IME version on host [%s]",
+                              self.ec_host.sh_hostname)
+                return -1
+
         config = collectd.CollectdConfig(self, self.ec_collect_interval,
                                          self.ec_job_id_var)
         # On some hosts, Collectd might get an hostname that differs from the
@@ -1614,7 +1666,7 @@ class EsmonClient(object):
         if self.ec_enable_disk:
             config.cc_plugin_disk()
         if self.ec_enable_ime:
-            config.cc_plugin_ime()
+            config.cc_plugin_ime(self.ec_ime_version)
 
         if self.ec_sfas is not None:
             for sfa in self.ec_sfas:
@@ -1640,7 +1692,7 @@ class EsmonClient(object):
             config.cc_plugin_disk()
 
         if self.ec_enable_ime:
-            config.cc_plugin_ime()
+            config.cc_plugin_ime(self.ec_ime_version)
 
         if self.ec_sfas is not None:
             for sfa in self.ec_sfas:

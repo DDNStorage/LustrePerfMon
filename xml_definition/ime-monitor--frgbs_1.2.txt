@@ -1,0 +1,29 @@
+[root@fime01 ~]# ime-monitor --frgbs
+Auto-detecting monitoring data source: reading config file '/etc/ddn/ime/ime.conf'
+Data was produced by PID 16367 at Fri Apr 26 23:56:56 2019
+
+Utilization and Migration Statistics:
+
+	Min Free Space Ratio   = 5
+	Sync Threshold         = 40
+	Commit Log Throttling: ----------
+	BFS Sync Subsystem:    enabled
+	Auto Flush:            enabled
+	Data Cleanup:          enabled
+
+	Capacity Utilization
+	              InUse |             Total | Percentage Free |           Apps Heap |
+	                    |                   |                 |   Rem  |   Rsvd | S |
+	--------------------------------------------------------------------------------
+	       359860273152 |    19203738304512 |           98.13 |  98.96 |   2.28 | - |
+
+	Data Migration
+	 PrestageQueued |            SyncQueued |            Clean |             Pinned |
+	--------------------------------------------------------------------------------
+	              0 |                     0 |      37579655332 |                  0 |
+
+	Frag Bucket Status
+	    FullDirty | PartialDirty |    FullClean |     PartialClean |         Pinned |
+	--------------------------------------------------------------------------------
+	        63558 |          556 |         4467 |              109 |              0 |
+
