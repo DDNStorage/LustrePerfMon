@@ -670,16 +670,12 @@ LUSTRE_VERSION_2_7 = LustreVersion(LUSTRE_VERSION_NAME_2_7,
 
 B2_12_PATTERNS = {
     RPM_KERNEL: r"^(kernel-3.+\.x86_64\.rpm)$",
-    RPM_LUSTRE: r"^(lustre-2\.11.+\.x86_64\.rpm)$",
-    RPM_IOKIT: r"^(lustre-iokit-2\.11.+\.x86_64\.rpm)$",
-    RPM_KMOD: r"^(lustre-modules-2\.11.+\.x86_64\.rpm)$",
-    RPM_OSD_LDISKFS: r"^(lustre-osd-ldiskfs-2\.11.+\.x86_64\.rpm)$",
-    RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.11.+\.x86_64\.rpm)$",
-    RPM_OSD_ZFS: r"^(lustre-osd-zfs-2\.11.+\.x86_64\.rpm)$",
-    RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.11.+\.x86_64\.rpm)$",
-    RPM_TESTS: r"^(lustre-tests-2\.11.+\.x86_64\.rpm)$",
-    RPM_MLNX_OFA: r"^(mlnx-ofa_kernel-\d.+\.x86_64\.rpm)$",
-    RPM_MLNX_KMOD: r"^(mlnx-ofa_kernel-modules-\d.+\.x86_64\.rpm)$"}
+    RPM_LUSTRE: r"^(lustre-2\.12.+\.x86_64\.rpm)$",
+    RPM_KMOD: r"^(kmod-lustre-2\.12.+\.x86_64\.rpm)$",
+    RPM_OSD_LDISKFS: r"^(kmod-lustre-osd-ldiskfs-2\.12.+\.x86_64\.rpm)$",
+    RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.12.+\.x86_64\.rpm)$",
+    RPM_OSD_ZFS: r"^(kmod-lustre-osd-zfs-2\.12.+\.x86_64\.rpm)$",
+    RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.12.+\.x86_64\.rpm)$"}
 
 LUSTRE_VERSION_NAME_2_12 = "2.12"
 
