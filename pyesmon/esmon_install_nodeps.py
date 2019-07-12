@@ -2317,13 +2317,20 @@ def esmon_install_parse_config(workspace, config, config_fpath):
     if version_name is None:
         LUSTRE_DEFAULT_VERSION = None
     else:
+        # version_name could be something like 2.12 which will be considered
+        # as a float. And that would cause problem when trying to comparing it
+        # to version names which is strings.
+        version_name = str(version_name)
+        supported_versions = []
         for version in lustre.LUSTER_VERSIONS:
+            supported_versions.append(version.lv_name)
             if version.lv_name == version_name:
                 LUSTRE_DEFAULT_VERSION = version
                 break
         if LUSTRE_DEFAULT_VERSION is None:
-            logging.error("unsupported Lustre version [%s], please correct "
-                          "file [%s]", version_name, config_fpath)
+            logging.error("unsupported Lustre version [%s], supported "
+                          "versions are %s, please correct file [%s]",
+                          version_name, supported_versions, config_fpath)
             return -1, esmon_server, esmon_clients
 
     ret, lustre_exp_ost = \
