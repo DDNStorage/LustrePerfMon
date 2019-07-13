@@ -109,6 +109,7 @@ HEAD(Lustre-es4-2.10)
 					</subpath_field>
 				</subpath>
 				<mode>directory</mode>
+				FILES_KBYTES_INFO_ENTRIES(4, mdt, ${subpath:fs_name}-${subpath:mdt_index}, 1)
 				<entry>
 					<subpath>
 						<subpath_type>constant</subpath_type>
@@ -167,6 +168,7 @@ HEAD(Lustre-es4-2.10)
 					</subpath_field>
 				</subpath>
 				<mode>directory</mode>
+				FILES_KBYTES_INFO_ENTRIES(4, ost, ${subpath:fs_name}-${subpath:ost_index}, 1)
 				<entry>
 					SUBPATH(5, constant, quota_slave, 1)
 					MODE(5, directory, 1)
@@ -887,29 +889,6 @@ HEAD(Lustre-es4-2.10)
 				</entry>
 			</entry>
 		</entry>
-		<entry>
-			<subpath>
-				<subpath_type>constant</subpath_type>
-				<path>lod</path>
-			</subpath>
-			<mode>directory</mode>
-			<entry>
-				<subpath>
-					<subpath_type>regular_expression</subpath_type>
-					<path>(^.+)-(MDT[0-9a-fA-F]+)-mdtlov</path>
-					<subpath_field>
-						<index>1</index>
-						<name>fs_name</name>
-					</subpath_field>
-					<subpath_field>
-						<index>2</index>
-						<name>mdt_index</name>
-					</subpath_field>
-				</subpath>
-				<mode>directory</mode>
-				FILES_KBYTES_INFO_ENTRIES(4, mdt, ${subpath:fs_name}-${subpath:mdt_index}, 1)
-			</entry>
-		</entry>
 	</entry>
 	<entry>
 		<subpath>
@@ -917,29 +896,6 @@ HEAD(Lustre-es4-2.10)
 			<path>/sys/fs/lustre</path>
 		</subpath>
 		<mode>directory</mode>
-		<entry>
-			<subpath>
-				<subpath_type>constant</subpath_type>
-				<path>obdfilter</path>
-			</subpath>
-			<mode>directory</mode>
-			<entry>
-				<subpath>
-					<subpath_type>regular_expression</subpath_type>
-					<path>(^.+)-(OST[0-9a-fA-F]+$)</path>
-					<subpath_field>
-						<index>1</index>
-						<name>fs_name</name>
-					</subpath_field>
-					<subpath_field>
-						<index>2</index>
-						<name>ost_index</name>
-					</subpath_field>
-				</subpath>
-				<mode>directory</mode>
-				FILES_KBYTES_INFO_ENTRIES(4, ost, ${subpath:fs_name}-${subpath:ost_index}, 1)
-			</entry>
-		</entry>
 		<entry>
 			<subpath>
 				<subpath_type>constant</subpath_type>
