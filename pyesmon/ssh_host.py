@@ -1538,7 +1538,7 @@ class SSHHost(object):
         """
         command = "getenforce"
         retval = self.sh_run(command)
-        if retval.cr_exit_status != 0 or retval.cr_stderr != "":
+        if retval.cr_exit_status != 0:
             logging.error("failed to run command [%s] on host [%s], "
                           "ret = [%d], stdout = [%s], stderr = [%s]",
                           command, self.sh_hostname,
