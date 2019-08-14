@@ -170,6 +170,34 @@ HEAD(Lustre-es4-2.10)
 				<mode>directory</mode>
 				FILES_KBYTES_INFO_ENTRIES(4, ost, ${subpath:fs_name}-${subpath:ost_index}, 1)
 				<entry>
+					<subpath>
+						<subpath_type>constant</subpath_type>
+						<path>brw_stats</path>
+					</subpath>
+					<mode>file</mode>
+					OST_BRW_STATS_ITEM(5, rpc_bulk, ^pages per bulk .+
+(.+
+)*$, [[:digit:]]+[KM]?, pages, 1)
+					OST_BRW_STATS_ITEM(5, page_discontiguous_rpc, ^discontiguous pages .+
+(.+
+)*$, [[:digit:]]+[KM]?, pages, 1)
+					OST_BRW_STATS_ITEM(5, block_discontiguous_rpc, ^discontiguous blocks .+
+(.+
+)*$, [[:digit:]]+[KM]?, blocks, 1)
+					OST_BRW_STATS_ITEM(5, fragmented_io, ^disk fragmented .+
+(.+
+)*$, [[:digit:]]+[KM]?, fragments, 1)
+					OST_BRW_STATS_ITEM(5, io_in_flight, ^disk I/Os .+
+(.+
+)*$, [[:digit:]]+[KM]?, ios, 1)
+					OST_BRW_STATS_ITEM(5, io_time, ^I/O time .+
+(.+
+)*$, [[:digit:]]+[KM]?, milliseconds, 1)
+					OST_BRW_STATS_ITEM(5, io_size, ^disk I/O size .+
+(.+
+)*$, [[:digit:]]+[KM]?, Bytes, 1)
+				</entry>
+				<entry>
 					SUBPATH(5, constant, quota_slave, 1)
 					MODE(5, directory, 1)
 					<entry>
@@ -508,34 +536,6 @@ HEAD(Lustre-es4-2.10)
 					OST_STATS_ITEM(5, get_info, reqs, 1)
 					OST_STATS_ITEM(5, set_info_async, reqs, 1)
 					OST_STATS_ITEM(5, quotactl, reqs, 1)
-				</entry>
-				<entry>
-					<subpath>
-						<subpath_type>constant</subpath_type>
-						<path>brw_stats</path>
-					</subpath>
-					<mode>file</mode>
-					OST_BRW_STATS_ITEM(5, rpc_bulk, ^pages per bulk .+
-(.+
-)*$, [[:digit:]]+[KM]?, pages, 1)
-					OST_BRW_STATS_ITEM(5, page_discontiguous_rpc, ^discontiguous pages .+
-(.+
-)*$, [[:digit:]]+[KM]?, pages, 1)
-					OST_BRW_STATS_ITEM(5, block_discontiguous_rpc, ^discontiguous blocks .+
-(.+
-)*$, [[:digit:]]+[KM]?, blocks, 1)
-					OST_BRW_STATS_ITEM(5, fragmented_io, ^disk fragmented .+
-(.+
-)*$, [[:digit:]]+[KM]?, fragments, 1)
-					OST_BRW_STATS_ITEM(5, io_in_flight, ^disk I/Os .+
-(.+
-)*$, [[:digit:]]+[KM]?, ios, 1)
-					OST_BRW_STATS_ITEM(5, io_time, ^I/O time .+
-(.+
-)*$, [[:digit:]]+[KM]?, milliseconds, 1)
-					OST_BRW_STATS_ITEM(5, io_size, ^disk I/O size .+
-(.+
-)*$, [[:digit:]]+[KM]?, Bytes, 1)
 				</entry>
 				<entry>
 					SUBPATH(5, constant, exports, 1)
