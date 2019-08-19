@@ -763,7 +763,7 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
     centos6_host_config = esmon_common.config_value(config, "centos6_host")
     if centos6_host_config is None:
         logging.info("can NOT find [centos6_host] in the config file [%s], "
-                     "diableing CentOS6 support")
+                     "diableing CentOS6 support", config_fpath)
         centos6_host = None
     else:
         centos6_host_id = esmon_common.config_value(centos6_host_config, "host_id")
