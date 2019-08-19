@@ -680,6 +680,22 @@ def esmon_download_grafana_plugin(local_host, iso_cached_dir, plugin_name, git_u
                           retval.cr_stderr)
             return -1
 
+    for filename in esmon_common.GRAFANA_PLUGIN_FILENAMES:
+        filepath = "%s/%s" % (panel_git_path, filename)
+
+        command = "test -e %s" % filepath
+        retval = local_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          local_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+    return 0
+
 
 def esmon_download_grafana_plugins(local_host, iso_cached_dir):
     """

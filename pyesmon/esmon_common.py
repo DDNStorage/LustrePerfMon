@@ -93,6 +93,8 @@ GRAFANA_PLUGIN_GITS[GRAFANA_STATUS_PANEL] = "https://github.com/Vonage/Grafana_S
 GRAFANA_PLUGIN_GITS[GRAFANA_PIECHART_PANEL] = "https://github.com/grafana/piechart-panel.git"
 GRAFANA_PLUGIN_GITS[GRAFANA_SAVANTLY_HEATMAP_PANEL] = ("https://github.com/savantly-net/"
                                                        "grafana-heatmap.git")
+# The files under plugin directory to check the directory is complete
+GRAFANA_PLUGIN_FILENAMES = ["src", "README.md", "package.json"]
 
 
 def config_value(config, key, mapping_dict=None):
