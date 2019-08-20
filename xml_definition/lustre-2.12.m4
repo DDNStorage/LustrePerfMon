@@ -618,6 +618,66 @@ HEAD(Lustre-es4-2.10)
 				MDC_MDT_CONSTANT_FILE_ENTRY(4, max_rpcs_in_flight, (.+), mdc_rpcs, gauge, max_rpcs_in_flight, max_rpcs_in_flight, 1)
 			</entry>
 		</entry>
+	</entry>
+	<entry>
+		<subpath>
+			<subpath_type>constant</subpath_type>
+			<path>/sys/fs/lustre</path>
+		</subpath>
+		<mode>directory</mode>
+		<entry>
+			<subpath>
+				<subpath_type>constant</subpath_type>
+				<path>ldlm</path>
+			</subpath>
+			<mode>directory</mode>
+			<entry>
+				<subpath>
+					<subpath_type>constant</subpath_type>
+					<path>namespaces</path>
+				</subpath>
+				<mode>directory</mode>
+				<entry>
+					<subpath>
+						<subpath_type>regular_expression</subpath_type>
+						<path>^filter-(.+)-(OST[0-9a-fA-F]+)_UUID$</path>
+						<subpath_field>
+							<index>1</index>
+							<name>fs_name</name>
+						</subpath_field>
+						<subpath_field>
+							<index>2</index>
+							<name>ost_index</name>
+						</subpath_field>
+					</subpath>
+					<mode>directory</mode>
+					LDLM_LOCK_INFO_ENTRIES(5, ost, ${subpath:fs_name}-${subpath:ost_index}, 1)
+				</entry>
+				<entry>
+					<subpath>
+						<subpath_type>regular_expression</subpath_type>
+						<path>^mdt-(.+)-(MDT[0-9a-fA-F]+)_UUID$</path>
+						<subpath_field>
+							<index>1</index>
+							<name>fs_name</name>
+						</subpath_field>
+						<subpath_field>
+							<index>2</index>
+							<name>mdt_index</name>
+						</subpath_field>
+					</subpath>
+					<mode>directory</mode>
+					LDLM_LOCK_INFO_ENTRIES(5, mdt, ${subpath:fs_name}-${subpath:mdt_index}, 1)
+				</entry>
+			</entry>
+		</entry>
+	</entry>
+	<entry>
+		<subpath>
+			<subpath_type>constant</subpath_type>
+			<path>/sys/kernel/debug/lustre</path>
+		</subpath>
+		<mode>directory</mode>
 		<entry>
 			<subpath>
 				<subpath_type>constant</subpath_type>
@@ -889,66 +949,6 @@ HEAD(Lustre-es4-2.10)
 				</entry>
 			</entry>
 		</entry>
-	</entry>
-	<entry>
-		<subpath>
-			<subpath_type>constant</subpath_type>
-			<path>/sys/fs/lustre</path>
-		</subpath>
-		<mode>directory</mode>
-		<entry>
-			<subpath>
-				<subpath_type>constant</subpath_type>
-				<path>ldlm</path>
-			</subpath>
-			<mode>directory</mode>
-			<entry>
-				<subpath>
-					<subpath_type>constant</subpath_type>
-					<path>namespaces</path>
-				</subpath>
-				<mode>directory</mode>
-				<entry>
-					<subpath>
-						<subpath_type>regular_expression</subpath_type>
-						<path>^filter-(.+)-(OST[0-9a-fA-F]+)_UUID$</path>
-						<subpath_field>
-							<index>1</index>
-							<name>fs_name</name>
-						</subpath_field>
-						<subpath_field>
-							<index>2</index>
-							<name>ost_index</name>
-						</subpath_field>
-					</subpath>
-					<mode>directory</mode>
-					LDLM_LOCK_INFO_ENTRIES(5, ost, ${subpath:fs_name}-${subpath:ost_index}, 1)
-				</entry>
-				<entry>
-					<subpath>
-						<subpath_type>regular_expression</subpath_type>
-						<path>^mdt-(.+)-(MDT[0-9a-fA-F]+)_UUID$</path>
-						<subpath_field>
-							<index>1</index>
-							<name>fs_name</name>
-						</subpath_field>
-						<subpath_field>
-							<index>2</index>
-							<name>mdt_index</name>
-						</subpath_field>
-					</subpath>
-					<mode>directory</mode>
-					LDLM_LOCK_INFO_ENTRIES(5, mdt, ${subpath:fs_name}-${subpath:mdt_index}, 1)
-				</entry>
-			</entry>
-		</entry>
-	</entry>
-	<entry>
-		<subpath>
-			<subpath_type>constant</subpath_type>
-			<path>/sys/kernel/debug/lustre</path>
-		</subpath>
-		<mode>directory</mode>
 		<entry>
 			<subpath>
 				<subpath_type>constant</subpath_type>
