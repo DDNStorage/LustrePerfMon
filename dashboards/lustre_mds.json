@@ -7356,7 +7356,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "alias": "Minimum Number of Active LDLM Canceld Requests",
+              "alias": "Minimum Number of Active LDLM Callback Requests",
               "dsType": "influxdb",
               "groupBy": [],
               "measurement": "ldlm_cbd_stats_req_active_min",
@@ -7386,7 +7386,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Minimum Number of Active LDLM Canceld Requests",
+          "title": "Minimum Number of Active LDLM Callback Requests",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -7453,7 +7453,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "alias": "Average Number of Active LDLM Canceld Requests",
+              "alias": "Average Number of Active LDLM Callback Requests",
               "dsType": "influxdb",
               "groupBy": [],
               "measurement": "ldlm_cbd_stats_req_active_mean",
@@ -7483,7 +7483,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Average Number of Active LDLM Canceld Requests",
+          "title": "Average Number of Active LDLM Callback Requests",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -7550,7 +7550,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "alias": "Maximum Number of Active LDLM Canceld Requests",
+              "alias": "Maximum Number of Active LDLM Callback Requests",
               "dsType": "influxdb",
               "groupBy": [],
               "measurement": "ldlm_cbd_stats_req_active_max",
@@ -7580,7 +7580,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Maximum Number of Active LDLM Canceld Requests",
+          "title": "Maximum Number of Active LDLM Callback Requests",
           "tooltip": {
             "shared": true,
             "sort": 0,
