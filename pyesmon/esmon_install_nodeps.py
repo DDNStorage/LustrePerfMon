@@ -62,6 +62,7 @@ RPM_TYPE_XML = "xml"
 LUSTRE_DEFAULT_VERSION = None
 XML_FNAME_SFA3 = "sfa-3.0_definition.xml"
 XML_FNAME_SFA11 = "sfa-11.0_definition.xml"
+XML_FNAME_SFA11_6 = "sfa-11.6_definition.xml"
 
 
 def grafana_dashboard_check(name, dashboard):
@@ -1194,6 +1195,18 @@ class EsmonServer(object):
         return ret
 
 
+def int_safe(int_str):
+    """
+    Return the int safely
+    """
+    # pylint: disable=bare-except
+    try:
+        i = int(int_str)
+    except:
+        return None
+    return i
+
+
 class EsmonSFA(object):
     """
     Each SFA config block on a ESMON agent has an object of this type
@@ -1353,33 +1366,42 @@ class EsmonSFA(object):
                           command, self.esfa_name)
             return -1
 
-        release_pattern = (r" +Release: +(?P<release>\S*)$")
+        release_pattern = (r" +Release: +(?P<major>\d+)\.(?P<minor>\d+)\..+")
         release_regular = re.compile(release_pattern)
 
-        release = None
+        major = None
         for line in ret.cr_stdout.splitlines():
             logging.debug("checking line [%s]", line)
             match = release_regular.match(line)
             if not match:
                 continue
 
-            release = match.group("release")
+            major = match.group("major")
+            minor = match.group("minor")
             break
 
-        if release is None:
-            logging.error("failed to get release of SFA from outout of "
+        if major is None:
+            logging.error("failed to get release of SFA from output of "
                           "command [%s] on SFA [%s], unsupported version of SFA? "
                           "Output:\n%s",
                           command, self.esfa_name, ret.cr_stdout)
             return -1
 
-        if release.startswith("3."):
+        if major == "3":
             xml_fname = XML_FNAME_SFA3
-        elif release.startswith("11."):
-            xml_fname = XML_FNAME_SFA11
+        elif major == "11":
+            minor_int = int_safe(minor)
+            if minor_int is None:
+                logging.error("unsupported firmware release [%s.%s] of SFA [%s]",
+                              major, minor, self.esfa_name)
+                return -1
+            elif minor_int > 5:
+                xml_fname = XML_FNAME_SFA11_6
+            else:
+                xml_fname = XML_FNAME_SFA11
         else:
-            logging.error("unsupported firmware release [%s] of SFA [%s]",
-                          release, self.esfa_name)
+            logging.error("unsupported firmware release [%s.%s] of SFA [%s]",
+                          major, minor, self.esfa_name)
             return -1
 
         self.esfa_xml_fname = xml_fname

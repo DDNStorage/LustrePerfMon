@@ -15,7 +15,8 @@ M4_DESTINE_FILES = gpfs-3.5.m4 \
 	lustre-es4-2.10.m4 \
 	lustre-2.12.m4 \
 	sfa-3.0.m4 \
-	sfa-11.0.m4
+	sfa-11.0.m4 \
+	sfa-11.6.m4
 
 
 M4_FILES = general.m4 lustre.m4 sfa.m4 $(M4_DESTINE_FILES)
