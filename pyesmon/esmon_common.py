@@ -175,16 +175,16 @@ ESMON_INSTALL_DEPENDENT_RPMS = ["rsync",
                                 "python-dateutil"]
 
 # patch is needed to patch /etc/influxdb/influxdb.conf file
-# fontconfig and urw-fonts are needed by grafana-*.x86_64.rpm
+# fontconfig and urw-base35-fonts are needed by grafana-*.x86_64.rpm
 # fontpackages-filesystem, bitmap-console-fonts(font(:lang=en)) are
 # needed by fontconfig
-# xorg-x11-font-utils is needed by urw-fonts
+# xorg-x11-font-utils is needed by urw-base35-fonts
 # libXfont is needed by xorg-x11-font-utils
 # libfontenc is needed by libXfont
 ESMON_SERVER_DEPENDENT_RPMS = ["rsync", "patch", "fontpackages-filesystem",
                                "bitmap-console-fonts", "fontconfig",
                                "libfontenc", "libXfont",
-                               "xorg-x11-font-utils", "urw-fonts"]
+                               "xorg-x11-font-utils", "urw-base35-fonts"]
 
 
 # yajl is needed by collectd
