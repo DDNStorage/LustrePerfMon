@@ -38,6 +38,8 @@ def lustre_version_xml_fname(lustre_version):
         xml_fname = XML_FNAME_ES4
     elif lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_2_7:
         xml_fname = XML_FNAME_ES3
+    elif lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_2_10:
+        xml_fname = XML_FNAME_ES4
     elif lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_2_12:
         xml_fname = XML_FNAME_2_12
     else:

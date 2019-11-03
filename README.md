@@ -154,7 +154,7 @@ After the LustrePerfMon RPM has been installed on the Installation Server, updat
 
 - **iso_path** — The path where the LustrePerfMon ISO image is saved. Default value: **/root/esmon.iso**.
 
-- **lustre_default_version** — The default Lustre version to use, if the Lustre RPMs installed on the LustrePerfMon client is not the supported version. The current supported values of the parameter are **es2**, **es3**, **es4** and **error**. If the parameter **error** is configured, an error will be raised when an LustrePerfMon client is using an unsupported Lustre version.
+- **lustre_default_version** — The default Lustre version to use, if the Lustre RPMs installed on the LustrePerfMon client is not the supported version. The current supported values of the parameter are **2.7**, **2.10**, **2.12**, **es2**, **es3**, **es4** and **error**. If the parameter **error** is configured, an error will be raised when an LustrePerfMon client is using an unsupported Lustre version.
 
 - **lustre_exp_ost** — Define whether to enable (**true**) or disable (**false**) metrics collection of export information of Lustre OST. To avoid a flood of metrics, this parameter is usually disabled in Lustre file systems with a large number of clients. Default value: **false**.
 
