@@ -702,16 +702,31 @@ LUSTRE_VERSION_NAME_2_12 = "2.12"
 LUSTRE_VERSION_2_12 = LustreVersion(LUSTRE_VERSION_NAME_2_12,
                                     B2_12_PATTERNS,  # rpm_patterns
                                     "3")  # kernel_major_version
+B2_13_PATTERNS = {
+    RPM_KERNEL: r"^(kernel-3.+\.x86_64\.rpm)$",
+    RPM_LUSTRE: r"^(lustre-2\.13.+\.x86_64\.rpm)$",
+    RPM_KMOD: r"^(kmod-lustre-2\.13.+\.x86_64\.rpm)$",
+    RPM_OSD_LDISKFS: r"^(kmod-lustre-osd-ldiskfs-2\.13.+\.x86_64\.rpm)$",
+    RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.13.+\.x86_64\.rpm)$",
+    RPM_OSD_ZFS: r"^(kmod-lustre-osd-zfs-2\.13.+\.x86_64\.rpm)$",
+    RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.13.+\.x86_64\.rpm)$"}
+
+LUSTRE_VERSION_NAME_2_13 = "2.13"
+
+LUSTRE_VERSION_2_13 = LustreVersion(LUSTRE_VERSION_NAME_2_13,
+                                    B2_13_PATTERNS,  # rpm_patterns
+                                    "3")  # kernel_major_version
 
 LUSTER_VERSIONS = [LUSTRE_VERSION_ES2, LUSTRE_VERSION_ES3, LUSTRE_VERSION_ES4,
-                   LUSTRE_VERSION_2_7, LUSTRE_VERSION_2_10, LUSTRE_VERSION_2_12]
+                   LUSTRE_VERSION_2_7, LUSTRE_VERSION_2_10, LUSTRE_VERSION_2_12,
+                   LUSTRE_VERSION_2_13]
 
 LUSTRE_VERSION_NAME_ERROR = "error"
 
 LUSTER_VERSION_NAMES = [LUSTRE_VERSION_NAME_ES2, LUSTRE_VERSION_NAME_ES3,
                         LUSTRE_VERSION_NAME_ES4, LUSTRE_VERSION_NAME_2_7,
                         LUSTRE_VERSION_NAME_2_10, LUSTRE_VERSION_NAME_2_12,
-                        LUSTRE_VERSION_NAME_ERROR]
+                        LUSTRE_VERSION_NAME_2_13, LUSTRE_VERSION_NAME_ERROR]
 
 
 def match_rpm_patterns(data, rpm_dict, possible_versions):

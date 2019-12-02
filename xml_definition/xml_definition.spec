@@ -28,6 +28,7 @@ This package includes XML definition files and configure examples for monitor sy
 %{__install} -Dp -m0644 lustre-ieel-2.7.xml %{buildroot}%{_sysconfdir}/lustre-ieel-2.7_definition.xml
 %{__install} -Dp -m0644 lustre-es4-2.10.xml %{buildroot}%{_sysconfdir}/lustre-es4-2.10.xml
 %{__install} -Dp -m0644 lustre-2.12.xml %{buildroot}%{_sysconfdir}/lustre-2.12.xml
+%{__install} -Dp -m0644 lustre-2.13.xml %{buildroot}%{_sysconfdir}/lustre-2.13.xml
 %{__install} -Dp -m0644 gpfs-3.5.xml %{buildroot}%{_sysconfdir}/gpfs-3.5_definition.xml
 %{__install} -Dp -m0644 sfa-3.0.xml %{buildroot}%{_sysconfdir}/sfa-3.0_definition.xml
 %{__install} -Dp -m0644 sfa-11.0.xml %{buildroot}%{_sysconfdir}/sfa-11.0_definition.xml
@@ -55,6 +56,7 @@ This package includes XML definition files and configure examples for monitor sy
 %{_sysconfdir}/lustre-ieel-2.7_definition.xml
 %{_sysconfdir}/lustre-es4-2.10.xml
 %{_sysconfdir}/lustre-2.12.xml
+%{_sysconfdir}/lustre-2.13.xml
 %{_sysconfdir}/gpfs-3.5_definition.xml
 %{_sysconfdir}/sfa-3.0_definition.xml
 %{_sysconfdir}/sfa-11.0_definition.xml

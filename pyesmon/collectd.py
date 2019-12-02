@@ -22,6 +22,7 @@ XML_FNAME_ES2 = "lustre-ieel-2.5_definition.xml"
 XML_FNAME_ES3 = "lustre-ieel-2.7_definition.xml"
 XML_FNAME_ES4 = "lustre-es4-2.10.xml"
 XML_FNAME_2_12 = "lustre-2.12.xml"
+XML_FNAME_2_13 = "lustre-2.13.xml"
 XML_FNAME_IME_1_1 = "ime-1.1.xml"
 XML_FNAME_IME_1_2 = "ime-1.2.xml"
 
@@ -42,6 +43,8 @@ def lustre_version_xml_fname(lustre_version):
         xml_fname = XML_FNAME_ES4
     elif lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_2_12:
         xml_fname = XML_FNAME_2_12
+    elif lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_2_13:
+        xml_fname = XML_FNAME_2_13
     else:
         logging.error("unsupported Lustre version of [%s]",
                       lustre_version.lv_name)
@@ -54,7 +57,7 @@ def support_zfs(xml_fname):
     Whether this XML file supports zfs
     """
     if (xml_fname == XML_FNAME_ES3 or xml_fname == XML_FNAME_ES4 or
-            xml_fname == XML_FNAME_2_12):
+            xml_fname == XML_FNAME_2_12 or xml_fname == XML_FNAME_2_13):
         return True
     return False
 
