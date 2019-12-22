@@ -1,27 +1,27 @@
-# DDN Exascaler Monitoring System Manual
+# Exascaler Monitoring System Manual
 
-## Introduction to DDN EXAScaler Performance Monitoring System
+## Introduction to EXAScaler Performance Monitoring System
 
-*LustrePerfMon* is a monitoring system that can collect system statistics of DDN EXAScaler for performance monitoring and analysis. It is based on multiple widely used open-source software. Some extra plugins have been developed by DDN for enhancement.
+*LustrePerfMon* is a monitoring system that can collect system statistics of EXAScaler for performance monitoring and analysis. It is based on multiple widely used open-source software. Some extra plugins have been developed for enhancement.
 
 One of the main components of *LustrePerfMon* is **сollectd**. **collectd** is a daemon, which collects system performance statistics periodically and provides mechanisms to store the values in a variety of ways. *LustrePerfMon* is based on the open-source **collectd**, yet includes more plugins, such as Filedata, Ganglia, Nagios, Stress, Zabbix and so on.
 
 ### Terminology
 
-- **LustrePerfMon**: Abbreviation for *DDN EXAScaler Performance Monitoring System*.
-- **DDN SFA**: *DDN* *Storage Fusion Architecture* provides the foundation for balanced, high-performance storage. Using highly parallelized storage processing technology, SFA delivers both unprecedented IOPS and massive throughput.
-- **DDN EXAScaler**: Software stack developed by DDN to overcome the toughest storage and data management challenges in extreme, data-intensive environments.
+- **LustrePerfMon**: Abbreviation for *EXAScaler Performance Monitoring System*.
+- **SFA**: *Storage Fusion Architecture* provides the foundation for balanced, high-performance storage. Using highly parallelized storage processing technology, SFA delivers both unprecedented IOPS and massive throughput.
+- **EXAScaler**: Software stack developed to overcome the toughest storage and data management challenges in extreme, data-intensive environments.
 - **Installation Server**: The server on which the installation process is triggered.
 - **Monitoring Server**: The server on which the database (*Influxdb*) and web server (*Grafana*) of the monitoring system will run.
 - **Monitoring** **Agent(s)**: The hosts, from which the monitoring system will collect metrics from. The metrics includes information about CPU, memory, Lustre, SFA storage, and so on. A *collectd* daemon will run on each monitoring client.
-- **DDN IME**: DDN’s *Infinite Memory Engine (IME)* is a flash-native, software-defined, storage cache that streamlines application IO, eliminating system bottlenecks.
+- **IME**: *Infinite Memory Engine (IME)* is a flash-native, software-defined, storage cache that streamlines application IO, eliminating system bottlenecks.
 - **Lustre**: The *Lustre* file system is an open-source, parallel file system  that supports many requirements of leadership class HPC simulation environments.
 - **OST**: The *Object Storage Target(OST)* of *Lustre* is the storage target that store the file data objects.
 - **OSS**: The *Object Storage Server(OSS)* of *Lustre* is the server that manage the *Object Storage Target*.
 - **MDT**: The *Metadata Target(MDT)* of *Lustre* is the storage target that stores the file metadata.
 - **MDS**: The *Metadata Servers(MDS)* of *Lustre* is the server that provides metadata services for a file system and manages one or multiple Metadata Target (MDT).
 
-### Collectd plugins of DDN
+### Collectd plugins
 
 Several additional plugins are added to **collectd** in LustrePerfMon to support various functions.
 
@@ -29,9 +29,9 @@ Several additional plugins are added to **collectd** in LustrePerfMon to support
 
 - **Ganglia plugin**: The **Ganglia** plugin can send metrics collected by a **collectd** client daemon to Ganglia server.
 
-- **IME plugin**: The **IME** plugin can collect performance information from **DDN IME**. The **IME** plugin shares the similar definition file format and configuration format with the **Filedata** plugin.
+- **IME plugin**: The **IME** plugin can collect performance information from **IME**. The **IME** plugin shares the similar definition file format and configuration format with the **Filedata** plugin.
 
-- **SSH plugin**: The **SSH** plugin is able to collect metrics by running commands on remote hosts by using SSH connections. The **SSH** plugin is used to collect metrics from DDN SFA Storage. Like the **IME** plugin, the **SSH** plugin shares the similar definition file format and configuration format with the **Filedata** plugin.
+- **SSH plugin**: The **SSH** plugin is able to collect metrics by running commands on remote hosts by using SSH connections. The **SSH** plugin is used to collect metrics from SFA Storage. Like the **IME** plugin, the **SSH** plugin shares the similar definition file format and configuration format with the **Filedata** plugin.
 -  **Stress plugin**: The **Stress** plugin can push a large amount of metrics to server from **collectd** client in order to benchmark the performance of the collecting system under high pressure.
 - **Stress****2 plugin**: Enhanced version of **Stress** plugin. The format of pushed metrics can be flexibly configured to simulate different real metrics.
 - **Zabbix plugin**: The Zabbix plugin is used to send metrics from **collectd** to **Zabbix** system.
@@ -116,7 +116,7 @@ After the LustrePerfMon RPM has been installed on the Installation Server, updat
   - **infiniband** —This option determines whether to enable Infiniband metrics collection on this LustrePerfMon agent. Default value: **false**.
   - **lustre_mds** — Define whether to enable (**true**) or disable (**false**) metrics collection of Lustre MDS. Default value: **true**.
   - **lustre_oss** — Define whether to enable (**true**) or disable (**false**) metrics collection of Lustre OSS. Default value: **true**.
-  -  **sfas** — This list includes the information of DDN SFAs on this LustrePerfMon agent.
+  -  **sfas** — This list includes the information of SFAs on this LustrePerfMon agent.
     - **controller0_host** — This option is the hostname/IP of the controller 0 of this SFA. Default value: **controller0_host**.
     - **controller****1_host** — This option is the hostname/IP of the controller 1 of this SFA. Default value: **controller1_host**.
     - **Name** —This option is the unique name of this controller. This value will be used as the value of "fqdn" tag for metrics of this SFA. Thus, two SFAs shouldn't have the same **name**.
@@ -924,7 +924,7 @@ Below you will find description of some of the panels in the **Server Statistics
 
 ### SFA Physical Disk Dashboard
 
-The **SFA Physical Disk** dashboard shown in [Figure 117](#figure-117-sfa-physical-disk-dashboard) displays information about DDN SFA physical disks.
+The **SFA Physical Disk** dashboard shown in [Figure 117](#figure-117-sfa-physical-disk-dashboard) displays information about SFA physical disks.
 
 ###### Figure 117: SFA Physical Disk Dashboard
 ![SFA Physical Disk Dashboard](pic/sfa_physical_disk/sfa_physical_disk.jpg)
@@ -971,7 +971,7 @@ Below you will find description of some of the panels in the **SFA Physical Disk
 
 ### SFA Virtual Disk Dashboard
 
-The **SFA Virtual Disk** dashboard ([Figure 124](#figure-124-sfa-virtual-disk-dashboard) ) shows information about DDN SFA virtual disks:
+The **SFA Virtual Disk** dashboard ([Figure 124](#figure-124-sfa-virtual-disk-dashboard) ) shows information about SFA virtual disks:
 
 ###### Figure 124: SFA Virtual Disk Dashboard
 ![SFA Virtual Disk Dashboard](pic/sfa_virtual_disk/sfa_virtual_disk.jpg)
@@ -1012,7 +1012,7 @@ Below you will find description of some of the panels in the **SFA Virtual Disk*
 
 ## Stress Testing
 
-In order to check whether the monitoring system works well under high pressure, DDN designed the **collectd-stress2** plugin for stress testing. It is an upgraded version of the **Stress** plugin, which can use a couple of **collectd** clients to simulate tens of thousands of metrics collected from hundreds of servers.
+In order to check whether the monitoring system works well under high pressure, we designed the **collectd-stress2** plugin for stress testing. It is an upgraded version of the **Stress** plugin, which can use a couple of **collectd** clients to simulate tens of thousands of metrics collected from hundreds of servers.
 
 ### Installing stress2 RPM on collectd Client
 

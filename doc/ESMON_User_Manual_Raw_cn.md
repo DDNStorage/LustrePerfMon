@@ -1,38 +1,38 @@
-# DDN Exascaler 监控系统手册
+# Exascaler 监控系统手册
 
 
 
-## DDN EXAScalerx性能监控系统简介
+## EXAScalerx性能监控系统简介
 
-LustrePerfMon 是一款监控系统，通过采集DDN Exascaler的系统状态信息以达到对其进行性能监控及分析的目的。LustrePerfMon基于多种开源软件的监控系统，DDN同时还开发了一些外部插件以作功能扩展。
+LustrePerfMon 是一款监控系统，通过采集Exascaler的系统状态信息以达到对其进行性能监控及分析的目的。LustrePerfMon基于多种开源软件的监控系统，同时还提供了一些外部插件以作功能扩展。
 
 LustrePerfMon的主要组件之一是 **collectd**。**collectd**是一个运行在监控对象上的守护进程，完成了系统性能的相关统计信息定期收集，并将这些数据以多种不同的机制进行存储。LustrePerfMon是基于开源的**collectd**而研发，同时也包含了许多其他插件，如Filedata、Ganglia、Nagios、Stress、Zabbix等等。
 
 ### 名词解释
 
-- **LustrePerfMon**：DDN Exascaler性能监控系统的缩写。 
-- **DDN SFA**：DDN Storage Fusion Architecture的缩写。DDN Storage Fusion Architecture为平衡的高性能存储提供基础。通过使用并行存储处理技术，SFA提供了强大的IOPS和吞吐率。
-- **DDN Exascaler**: DDN Exascaler是由DDN研发的基于Lustre的存储解决方案，它旨在解决极端数据密集型环境中最严苛的存储及数据管理问题。 
+- **LustrePerfMon**：Exascaler性能监控系统的缩写。 
+- **SFA**：Storage Fusion Architecture的缩写。Storage Fusion Architecture为平衡的高性能存储提供基础。通过使用并行存储处理技术，SFA提供了强大的IOPS和吞吐率。
+- **Exascaler**: Exascaler是基于Lustre的存储解决方案，它旨在解决极端数据密集型环境中最严苛的存储及数据管理问题。 
 - **部署服务器**: LustrePerfMon监控系统的安装进程将在此服务器上被触发。
 
 
 - **监控服务器**: LustrePerfMon监控系统的数据库(*Influxdb*) 及网络服务 (*Grafana*) 将在此服务器上运行。
 - **代理节点**：  LustrePerfMon监控系统将从代理节点上收集各类指标数据，例如CPU, 内存、Lustre、SFA 存储等相关信息。守护进程collectd 将在每个客户端后台运行。 
-- **DDN IME**: DDN 的无限内存引擎(*Infinite Memory Engine*) 是一款基于闪存的高速缓存系统，它简化了应用程序I/O路径，消除了系统瓶颈。
+- **IME**: 无限内存引擎(*Infinite Memory Engine*) 是一款基于闪存的高速缓存系统，它简化了应用程序I/O路径，消除了系统瓶颈。
 - **Lustre**: Lustre文件系统是一种开源的并行文件系统，它满足了许多高性能计算环境的海量数据存储需求。
 - **OST**：Lustre的对象存储目标（Object Storage Target）是用来存储文件数据对象的存储目标。 
 - **OSS**：Lustre的对象存储服务器（Object Storage Server）是用来管理对象存储目标的服务器。 
 - **MDT**：Lustre的元数据目标（Metadata Target）是用来存储文件元数据的存储目标。  
 - **MDS**：Lustre的元数据服务器（Metadata Server）是用来为文件系统提供元数据服务，管理一个或多个元数据目标的服务器  
 
-### DDN Collectd 插件
+### Collectd 插件
 
-为支持更多不同功能，DDN添加了一些附加的Collectd插件。
+为支持更多不同功能，我们添加了一些附加的Collectd插件。
 
 - **Filedata 插件:** Filedata插件能够通过读取及解析一组文件进行数据收集。用户需要在一个xml格式文件中对读取哪些文件、如何解析这些文件等进行定义。Filedata插件最常见的用途是通过正在运行的Lustre系统的 /proc 接口收集指标。
 - **Ganglia 插件:**  Ganglia插件将collectd进程收集的指标信息发送给Ganglia服务器。
-- **IME 插件:** IME插件通过DDN IME收集性能信息。IME插件和Filedata插件共享相似的定义文件格式和配置格式。
-- **SSH 插件:** SSH插件能够通过使用SSH连接在远程主机上运行命令来收集来自DDN SFA存储的各项指标。与IME插件一样，它的定义文件格式和配置格式和Filedata插件类似。
+- **IME 插件:** IME插件通过IME收集性能信息。IME插件和Filedata插件共享相似的定义文件格式和配置格式。
+- **SSH 插件:** SSH插件能够通过使用SSH连接在远程主机上运行命令来收集来自SFA存储的各项指标。与IME插件一样，它的定义文件格式和配置格式和Filedata插件类似。
 - **Stress 插件:** Stress插件可以从collectd向服务器推送大量指标数据，来对监控系统性能进行高强度基准测试。
 -  **Stress2插件**：**Stress** 插件改进版，可供灵活配置数据格式，仿真各种插件从客户端向服务器推送大量数据。 
 - **Zabbix 插件:** Zabbix插件将指标数据从collectd发送至Zabbix系统。
@@ -107,7 +107,7 @@ LustrePerfMon的主要组件之一是 **collectd**。**collectd**是一个运行
 
   * **enable_disk** — 定义了是否启用磁盘指标收集功能，默认值为**false**。
   * **host_id** — 该主机的唯一标识。两个不同的主机不能拥有相同的**host_id**。
-* **ime** — 定义了是否启用 **DDN IME**中指标收集功能，默认值为**false**。
+* **ime** — 定义了是否启用 **IME**中指标收集功能，默认值为**false**。
   * **infiniband** — 定义了是否启用**Infiniband**中指标收集功能，默认值为**false**。
 * **lustre_mds** — 定义了是否启用 **Lustre MDS**上的数据收集功能，默认值为**true**。
   * **lustre_oss** — 定义了是否启用 **Lustre OSS**上的数据收集功能，默认值为**true**。
