@@ -1,45 +1,45 @@
-# Exascaler 监控系统手册
+# DDN Exascaler 监控系统手册
 
 
 
-## EXAScalerx性能监控系统简介
+## 1   DDN EXAScalerx 性能监控系统简介
 
-LustrePerfMon 是一款监控系统，通过采集Exascaler的系统状态信息以达到对其进行性能监控及分析的目的。LustrePerfMon基于多种开源软件的监控系统，同时还提供了一些外部插件以作功能扩展。
+LustrePerfMon 是一款监控系统，通过采集DDN Exascaler的系统状态信息以达到对其进行性能监控及分析的目的。LustrePerfMon基于多种开源软件的监控系统，同时还提供了一些外部插件以作功能扩展。
 
 LustrePerfMon的主要组件之一是 **collectd**。**collectd**是一个运行在监控对象上的守护进程，完成了系统性能的相关统计信息定期收集，并将这些数据以多种不同的机制进行存储。LustrePerfMon是基于开源的**collectd**而研发，同时也包含了许多其他插件，如Filedata、Ganglia、Nagios、Stress、Zabbix等等。
 
-### 名词解释
+### 1.1  名词解释
 
-- **LustrePerfMon**：Exascaler性能监控系统的缩写。 
-- **SFA**：Storage Fusion Architecture的缩写。Storage Fusion Architecture为平衡的高性能存储提供基础。通过使用并行存储处理技术，SFA提供了强大的IOPS和吞吐率。
-- **Exascaler**: Exascaler是基于Lustre的存储解决方案，它旨在解决极端数据密集型环境中最严苛的存储及数据管理问题。 
+- **LustrePerfMon**：DDN Exascaler性能监控系统的缩写。 
+- **DDN SFA**：DDN Storage Fusion Architecture的缩写。DDN Storage Fusion Architecture为平衡的高性能存储提供基础。通过使用并行存储处理技术，SFA提供了强大的IOPS和吞吐率。
+- **DDN Exascaler**: DDN Exascaler是基于Lustre的存储解决方案，它旨在解决极端数据密集型环境中最严苛的存储及数据管理问题。 
 - **部署服务器**: LustrePerfMon监控系统的安装进程将在此服务器上被触发。
 
 
 - **监控服务器**: LustrePerfMon监控系统的数据库(*Influxdb*) 及网络服务 (*Grafana*) 将在此服务器上运行。
 - **代理节点**：  LustrePerfMon监控系统将从代理节点上收集各类指标数据，例如CPU, 内存、Lustre、SFA 存储等相关信息。守护进程collectd 将在每个客户端后台运行。 
-- **IME**: 无限内存引擎(*Infinite Memory Engine*) 是一款基于闪存的高速缓存系统，它简化了应用程序I/O路径，消除了系统瓶颈。
+- **DDN IME**: DDN无限内存引擎(*DDN Infinite Memory Engine*) 是一款基于闪存的高速缓存系统，它简化了应用程序I/O路径，消除了系统瓶颈。
 - **Lustre**: Lustre文件系统是一种开源的并行文件系统，它满足了许多高性能计算环境的海量数据存储需求。
 - **OST**：Lustre的对象存储目标（Object Storage Target）是用来存储文件数据对象的存储目标。 
 - **OSS**：Lustre的对象存储服务器（Object Storage Server）是用来管理对象存储目标的服务器。 
 - **MDT**：Lustre的元数据目标（Metadata Target）是用来存储文件元数据的存储目标。  
 - **MDS**：Lustre的元数据服务器（Metadata Server）是用来为文件系统提供元数据服务，管理一个或多个元数据目标的服务器  
 
-### Collectd 插件
+### 1.2  Collectd 插件
 
 为支持更多不同功能，我们添加了一些附加的Collectd插件。
 
 - **Filedata 插件:** Filedata插件能够通过读取及解析一组文件进行数据收集。用户需要在一个xml格式文件中对读取哪些文件、如何解析这些文件等进行定义。Filedata插件最常见的用途是通过正在运行的Lustre系统的 /proc 接口收集指标。
 - **Ganglia 插件:**  Ganglia插件将collectd进程收集的指标信息发送给Ganglia服务器。
-- **IME 插件:** IME插件通过IME收集性能信息。IME插件和Filedata插件共享相似的定义文件格式和配置格式。
-- **SSH 插件:** SSH插件能够通过使用SSH连接在远程主机上运行命令来收集来自SFA存储的各项指标。与IME插件一样，它的定义文件格式和配置格式和Filedata插件类似。
+- **IME 插件:** IME插件通过DDN IME收集性能信息。IME插件和Filedata插件共享相似的定义文件格式和配置格式。
+- **SSH 插件:** SSH插件能够通过使用SSH连接在远程主机上运行命令来收集来自DDN SFA存储的各项指标。与IME插件一样，它的定义文件格式和配置格式和Filedata插件类似。
 - **Stress 插件:** Stress插件可以从collectd向服务器推送大量指标数据，来对监控系统性能进行高强度基准测试。
 -  **Stress2插件**：**Stress** 插件改进版，可供灵活配置数据格式，仿真各种插件从客户端向服务器推送大量数据。 
 - **Zabbix 插件:** Zabbix插件将指标数据从collectd发送至Zabbix系统。
 
-## 安装要求
+## 2   安装要求  
 
-### 部署服务器
+### 2.1  部署服务器
 
 - **操作系统版本**: CenOS7/RHEL7
 - **硬盘空闲空间**: > 500 MB。所有安装日志将被保存于部署服务器的 */var/log/esmon_install* 目录下，这需要占用一定空间。
@@ -47,14 +47,14 @@ LustrePerfMon的主要组件之一是 **collectd**。**collectd**是一个运行
 - **LustrePerfMon ISO镜像** :  部署服务器上需有可用的LustrePerfMon ISO 镜像。 
 - **时钟和时区：**节点的时钟和时区需要和其他节点一致。如果时钟或时区不一致，可能会导致数据收集或显示异常。 
 
-### 监控服务器
+### 2.2  监控服务器
 
 - **操作系统版本**: CenOS7/RHEL7
 - **硬盘空闲空间**: \> 5GB。监控服务器运行有Influxdb，如果Influxdb需容纳更多数据，则须预留更大空间。 
 - **网络**:  监控服务器须运行SSHD。部署服务器必须可以通过无密码提示的SSH与监控服务器连接。 
 - **时钟和时区：**节点的时钟和时区需要和其他节点一致。 
 
-### 监控代理节点
+### 2.3  监控代理节点
 
 - **操作系统版本:** CentOS7/RHEL7 or CentOS6/RHEL6
 - **硬盘空闲空间**: > 200MB。必要的RPMs将被保存于 /var/log/esmon_install 目录下，这将占用一定空间。
@@ -62,13 +62,15 @@ LustrePerfMon的主要组件之一是 **collectd**。**collectd**是一个运行
 - **EXASCALER版本：**EXAScaler 2.x、EXAScaler 3.x或EXAScaler 4.x。
 - **时钟和时区：**节点的时钟和时区需要和其他节点一致。
 
-### 对SFA的要求
+### 2.4  对SFA的要求
 
 -  **固件发行版：**3.x或11.x 
 
-## 安装过程
 
-### 1. 准备部署服务器
+
+## 3   安装过程  
+
+### 3.1  准备部署服务器
 
 1. 将 LustrePerfMon ISO 镜像文件拷贝至部署服务器上，如 /ISOs/esmon.iso.
 
@@ -95,11 +97,11 @@ LustrePerfMon的主要组件之一是 **collectd**。**collectd**是一个运行
       # rpm -ivh /media/RPMS/rhel7/esmon*.rpm
       ```
 
-### 2.准备监控服务器
+### 3.2  准备监控服务器
 
 如果监控服务器的防火墙打开，那么需要将防火墙的3000、4242、8086、8088、25826等端口打开，否则LustrePerfMon的安装或者使用会出现问题。其中3000端口为Grafana的服务端口，4242、8086、8088、25826等端口为Influxdb、Grafana、Collectd之间进行数据传输和管理的端口。 
 
-### 3. 更新配置文件
+### 3.3  更新配置文件
 
 在安装LustrePerfMon的RPM之后，更新配置文件/etc/esmon_install.conf。该文件包含了安装所需的所有必要信息。定义如下参数： 
 
@@ -107,17 +109,15 @@ LustrePerfMon的主要组件之一是 **collectd**。**collectd**是一个运行
 
   * **enable_disk** — 定义了是否启用磁盘指标收集功能，默认值为**false**。
   * **host_id** — 该主机的唯一标识。两个不同的主机不能拥有相同的**host_id**。
-* **ime** — 定义了是否启用 **IME**中指标收集功能，默认值为**false**。
+  * **ime** — 定义了是否启用 **IME**中指标收集功能，默认值为**false**。
   * **infiniband** — 定义了是否启用**Infiniband**中指标收集功能，默认值为**false**。
-* **lustre_mds** — 定义了是否启用 **Lustre MDS**上的数据收集功能，默认值为**true**。
+  * **lustre_mds** — 定义了是否启用 **Lustre MDS**上的数据收集功能，默认值为**true**
   * **lustre_oss** — 定义了是否启用 **Lustre OSS**上的数据收集功能，默认值为**true**。
+  * **sfas** — 这个列表包含了该代理上一个或多个DDN SFA的相关信息。
+    * **controller0_hos** — 定义了该SFA控制器0的主机名或IP。
+    * **controller1_host** — 定义了该SFA控制器1的主机名或IP。
+    * **name** — 定义了该SFA的唯一名字。该名字用作该SFA的“fqdn”标签值。两个SFA不应拥有相同的名字。
 
-    - **sfas** — 这个列表包含了该代理上一个或多个SFA的相关信息。
-    
-       + **controller0_hos** — 定义了该SFA控制器0的主机名或IP。
-     - **controller1_host** — 定义了该SFA控制器1的主机名或IP。
-       - **name** — 定义了该SFA的唯一名字。该名字用作该SFA的“fqdn”标签值。两个SFA不应拥有相同的名字。
-  
 - **agents_reinstall** — 定义了是否重装这些代理节点，默认值**true**。
 
 - **collect_interval** — 定义了收集数据点的时间间隔（秒），默认值**60**。
@@ -225,7 +225,7 @@ ssh_hosts:
     hostname: Server
 ```
 
-### 4. **在集群上运行安装程序**
+### 3.4  **在集群上运行安装程序**
 
 在部署服务器上的 */etc/esmon_install.conf*更新完成后，运行以下命令在集群上启动安装程序： 
 
@@ -251,7 +251,7 @@ esmon_install命令除了可以用来在新系统上安装LustrePerfMon外，还
 
 -----
 
-### 5. 访问监控网络页面
+### 3.5  访问监控网络页面
 
 Grafana 服务将自动在监控服务器启动 。默认HTTP 端口为 3000。通过访问该端口可跳转至登录页面（[图1](#图1-grafana登陆界面 )），默认用户名密码皆为 “admin”。
 ###### 图1: Grafana登陆界面
@@ -263,7 +263,7 @@ Grafana 服务将自动在监控服务器启动 。默认HTTP 端口为 3000。�
 
 ------
 
-## 仪表盘
+## 4   仪表盘
 
 在主仪表盘上（[图 2](#图2主仪表盘 )），可通过选择不同的模块页面浏览由 ESMON 收集的不同数据指标。
 
@@ -271,7 +271,7 @@ Grafana 服务将自动在监控服务器启动 。默认HTTP 端口为 3000。�
 
 ![Home Dashboard](pic/home.jpg)
 
-### 集群状态仪表盘 
+### 4.1  集群状态仪表盘 
 
 集群状态仪表盘（[图 3](#图3集群状态仪表盘 )）显示了集群中服务器的状态信息概要。
 
@@ -294,7 +294,7 @@ Grafana 服务将自动在监控服务器启动 。默认HTTP 端口为 3000。�
 
 ![Cluster Status Dashboard](pic/cluster_status.jpg)
 
-### Lustre 仪表盘 
+### 4.2  Lustre 仪表盘 
 
 Lustre 仪表盘（[图 4](#图4lustre仪表盘 )）显示了 Lustre 文件系统统计数据。
 
@@ -324,7 +324,7 @@ Lustre 仪表盘（[图 4](#图4lustre仪表盘 )）显示了 Lustre 文件系�
 
    ![Free Capacity per OST Panel of Lustre Statistics Dashboard](pic/lustre_statistics_free_capacity_per_OST.jpg)
 
-- 每个OST已使用容量面板([图8](#图8-每个ost已使用容量面板
+- **每个OST已使用容量面板**([图8](#图8-每个ost已使用容量面板
   )) 显示了Lustre文件系统每个OST已使用的容量大小。如图所示，OST0002已使用容量为3.97GB， OST0007已使用容量为1.27GB，其余OST已使用容量都为820.8MB。点击Current，可以根据当前已使用容量进行从小到大（或从大到小）排序。
 
   ###### 图8: 每个OST已使用容量面板
@@ -343,31 +343,31 @@ Lustre 仪表盘（[图 4](#图4lustre仪表盘 )）显示了 Lustre 文件系�
 
    ![Used Capacity per Group Panel of Server Statistics Dashboard](pic/used_capacity_per_group.jpg)
 
-- 总的剩余索引节点数目面板([图11](#图11-总的剩余索引节点数目面板)) 显示了Lustre文件系统总的剩余索引节点数目随时间的变化。该图所使用的测试用例为“mdtest–C –n 900000 –d /mnt/lustre/mdtest/”，从图可以看出从大约14:35开始运行测试用例后，剩余的索引节点数目以大约1100Ops的速度减少。
+- **总的剩余索引节点数目面板**([图11](#图11-总的剩余索引节点数目面板)) 显示了Lustre文件系统总的剩余索引节点数目随时间的变化。该图所使用的测试用例为“mdtest–C –n 900000 –d /mnt/lustre/mdtest/”，从图可以看出从大约14:35开始运行测试用例后，剩余的索引节点数目以大约1100Ops的速度减少。
 
   ###### 图11: 总的剩余索引节点数目面板
 
    ![Free Inode Number Panel of Server Statistics Dashboard](pic/lustre_statistics_inode.jpg)
 
-- 总的已使用索引节点数目面板([图12](#图12-总的已使用索引节点数目面板)) 显示了Lustre文件系统总的已使用索引节点数目随时间的变化。该图所使用的测试用例为“mdtest–C –n 900000 –d /mnt/lustre/mdtest/”，从图可以看出从大约14:35开始运行测试用例后，已使用的索引节点数目以大约1100Ops的速度增加。
+- **总的已使用索引节点数目面板**([图12](#图12-总的已使用索引节点数目面板)) 显示了Lustre文件系统总的已使用索引节点数目随时间的变化。该图所使用的测试用例为“mdtest–C –n 900000 –d /mnt/lustre/mdtest/”，从图可以看出从大约14:35开始运行测试用例后，已使用的索引节点数目以大约1100Ops的速度增加。
 
   ###### 图12: 总的已使用索引节点数目面板
 
    ![Free Inode Number Panel of Server Statistics Dashboard](pic/used_inode_number.jpg)
 
-- 每个MDT剩余索引节点数目面板([图13](#图13-每个mdt剩余索引节点数目面板)) 显示了Lustre文件系统每个MDT剩余索引节点数目。如图所示，MDT0000剩余索引节点的数目为1.72Mil；系统其他各个MDT空闲的索引节点数目为2.62 Mil。点击Current，可以根据当前索引节点数目进行从小到大（或从大到小）排序。
+- **每个MDT剩余索引节点数目面板**([图13](#图13-每个mdt剩余索引节点数目面板)) 显示了Lustre文件系统每个MDT剩余索引节点数目。如图所示，MDT0000剩余索引节点的数目为1.72Mil；系统其他各个MDT空闲的索引节点数目为2.62 Mil。点击Current，可以根据当前索引节点数目进行从小到大（或从大到小）排序。
 
   ###### 图13: 每个MDT剩余索引节点数目面板
 
    ![Free Inode Number per MDT Panel of Server Statistics Dashboard](pic/free_inode_number_per_mdt.jpg)
   
-- 每个用户已使用索引节点数目面板([图14](#图14-每个用户已使用索引节点数目面板)) 显示了Lustre文件系统每个用户已使用索引节点数目。如图所示，UID为1000的用户已使用的索引节点数目为897.49K； UID为1001的用户已使用的索引节点数目为1.08K；UID为0的用户已使用的索引节点数目为1.01K。点击Current，可以根据当前索引节点数目进行从小到大（或从大到小）排序。
+- **每个用户已使用索引节点数目面板**([图14](#图14-每个用户已使用索引节点数目面板)) 显示了Lustre文件系统每个用户已使用索引节点数目。如图所示，UID为1000的用户已使用的索引节点数目为897.49K； UID为1001的用户已使用的索引节点数目为1.08K；UID为0的用户已使用的索引节点数目为1.01K。点击Current，可以根据当前索引节点数目进行从小到大（或从大到小）排序。
 
   ###### 图14: 每个用户已使用索引节点数目面板
 
    ![Used Inode Number per User Panel of Server Statistics Dashboard](pic/used_inode_number_per_user.jpg)
   
-- 每个用户组已使用的索引节点数目面板([图15](#图15-每个用户组已使用索引节点数目面板)) 显示了Lustre文件系统每个用户组已使用的索引节点数目。如图所示，GID为1000的用户组已使用的索引节点数目为897.49K； GID为1001的用户组已使用的索引节点数目为1.08K；GID为0的用户组已使用的索引节点数目为1.01K。点击Current，可以根据当前索引节点数目进行从小到大（或从大到小）排序。
+- **每个用户组已使用的索引节点数目面板**([图15](#图15-每个用户组已使用索引节点数目面板)) 显示了Lustre文件系统每个用户组已使用的索引节点数目。如图所示，GID为1000的用户组已使用的索引节点数目为897.49K； GID为1001的用户组已使用的索引节点数目为1.08K；GID为0的用户组已使用的索引节点数目为1.01K。点击Current，可以根据当前索引节点数目进行从小到大（或从大到小）排序。
 
   ###### 图15: 每个用户组已使用索引节点数目面板
 
@@ -379,73 +379,73 @@ Lustre 仪表盘（[图 4](#图4lustre仪表盘 )）显示了 Lustre 文件系�
 
    ![Used Inode Number per MDT Panel of Server Statistics Dashboard](pic/used_inode_number_per_mdt.jpg)
   
-- 总的I/O吞吐量面板([图17](#图17-lustre文件系统总的io吞吐量面板)) 显示了Lustre文件系统总的I/O吞吐量随时间的变化。
+- **总的I/O吞吐量面板**([图17](#图17-lustre文件系统总的io吞吐量面板)) 显示了Lustre文件系统总的I/O吞吐量随时间的变化。
 
   ###### 图17: Lustre文件系统总的I/O吞吐量面板
 
    ![I/O Throughput Panel of Server Statistics Dashboard](pic/io_throughput.jpg)
   
-- 每个OST的I/O吞吐量面板([图18](#图18-每个ost的io吞吐量面板)) 显示了Lustre文件系统每个OST的I/O吞吐量信息，包括平均值、最大值和当前值。
+- **每个OST的I/O吞吐量面板**([图18](#图18-每个ost的io吞吐量面板)) 显示了Lustre文件系统每个OST的I/O吞吐量信息，包括平均值、最大值和当前值。
 
   ###### 图18: 每个OST的I/O吞吐量面板
 
    ![I/O Throughput per OST Panel of Server Statistics Dashboard](pic/io_throughput_per_OST.jpg)
   
-- 每个OST的写吞吐量面板([图19](#图19-每个ost写吞吐量面板)) 显示了Lustre文件系统每个OST的写吞吐量信息，包括平均值、最大值和当前值。
+- **每个OST的写吞吐量面板**([图19](#图19-每个ost写吞吐量面板)) 显示了Lustre文件系统每个OST的写吞吐量信息，包括平均值、最大值和当前值。
 
   ###### 图19: 每个OST写吞吐量面板
 
    ![Write Throughput per OST Panel of Server Statistics Dashboard](pic/write_throughput_per_OST.jpg)
   
-- 每个OST的读吞吐量面板([图20](#图20-每个ost读吞吐量面板)) 显示了Lustre文件系统每个OST的读吞吐量信息，包括平均值、最大值和当前值。
+- **每个OST的读吞吐量面板**([图20](#图20-每个ost读吞吐量面板)) 显示了Lustre文件系统每个OST的读吞吐量信息，包括平均值、最大值和当前值。
 
   ###### 图20: 每个OST读吞吐量面板
 
    ![Read Throughput per OST Panel of Server Statistics Dashboard](pic/read_throughput_per_OST.jpg)
   
-- 总的元数据操作速率面板([图21](#图21-总的元数据操作速率面板)) 显示了Lustre文件系统总的元数据操作速率随时间的变化，其单位为Ops，即 Operation Per Second。
+- **总的元数据操作速率面板**([图21](#图21-总的元数据操作速率面板)) 显示了Lustre文件系统总的元数据操作速率随时间的变化，其单位为Ops，即 Operation Per Second。
 
   ###### 图21: 总的元数据操作速率面板
 
    ![Metadata Operation Rate Panel of Server Statistics Dashboard](pic/metadata_operation_rate.jpg)
   
-- 每个MDT的元数据操作速率面板([图22](#图22-每个mdt的元数据操作速率面板)) 显示了Lustre文件系统每个MDT的元数据操作速率信息，其单位为Ops， Operation Per Second。其信息包括平均值、最大值和当前值。
+- **每个MDT的元数据操作速率面板**([图22](#图22-每个mdt的元数据操作速率面板)) 显示了Lustre文件系统每个MDT的元数据操作速率信息，其单位为Ops， Operation Per Second。其信息包括平均值、最大值和当前值。
 
   ###### 图22: 每个MDT的元数据操作速率面板
 
    ![Metadata Operation Rate per MDT Panel of Server Statistics Dashboard](pic/metadata_operation_rate_per_MDT.jpg)
   
-- 每个客户端的元数据操作速率面板([图23](#图23-每个客户端的元数据操作速率面板)) 显示了Lustre文件系统每个客户端（client）的元数据操作速率信息，其单位为Ops，即 Operation Per Second。其信息包括平均值、最大值和当前值。
+- **每个客户端的元数据操作速率面板**([图23](#图23-每个客户端的元数据操作速率面板)) 显示了Lustre文件系统每个客户端（client）的元数据操作速率信息，其单位为Ops，即 Operation Per Second。其信息包括平均值、最大值和当前值。
 
   ###### 图23: 每个客户端的元数据操作速率面板
 
    ![Metadata Operation Rate per Client Panel of Server Statistics Dashboard](pic/metadata_operation_rate_per_client.jpg)
   
-- 每种类型的元数据操作速率面板([图24](#图24-每种类型元数据操作速率面板)) 显示了Lustre文件系统每种类型的元数据操作速率信息，其单位为Ops即Operation Per Second。其信息包括平均值、最大值和当前值。当前测试用例为删除一个目录下的所有文件的元数据操作速率统计。
+- **每种类型的元数据操作速率面板**([图24](#图24-每种类型元数据操作速率面板)) 显示了Lustre文件系统每种类型的元数据操作速率信息，其单位为Ops即Operation Per Second。其信息包括平均值、最大值和当前值。当前测试用例为删除一个目录下的所有文件的元数据操作速率统计。
 
   ###### 图24: 每种类型元数据操作速率面板
 
    ![Metadata Operation Rate per Type Panel of Server Statistics Dashboard](pic/metadata_operation_rate_per_type.jpg)
   
-- 不同块大小的写RPC速率面板([图25](#图25-不同块大小的写rpc速率面板)) 显示了Lustre文件系统不同块大小的写RPC速率随时间的变化。Lustre文件系统统计了不同bulk RPC大小信息，从4K到16M，下图显示了不同bulk 大小的写RPC的速率信息。图中所示的测试用例为：在两个客户端分别运行“dd if=/dev/zero of=/mnt/lustre/test1 bs=1M oflag=direct”和“dd if=/dev/zero of=/mnt/lustre/test2 bs=64k oflag=direct”测试，收集到的信息。
+- **不同块大小的写RPC速率面板**([图25](#图25-不同块大小的写rpc速率面板)) 显示了Lustre文件系统不同块大小的写RPC速率随时间的变化。Lustre文件系统统计了不同bulk RPC大小信息，从4K到16M，下图显示了不同bulk 大小的写RPC的速率信息。图中所示的测试用例为：在两个客户端分别运行“dd if=/dev/zero of=/mnt/lustre/test1 bs=1M oflag=direct”和“dd if=/dev/zero of=/mnt/lustre/test2 bs=64k oflag=direct”测试，收集到的信息。
 
   ###### 图25: 不同块大小的写RPC速率面板
 
    ![Write Bulk RPC Rate per Size Panel of Server Statistics Dashboard](pic/write_bulk_prc_rate_per_size.jpg)
   
-- 写bulk RPC大小分布面板([图26](#图26-写bulk-rpc大小分布面板)) 显示了Lustre文件系统不同bulk大小的写RPC数目的比例信息。如图所示，大小为256页的写bulk RPC数目占总的写RPC数目的百分比为100%。
+- **写bulk RPC大小分布面板**([图26](#图26-写bulk-rpc大小分布面板)) 显示了Lustre文件系统不同bulk大小的写RPC数目的比例信息。如图所示，大小为256页的写bulk RPC数目占总的写RPC数目的百分比为100%。
 
   ###### 图26: 写bulk RPC大小分布面板
 
    ![Size Distribution of Write Bulk RPC Panel of Server Statistics Dashboard](pic/size_distribution_of_write_bulk_rpc.jpg)
   
-- 不同大小的读bulk RPC速率面板([图27](#图27-不同大小的读bulk-rpc速率面板)) 显示了Lustre文件系统不同bulk大小的读RPC速率随时间的变化。Lustre文件系统统计了不同bulk RPC大小信息，从4K到16M（Lustre中最大RPC bulk I/O大小为16MB）。下图显示了不同bulk 大小的读RPC的速率信息。图中所示的测试用例为：在两个客户端分别运行“dd if=/mnt/lustre/test1 of=/dev/zero bs=1M iflag=direct”和“dd if=/mnt/lustre/test2 of=/dev/zero bs=64k iflag=direct”测试，收集到的信息。
+- **不同大小的读bulk RPC速率面板**([图27](#图27-不同大小的读bulk-rpc速率面板)) 显示了Lustre文件系统不同bulk大小的读RPC速率随时间的变化。Lustre文件系统统计了不同bulk RPC大小信息，从4K到16M（Lustre中最大RPC bulk I/O大小为16MB）。下图显示了不同bulk 大小的读RPC的速率信息。图中所示的测试用例为：在两个客户端分别运行“dd if=/mnt/lustre/test1 of=/dev/zero bs=1M iflag=direct”和“dd if=/mnt/lustre/test2 of=/dev/zero bs=64k iflag=direct”测试，收集到的信息。
 
   ###### 图27: 不同大小的读bulk RPC速率面板
 
    ![Read Bulk RPC Rate Panel of Server Statistics Dashboard](pic/read_bulk_rpc_rate.jpg)
   
-- 读bulk RPC大小分布面板([图28](#图28-读bulk-rpc大小分布面板)) 显示了Lustre文件系统不同bulk大小的读RPC数目比例信息。如图所示，该图正在进行的测试用例为“dd if=/mnt/lustre/file of=/dev/zero bs=1M”，大小为256页的读bulk RPC数目占总的RPC数目的百分比为100%。
+- **读bulk RPC大小分布面板**([图28](#图28-读bulk-rpc大小分布面板)) 显示了Lustre文件系统不同bulk大小的读RPC数目比例信息。如图所示，该图正在进行的测试用例为“dd if=/mnt/lustre/file of=/dev/zero bs=1M”，大小为256页的读bulk RPC数目占总的RPC数目的百分比为100%。
 
   ###### 图28: 读bulk RPC大小分布面板
 
@@ -457,19 +457,19 @@ Lustre 仪表盘（[图 4](#图4lustre仪表盘 )）显示了 Lustre 文件系�
 
    ![Distribution of Discoutinuous Pages in Each Write I/O Panel of Server Statistics Dashboard](pic/distribution_of_discontinous_pages.jpg)
   
-- 读I/O不连续页面分布面板([图30](#图30-读io不连续页面分布面板)) 显示了Lustre文件系统读I/O不连续页面数目比例信息。如图所示，不连续页面为“0_pages”数目占的百分比为100%，说明几乎所有的读页面都是连续的。
+- **读I/O不连续页面分布面板**([图30](#图30-读io不连续页面分布面板)) 显示了Lustre文件系统读I/O不连续页面数目比例信息。如图所示，不连续页面为“0_pages”数目占的百分比为100%，说明几乎所有的读页面都是连续的。
 
   ###### 图30: 读I/O不连续页面分布面板
 
    ![Distribution of Discoutinuous Pages in Each Read I/O Panel of Server Statistics Dashboard](pic/distribution_of_discontinous_pages_in_read_io.jpg)
   
-- 写I/O不连续块分布面板([图31](#图31-写io不连续块分布面板)) 显示了Lustre文件系统写I/O不连续块的数目比例信息。在Lustre 一次读写I/O中，不连续块的含义与不连续页的含义类似。一个块中含有的页面数量由底层文件系统（Ldiskfs）决定。I/O中存在不连续块，则意味着这里一定存在不连续页；但反之不一定成立。如图所示，写I/O不连续块为“0_blocks”数目占的块I/O百分比为100%，说明几乎所有的写I/O都都是连续的。
+- **写I/O不连续块分布面板**([图31](#图31-写io不连续块分布面板)) 显示了Lustre文件系统写I/O不连续块的数目比例信息。在Lustre 一次读写I/O中，不连续块的含义与不连续页的含义类似。一个块中含有的页面数量由底层文件系统（Ldiskfs）决定。I/O中存在不连续块，则意味着这里一定存在不连续页；但反之不一定成立。如图所示，写I/O不连续块为“0_blocks”数目占的块I/O百分比为100%，说明几乎所有的写I/O都都是连续的。
 
   ###### 图31: 写I/O不连续块分布面板
 
   ######    ![Distribution of Discoutinuous Blocks in Each Write I/O](pic/distribution_of_discontinous_blocks_in_each_write_io.jpg)
 
-- 读I/O不连续块分布面板([图32](#图32-读io不连续块分布面板)) 显示了Lustre文件系统读I/O不连续块的数目比例信息。如图所示，不连续块为“0_blocks”数目占的块I/O百分比为100%，说明几乎所有的读I/O都没有被分裂，都是连续的。
+- **读I/O不连续块分布面板**([图32](#图32-读io不连续块分布面板)) 显示了Lustre文件系统读I/O不连续块的数目比例信息。如图所示，不连续块为“0_blocks”数目占的块I/O百分比为100%，说明几乎所有的读I/O都没有被分裂，都是连续的。
 
   ###### 图32: 读I/O不连续块分布面板
 
@@ -484,69 +484,69 @@ Lustre 仪表盘（[图 4](#图4lustre仪表盘 )）显示了 Lustre 文件系�
   ###### 图34: 读I/O碎片分布面板
 
   ![Distribution of Fragements in Each Read I/O](pic/distribution_of_fragments_in_each_read_io.jpg)
-- 已提交等待结束的磁盘写I/O分布面板([图35](#图35-已提交等待结束的磁盘写io分布面板)) 显示了当前OSD已提交等待结束的磁盘写I/O比例信息。如图所示，”1_ios”表示当前正在运行的磁盘I/O为1个，其所占比例为100%。
+- **已提交等待结束的磁盘写I/O分布面板**([图35](#图35-已提交等待结束的磁盘写io分布面板)) 显示了当前OSD已提交等待结束的磁盘写I/O比例信息。如图所示，”1_ios”表示当前正在运行的磁盘I/O为1个，其所占比例为100%。
 
   ###### 图35: 已提交等待结束的磁盘写I/O分布面板
 
    ![Distribution of in-flight write I/O Number](pic/distribution_of_in_flight_write_io_number.jpg)
-- 已提交等待结束的磁盘读I/O分布面板([图36](#图36-已提交等待结束的磁盘读io分布面板)) 显示了当前OSD已提交等待结束的（正在运行过程中）磁盘读I/O比例信息。如图所示，“1_ios”表示当前正在运行的磁盘I/O为1个，其所占比例为12.41%；“3_ios”表示当前挂起的磁盘I/O数目为3，其占的百分比为12.55%；“4_ios”表示当前挂起的磁盘I/O数目为4，其占的百分位49.80%。
+- **已提交等待结束的磁盘读I/O分布面板**([图36](#图36-已提交等待结束的磁盘读io分布面板)) 显示了当前OSD已提交等待结束的（正在运行过程中）磁盘读I/O比例信息。如图所示，“1_ios”表示当前正在运行的磁盘I/O为1个，其所占比例为12.41%；“3_ios”表示当前挂起的磁盘I/O数目为3，其占的百分比为12.55%；“4_ios”表示当前挂起的磁盘I/O数目为4，其占的百分位49.80%。
 
   ###### 图36: 已提交等待结束的磁盘读I/O分布面板
 
    ![Distribution of in-flight Read I/O Number](pic/distribution_of_in_flight_read_io_number.jpg)
-- 写I/O时间分布面板([图37](#图37-写io时间分布面板)) 显示了当前OSD写I/O时间分布比例信息。如图所示，“1_milliseconds”表示写I/O时间小于1毫秒的I/O次数所占I/O次数的百分比，其所占比例为92.31%，“2_milliseconds”表示写I/O时间在1毫秒和2毫秒之间的I/O次数所占百分比，其值为：7.69%。
+- **写I/O时间分布面板**([图37](#图37-写io时间分布面板)) 显示了当前OSD写I/O时间分布比例信息。如图所示，“1_milliseconds”表示写I/O时间小于1毫秒的I/O次数所占I/O次数的百分比，其所占比例为92.31%，“2_milliseconds”表示写I/O时间在1毫秒和2毫秒之间的I/O次数所占百分比，其值为：7.69%。
 
   ###### 图37: 写I/O时间分布面板
 
    ![Distribution of Write I/O Time](pic/distribution_of_write_io_time.jpg)
-- 读I/O时间分布面板([图38](#图38-读io时间分布面板)) 显示了OSD读I/O时间分布比例信息。如图所示，“1_milliseconds”表示读I/O时间小于1毫秒的I/O次数所占I/O次数的百分比，其所占比例为14.11%；“4K_milliseconds”表示读I/O时间在2K毫秒和4K毫秒之间的I/O次数所占百分比，其值为42.62%。
+- **读I/O时间分布面板**([图38](#图38-读io时间分布面板)) 显示了OSD读I/O时间分布比例信息。如图所示，“1_milliseconds”表示读I/O时间小于1毫秒的I/O次数所占I/O次数的百分比，其所占比例为14.11%；“4K_milliseconds”表示读I/O时间在2K毫秒和4K毫秒之间的I/O次数所占百分比，其值为42.62%。
 
   ###### 图38: 读I/O时间分布面板
 
    ![Distribution of Read I/O Time](pic/distribution_of_read_io_time.jpg)
-- 磁盘写I/O大小分布面板([图39](#图39-磁盘写io大小分布面板)) 显示了OSD写I/O大小分布比例信息。如图所示，“1M_Bytes”表示磁盘写I/O大小为512K字节到1M字节之间的I/O次数的所占百分比，其值为100%。“512K _ Bytes”表示磁盘写I/O大小为256K字节到512K字节之间的I/O次数的所占百分比。
+- **磁盘写I/O大小分布面板**([图39](#图39-磁盘写io大小分布面板)) 显示了OSD写I/O大小分布比例信息。如图所示，“1M_Bytes”表示磁盘写I/O大小为512K字节到1M字节之间的I/O次数的所占百分比，其值为100%。“512K _ Bytes”表示磁盘写I/O大小为256K字节到512K字节之间的I/O次数的所占百分比。
 
   ###### 图39: 磁盘写I/O大小分布面板
 
    ![Distribution of Write I/O Size](pic/distribution_of_write_io_size.jpg)
-- 磁盘读I/O大小分布面板([图40](#图40-磁盘读io大小分布面板)) 显示了OSD读I/O大小分布比例信息。如图所示，“1M_Bytes”表示磁盘读I/O大小为512K字节到1M字节之间的I/O次数的所占百分比，其值为94.16%；“512K_Bytes”表示磁盘读I/O大小在256K字节到512K字节之间的I/O次数所占百分比，其值为5.84%。
+- **磁盘读I/O大小分布面板**([图40](#图40-磁盘读io大小分布面板)) 显示了OSD读I/O大小分布比例信息。如图所示，“1M_Bytes”表示磁盘读I/O大小为512K字节到1M字节之间的I/O次数的所占百分比，其值为94.16%；“512K_Bytes”表示磁盘读I/O大小在256K字节到512K字节之间的I/O次数所占百分比，其值为5.84%。
 
   ###### 图40: 磁盘读I/O大小分布面板![Distribution of Read I/O Size](pic/distribution_of_read_io_size.jpg)
 
-- 每个客户端写吞吐量面板（[图41](#图41-每个客户端写吞吐量面板)）显示了每个客户端写吞吐量信息，包括平均值，最大值和当前值。图中表示IP地址为“10.0.0.195”的客户端的平均I/O吞吐量为14.71MBps，最大值为55.73MBps，当前吞吐量为42.62MBps。
+- **每个客户端写吞吐量面板**（[图41](#图41-每个客户端写吞吐量面板)）显示了每个客户端写吞吐量信息，包括平均值，最大值和当前值。图中表示IP地址为“10.0.0.195”的客户端的平均I/O吞吐量为14.71MBps，最大值为55.73MBps，当前吞吐量为42.62MBps。
 
   ###### 图41: 每个客户端写吞吐量面板
 
   ![Write Throughput per Client Panel of Server Statistics Dashboard](pic/write_throughput_per_client.jpg)
-- 每个客户端读吞吐量面板（[图42](#图42-每个客户端读吞吐量面板)）显示了每个客户端读吞吐量信息，包括平均值，最大值和当前值。图中表示IP地址为“10.0.0.194”的客户端的平均读吞吐量为32.01MBps，最大值为55.71MBps，当前吞吐量为23.50MBps。
+- **每个客户端读吞吐量面板**（[图42](#图42-每个客户端读吞吐量面板)）显示了每个客户端读吞吐量信息，包括平均值，最大值和当前值。图中表示IP地址为“10.0.0.194”的客户端的平均读吞吐量为32.01MBps，最大值为55.71MBps，当前吞吐量为23.50MBps。
 
   ###### 图42: 每个客户端读吞吐量面板
 
   ![Read Throughput per Client Panel of Server Statistics Dashboard](pic/read_throughput_per_client.jpg)
 
-- 每个作业I/O吞吐量面板（[图43](#图43-每个作业io吞吐量面板)）显示了每个作业I/O吞吐量信息，包括平均值，最大值和当前值。图中JOBID为“dd.0”的作业的平均I/O吞吐量为7.68MBps，最大值为65.16MBps，当前吞吐量为29.37MBps。
+- **每个作业I/O吞吐量面板**（[图43](#图43-每个作业io吞吐量面板)）显示了每个作业I/O吞吐量信息，包括平均值，最大值和当前值。图中JOBID为“dd.0”的作业的平均I/O吞吐量为7.68MBps，最大值为65.16MBps，当前吞吐量为29.37MBps。
 
   ###### 图43: 每个作业I/O吞吐量面板
 
    ![I/O Throughput Per Job Panel of Server Statistics Dashboard](pic/io_throughput_per_job.jpg)
 
-- 每个作业写吞吐量面板（[图44](#图44-每个作业写吞吐量面板)）显示了每个作业写吞吐量信息，包括平均值，最大值和当前值。图中JOBID为“dd.0”的作业的平均写吞吐量为7.68MBps，最大值为65.16MBps，当前吞吐量为29.37MBps。
+- **每个作业写吞吐量面板**（[图44](#图44-每个作业写吞吐量面板)）显示了每个作业写吞吐量信息，包括平均值，最大值和当前值。图中JOBID为“dd.0”的作业的平均写吞吐量为7.68MBps，最大值为65.16MBps，当前吞吐量为29.37MBps。
 
   ###### 图44: 每个作业写吞吐量面板
 
    ![Write Throughput Per Job Panel of Server Statistics Dashboard](pic/write_throughput_per_job.jpg)
 
-- 每个作业读吞吐量面板（[图45](#图45-每个作业读吞吐量面板)）显示了每个作业读吞吐量信息，包括平均值，最大值和当前值。图中JOBID为“dd.0”的作业的平均读吞吐量为2.56MBps，最大值为59.79MBps，当前吞吐量为12.75MBps。
+- **每个作业读吞吐量面板**（[图45](#图45-每个作业读吞吐量面板)）显示了每个作业读吞吐量信息，包括平均值，最大值和当前值。图中JOBID为“dd.0”的作业的平均读吞吐量为2.56MBps，最大值为59.79MBps，当前吞吐量为12.75MBps。
 
   ###### 图45: 每个作业读吞吐量面板
 
    ![Read Throughput Per Job Panel of Server Statistics Dashboard](pic/read_throughput_per_job.jpg)
-  每个作业元数据性能面板（[图46](#图46-每个作业元数据性能面板)）显示了每个作业元数据性能信息，包括平均值，最大值和当前值，其单位为Ops （Operations per Second）。图中JOBID为“rm.0”的作业的平均元数据性能为94.42ops，最大值为1.19K ops，当前性能为7.00 ops。
+  **每个作业元数据性能面板**（[图46](#图46-每个作业元数据性能面板)）显示了每个作业元数据性能信息，包括平均值，最大值和当前值，其单位为Ops （Operations per Second）。图中JOBID为“rm.0”的作业的平均元数据性能为94.42ops，最大值为1.19K ops，当前性能为7.00 ops。
 
   ###### 图46: 每个作业元数据性能面板
    ![Matadata Performance Per Job Panel of Server Statistics Dashboard](pic/matadata_performance_per_job.jpg)
 
-### Lustre MDS仪表盘
+### 4.3  Lustre MDS仪表盘
 
 Lustre MDS仪表盘（[图47](#图47-lustre-mds仪表盘)）显示了 Lustre 文件系统MDS服务器的统计数据。 
 
@@ -555,7 +555,7 @@ Lustre MDS仪表盘（[图47](#图47-lustre-mds仪表盘)）显示了 Lustre 文
 ![Server Statistics Dashboard](pic/lustre_mds/lustre_mds.jpg)
 
 
-以下是一些主要指标的面板视图：
+以下是一些**主要指标**的面板视图：
 
 - **活跃请求数目**面板（[图 48](#图48活跃请求数目面板)）显示分别显示了MDS服务器最大活跃请求数目和最小活跃请求数目随时间的变化。活跃的请求数是指那些正在被MDS处理的请求数目，但不包括那些在队列里面等待被处理的请求。如果活跃的请求的数目小于PTLRPC线程数目减去2（一个用于流入请求处理，另一个用于高优先级请求处理），则通常表示线程数目是足够的。下面左边的图显示了在上一个收集时间间隔间隔中的最大值；而右边的图则显示了收集时间间隔中的最小值。
 
@@ -703,9 +703,7 @@ Lustre MDS仪表盘（[图47](#图47-lustre-mds仪表盘)）显示了 Lustre 文
 
 - 活跃的LDLM Callback请求数目面板（[图 72](#图72活跃的ldlm-callback请求数目面板)）分别显示了MDS服务器最大活跃的LDLM Callback请求数目和最小活跃的LDLM Callback请求数目随时间的变化。活跃的请求数是指那些正在被MDS处理的请求数目，但不包括那些在队列里面等待被处理的请求。如果活跃的请求的数目小于PTLRPC线程数目减去2（一个用于流入请求处理，另一个用于高优先级请求处理），则通常表示线程数目是足够的。下面左边的图显示了在上一个收集时间间隔中的最大值；而右边的图则显示了收集时间间隔中的最小值。
 
-  ###### 图72：活跃的LDLM Callback请求数目面板
-
-  ![Number of Active LDLM Callback Requests](pic/lustre_mds/number_of_active_ldlm_callback_requests.jpg)
+  ###### 图72：活跃的LDLM Callback请求数目面板![Number of Active LDLM Callback Requests](pic/lustre_mds/number_of_active_ldlm_callback_requests.jpg)
 
 - 流入的LDLM Callback请求数目面板（[图 73](#图73流入的ldlm-callback请求数目面板)）分别显示了MDS服务器最大流入的LDLM Callback请求数目和最小流入的LDLM Callback请求数目随时间的变化。流入请求是指那些正在等待被MDS处理的请求。当开始处理请求，则该请求不再是流入请求，请求将会被放在处理队列中。下面左边的图显示了在上一个收集时间间隔中的流入请求的最大值；而右边的图则显示了收集时间间隔中的最小值。
 
@@ -732,7 +730,7 @@ Lustre MDS仪表盘（[图47](#图47-lustre-mds仪表盘)）显示了 Lustre 文
   ![Number of Available LDLM Callback Requests Buffers](pic/lustre_mds/number_of_available_ldlm_callback_requests_buffers.jpg)
 
 
-### Lustre OSS 仪表盘
+### 4.4  Lustre OSS 仪表盘
 
 Lustre OSS仪表盘（[图77](#图77-lustre-oss仪表盘)）显示了 Lustre 文件系统OSS服务器的统计数据。
 
@@ -882,7 +880,7 @@ LDLM Callback服务自适应超时值面板（[图105](#图105-ldlm-callback服�
 ###### 图106: 可用的LDLM Callback请求缓冲区数目面板
 ![Number of Available LDLM Callback Requests Buffers](pic/lustre_oss/number_of_available_ldlm_callback_request_buffers.jpg)
 
-### 服务器仪表盘
+### 4.5  服务器仪表盘
 
 服务器仪表盘（[图107](#图107服务器仪表盘)）页面显示了服务器的统计信息。
 
@@ -957,7 +955,7 @@ LDLM Callback服务自适应超时值面板（[图105](#图105-ldlm-callback服�
 
 ### SFA 物理磁盘仪表盘
 
-**SFA物理磁盘仪**表盘（[图117](#图117-sfa物理磁盘仪表盘)）显示了SFA物理磁盘的相关信息。
+**SFA物理磁盘仪**表盘（[图117](#图117-sfa物理磁盘仪表盘)）显示了DDN SFA物理磁盘的相关信息。
 
 ###### 图117: SFA物理磁盘仪表盘
 
@@ -1004,9 +1002,9 @@ LDLM Callback服务自适应超时值面板（[图105](#图105-ldlm-callback服�
 
 
 
-### SFA 虚拟磁盘仪表盘
+### 4.7  SFA 虚拟磁盘仪表盘
 
-**SFA虚拟磁盘**表盘（[图124](#图124sfa虚拟磁盘表盘)）显示出SFA虚拟磁盘表盘的信息。
+**SFA虚拟磁盘**表盘（[图124](#图124sfa虚拟磁盘表盘)）显示出DDN SFA虚拟磁盘表盘的信息。
 
 ###### 图124：SFA虚拟磁盘表盘![SFA Virtual Disk Dashboard](pic/sfa_virtual_disk/sfa_virtual_disk.jpg)
 
@@ -1032,7 +1030,7 @@ LDLM Callback服务自适应超时值面板（[图105](#图105-ldlm-callback服�
 
 - 数据写入速率面板（[图128](#图128write-performance-on-vrtual-disk-panel)）显示出每个控制器上，该虚拟磁盘的数据写入速率。
 
-  ###### 图128：Write Performance on Virtual Disk Panel
+  ###### 图128：虚拟磁盘的写入性能面板
   
     ![Write Performance Panel of SFA Virtual Disk Dashboard](pic/sfa_virtual_disk/write_performance.jpg)
   
@@ -1048,11 +1046,11 @@ LDLM Callback服务自适应超时值面板（[图105](#图105-ldlm-callback服�
   
    ![Write Latency Samples Panel of SFA Virtual Disk Dashboard](pic/sfa_virtual_disk/write_latency.jpg)
 
-## 压力测试
+## 5   压力测试
 
 为了验证监控在高负载的集群环境下是否运行良好，我们设计了**collectd-stress2** 插件来进行压力测试。它是**Stress** 插件的升级版，它可以通过几个**collectd**客户端来模拟几百个服务器收集的数以万计的监控数据。
 
-### 在代理节点安装插件
+### 5.1  在代理节点安装插件
 
 由于**stress2**插件会产生大量的模拟的监控数据，污染数据库，所以该插件默认不会在所有的客户端安装。当使用**esmon_install** 部署完监控系统之后，用户可以选择某个客户端作为压测客户端。可以在ISO目录下找到collectd-stress2*.rpm并通过以下命令进行安装：
 
@@ -1060,7 +1058,7 @@ LDLM Callback服务自适应超时值面板（[图105](#图105-ldlm-callback服�
 # rpm --ivh collectd-stress2*.rpm
 ```
 
-### 在代理节点更新配置文件
+### 5.2  在代理节点更新配置文件
 
 安装**stress2** RPM之后，更新配置文件/etc/collectd.conf, 添加下面的配置：
 
@@ -1129,7 +1127,7 @@ LoadPlugin stress2
 
 ```
 
-### 进行压力测试
+### 5.3  进行压力测试
 
 在更改了配置文件之后，重启Collectd:
 
@@ -1149,7 +1147,7 @@ server11 collectd[20830]: stress2: time: 1.79244 for 70100 commits with 32 threa
 
 - **操作系统版本：**CentOS7。
 
-- **内存****：**128GB。
+- **内存**：128GB。
 
 - **处理器:** Intel(R) Xeon(R) CPU E5-2630 v3 @ 2.40GHz。
 
@@ -1159,13 +1157,13 @@ server11 collectd[20830]: stress2: time: 1.79244 for 70100 commits with 32 threa
 
 **前提条件：**
 
-- **Collectd** **收集数据间隔****：**60秒。
+- **Collectd** **收集数据间隔**：60秒。
 
 -  **Grafana** **展示历史时间长度：**1小时。
 
 - **Grafana** **自动刷新间隔：**60 秒。
 
--  **Collectd** **运行时间：大于1个小时。**
+-  **Collectd 运行时间：大于1个小时。**
 
 **结论：**
 
@@ -1197,9 +1195,9 @@ influx -database esmon_database –execute \
 
 ![Write Latency Samples Panel of SFA Virtual Disk Dashboard](pic/read_throughput_per_job_statisics.jpg)
 
-如果页面一直处于刷新状态，页面在60秒以内无法加载出来，则说明当前配置下监控处于过载状态，说明当前需要升级监控的硬件配置，或者增大收集时间间隔。否则则表明监控运行良好。通过不断调整*/etc/collectd.conf**中的***job_id**的Number，观察页面加载延迟，可以得到当前硬件配置下可支持的最大压力。测试表明，该设置条件下，监控可以支持10 个OST上并行运行的7000个作业。
+如果页面一直处于刷新状态，页面在60秒以内无法加载出来，则说明当前配置下监控处于过载状态，说明当前需要升级监控的硬件配置，或者增大收集时间间隔。否则则表明监控运行良好。通过不断调整*/etc/collectd.conf 中的* **job_id**的Number，观察页面加载延迟，可以得到当前硬件配置下可支持的最大压力。测试表明，该设置条件下，监控可以支持10 个OST上并行运行的7000个作业。
 
 
-## 故障排除
+## 6  故障排除
 
 部署服务器收集了所有可用于调试的日志，并将其保存至的*/var/log/esmon_install/[installing_date]* 目录下。 一旦操作失败，相关错误信息将被输出至*/var/log/esmon_install/[installing_date]/error.log* 文件中。通常，第一条错误信息包含了导致该操作失败的原因。

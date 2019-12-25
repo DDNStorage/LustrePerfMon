@@ -1,27 +1,27 @@
-# Exascaler Monitoring System Manual
+# DDN Exascaler Monitoring System Manual
 
-## Introduction to EXAScaler Performance Monitoring System
+## 1   Introduction to DDN EXAScaler Performance Monitoring System
 
-*LustrePerfMon* is a monitoring system that can collect system statistics of EXAScaler for performance monitoring and analysis. It is based on multiple widely used open-source software. Some extra plugins have been developed for enhancement.
+*LustrePerfMon* is a monitoring system that can collect system statistics of DDN EXAScaler for performance monitoring and analysis. It is based on multiple widely used open-source software. Some extra plugins have been developed for enhancement.
 
 One of the main components of *LustrePerfMon* is **сollectd**. **collectd** is a daemon, which collects system performance statistics periodically and provides mechanisms to store the values in a variety of ways. *LustrePerfMon* is based on the open-source **collectd**, yet includes more plugins, such as Filedata, Ganglia, Nagios, Stress, Zabbix and so on.
 
-### Terminology
+### 1.1  Terminology
 
-- **LustrePerfMon**: Abbreviation for *EXAScaler Performance Monitoring System*.
-- **SFA**: *Storage Fusion Architecture* provides the foundation for balanced, high-performance storage. Using highly parallelized storage processing technology, SFA delivers both unprecedented IOPS and massive throughput.
-- **EXAScaler**: Software stack developed to overcome the toughest storage and data management challenges in extreme, data-intensive environments.
+- **LustrePerfMon**: Abbreviation for *DDN EXAScaler Performance Monitoring System*.
+- **DDN SFA**: *DDN Storage Fusion Architecture* provides the foundation for balanced, high-performance storage. Using highly parallelized storage processing technology, SFA delivers both unprecedented IOPS and massive throughput.
+- **DDN EXAScaler**: Software stack developed to overcome the toughest storage and data management challenges in extreme, data-intensive environments.
 - **Installation Server**: The server on which the installation process is triggered.
 - **Monitoring Server**: The server on which the database (*Influxdb*) and web server (*Grafana*) of the monitoring system will run.
 - **Monitoring** **Agent(s)**: The hosts, from which the monitoring system will collect metrics from. The metrics includes information about CPU, memory, Lustre, SFA storage, and so on. A *collectd* daemon will run on each monitoring client.
-- **IME**: *Infinite Memory Engine (IME)* is a flash-native, software-defined, storage cache that streamlines application IO, eliminating system bottlenecks.
+- **DDN IME**: *DDN Infinite Memory Engine (IME)* is a flash-native, software-defined, storage cache that streamlines application IO, eliminating system bottlenecks.
 - **Lustre**: The *Lustre* file system is an open-source, parallel file system  that supports many requirements of leadership class HPC simulation environments.
 - **OST**: The *Object Storage Target(OST)* of *Lustre* is the storage target that store the file data objects.
 - **OSS**: The *Object Storage Server(OSS)* of *Lustre* is the server that manage the *Object Storage Target*.
 - **MDT**: The *Metadata Target(MDT)* of *Lustre* is the storage target that stores the file metadata.
 - **MDS**: The *Metadata Servers(MDS)* of *Lustre* is the server that provides metadata services for a file system and manages one or multiple Metadata Target (MDT).
 
-### Collectd plugins
+### 1.2  Collectd plugins
 
 Several additional plugins are added to **collectd** in LustrePerfMon to support various functions.
 
@@ -29,16 +29,16 @@ Several additional plugins are added to **collectd** in LustrePerfMon to support
 
 - **Ganglia plugin**: The **Ganglia** plugin can send metrics collected by a **collectd** client daemon to Ganglia server.
 
-- **IME plugin**: The **IME** plugin can collect performance information from **IME**. The **IME** plugin shares the similar definition file format and configuration format with the **Filedata** plugin.
+- **IME plugin**: The **IME** plugin can collect performance information from **DDN IME**. The **IME** plugin shares the similar definition file format and configuration format with the **Filedata** plugin.
 
-- **SSH plugin**: The **SSH** plugin is able to collect metrics by running commands on remote hosts by using SSH connections. The **SSH** plugin is used to collect metrics from SFA Storage. Like the **IME** plugin, the **SSH** plugin shares the similar definition file format and configuration format with the **Filedata** plugin.
+- **SSH plugin**: The **SSH** plugin is able to collect metrics by running commands on remote hosts by using SSH connections. The **SSH** plugin is used to collect metrics from DDN SFA Storage. Like the **IME** plugin, the **SSH** plugin shares the similar definition file format and configuration format with the **Filedata** plugin.
 -  **Stress plugin**: The **Stress** plugin can push a large amount of metrics to server from **collectd** client in order to benchmark the performance of the collecting system under high pressure.
-- **Stress****2 plugin**: Enhanced version of **Stress** plugin. The format of pushed metrics can be flexibly configured to simulate different real metrics.
+- **Stress2 plugin**: Enhanced version of **Stress** plugin. The format of pushed metrics can be flexibly configured to simulate different real metrics.
 - **Zabbix plugin**: The Zabbix plugin is used to send metrics from **collectd** to **Zabbix** system.
 
-## Installation Requirements
+## 2   Installation Requirements
 
-### Installation Server
+### 2.1  Installation Server
 
 - **OS distribution:** CentOS7/RHEL7
 - **Free disk space:** > 500 MB. The Installation Server will save all installation logs to the /var/log/esmon_install directory, which requires some free disk space.
@@ -46,14 +46,14 @@ Several additional plugins are added to **collectd** in LustrePerfMon to support
 - **LustrePerfMon ISO image:** The LustrePerfMon ISO image must be available on the Installation Server.
 - **Clock and Time Zone:** The clock and time zone should be synchronized with other nodes in the cluster.
 
-### Monitoring Server
+### 2.2  Monitoring Server
 
 - **OS distribution:** CentOS7/RHEL7
 - **Free disk space:** > 5 GB. Influxdb will be running on this server. More disk space is required to keep more data in Influxdb
 - **Network:** SSHD should be running on the Monitoring Server. The Installation Server must be able to connect to the Monitoring Server without a password prompt.
 - **Clock and Time Zone:** The clock and time zone should be synchronized with other nodes in the cluster.
 
-### Monitoring Agent
+### 2.3  Monitoring Agent
 
 - **OS distribution:** CentOS7/RHEL7 or CentOS6/RHEL6
 - **Free disk space:** > 200 MB. The installation server will save necessary RPMs in directory /var/log/esmon_install, which requires some free disk space.
@@ -61,15 +61,15 @@ Several additional plugins are added to **collectd** in LustrePerfMon to support
 - **EXAScaler version:** EXAScaler 2.x, EXAScaler 3.x or EXAScaler4.x.
 - **Clock and Time Zone:** The clock and time zone should be synchronized with other nodes in the cluster.
 
-### SFA
+### 2.4  SFA
 
 - **Firmware release:** 3.x or 11.x
 
 
 
-## Installation Process
+## 3   Installation Process
 
-### Preparing the Installation Server
+### 3.1  Preparing the Installation Server
 
 1. Copy the LustrePerfMon ISO image file to the Installation Server, for example, to /ISOs/esmon.iso.
 
@@ -99,13 +99,13 @@ Several additional plugins are added to **collectd** in LustrePerfMon to support
 
 
 
-### Monitoring Server
+### 3.2  Monitoring Server
 
 If firewall is started on the monitoring server, the ports 3000, 4242, 8086, 8088 and 25826 should be opened, otherwise the installation or running of LustrePerfMon might have problem. The 3000 port is for the webb interface of Grafana. The ports 4242, 8086, 8088, 25826 are for the data communication and management of Influxdb, Grafana and Collectd.
 
 
 
-### Updating the configuration
+### 3.3  Updating the configuration
 
 After the LustrePerfMon RPM has been installed on the Installation Server, update the configuration file /etc/esmon_install.conf, which includes all the necessary information for installation. Define the following parameters:
 
@@ -116,9 +116,9 @@ After the LustrePerfMon RPM has been installed on the Installation Server, updat
   - **infiniband** —This option determines whether to enable Infiniband metrics collection on this LustrePerfMon agent. Default value: **false**.
   - **lustre_mds** — Define whether to enable (**true**) or disable (**false**) metrics collection of Lustre MDS. Default value: **true**.
   - **lustre_oss** — Define whether to enable (**true**) or disable (**false**) metrics collection of Lustre OSS. Default value: **true**.
-  -  **sfas** — This list includes the information of SFAs on this LustrePerfMon agent.
+  -  **sfas** — This list includes the information of DDN SFAs on this LustrePerfMon agent.
     - **controller0_host** — This option is the hostname/IP of the controller 0 of this SFA. Default value: **controller0_host**.
-    - **controller****1_host** — This option is the hostname/IP of the controller 1 of this SFA. Default value: **controller1_host**.
+    - **controller1_host** — This option is the hostname/IP of the controller 1 of this SFA. Default value: **controller1_host**.
     - **Name** —This option is the unique name of this controller. This value will be used as the value of "fqdn" tag for metrics of this SFA. Thus, two SFAs shouldn't have the same **name**.
   
 - **agents_reinstall** — Define whether to reinstall (**true**) LustrePerfMon clients or not (**False**). Default value: **true**.
@@ -227,7 +227,7 @@ ssh_hosts:
 
 
 
-### Running installation on the cluster
+### 3.4  Running installation on the cluster
 
 After the */etc/esmon_install.conf* file has been updated correctly on the Installation Server, run the following command to start the installation on the cluster:
 
@@ -255,7 +255,7 @@ When installing or upgrading, **esmon_install** will cleanup and install the def
 
 
 
-### Accessing the Monitoring Web Page
+### 3.5  Accessing the Monitoring Web Page
 
 The Grafana service is started on the Monitoring Server automatically. The default HTTP port is 3000. A login web page will be shown through that port (see [Figure 1](#figure-1-grafana-login-web-page) below). The default user and password are both “admin”.
 
@@ -271,7 +271,7 @@ The Grafana service is started on the Monitoring Server automatically. The defau
 
 
 
-## Dashboards
+## 4   Dashboards
 
 From the Home dashboard (see [Figure 2](#figure-2-home-dashboard)) different dashboards can be chosen to view different metrics collected by LustrePerfMon.
 
@@ -279,7 +279,7 @@ From the Home dashboard (see [Figure 2](#figure-2-home-dashboard)) different das
 
 ![Home Dashboard](pic/home.jpg)
 
-### Cluster Status Dashboard
+### 4.1  Cluster Status Dashboard
 
 The **Cluster Status** dashboard (see [Figure 3](#figure-3-cluster-status-dashboard) below) shows a summarized status of the servers in the cluster. The background color of panels show the servers’ working status:
 
@@ -305,7 +305,7 @@ The **Cluster Status** dashboard (see [Figure 3](#figure-3-cluster-status-dashbo
 
 ![Cluster Status Dashboard](pic/cluster_status.jpg)
 
-### Lustre Status Dashboard
+### 4.2  Lustre Status Dashboard
 
 The Lustre Statistics dashboard ([Figure 4](#figure-4-lustre-statistics-dashboard)) shows metrics of Lustre file systems.
 
@@ -376,7 +376,7 @@ The following pictures are some of the panels in the **Lustre Statistics** dashb
 - The **Used Inode Number per Group** panel ([Figure 15](#figure-15-used-inode-number-per-group-panel)) shows the number of used inodes per group in the Lustre Filesystem. As shown in the figure, the number of used inodes of the group with GID=1000 is 897.49K, the number of used inodes of the group with GID=1001 is 1.08K, the number of used inodes of the group with GID=0 is 1.01K. To display the current number of used inodes per group in the ascending or descending order, click on **Current**.
 
   ###### Figure 15: Used Inode Number Per Group Panel
-   ![Used Inode Number per Group Panel of Server Statistics Dashboard](pic/used_inode
+   ![Used Inode Number per Group Panel of Server Statistics Dashboard](pic/used_inode_number_per_group.jpg)
 
 - The **Used Inode Number per MDT** ([Figure 16](#figure-16-used-inode-number-per-mdt-panel)) shows the inode number per MDT used in the Lustre Filesystem. As shown in the figure, MDT0000 used inode number is 898.85K, MDT0001 is 254.
 
@@ -385,9 +385,9 @@ The following pictures are some of the panels in the **Lustre Statistics** dashb
 
 - The **I/O Throughput in Total** panel ([Figure 17](#figure-17-io-throughput-in-total-panel)) shows the total I/O throughput in the Lustre filesystem over time.
   
-###### Figure 17: I/O Throughput in Total Panel
+######        Figure 17: I/O Throughput in Total Panel
    ![I/O Throughput Panel of Server Statistics Dashboard](pic/io_throughput.jpg)
-  
+
 - The **I/O Throughput per OST** panel ([Figure 18](#figure-18-io-throughput-per-ost-panel)) shows the average, maximum, and current I/O throughput per OST in the Lustre filesystem.
 
   ###### Figure 18: I/O Throughput per OST Panel
@@ -536,7 +536,7 @@ The following pictures are some of the panels in the **Lustre Statistics** dashb
     ![Matadata Performance Per Job Panel of Server Statistics Dashboard](pic/matadata_performance_per_job.jpg)
 
 
-### Lustre MDS Statistics
+### 4.3  Lustre MDS Statistics
 
 The Lustre MDS Statistics dashboard ([Figure 47](#figure-47-lustre-mds-statistics-dashboard)) shows detailed information about a Lustre MDS server.
 
@@ -558,7 +558,7 @@ Below you will find description of some of the panels in the **Lustre MDS Statis
 
 - The Wait time of Requests Panel ([Figure 50](#figure-50wait-time-of-requests-panel)) shows the maximum and minimum wait time of requests varying on time on MDS. The wait time of a request is the time interval between its arrival time and the time when it starts to be handled. The value shown in the left graph blew is the maximum wait time of the requests during the last collect interval; The value shown in the right graph blew is the minimum wait time of the requests during the last collect interval. 
 
-  ###### Figure 50：Wait time of Requests Panel
+  ###### Figure 50: Wait time of Requests Panel
   ![Wait Time of Requests panel ](pic/lustre_mds/waitTime_of_requests.jpg)
 
 - The Adaptive Timeout Value Panel ([Figure 51](#figure-51adaptive-timeout-value-panel)) shows the maximum and minimum adaptive timeout value varying on time on MDS. When a client sends a request, it has a timeout deadline for the reply. The timeout value of a service is an adaptive value negotiated between server and client during run-time. The value shown in the left graph is the maximum timeout of the MDS service during the last collect interval; The value shown in the right graph is the minimum timeout of the MDS service during the last collect interval. 
@@ -578,17 +578,17 @@ Below you will find description of some of the panels in the **Lustre MDS Statis
   
 - The Handing time of Getattr Requests Panel ([Figure 54](#figure-54handing-time-of-getattr-requests-panel)) shows the maximum and minimum Handling time of Getattr requests varying on time on MDS. The handling time of a request is the time interval between the time that it is started to be handled time and the time the handling finishes.  The value shown in the left graph blew is the minimum handling time of the Getattr requests during the last collect interval; The value shown in the left graph blew is the minimum handling time of the Getattr requests during the last collect interval.
 
-  ###### Figure 54：Handing Time of Getattr Requests Panel
+  ###### Figure 54: Handing Time of Getattr Requests Panel
   ![Handing Time of Getattr Requests](pic/lustre_mds/handing_time_of_getattr_requests.jpg)
   
 - The Handing time of Connect Requests Panel ([Figure 55](#figure-55handing-time-of-connect-requests-panel)) shows the maximum and minimum Handling time of Connect requests varying on time on MDS. The handling time of a request is the time interval between the time that it is started to be handled time and the time the handling finishes.  The value shown in the left graph blew is the minimum handling time of the Connect requests during the last collect interval; The value shown in the left graph blew is the minimum handling time of the Connect requests during the last collect interval.
 
-  ###### Figure 55：Handing Time of Connect Requests Panel
+  ###### Figure 55: Handing Time of Connect Requests Panel
   ![Handing Time of Connect Requests](pic/lustre_mds/handing_time_of_connect_requests.jpg)
   
 - The Handing time of Get-root Requests Panel ([Figure 56](#figure-56handing-time-of-get-root-requests-panel)) shows the maximum and minimum Handling time of Get-root requests varying on time on MDS. The handling time of a request is the time interval between the time that it is started to be handled time and the time the handling finishes.  The value shown in the left graph blew is the minimum handling time of the Get-root requests during the last collect interval; The value shown in the left graph blew is the minimum handling time of the Get-root requests during the last collect interval.
 
-  ###### Figure 56：Handing Time of Get-root Requests Panel
+  ###### Figure 56: Handing Time of Get-root Requests Panel
   ![Handing Time of getroot Requests](pic/lustre_mds/handing_time_of_getroot_requests.jpg)
   
 - The Handing time of Statfs Requests Panel ([Figure 57](#figure-57handing-time-of-statfs-requests-panel)) shows the maximum and minimum Handling time of Statfs requests varying on time on MDS. The handling time of a request is the time interval between the time that it is started to be handled time and the time the handling finishes.  The value shown in the left graph blew is the minimum handling time of the Statfs requests during the last collect interval; The value shown in the left graph blew is the minimum handling time of the Statfs requests during the last collect interval.
@@ -598,104 +598,104 @@ Below you will find description of some of the panels in the **Lustre MDS Statis
   
 - The Handing time of Getxattr Requests Panel ([Figure 58](#figure-58handing-time-of-getxattr-requests-panel)) shows the maximum and minimum Handling time of Getxattr requests varying on time on MDS. The handling time of a request is the time interval between the time that it is started to be handled time and the time the handling finishes.  The value shown in the left graph blew is the minimum handling time of the Getxattr requests during the last collect interval; The value shown in the left graph blew is the minimum handling time of the Getxattr requests during the last collect interval.
 
-  ###### Figure 58：Handing Time of Getxattr Requests Panel
+  ###### Figure 58: Handing Time of Getxattr Requests Panel
   ![Handing Time of Getattr Requests](pic/lustre_mds/handing_time_of_getattr_requests2.jpg)
   
 - The Handing time of Ping Requests Panel ([Figure 59](#figure-59handing-time-of-ping-requests-panel))shows the maximum and minimum Handling time of Ping requests varying on time on MDS. The handling time of a request is the time interval between the time that it is started to be handled time and the time the handling finishes.  The value shown in the left graph blew is the minimum handling time of the Ping requests during the last collect interval; The value shown in the left graph blew is the minimum handling time of the Ping requests during the last collect interval.
 
-    ###### Figure 59：Handing Time of Ping Requests Panel![Handing Time of Ping Requests](pic/lustre_mds/handing_time_of_ping_requests.jpg)
+    ###### Figure 59: Handing Time of Ping Requests Panel![Handing Time of Ping Requests](pic/lustre_mds/handing_time_of_ping_requests.jpg)
 
 - The **Number of Active Readpage Requests** Panel ([Figure 48](#figure-60number-of-active-readpage-requests-panel)) shows the maximum and minimum number of active Readpage requests varying on time on MDS. Active requests are the requests that is being actively handled by this MDS, not including the requests that are waiting in the queue. If the number of active requests is smaller than PTLRPC thread number minus two (one for incoming  request handling and the other for incoming high priority request handling), it generally means the thread number should be enough. The value shown in the left graph blew is the maximum number during the last collect interval. The value shown in the right graph blew is the minimum number during the last collect interval. 
 
-  ###### Figure 60：Number of Active Readpage Requests Panel
+  ###### Figure 60: Number of Active Readpage Requests Panel
   ![Number of Active Readpage Requests](pic/lustre_mds/number_of_active_readpage_requests.jpg)
   
 - The Number of Incoming Readpage Requests Panel ([Figure 61](#figure-61number-of-incoming-readpage-requests-panel)) shows the maximum and minimum number of incoming Readpage requests varying on time on MDS.  Incoming requests are the requests that waiting on preprocessing. A request is not incoming request any more when its proprocessing begins. And after preprocessing, the requests will be put into processing queue.  The value shown in the left graph blew is the maximum number of incoming Readpage requests during the last collect interval; The value shown in the right graph blew is the minimum number of incoming Readpage requests during the last collect interval. 
 
-###### Figure 61：Number of Incoming Readpage Requests Panel
+###### Figure 61: Number of Incoming Readpage Requests Panel
   ![Number of Incoming Readpage Requests](pic/lustre_mds/number_of_incoming_readpage_requests.jpg)
-  
+
  
-  
+
 - The Wait time of Readpage Requests Panel ([Figure 62](#figure-62wait-time-of-readpage-requests-panel)) shows the maximum and minimum wait time of Readpage requests varying on time on MDS. The wait time of a request is the time interval between its arrival time and the time when it starts to be handled. The value shown in the left graph blew is the maximum wait time of the Readpage requests during the last collect interval; The value shown in the right graph blew is the minimum wait time of the Readpage requests during the last collect interval. 
 
-  ###### Figure 62：Wait Time of Readpage Requests Panel
+  ###### Figure 62: Wait Time of Readpage Requests Panel
   ![Wait Time Of Readpage Requests](pic/lustre_mds/waitTime_of_readpage_requests.jpg)
   
 - The Adaptive Timeout Value of Readpage Service Panel ([Figure 63](#figure-63adaptive-timeout-value-of-readpage-service)) shows the maximum and minimum adaptive timeout value of Readpage Service varying on time on MDS. When a client sends a request, it has a timeout deadline for the reply. The timeout value of a service is an adaptive value negotiated between server and client during run-time. The value shown in the left graph is the maximum timeout of the Readpage service during the last collect interval; The value shown in the right graph is the minimum timeout of the Readpage service during the last collect interval. 
 
-    ###### Figure 63：Adaptive Timeout Value of Readpage Service![Adaptive Timeout Value of Readpage Service](pic/lustre_mds/adaptive_timeout_value_of_readpage_service.jpg)
+    ###### Figure 63: Adaptive Timeout Value of Readpage Service![Adaptive Timeout Value of Readpage Service](pic/lustre_mds/adaptive_timeout_value_of_readpage_service.jpg)
 
 - The Number of Available Readpage Request buffers Panel ([Figure 64](#figure-64number-of-available-readpage-request-buffers-panel)) shows the maximum and minimum number of available Readpage request buffers varying on time on MDS. When a request arrives, one request buffer will be used. When number of available request buffers is under low water, more buffers are needed to avoid performance bottleneck. The value shown in the left graph blew is the maximum number during the last collect interval;  The value shown in the right graph blew is the minimum number during the last collect interval. 
 
-  ###### Figure 64：Number of Available Readpage Request Buffers Panel
+  ###### Figure 64: Number of Available Readpage Request Buffers Panel
   ![Number Of Available Readpage Requests Buffers](pic/lustre_mds/number_of_available_readpage_requests_buffers.jpg)
   
 - The Handing time of Close Requests Panel ([Figure 65](#figure-65handing-time-of-close-requests-panel)) shows the maximum and minimum Handling time of Close requests varying on time on MDS. The handling time of a request is the time interval between the time that it is started to be handled time and the time the handling finishes.  The value shown in the left graph blew is the minimum handling time of the Close requests during the last collect interval; The value shown in the left graph blew is the minimum handling time of the Close requests during the last collect interval. 
 
-  ###### Figure 65：Handing Time of Close Requests Panel
+  ###### Figure 65: Handing Time of Close Requests Panel
   ![Handing Time of Close Requests](pic/lustre_mds/handing_time_of_close_requests.jpg)
   
 - The Handing time of Readpage Requests Panel ([Figure 66](#figure-66handing-time-of-readpage-requests-panel)) shows the maximum and minimum Handling time of Readpage requests varying on time on MDS. The handling time of a request is the time interval between the time that it is started to be handled time and the time the handling finishes.  The value shown in the left graph blew is the minimum handling time of the Readpage requests during the last collect interval; The value shown in the left graph blew is the minimum handling time of the Readpage requests during the last collect interval. 
 
-  ###### Figure 66：Handing Time of Readpage Requests Panel
+  ###### Figure 66: Handing Time of Readpage Requests Panel
   ![Handing Time Of Readpage Requests](pic/lustre_mds/handing_time_of_readpage_requests.jpg)
   
 - The **Number of Active LDLM Canceld** **Requests** Panel ([Figure 67](#figure-67number-of-active-ldlm-canceld-requests-panel)) shows the maximum and minimum number of active LDLM Canceld requests varying on time on MDS. Active requests are the requests that is being actively handled by this MDS, not including the requests that are waiting in the queue. If the number of active requests is smaller than PTLRPC thread number minus two (one for incoming  request handling and the other for incoming high priority request handling), it generally means the thread number should be enough. The value shown in the left graph blew is the maximum number during the last collect interval. The value shown in the right graph blew is the minimum number during the last collect interval. 
 
-  ###### Figure 67：Number of Active LDLM Canceld Requests Panel
+  ###### Figure 67: Number of Active LDLM Canceld Requests Panel
   ![Number of Active LDLM Cancled Requests](pic/lustre_mds/number_of_active_ldlm_cancled_requests.jpg)
   
 - The Number of Incoming LDLM Canceld Requests Panel ([Figure 68](#figure-68number-of-incoming-ldlm-canceld-requests-panel)) shows the maximum and minimum number of incoming LDLM Canceld requests varying on time on MDS.  Incoming requests are the requests that waiting on preprocessing. A request is not incoming request any more when its proprocessing begins. And after preprocessing, the requests will be put into processing queue.  The value shown in the left graph blew is the maximum number of incoming LDLM Canceld requests during the last collect interval; The value shown in the right graph blew is the minimum number of incoming LDLM Canceld requests during the last collect interval. 
 
-  ###### Figure 68：Number of Incoming LDLM Canceld Requests Panel
+  ###### Figure 68: Number of Incoming LDLM Canceld Requests Panel
   ![Number of Incoming LDLM Cancled Requests](pic/lustre_mds/number_of_incoming_ldlm_cancled_requests.jpg)
   
 - The Wait time of LDLM Canceld Requests Panel ([Figure 69](#figure-69wait-time-of-ldlm-canceld-requests-panel)) shows the maximum and minimum wait time of LDLM Canceld requests varying on time on MDS. The wait time of a request is the time interval between its arrival time and the time when it starts to be handled. The value shown in the left graph blew is the maximum wait time of the LDLM Canceld requests during the last collect interval; The value shown in the right graph blew is the minimum wait time of the LDLM Canceld requests during the last collect interval. 
 
-  ###### Figure 69：Wait Time of LDLM Canceld Requests Panel
+  ###### Figure 69: Wait Time of LDLM Canceld Requests Panel
   ![Wait Timt of LDLM Canceld Requests](pic/lustre_mds/wait_time_of_ldlm_canceld_requests.jpg)
   
 - The Adaptive Timeout Value of LDLM Canceld Service Panel ([Figure 70](#figure-70adaptive-timeout-value-of-ldlm-canceld-service)) shows the maximum and minimum adaptive timeout value of LDLM Canceld Service varying on time on MDS. When a client sends a request, it has a timeout deadline for the reply. The timeout value of a service is an adaptive value negotiated between server and client during run-time. The value shown in the left graph is the maximum timeout of the LDLM Canceld service during the last collect interval; The value shown in the right graph is the minimum timeout of the LDLM Canceld service during the last collect interval. 
 
-  ###### Figure 70：Adaptive Timeout Value of LDLM Canceld Service
+  ###### Figure 70: Adaptive Timeout Value of LDLM Canceld Service
   ![Adaptive Timeout Value of LDLM Canceld Service](pic/lustre_mds/adaptive_timeout_value_of_ldlm_canceld_service.jpg)
   
 - The Number of Available LDLM Canceld Request buffers Panel ([Figure 71](#figure-71number-of-available-ldlm-canceld-request-buffers-panel)) shows the maximum and minimum number of available LDLM Canceld request buffers varying on time on MDS. When a request arrives, one request buffer will be used. When number of available request buffers is under low water, more buffers are needed to avoid performance bottleneck. The value shown in the left graph blew is the maximum number during the last collect interval;  The value shown in the right graph blew is the minimum number during the last collect interval. 
 
-  ###### Figure 71：Number of Available LDLM Canceld Request Buffers Panel
+  ###### Figure 71: Number of Available LDLM Canceld Request Buffers Panel
   ![Number of Available LDLM Canceld Requests Buffers](pic/lustre_mds/number_of_available_ldlm_canceld_requests_buffers.jpg)
 
    
 
 - The **Number of Active LDLM Callback** **Requests** Panel ([Figure 72](#figure-72number-of-active-ldlm-callback-requests-panel)) shows the maximum and minimum number of active LDLM Callback requests varying on time on MDS. Active requests are the requests that is being actively handled by this MDS, not including the requests that are waiting in the queue. If the number of active requests is smaller than PTLRPC thread number minus two (one for incoming  request handling and the other for incoming high priority request handling), it generally means the thread number should be enough. The value shown in the left graph blew is the maximum number during the last collect interval. The value shown in the right graph blew is the minimum number during the last collect interval. 
 
-  ###### Figure 72：Number of Active LDLM Callback Requests Panel
+  ###### Figure 72: Number of Active LDLM Callback Requests Panel
   ![Number of Active LDLM Callback Requests](pic/lustre_mds/number_of_active_ldlm_callback_requests.jpg)
   
 - The Number of Incoming LDLM Callback Requests Panel ([Figure 73](#figure-73number-of-incoming-ldlm-callback-requests-panel)) shows the maximum and minimum number of incoming LDLM Callback requests varying on time on MDS.  Incoming requests are the requests that waiting on preprocessing. A request is not incoming request any more when its proprocessing begins. And after preprocessing, the requests will be put into processing queue.  The value shown in the left graph blew is the maximum number of incoming LDLM Callback requests during the last collect interval; The value shown in the right graph blew is the minimum number of incoming LDLM Callback requests during the last collect interval. 
 
-  ###### Figure 73：Number of Incoming LDLM Callback Requests Panel
+  ###### Figure 73: Number of Incoming LDLM Callback Requests Panel
   ![Number of Incoming LDLM Callback Requests](pic/lustre_mds/number_of_incoming_ldlm_callback_requests.jpg)
   
 - The Wait time of LDLM Callback Requests Panel ([Figure 74](#figure-74wait-time-of-ldlm-callback-requests-panel)) shows the maximum and minimum wait time of LDLM Callback requests varying on time on MDS. The wait time of a request is the time interval between its arrival time and the time when it starts to be handled. The value shown in the left graph blew is the maximum wait time of the LDLM Callback requests during the last collect interval; The value shown in the right graph blew is the minimum wait time of the LDLM Callback requests during the last collect interval. 
 
-###### Figure 74：Wait time of LDLM Callback Requests Panel
+###### Figure 74: Wait time of LDLM Callback Requests Panel
   ![Wait Time of LDLM Callback Requests](pic/lustre_mds/wait_time_of_ldlm_callback_requests.jpg)
-  
+
 - The Adaptive Timeout Value of LDLM Callback Service Panel ([Figure 75](#figure-75adaptive-timeout-value-of-ldlm-callback-service-panel)) shows the maximum and minimum adaptive timeout value of LDLM Callback Service varying on time on MDS. When a client sends a request, it has a timeout deadline for the reply. The timeout value of a service is an adaptive value negotiated between server and client during run-time. The value shown in the left graph is the maximum timeout of the LDLM Callback service during the last collect interval; The value shown in the right graph is the minimum timeout of the LDLM Callback service during the last collect interval. 
 
-  ###### Figure 75：Adaptive Timeout Value of LDLM Callback Service Panel
+  ###### Figure 75: Adaptive Timeout Value of LDLM Callback Service Panel
   ![Adaptive Timeout Value of LDLM Callback Service](pic/lustre_mds/adaptive_timeout_value_of_ldlm_callback_service.jpg)
 
 - The Number of Available LDLM Callback Request buffers Panel ([Figure 76](#figure-76number-of-available-ldlm-callback-request-buffers-panel)) shows the maximum and minimum number of available LDLM Callback request buffers varying on time on MDS. When a request arrives, one request buffer will be used. When number of available request buffers is under low water, more buffers are needed to avoid performance bottleneck. The value shown in the left graph blew is the maximum number during the last collect interval;  The value shown in the right graph blew is the minimum number during the last collect interval. 
 
-  ###### Figure 76：Number of Available LDLM Callback Request Buffers Panel
+  ###### Figure 76: Number of Available LDLM Callback Request Buffers Panel
   ![Number of Available LDLM Callback Requests Buffers](pic/lustre_mds/number_of_available_ldlm_callback_requests_buffers.jpg)
 
    
 
-### Lustre OSS Statistics
+### 4.4  Lustre OSS Statistics
 
 The Lustre OSS dashboard ([Figure 77](#figure-77-lustre-oss-dashboard)) shows detailed information about a Lustre OSS server.
 
@@ -708,7 +708,7 @@ Below you will find description of some of the panels in the **Lustre OSS Statis
 
 ###### Figure 78：I/O Bandwidth Panel
   ![I/O throughput](pic/lustre_oss/io_throughput.jpg)
-  
+
 - The **Number of Active Requests** Panel ([Figure 79](#figure-79-number-of-active-requests-panel)) shows the maximum and minimum number of active requests varying on time on OSS. Active requests are the requests that is being actively handled by this OSS, not including the requests that are waiting in the queue. If the number of active requests is smaller than PTLRPC thread number minus two (one for incoming  request handling and the other for incoming high priority request handling), it generally means the thread number should be enough. The value shown in the left graph blew is the maximum number during the last collect interval. The value shown in the right graph blew is the minimum number during the last collect interval. 
 
   ###### Figure 79: Number of Active Requests Panel
@@ -864,9 +864,9 @@ Below you will find description of some of the panels in the **Server Statistics
 - The **CPU Usage** panel ([Figure 108](#figure-108-cpu-usage-panel)) shows the amount of time spent by the CPU in various states, most notably executing user code, executing system code, waiting for IO-operations and being idle.
 
 ###### Figure 108: CPU Usage Panel
-  
+
   ###### ![CPU Usage Panel of Server Statistics Dashboard](pic/server_statistics/cpu.jpg)
-  
+
 - The **Memory Usage** panel ([Figure 109](#figure-109-memory-usage-panel)) shows how much memory has been used. The values are reported by the operating system. The categories are: **Used**, **Buffered**, **Cached**, **Free**, **Slab_recl**, **Slab_unrecl**.
 
   ###### Figure 109: Memory Usage Panel
@@ -922,9 +922,9 @@ Below you will find description of some of the panels in the **Server Statistics
   ![Server Statistics Dashboard panel temperature: Temperature](pic/server_statistics/temperature.jpg)
   
 
-### SFA Physical Disk Dashboard
+### 4.6  SFA Physical Disk Dashboard
 
-The **SFA Physical Disk** dashboard shown in [Figure 117](#figure-117-sfa-physical-disk-dashboard) displays information about SFA physical disks.
+The **SFA Physical Disk** dashboard shown in [Figure 117](#figure-117-sfa-physical-disk-dashboard) displays information about DDN SFA physical disks.
 
 ###### Figure 117: SFA Physical Disk Dashboard
 ![SFA Physical Disk Dashboard](pic/sfa_physical_disk/sfa_physical_disk.jpg)
@@ -969,9 +969,9 @@ Below you will find description of some of the panels in the **SFA Physical Disk
   ![Write Latency Samples Panel of SFA Physical Disk Dashboard](pic/sfa_physical_disk/write_latency.jpg)  
   
 
-### SFA Virtual Disk Dashboard
+### 4.7  SFA Virtual Disk Dashboard
 
-The **SFA Virtual Disk** dashboard ([Figure 124](#figure-124-sfa-virtual-disk-dashboard) ) shows information about SFA virtual disks:
+The **SFA Virtual Disk** dashboard ([Figure 124](#figure-124-sfa-virtual-disk-dashboard) ) shows information about DDN SFA virtual disks:
 
 ###### Figure 124: SFA Virtual Disk Dashboard
 ![SFA Virtual Disk Dashboard](pic/sfa_virtual_disk/sfa_virtual_disk.jpg)
@@ -1010,11 +1010,11 @@ Below you will find description of some of the panels in the **SFA Virtual Disk*
 
  
 
-## Stress Testing
+## 5  Stress Testing
 
 In order to check whether the monitoring system works well under high pressure, we designed the **collectd-stress2** plugin for stress testing. It is an upgraded version of the **Stress** plugin, which can use a couple of **collectd** clients to simulate tens of thousands of metrics collected from hundreds of servers.
 
-### Installing stress2 RPM on collectd Client
+### 5.1  Installing stress2 RPM on collectd Client
 
 Because the **stress2** plugin generates a large amount of simulated monitoring data and contaminates the database, the plugin *should not* be installed on all clients by default. After the monitoring system has been installed using esmon_install, select a couple of **collectd** clients as testing hosts and install the **stress2** plugins on each of the testing hosts. The RPM collectd-stress2 * .rpm should be located in the ISO directory. To install the RPM, run the following command:
 
@@ -1022,7 +1022,7 @@ Because the **stress2** plugin generates a large amount of simulated monitoring 
 rpm --ivh collectd-stress2*.rpm
 ```
 
-### Updating Configuration File of Collectd Client
+### 5.2  Updating Configuration File of Collectd Client
 
 After **stress2** RPMs have been installed, update the configuration file /etc/collectd.conf and add the following configuration:
 
@@ -1037,20 +1037,14 @@ After **stress2** RPMs have been installed, update the configuration file /etc/c
 		- **Number** — Defines the maximum range of variable changes.
 
 		- **UpdateInterval** — Defines the time interval between variable changes.
-
-	- **Host**—Defines the host name of the client, usually defined as "$ {key: hostname}", the program automatically sets the current host name. It describes the discriminator of the collection data object together with the following **Plugin**, **PluginInstance**, **Type**, **TypeInstance**. See [Naming Schema](https://collectd.org/wiki/index.php/Naming_schema) for details.
-
+- **Host**—Defines the host name of the client, usually defined as "$ {key: hostname}", the program automatically sets the current host name. It describes the discriminator of the collection data object together with the following **Plugin**, **PluginInstance**, **Type**, **TypeInstance**. See [Naming Schema](https://collectd.org/wiki/index.php/Naming_schema) for details.
 	- **Plugin**—Defines the plugin member in the collectd identifier.
-
-	- **PluginInstance**—Defines the plugininstance member in the collectd identifier.
-
-	- **Type**—The type member of the collectd identifier. For details, see https://collectd.org/wiki/index.php/Derive.
-
+- **PluginInstance**—Defines the plugininstance member in the collectd identifier.
+	
+  - **Type**—The type member of the collectd identifier. For details, see https://collectd.org/wiki/index.php/Derive.
 	- **TypeInstance**—Defines the type instance member in the collectd identifier.
-
-	- **TsdbName**—Defines the name submitted to the database format.
-
-    - **TsdbTags**—Defined the tags submitted to the database format to facilitate the late classification search.
+- **TsdbName**—Defines the name submitted to the database format.
+	- **TsdbTags**—Defined the tags submitted to the database format to facilitate the late classification search.
 
 Below is an example of /etc/collectd.conf.
 
@@ -1101,11 +1095,11 @@ LoadPlugin stress2
 </Plugin>
 ```
 
-### Start Testing
+### 5.3  Start Testing
 
 After modifying the configuration file, restart collectd:
 
-service collectd restart
+​               service collectd restart
 
 A message like the following should appear in */var/log/messages*:
 
@@ -1155,12 +1149,12 @@ With the monitoring software running, the above command on the database host can
 
 After verifying the load on the database side, we also need to verify the loading status of Grafana. Log in to Grafana to see **Read Throughput per Job** (see [Figure 72](#figure-72number-of-active-ldlm-callback-requests-panel))
 
-###### Figure 132：Read throughput per Job stress testing
+###### Figure 132: Read throughput per Job stress testing
 ![Write Latency Samples Panel of SFA Virtual Disk Dashboard](pic/read_throughput_per_job_statisics.jpg)
 
 
 If the page is always refreshing and the page can be loaded within 60 seconds, that means, under the current configuration, the monitoring system can handle the current pressure. Otherwise, the monitoring system can be considered overloaded. In that case, either hardware need to be upgraded or the data collecting/refreshing intervals need to be increased. By continuously adjusting the number of **job_id** in */etc/collectd.conf* and checking the page refreshing latency, the maximum supported metrics can be known under the current hardware configuration. Tests show that if Lustre has 10 OSTs, with above hardware, the monitoring system can support up to 7000 running jobs at the same time without any problem.
 
-## Troubleshooting
+## 6  Troubleshooting
 
 The directory */var/log/esmon_install/[installing_date]* on the Installation Server gathers all the logs that is useful for debugging. If a failure happens, some error messages will be written  to the file */var/log/esmon_install/[installing_date]/error.log*. The first error message usually contains the information about the cause of failure.
