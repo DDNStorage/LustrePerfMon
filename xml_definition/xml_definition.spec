@@ -32,6 +32,7 @@ This package includes XML definition files and configure examples for monitor sy
 %{__install} -Dp -m0644 gpfs-3.5.xml %{buildroot}%{_sysconfdir}/gpfs-3.5_definition.xml
 %{__install} -Dp -m0644 sfa-3.0.xml %{buildroot}%{_sysconfdir}/sfa-3.0_definition.xml
 %{__install} -Dp -m0644 sfa-11.0.xml %{buildroot}%{_sysconfdir}/sfa-11.0_definition.xml
+%{__install} -Dp -m0644 sfa-11.6.xml %{buildroot}%{_sysconfdir}/sfa-11.6_definition.xml
 %{__install} -Dp -m0644 collectd.conf.all %{buildroot}%{_sysconfdir}/collectd.conf.all
 %{__install} -Dp -m0644 ime-1.1.xml %{buildroot}%{_sysconfdir}
 %{__install} -Dp -m0644 ime-1.2.xml %{buildroot}%{_sysconfdir}
@@ -60,6 +61,7 @@ This package includes XML definition files and configure examples for monitor sy
 %{_sysconfdir}/gpfs-3.5_definition.xml
 %{_sysconfdir}/sfa-3.0_definition.xml
 %{_sysconfdir}/sfa-11.0_definition.xml
+%{_sysconfdir}/sfa-11.6_definition.xml
 %{_sysconfdir}/collectd.conf.all
 %{_sysconfdir}/ime-1.1.xml
 %{_sysconfdir}/ime-1.2.xml
