@@ -1,0 +1,18 @@
+name: esmon build
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: build
+    runs-on: centos-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build es_mon
+        run: |
+          ./esmon_build
+
+

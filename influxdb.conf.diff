@@ -1,5 +1,5 @@
---- influxdb_origin.conf	2017-12-13 04:23:14.950412388 -0500
-+++ influxdb.conf	2017-12-15 02:05:36.182363717 -0500
+--- /etc/influxdb/influxdb.conf.orig	2019-02-14 08:18:47.000000000 +0800
++++ influxdb.conf	2020-02-07 10:36:41.230760281 +0800
 @@ -23,7 +23,7 @@
  
  [meta]
@@ -31,7 +31,7 @@
  
    # Trace logging provides more verbose output around the tsm engine. Turning
    # this on can provide more useful output for debugging tsm engine issues.
-@@ -95,7 +95,7 @@
+@@ -120,7 +120,7 @@
    # The maximum series allowed per database before writes are dropped.  This limit can prevent
    # high cardinality issues at the database level.  This limit can be disabled by setting it to
    # 0.
@@ -40,7 +40,16 @@
  
    # The maximum number of tag values per tag that are allowed before writes are dropped.  This limit
    # can prevent high cardinality tag values from being written to a measurement.  This limit can be
-@@ -362,9 +362,9 @@
+@@ -349,7 +349,7 @@
+   # Determines which level of logs will be emitted. The available levels
+   # are error, warn, info, and debug. Logs that are equal to or above the
+   # specified level will be emitted.
+-  # level = "info"
++  level = "warn"
+ 
+   # Suppresses the logo output that is printed when the program is started.
+   # The logo is always suppressed if STDOUT is not a TTY.
+@@ -478,9 +478,9 @@
  ###
  
  [[opentsdb]]
