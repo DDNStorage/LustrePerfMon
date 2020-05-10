@@ -46,8 +46,18 @@ class EsmonInstallServer(object):
     def __init__(self, host, iso_dir):
         self.eis_host = host
         self.eis_iso_dir = iso_dir
-        self.eis_rpm_dir = (iso_dir + "/" + "RPMS/" +
-                            ssh_host.DISTRO_RHEL7)
+        distro = host.sh_distro()
+        if distro != ssh_host.DISTRO_RHEL7:
+            reason = ("unsupported distro [%s] for install host [%s]" %
+                      distro, host.sh_hostname)
+            raise Exception(reason)
+        target_cpu = host.sh_target_cpu()
+        if target_cpu is None:
+            reason = ("failed to get target cpu on host [%s]",
+                      host.sh_hostname)
+            raise Exception(reason)
+        self.eis_rpm_dir = (iso_dir + "/" + "RPMS/" + distro + "/" +
+                            target_cpu)
         self.eis_rpm_dependent_dir = self.eis_rpm_dir + "/dependent"
         self.eis_rpm_dependent_fnames = None
 

@@ -1636,7 +1636,7 @@ class SSHHost(object):
         Check whether the Internet connection works well
         """
         ret = self.sh_check_network_connection("www.bing.com")
-        if ret:
+        if ret == 0:
             return 0
 
         return self.sh_check_network_connection("www.baidu.com")
@@ -1829,3 +1829,20 @@ class SSHHost(object):
                 if ret:
                     break
         return ret
+
+    def sh_target_cpu(self):
+        """
+        Return the target CPU, e.g. x86_64 or aarch64
+        """
+        command = "uname -i"
+        retval = self.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          self.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return None
+        return retval.cr_stdout.strip()

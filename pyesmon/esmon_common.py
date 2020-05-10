@@ -11,8 +11,8 @@ from pyesmon import utils
 
 ESMON_INSTALL_CONFIG_FNAME = "esmon_install.conf"
 ESMON_INSTALL_CONFIG = "/etc/" + ESMON_INSTALL_CONFIG_FNAME
-RPM_PATTERN_RHEL7 = r"^%s-\d.+(\.el7|).*\.(x86_64|noarch)\.rpm$"
-RPM_PATTERN_RHEL6 = r"^%s-\d.+(\.el6|).*\.(x86_64|noarch)\.rpm$"
+RPM_PATTERN_RHEL6 = r"^%s-\d.+(\.el6|).*\.rpm$"
+RPM_PATTERN_RHEL7 = r"^%s-\d.+(\.el7|).*\.rpm$"
 PATTERN_PYTHON_LIBRARY = r"^%s-\d+\.\d+\.\d+\.tar\.gz$"
 
 # Config strings
@@ -175,7 +175,7 @@ ESMON_INSTALL_DEPENDENT_RPMS = ["rsync",
                                 "python-dateutil"]
 
 # patch is needed to patch /etc/influxdb/influxdb.conf file
-# fontconfig and urw-base35-fonts are needed by grafana-*.x86_64.rpm
+# fontconfig and urw-base35-fonts are needed by grafana rpm
 # fontpackages-filesystem, bitmap-console-fonts(font(:lang=en)) are
 # needed by fontconfig
 # xorg-x11-font-utils is needed by urw-base35-fonts

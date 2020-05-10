@@ -100,8 +100,6 @@ class EsmonServer(object):
         self.es_host = host
         self.es_workspace = workspace
         self.es_iso_dir = workspace + "/ISO"
-        self.es_rpm_dir = (self.es_iso_dir + "/" + "RPMS/" +
-                           ssh_host.DISTRO_RHEL7)
         self.es_grafana_failure = False
         hostname = host.sh_hostname
         self.es_influxdb_client = esmon_influxdb.InfluxdbClient(hostname,
@@ -1320,15 +1318,27 @@ class EsmonSFA(object):
             logging.warning("sshpass is missing on host [%s], trying to "
                             "install it", host.sh_hostname)
             # sshpass rely on epel-release on centos6
-            ret = host.sh_run("yum install epel-release -y")
-            if ret.cr_exit_status != 0:
-                logging.error("failed to install epel-release on host [%s], "
-                              "please install it manually")
+            command = "yum install epel-release -y"
+            retval = host.sh_run(command)
+            if retval.cr_exit_status:
+                logging.error("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              host.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
                 return -1
-            ret = host.sh_run("yum install sshpass -y")
-            if ret.cr_exit_status != 0:
-                logging.error("failed to install sshpass on host [%s], "
-                              "please install it manually")
+            command = "yum install sshpass -y"
+            retval = host.sh_run(command)
+            if retval.cr_exit_status:
+                logging.error("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              host.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
                 return -1
 
         command = "show subsystem all"
@@ -1448,6 +1458,7 @@ class EsmonClient(object):
         self.ec_collectd_config_final = None
         self.ec_influxdb_update_time = None
         self.ec_distro = None
+        self.ec_cpu_target = None
         self.ec_rpm_pattern = None
         self.ec_rpm_dependent_dir = None
         self.ec_rpm_collectd_dir = None
@@ -1604,18 +1615,25 @@ class EsmonClient(object):
 
         distro = self.ec_host.sh_distro()
         self.ec_distro = distro
-        if distro == ssh_host.DISTRO_RHEL6:
-            self.ec_rpm_pattern = esmon_common.RPM_PATTERN_RHEL6
-        elif distro == ssh_host.DISTRO_RHEL7:
+        if distro == ssh_host.DISTRO_RHEL7:
             self.ec_rpm_pattern = esmon_common.RPM_PATTERN_RHEL7
+        elif distro == ssh_host.DISTRO_RHEL6:
+            self.ec_rpm_pattern = esmon_common.RPM_PATTERN_RHEL6
         else:
-            logging.error("distro of host [%s] is not RHEL6/CentOS6 or "
-                          "RHEL7/CentOS7", self.ec_host.sh_hostname)
+            logging.error("distro of host [%s] is not supported", self.ec_host.sh_hostname)
             return -1
+
+        cpu_target = self.ec_host.sh_target_cpu()
+        if cpu_target is None:
+            logging.error("failed to get target cpu on host [%s]",
+                          self.ec_host.sh_hostname)
+            return -1
+
+        self.ec_cpu_target = cpu_target
         self.ec_rpm_dir = ("%s/%s" %
                            (self.ec_iso_dir, RPM_STRING))
-        rpm_distro_dir = ("%s/%s" %
-                          (self.ec_rpm_dir, distro))
+        rpm_distro_dir = ("%s/%s/%s" %
+                          (self.ec_rpm_dir, distro, cpu_target))
         self.ec_rpm_dependent_dir = ("%s/%s" %
                                      (rpm_distro_dir, DEPENDENT_STRING))
         self.ec_rpm_collectd_dir = ("%s/%s" %

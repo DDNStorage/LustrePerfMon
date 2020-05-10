@@ -35,6 +35,18 @@ def esmon_do_test_install(workspace, install_server, mnt_path):
     Run the install test
     """
     # pylint: disable=too-many-return-statements
+    distro = install_server.sh_distro()
+    if distro is None:
+        logging.error("failed to get distro on host [%s]",
+                      install_server.sh_hostname)
+        return -1
+
+    target_cpu = install_server.sh_target_cpu()
+    if target_cpu is None:
+        logging.error("failed to get target cpu on host [%s]",
+                      install_server.sh_hostname)
+        return -1
+
     command = ("rpm -e esmon")
     retval = install_server.sh_run(command)
     if retval.cr_exit_status:
@@ -46,8 +58,8 @@ def esmon_do_test_install(workspace, install_server, mnt_path):
                       retval.cr_stdout,
                       retval.cr_stderr)
 
-    command = ("rpm -ivh %s/RPMS/rhel7/esmon-*.el7.x86_64.rpm" %
-               (mnt_path))
+    command = ("rpm -ivh %s/RPMS/%s/%s/esmon-*.el7.*.rpm" %
+               (mnt_path, distro, target_cpu))
     retval = install_server.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "

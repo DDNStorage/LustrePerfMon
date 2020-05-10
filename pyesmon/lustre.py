@@ -12,8 +12,6 @@ import re
 from pyesmon import utils
 from pyesmon import ssh_host
 
-EPEL_RPM_RHEL6_RPM = ("http://download.fedoraproject.org/pub/epel/6/x86_64/"
-                      "epel-release-6-8.noarch.rpm")
 # The directory path that has Lustre test script
 LUSTRE_TEST_SCRIPT_DIR = "/usr/lib64/lustre/tests"
 
@@ -589,17 +587,17 @@ LUSTRE_RPM_TYPES = [RPM_KMOD_COMMON,  # Only in EXAScaler3
                     RPM_TESTS]
 
 ES2_PATTERNS = {
-    RPM_KERNEL: r"^(kernel-2.+\.x86_64\.rpm)$",
-    RPM_LUSTRE: r"^(lustre-2\.5.+\.x86_64\.rpm)$",
-    RPM_IOKIT: r"^(lustre-iokit-2\.5.+\.x86_64\.rpm)$",
-    RPM_KMOD: r"^(lustre-modules-2\.5.+\.x86_64\.rpm)$",
-    RPM_OSD_LDISKFS: r"^(lustre-osd-ldiskfs-2\.5.+\.x86_64\.rpm)$",
-    RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.5.+\.x86_64\.rpm)$",
-    RPM_OSD_ZFS: r"^(lustre-osd-zfs-2\.5.+\.x86_64\.rpm)$",
-    RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.5.+\.x86_64\.rpm)$",
-    RPM_TESTS: r"^(lustre-tests-2\.5.+\.x86_64\.rpm)$",
-    RPM_MLNX_OFA: r"^(mlnx-ofa_kernel-\d.+\.x86_64\.rpm)$",
-    RPM_MLNX_KMOD: r"^(mlnx-ofa_kernel-modules-\d.+\.x86_64\.rpm)$"}
+    RPM_KERNEL: r"^(kernel-2.+\.rpm)$",
+    RPM_LUSTRE: r"^(lustre-2\.5.+\.rpm)$",
+    RPM_IOKIT: r"^(lustre-iokit-2\.5.+\.rpm)$",
+    RPM_KMOD: r"^(lustre-modules-2\.5.+\.rpm)$",
+    RPM_OSD_LDISKFS: r"^(lustre-osd-ldiskfs-2\.5.+\.rpm)$",
+    RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.5.+\.rpm)$",
+    RPM_OSD_ZFS: r"^(lustre-osd-zfs-2\.5.+\.rpm)$",
+    RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.5.+\.rpm)$",
+    RPM_TESTS: r"^(lustre-tests-2\.5.+\.rpm)$",
+    RPM_MLNX_OFA: r"^(mlnx-ofa_kernel-\d.+\.rpm)$",
+    RPM_MLNX_KMOD: r"^(mlnx-ofa_kernel-modules-\d.+\.rpm)$"}
 
 LUSTRE_VERSION_NAME_ES2 = "es2"
 
@@ -608,18 +606,18 @@ LUSTRE_VERSION_ES2 = LustreVersion(LUSTRE_VERSION_NAME_ES2,
                                    "2")  # kernel_major_version
 
 ES3_PATTERNS = {
-    RPM_KERNEL: r"^(kernel-lustre-3.+\.x86_64\.rpm)$",
-    RPM_LUSTRE: r"^(lustre-2\.7.+\.x86_64\.rpm)$",
-    RPM_LUSTER_SERVER: r"^(lustre-server-2\.7.+\.x86_64\.rpm)$",
-    RPM_IOKIT: r"^(lustre-iokit-2\.7.+\.x86_64\.rpm)$",
-    RPM_KMOD_COMMON: r"^(kmod-lustre-common-2\.7.+\.x86_64\.rpm)$",
-    RPM_KMOD: r"^(kmod-lustre-el7\.\d-2\.7.+\.x86_64\.rpm)$",
-    RPM_KMOD_LDISKFS: r"^(kmod-lustre-el7\.\d-ldiskfs-2\.7.+\.x86_64\.rpm)$",
-    RPM_OSD_LDISKFS: r"^(kmod-lustre-el7\.\d-osd-ldiskfs-2\.7.+\.x86_64\.rpm)$",
-    RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.7.+\.x86_64\.rpm)$",
-    RPM_TESTS: r"^(lustre-tests-2\.7.+\.x86_64\.rpm)$",
-    RPM_MLNX_OFA: r"^(mlnx-ofa_kernel-\d.+\.x86_64\.rpm)$",
-    RPM_MLNX_KMOD: r"^(kmod-mlnx-ofa_kernel-el7\.\d-lustre-3.+\.x86_64\.rpm)$"}
+    RPM_KERNEL: r"^(kernel-lustre-3.+\.rpm)$",
+    RPM_LUSTRE: r"^(lustre-2\.7.+\.rpm)$",
+    RPM_LUSTER_SERVER: r"^(lustre-server-2\.7.+\.rpm)$",
+    RPM_IOKIT: r"^(lustre-iokit-2\.7.+\.rpm)$",
+    RPM_KMOD_COMMON: r"^(kmod-lustre-common-2\.7.+\.rpm)$",
+    RPM_KMOD: r"^(kmod-lustre-el7\.\d-2\.7.+\.rpm)$",
+    RPM_KMOD_LDISKFS: r"^(kmod-lustre-el7\.\d-ldiskfs-2\.7.+\.rpm)$",
+    RPM_OSD_LDISKFS: r"^(kmod-lustre-el7\.\d-osd-ldiskfs-2\.7.+\.rpm)$",
+    RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.7.+\.rpm)$",
+    RPM_TESTS: r"^(lustre-tests-2\.7.+\.rpm)$",
+    RPM_MLNX_OFA: r"^(mlnx-ofa_kernel-\d.+\.rpm)$",
+    RPM_MLNX_KMOD: r"^(kmod-mlnx-ofa_kernel-el7\.\d-lustre-3.+\.rpm)$"}
 
 LUSTRE_VERSION_NAME_ES3 = "es3"
 
@@ -630,16 +628,16 @@ LUSTRE_VERSION_ES3 = LustreVersion(LUSTRE_VERSION_NAME_ES3,
                                    "3")  # kernel_major_version
 
 ES4_PATTERNS = {
-    RPM_KERNEL: r"^(kernel-3.+\.x86_64\.rpm)$",
-    RPM_LUSTRE: r"^(lustre-2\.10\.\d+_ddn.+\.x86_64\.rpm)$",
-    RPM_IOKIT: r"^(lustre-iokit-2\.10\.\d+_ddn.+\.x86_64\.rpm)$",
-    RPM_KMOD: r"^(kmod-lustre-2\.10\.\d+_ddn.+\.x86_64\.rpm)$",
-    RPM_OSD_LDISKFS: r"^(kmod-lustre-osd-ldiskfs-2\.10\.\d+_ddn.+\.x86_64\.rpm)$",
-    RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.10.+\.x86_64\.rpm)$",
-    RPM_OSD_ZFS: r"^(kmod-lustre-osd-zfs-2\.10\.\d+_ddn.+\.x86_64\.rpm)$",
-    RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.10\.\d+_ddn.+\.x86_64\.rpm)$",
-    RPM_TESTS: r"^(lustre-tests-2\.10\.\d+_ddn.+\.x86_64\.rpm)$",
-    RPM_TESTS_KMOD: r"^(kmod-lustre-tests-2\.10\.\d+_ddn.+\.x86_64\.rpm)$",
+    RPM_KERNEL: r"^(kernel-3.+\.rpm)$",
+    RPM_LUSTRE: r"^(lustre-2\.10\.\d+_ddn.+\.rpm)$",
+    RPM_IOKIT: r"^(lustre-iokit-2\.10\.\d+_ddn.+\.rpm)$",
+    RPM_KMOD: r"^(kmod-lustre-2\.10\.\d+_ddn.+\.rpm)$",
+    RPM_OSD_LDISKFS: r"^(kmod-lustre-osd-ldiskfs-2\.10\.\d+_ddn.+\.rpm)$",
+    RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.10.+\.rpm)$",
+    RPM_OSD_ZFS: r"^(kmod-lustre-osd-zfs-2\.10\.\d+_ddn.+\.rpm)$",
+    RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.10\.\d+_ddn.+\.rpm)$",
+    RPM_TESTS: r"^(lustre-tests-2\.10\.\d+_ddn.+\.rpm)$",
+    RPM_TESTS_KMOD: r"^(kmod-lustre-tests-2\.10\.\d+_ddn.+\.rpm)$",
 }
 
 LUSTRE_VERSION_NAME_ES4 = "es4"
@@ -651,16 +649,16 @@ LUSTRE_VERSION_ES4 = LustreVersion(LUSTRE_VERSION_NAME_ES4,
 LUSTRE_VERSION_NAME_2_10 = "2.10"
 
 B2_10_PATTERNS = {
-    RPM_KERNEL: r"^(kernel-3.+\.x86_64\.rpm)$",
-    RPM_LUSTRE: r"^(lustre-2\.10.+\.x86_64\.rpm)$",
-    RPM_IOKIT: r"^(lustre-iokit-2\.10.+\.x86_64\.rpm)$",
-    RPM_KMOD: r"^(kmod-lustre-2\.10.+\.x86_64\.rpm)$",
-    RPM_OSD_LDISKFS: r"^(kmod-lustre-osd-ldiskfs-2\.10.+\.x86_64\.rpm)$",
-    RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.10.+\.x86_64\.rpm)$",
-    RPM_OSD_ZFS: r"^(kmod-lustre-osd-zfs-2\.10.+\.x86_64\.rpm)$",
-    RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.10.+\.x86_64\.rpm)$",
-    RPM_TESTS: r"^(lustre-tests-2\.10.+\.x86_64\.rpm)$",
-    RPM_TESTS_KMOD: r"^(kmod-lustre-tests-2\.10.+\.x86_64\.rpm)$",
+    RPM_KERNEL: r"^(kernel-3.+\.rpm)$",
+    RPM_LUSTRE: r"^(lustre-2\.10.+\.rpm)$",
+    RPM_IOKIT: r"^(lustre-iokit-2\.10.+\.rpm)$",
+    RPM_KMOD: r"^(kmod-lustre-2\.10.+\.rpm)$",
+    RPM_OSD_LDISKFS: r"^(kmod-lustre-osd-ldiskfs-2\.10.+\.rpm)$",
+    RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.10.+\.rpm)$",
+    RPM_OSD_ZFS: r"^(kmod-lustre-osd-zfs-2\.10.+\.rpm)$",
+    RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.10.+\.rpm)$",
+    RPM_TESTS: r"^(lustre-tests-2\.10.+\.rpm)$",
+    RPM_TESTS_KMOD: r"^(kmod-lustre-tests-2\.10.+\.rpm)$",
 }
 
 LUSTRE_VERSION_2_10 = LustreVersion(LUSTRE_VERSION_NAME_2_10,
@@ -669,17 +667,17 @@ LUSTRE_VERSION_2_10 = LustreVersion(LUSTRE_VERSION_NAME_2_10,
 
 
 B2_7_PATTERNS = {
-    RPM_KERNEL: r"^(kernel-3.+\.x86_64\.rpm)$",
-    RPM_LUSTRE: r"^(lustre-2\.7.+\.x86_64\.rpm)$",
-    RPM_IOKIT: r"^(lustre-iokit-2\.7.+\.x86_64\.rpm)$",
-    RPM_KMOD: r"^(lustre-modules-2\.7.+\.x86_64\.rpm)$",
-    RPM_OSD_LDISKFS: r"^(lustre-osd-ldiskfs-2\.7.+\.x86_64\.rpm)$",
-    RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.7.+\.x86_64\.rpm)$",
-    RPM_OSD_ZFS: r"^(lustre-osd-zfs-2\.7.+\.x86_64\.rpm)$",
-    RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.7.+\.x86_64\.rpm)$",
-    RPM_TESTS: r"^(lustre-tests-2\.7.+\.x86_64\.rpm)$",
-    RPM_MLNX_OFA: r"^(mlnx-ofa_kernel-\d.+\.x86_64\.rpm)$",
-    RPM_MLNX_KMOD: r"^(mlnx-ofa_kernel-modules-\d.+\.x86_64\.rpm)$"}
+    RPM_KERNEL: r"^(kernel-3.+\.rpm)$",
+    RPM_LUSTRE: r"^(lustre-2\.7.+\.rpm)$",
+    RPM_IOKIT: r"^(lustre-iokit-2\.7.+\.rpm)$",
+    RPM_KMOD: r"^(lustre-modules-2\.7.+\.rpm)$",
+    RPM_OSD_LDISKFS: r"^(lustre-osd-ldiskfs-2\.7.+\.rpm)$",
+    RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.7.+\.rpm)$",
+    RPM_OSD_ZFS: r"^(lustre-osd-zfs-2\.7.+\.rpm)$",
+    RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.7.+\.rpm)$",
+    RPM_TESTS: r"^(lustre-tests-2\.7.+\.rpm)$",
+    RPM_MLNX_OFA: r"^(mlnx-ofa_kernel-\d.+\.rpm)$",
+    RPM_MLNX_KMOD: r"^(mlnx-ofa_kernel-modules-\d.+\.rpm)$"}
 
 LUSTRE_VERSION_NAME_2_7 = "2.7"
 
@@ -689,13 +687,13 @@ LUSTRE_VERSION_2_7 = LustreVersion(LUSTRE_VERSION_NAME_2_7,
 
 
 B2_12_PATTERNS = {
-    RPM_KERNEL: r"^(kernel-3.+\.x86_64\.rpm)$",
-    RPM_LUSTRE: r"^(lustre-2\.12.+\.x86_64\.rpm)$",
-    RPM_KMOD: r"^(kmod-lustre-2\.12.+\.x86_64\.rpm)$",
-    RPM_OSD_LDISKFS: r"^(kmod-lustre-osd-ldiskfs-2\.12.+\.x86_64\.rpm)$",
-    RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.12.+\.x86_64\.rpm)$",
-    RPM_OSD_ZFS: r"^(kmod-lustre-osd-zfs-2\.12.+\.x86_64\.rpm)$",
-    RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.12.+\.x86_64\.rpm)$"}
+    RPM_KERNEL: r"^(kernel-3.+\.rpm)$",
+    RPM_LUSTRE: r"^(lustre-2\.12.+\.rpm)$",
+    RPM_KMOD: r"^(kmod-lustre-2\.12.+\.rpm)$",
+    RPM_OSD_LDISKFS: r"^(kmod-lustre-osd-ldiskfs-2\.12.+\.rpm)$",
+    RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.12.+\.rpm)$",
+    RPM_OSD_ZFS: r"^(kmod-lustre-osd-zfs-2\.12.+\.rpm)$",
+    RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.12.+\.rpm)$"}
 
 LUSTRE_VERSION_NAME_2_12 = "2.12"
 
@@ -703,13 +701,13 @@ LUSTRE_VERSION_2_12 = LustreVersion(LUSTRE_VERSION_NAME_2_12,
                                     B2_12_PATTERNS,  # rpm_patterns
                                     "3")  # kernel_major_version
 B2_13_PATTERNS = {
-    RPM_KERNEL: r"^(kernel-3.+\.x86_64\.rpm)$",
-    RPM_LUSTRE: r"^(lustre-2\.13.+\.x86_64\.rpm)$",
-    RPM_KMOD: r"^(kmod-lustre-2\.13.+\.x86_64\.rpm)$",
-    RPM_OSD_LDISKFS: r"^(kmod-lustre-osd-ldiskfs-2\.13.+\.x86_64\.rpm)$",
-    RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.13.+\.x86_64\.rpm)$",
-    RPM_OSD_ZFS: r"^(kmod-lustre-osd-zfs-2\.13.+\.x86_64\.rpm)$",
-    RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.13.+\.x86_64\.rpm)$"}
+    RPM_KERNEL: r"^(kernel-3.+\.rpm)$",
+    RPM_LUSTRE: r"^(lustre-2\.13.+\.rpm)$",
+    RPM_KMOD: r"^(kmod-lustre-2\.13.+\.rpm)$",
+    RPM_OSD_LDISKFS: r"^(kmod-lustre-osd-ldiskfs-2\.13.+\.rpm)$",
+    RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.13.+\.rpm)$",
+    RPM_OSD_ZFS: r"^(kmod-lustre-osd-zfs-2\.13.+\.rpm)$",
+    RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.13.+\.rpm)$"}
 
 LUSTRE_VERSION_NAME_2_13 = "2.13"
 
@@ -1325,10 +1323,7 @@ class LustreServerHost(ssh_host.SSHHost):
 
         retval = self.sh_run("rpm -qa | grep epel-release")
         if retval.cr_exit_status != 0:
-            if distro == ssh_host.DISTRO_RHEL6:
-                retval = self.sh_run("rpm -Uvh %s" % EPEL_RPM_RHEL6_RPM)
-            else:
-                retval = self.sh_run("yum install epel-release -y")
+            retval = self.sh_run("yum install epel-release -y")
             if retval.cr_exit_status != 0:
                 logging.error("failed to install EPEL RPM on host [%s]",
                               self.sh_hostname)

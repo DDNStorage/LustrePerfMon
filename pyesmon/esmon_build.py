@@ -24,9 +24,7 @@ ESMON_BUILD_CONFIG = "/etc/" + ESMON_BUILD_CONFIG_FNAME
 DEPENDENT_STRING = "dependent"
 COLLECTD_STRING = "collectd"
 COLLECT_GIT_STRING = COLLECTD_STRING + ".git"
-X86_64_STRING = "x86_64"
 RPM_STRING = "RPMS"
-RPM_PATH_STRING = RPM_STRING + "/" + X86_64_STRING
 COPYING_STRING = "copying"
 COLLECTD_RPM_NAMES = ["collectd", "collectd-disk", "collectd-filedata",
                       "collectd-ime", "collectd-sensors", "collectd-ssh",
@@ -177,26 +175,21 @@ def download_dependent_rpms(host, dependent_dir, distro):
 
 
 def collectd_build(workspace, build_host, local_host, collectd_git_path,
-                   iso_cached_dir, collectd_tarball_name, distro):
+                   iso_cached_dir, collectd_tarball_name, distro, distro_number,
+                   target_cpu):
     """
-    Build Collectd on CentOS6/7 host
+    Build Collectd on a host
     """
     # pylint: disable=too-many-return-statements,too-many-arguments
     # pylint: disable=too-many-locals,too-many-branches,too-many-statements
-    if distro == ssh_host.DISTRO_RHEL6:
-        distro_number = "6"
-    elif distro == ssh_host.DISTRO_RHEL7:
-        distro_number = "7"
-    else:
-        return -1
-    local_distro_rpm_dir = ("%s/%s/%s" %
-                            (iso_cached_dir, RPM_STRING, distro))
+    local_distro_rpm_dir = ("%s/%s/%s/%s" %
+                            (iso_cached_dir, RPM_STRING, distro, target_cpu))
     local_collectd_rpm_copying_dir = ("%s/%s" %
-                                      (local_distro_rpm_dir, X86_64_STRING))
+                                      (local_distro_rpm_dir, target_cpu))
     local_collectd_rpm_dir = ("%s/%s" %
                               (local_distro_rpm_dir, COLLECTD_STRING))
     host_collectd_git_dir = ("%s/%s" % (workspace, COLLECT_GIT_STRING))
-    host_collectd_rpm_dir = ("%s/%s" % (host_collectd_git_dir, RPM_PATH_STRING))
+    host_collectd_rpm_dir = ("%s/%s/%s" % (host_collectd_git_dir, RPM_STRING, target_cpu))
     ret = build_host.sh_send_file(collectd_git_path, workspace)
     if ret:
         logging.error("failed to send file [%s] on local host to "
@@ -347,14 +340,14 @@ def collectd_build(workspace, build_host, local_host, collectd_git_path,
 
 def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
                          iso_cached_dir, collectd_version_release,
-                         collectd_tarball_name, distro):
+                         collectd_tarball_name, distro, target_cpu):
     """
     Check and build Collectd RPMs
     """
     # pylint: disable=too-many-arguments,too-many-return-statements
     # pylint: disable=too-many-statements,too-many-branches,too-many-locals
-    local_distro_rpm_dir = ("%s/%s/%s" %
-                            (iso_cached_dir, RPM_STRING, distro))
+    local_distro_rpm_dir = ("%s/%s/%s/%s" %
+                            (iso_cached_dir, RPM_STRING, distro, target_cpu))
     local_collectd_rpm_dir = ("%s/%s" %
                               (local_distro_rpm_dir, COLLECTD_STRING))
     command = ("mkdir -p %s && ls %s" %
@@ -371,11 +364,12 @@ def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
         return -1
     rpm_collectd_fnames = retval.cr_stdout.split()
 
-    if distro == ssh_host.DISTRO_RHEL6:
-        distro_number = "6"
-    elif distro == ssh_host.DISTRO_RHEL7:
+    if distro == ssh_host.DISTRO_RHEL7:
         distro_number = "7"
+    elif distro == ssh_host.DISTRO_RHEL6:
+        distro_number = "6"
     else:
+        logging.error("unsupported distro [%s]", distro)
         return -1
 
     found = False
@@ -398,12 +392,12 @@ def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
             break
 
     if not found:
-        ret = collectd_build(workspace, build_host, local_host,
-                             collectd_git_path, iso_cached_dir,
-                             collectd_tarball_name, distro)
+        ret = collectd_build(workspace, build_host, local_host, collectd_git_path,
+                             iso_cached_dir, collectd_tarball_name, distro,
+                             distro_number, target_cpu)
         if ret:
             logging.error("failed to build Collectd on host [%s]",
-                          build_host.sh_hostname)
+                          local_host.sh_hostname)
             return -1
 
         # Don't trust the build, check RPMs again
@@ -466,21 +460,26 @@ def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
 
 
 def host_build(workspace, build_host, local_host, collectd_git_path,
-               iso_cached_dir, collectd_version_release, collectd_tarball_name,
-               distro):
+               iso_cached_dir, collectd_version_release, collectd_tarball_name):
     """
     Build on host
     """
     # pylint: disable=too-many-return-statements,too-many-arguments
     # pylint: disable=too-many-statements,too-many-locals,too-many-branches
-    if distro != build_host.sh_distro():
-        logging.error("wrong distro of build host [%s], expected [%s], got "
-                      "[%s]", build_host.sh_hostname, distro,
-                      build_host.sh_distro())
+    distro = build_host.sh_distro()
+    if distro is None:
+        logging.error("failed to get distro on host [%s]",
+                      build_host.sh_hostname)
         return -1
 
-    local_distro_rpm_dir = ("%s/%s/%s" %
-                            (iso_cached_dir, RPM_STRING, distro))
+    target_cpu = build_host.sh_target_cpu()
+    if target_cpu is None:
+        logging.error("failed to get target cpu on host [%s]",
+                      build_host.sh_hostname)
+        return -1
+
+    local_distro_rpm_dir = ("%s/%s/%s/%s" %
+                            (iso_cached_dir, RPM_STRING, distro, target_cpu))
     local_dependent_rpm_dir = ("%s/%s" %
                                (local_distro_rpm_dir, DEPENDENT_STRING))
     local_copying_rpm_dir = ("%s/%s" % (local_distro_rpm_dir, COPYING_STRING))
@@ -504,20 +503,27 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
 
     # Sometimes yum update install i686 RPMs which cause multiple RPMs for
     # the same name. Uninstall i686 RPMs here.
-    command = "rpm -qa | grep i686"
-    retval = build_host.sh_run(command, timeout=600)
-    if retval.cr_exit_status == 0:
-        command = "rpm -qa | grep i686 | xargs rpm -e"
+    target_cpu = build_host.sh_target_cpu()
+    if target_cpu is None:
+        logging.error("failed to get target cpu on host [%s]",
+                      build_host.sh_hostname)
+        return -1
+
+    if target_cpu == "x86_64":
+        command = "rpm -qa | grep i686"
         retval = build_host.sh_run(command, timeout=600)
-        if retval.cr_exit_status:
-            logging.error("failed to run command [%s] on host [%s], "
-                          "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          build_host.sh_hostname,
-                          retval.cr_exit_status,
-                          retval.cr_stdout,
-                          retval.cr_stderr)
-            return -1
+        if retval.cr_exit_status == 0:
+            command = "rpm -qa | grep i686 | xargs rpm -e"
+            retval = build_host.sh_run(command, timeout=600)
+            if retval.cr_exit_status:
+                logging.error("failed to run command [%s] on host [%s], "
+                              "ret = [%d], stdout = [%s], stderr = [%s]",
+                              command,
+                              build_host.sh_hostname,
+                              retval.cr_exit_status,
+                              retval.cr_stdout,
+                              retval.cr_stderr)
+                return -1
 
     command = ("rpm -e zeromq-devel")
     build_host.sh_run(command)
@@ -562,10 +568,9 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
                       retval.cr_stderr)
         return -1
 
-    ret = collectd_build_check(workspace, build_host, local_host,
-                               collectd_git_path, iso_cached_dir,
-                               collectd_version_release,
-                               collectd_tarball_name, distro)
+    ret = collectd_build_check(workspace, build_host, local_host, collectd_git_path,
+                               iso_cached_dir, collectd_version_release,
+                               collectd_tarball_name, distro, target_cpu)
     if ret:
         return -1
 
@@ -785,6 +790,12 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
         logging.error("build can only be launched on RHEL7/CentOS7 host")
         return -1
 
+    target_cpu = local_host.sh_target_cpu()
+    if target_cpu is None:
+        logging.error("failed to get target cpu on local_host [%s]",
+                      local_host.sh_hostname)
+        return -1
+
     iso_cached_dir = current_dir + "/../iso_cached_dir"
     collectd_git_path = current_dir + "/../" + "collectd.git"
     rpm_dir = iso_cached_dir + "/RPMS"
@@ -867,11 +878,12 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
     collectd_release_string = retval.cr_stdout.strip()
     collectd_release = collectd_release_string.replace('%{?dist}', '')
     collectd_version_release = collectd_version + "-" + collectd_release
+
     if centos6_host is not None:
         centos6_workspace = ESMON_BUILD_LOG_DIR + "/" + relative_workspace
         ret = host_build(centos6_workspace, centos6_host, local_host, collectd_git_path,
                          iso_cached_dir, collectd_version_release,
-                         collectd_tarball_name, ssh_host.DISTRO_RHEL6)
+                         collectd_tarball_name)
         if ret:
             logging.error("failed to prepare RPMs of CentOS6 on host [%s]",
                           centos6_host.sh_hostname)
@@ -882,13 +894,13 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
     local_workspace = current_dir + "/" + relative_workspace
     ret = host_build(local_workspace, local_host, local_host, collectd_git_path,
                      iso_cached_dir, collectd_version_release,
-                     collectd_tarball_name, ssh_host.DISTRO_RHEL7)
+                     collectd_tarball_name)
     if ret:
         logging.error("failed to prepare RPMs of CentOS7 on local host")
         return -1
 
-    local_distro_rpm_dir = ("%s/%s/%s" %
-                            (iso_cached_dir, RPM_STRING, ssh_host.DISTRO_RHEL7))
+    local_distro_rpm_dir = ("%s/%s/%s/%s" %
+                            (iso_cached_dir, RPM_STRING, distro, target_cpu))
     local_server_rpm_dir = ("%s/%s" %
                             (local_distro_rpm_dir, SERVER_STRING))
 
@@ -905,14 +917,17 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
         return -1
 
     server_rpms = {}
-    name = "grafana-6.0.2-1.x86_64.rpm"
-    url = ("https://dl.grafana.com/oss/release/grafana-6.0.2-1.x86_64.rpm")
-    server_rpms[name] = url
+    if target_cpu == "x86_64":
+        name = "grafana-6.0.2-1.x86_64.rpm"
+        url = ("https://dl.grafana.com/oss/release/" + name)
+        server_rpms[name] = url
 
-    name = "influxdb-1.7.4.x86_64.rpm"
-    url = ("https://dl.influxdata.com/influxdb/releases/"
-           "influxdb-1.7.4.x86_64.rpm")
-    server_rpms[name] = url
+        name = "influxdb-1.7.4.x86_64.rpm"
+        url = ("https://dl.influxdata.com/influxdb/releases/" + name)
+        server_rpms[name] = url
+    else:
+        logging.error("unsupported CPU type [%s]", target_cpu)
+        return -1
 
     for name, url in server_rpms.iteritems():
         fpath = ("%s/%s" % (local_server_rpm_dir, name))

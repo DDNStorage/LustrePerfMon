@@ -2,6 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_INIT([esmon],[m4_esyscmd(./version-gen.sh)])
 AC_CONFIG_SRCDIR(./pyesmon/esmon_install.py)
 AC_CONFIG_HEADERS(config.h)
+AC_CANONICAL_SYSTEM
 
 AM_INIT_AUTOMAKE([tar-pax dist-bzip2 foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
@@ -96,6 +97,9 @@ DISTRO_RELEASE=$(echo $DISTRO | awk -F 'rhel-' '{print $2}' | awk -F '.' '{print
 AC_MSG_RESULT([$DISTRO_RELEASE])
 AC_SUBST(DISTRO_RELEASE)
 
+# ------- check for target_cpu --------
+AC_SUBST(target_cpu)
+
 # -------- check for package version --------
 AC_MSG_CHECKING([for package version])
 MONSYSTEM_PKGVER=$(sh ./version-gen.sh)
@@ -120,32 +124,6 @@ AC_ARG_ENABLE([test],
 AC_MSG_RESULT([$enable_test])
 
 if [[[ $enable_xmlonly == 'no' ]]]; then
-	# -------- check for opentsdb_web version --------
-	AC_MSG_CHECKING([for opentsdb_web version])
-	OPENTSDB_WEB_REV=$(git rev-parse --short HEAD)
-	if [[[ $? -ne 0 ]]]; then
-		AC_MSG_ERROR([monsystem_package is not a git repository.])
-	fi
-	AC_SUBST(OPENTSDB_WEB_REV)
-
-	OPENTSDB_WEB_VERSION=$(grep Version opentsdb_web/opentsdb_web.spec | \
-		awk '{print $2}' | sed -e "s/%{?rev}/${OPENTSDB_WEB_REV}/g")
-	AC_MSG_RESULT([$OPENTSDB_WEB_VERSION])
-	AC_SUBST(OPENTSDB_WEB_VERSION)
-
-	# -------- check for opentsdb_web release --------
-	AC_MSG_CHECKING([for opentsdb_web release])
-	OPENTSDB_WEB_RELEASE=$(grep Release opentsdb_web/opentsdb_web.spec | \
-		awk '{print $2}' | sed -e "s/%{?dist}//g")
-	AC_MSG_RESULT([$OPENTSDB_WEB_RELEASE])
-	AC_SUBST(OPENTSDB_WEB_RELEASE)
-
-	# -------- check for opentsdb_web RPMs --------
-	AC_MSG_CHECKING([for opentsdb_web RPMs])
-	OPENTSDB_WEB_RPM=opentsdb_web-${OPENTSDB_WEB_VERSION}-${OPENTSDB_WEB_RELEASE}.el${DISTRO_RELEASE}.x86_64.rpm
-	AC_MSG_RESULT([$OPENTSDB_WEB_RPM])
-	AC_SUBST(OPENTSDB_WEB_RPM)
-
 	# -------- check for cached ISO --------
 	AC_MSG_CHECKING([for cached ISO])
 	AC_ARG_WITH([cached_iso],
@@ -221,6 +199,5 @@ ESMON_RELEASE="7"
 AC_DEFINE_UNQUOTED(RELEASE, "$ESMON_RELEASE", [release info] )
 AC_SUBST(ESMON_RELEASE)
 
-AC_CONFIG_FILES([Makefile esmon.spec xml_definition/Makefile
-	opentsdb_web/Makefile])
+AC_CONFIG_FILES([Makefile esmon.spec xml_definition/Makefile])
 AC_OUTPUT
