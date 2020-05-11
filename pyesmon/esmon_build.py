@@ -33,7 +33,7 @@ SERVER_STRING = "server"
 ESMON_BUILD_LOG_DIR = "/var/log"
 
 
-def download_dependent_rpms(host, dependent_dir, distro):
+def download_dependent_rpms(host, dependent_dir, distro, target_cpu):
     """
     Download dependent RPMs
     """
@@ -142,9 +142,12 @@ def download_dependent_rpms(host, dependent_dir, distro):
 
         logging.debug("downloading RPM [%s] on host [%s]", fpath,
                       host.sh_hostname)
-
-        command = (r"cd %s && yumdownloader -x \*i686 --archlist=x86_64 %s" %
-                   (dependent_dir, rpm_name))
+        if target_cpu == "x86_64":
+            command = (r"cd %s && yumdownloader -x \*i686 --archlist=x86_64 %s" %
+                       (dependent_dir, rpm_name))
+        else:
+            command = (r"cd %s && yumdownloader %s" %
+                       (dependent_dir, rpm_name))
         retval = host.sh_run(command)
         if retval.cr_exit_status:
             logging.error("failed to run command [%s] on host [%s], "
@@ -374,9 +377,9 @@ def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
 
     found = False
     for collect_rpm_name in COLLECTD_RPM_NAMES:
-        collect_rpm_full = ("%s-%s.el%s.x86_64.rpm" %
+        collect_rpm_full = ("%s-%s.el%s.%s.rpm" %
                             (collect_rpm_name, collectd_version_release,
-                             distro_number))
+                             distro_number, target_cpu))
         found = False
         for rpm_collectd_fname in rpm_collectd_fnames[:]:
             if collect_rpm_full == rpm_collectd_fname:
@@ -415,9 +418,9 @@ def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
         rpm_collectd_fnames = retval.cr_stdout.split()
 
         for collect_rpm_name in COLLECTD_RPM_NAMES:
-            collect_rpm_full = ("%s-%s.el%s.x86_64.rpm" %
+            collect_rpm_full = ("%s-%s.el%s.%s.rpm" %
                                 (collect_rpm_name, collectd_version_release,
-                                 distro_number))
+                                 distro_number, target_cpu))
             found = False
             for rpm_collectd_fname in rpm_collectd_fnames[:]:
                 if collect_rpm_full == rpm_collectd_fname:
@@ -433,8 +436,9 @@ def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
                               local_collectd_rpm_dir)
                 return -1
     else:
-        collect_rpm_pattern = (r"collectd-\S+-%s.el%s.x86_64.rpm" %
-                               (collectd_version_release, distro_number))
+        collect_rpm_pattern = (r"collectd-\S+-%s.el%s.%s.rpm" %
+                               (collectd_version_release, distro_number,
+                                target_cpu))
         collect_rpm_regular = re.compile(collect_rpm_pattern)
         for rpm_collectd_fname in rpm_collectd_fnames[:]:
             match = collect_rpm_regular.match(rpm_collectd_fname)
@@ -610,7 +614,8 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
                           retval.cr_stderr)
             return -1
 
-    ret = download_dependent_rpms(build_host, host_dependent_rpm_dir, distro)
+    ret = download_dependent_rpms(build_host, host_dependent_rpm_dir, distro,
+                                  target_cpu)
     if ret:
         logging.error("failed to download depdendent RPMs")
         return ret
@@ -917,14 +922,40 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
         return -1
 
     server_rpms = {}
+    influxdb_rpm = esmon_common.config_value(config, "influxdb_rpm")
+    if influxdb_rpm is not None:
+        name = os.path.basename(influxdb_rpm)
+
+        command = ("cp %s %s" % (influxdb_rpm, local_server_rpm_dir))
+        retval = local_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          local_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+        # The URL will not be used actually
+        server_rpms[name] = influxdb_rpm
     if target_cpu == "x86_64":
         name = "grafana-6.0.2-1.x86_64.rpm"
         url = ("https://dl.grafana.com/oss/release/" + name)
         server_rpms[name] = url
 
-        name = "influxdb-1.7.4.x86_64.rpm"
-        url = ("https://dl.influxdata.com/influxdb/releases/" + name)
+        if influxdb_rpm is None:
+            name = "influxdb-1.7.4.x86_64.rpm"
+            url = ("https://dl.influxdata.com/influxdb/releases/" + name)
+            server_rpms[name] = url
+    elif target_cpu == "aarch64":
+        name = "grafana-6.7.3-1.aarch64.rpm"
+        url = ("https://dl.grafana.com/oss/release/" + name)
         server_rpms[name] = url
+        if influxdb_rpm is None:
+            logging.info("please sepcify [influxdb_rpm] in the config file [%s]",
+                         config_fpath)
+            return -1
     else:
         logging.error("unsupported CPU type [%s]", target_cpu)
         return -1
