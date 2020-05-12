@@ -4,9 +4,9 @@ Release:	1
 Summary:	XML definition files and configure examples
 Group:		Applications/DDN
 License:	Share
-Packager:	Li Xi <lixi@ddn.com>
-Vendor:		DataDirect Networks
-URL:		http://www.ddn.com/
+Packager:	Li Xi <pkuelelixi@gmail.com>
+Vendor:		LustrePerfMon
+URL:		https://github.com/DDNStorage/LustrePerfMon
 Source0:	xml_definition.tar.gz
 BuildArch:	noarch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root

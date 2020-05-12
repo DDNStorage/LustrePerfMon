@@ -1,0 +1,13 @@
+diff --git a/build.py b/build.py
+index 4556729..e77f793 100755
+--- a/build.py
++++ b/build.py
+@@ -518,8 +518,6 @@ def build(version=None,
+         # Handle variations in architecture output
+         if arch == "i386" or arch == "i686":
+             arch = "386"
+-        elif "arm" in arch:
+-            arch = "arm"
+         build_command += "GOOS={} GOARCH={} ".format(platform, arch)
+ 
+         if "arm" in arch:

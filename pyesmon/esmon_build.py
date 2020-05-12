@@ -759,6 +759,213 @@ def parse_host_configs(config, config_fpath, hosts):
     return 0
 
 
+def influxdb_build(current_dir, local_host, config, iso_cached_dir,
+                   target_cpu, influxdb_rpm_fname,
+                   local_server_rpm_dir):
+    """
+    Build the RPM of influxdb
+    """
+    # pylint: disable=too-many-return-statements,too-many-arguments
+    influxdb_git_path = current_dir + "/../" + "influxdb.git"
+    rpm_dir = iso_cached_dir + "/RPMS"
+    command = ("mkdir -p %s" % (rpm_dir))
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    influxdb_git_url = esmon_common.config_value(config, "influxdb_git_url")
+    if influxdb_git_url is None:
+        collectd_git_url = "https://github.com/influxdata/influxdb.git"
+        logging.info("can NOT find [influxdb_git_url] in the config, "
+                     "use default value [%s]", collectd_git_url)
+
+    influxdb_git_branch = esmon_common.config_value(config, "influxdb_git_branch")
+    if influxdb_git_branch is None:
+        influxdb_git_branch = "1.8"
+        logging.info("can NOT find [influxdb_git_branch] in the config, "
+                     "use default value [%s]", influxdb_git_branch)
+
+    ret = esmon_common.clone_src_from_git(influxdb_git_path, influxdb_git_url,
+                                          influxdb_git_branch)
+    if ret:
+        logging.error("failed to clone influxdb branch [%s] from [%s] to "
+                      "directory [%s]", influxdb_git_branch,
+                      influxdb_git_url, influxdb_git_path)
+        return -1
+
+    command = ("cd %s && git apply %s/influxdb/influxdb_1.8.patch" %
+               (influxdb_git_path, current_dir))
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    command = ("cd %s && ./build.py" %
+               (influxdb_git_path))
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    command = ("cd %s/man && make" %
+               (influxdb_git_path))
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    command = ("cd %s && mkdir BUILD BUILDROOT RPMS SOURCES SPECS SRPMS" %
+               (influxdb_git_path))
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    command = ("cp %s/influxdb/influxdb.spec %s/influxdb/influxdb.conf %s" %
+               (current_dir, current_dir, influxdb_git_path))
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    command = ("cd %s && tar czvf influxdb.tar.gz build influxdb.conf "
+               "scripts/influxdb.service scripts/logrotate man/*.1" %
+               (influxdb_git_path))
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    command = ("cd %s && mv influxdb.tar.gz SOURCES" %
+               (influxdb_git_path))
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    command = ('cd %s && rpmbuild -ba --define="_topdir %s" influxdb.spec' %
+               (influxdb_git_path, influxdb_git_path))
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+
+    rpm_file = ("%s/RPMS/%s/%s" %
+                (influxdb_git_path, target_cpu, influxdb_rpm_fname))
+
+    command = ("cp %s %s" % (rpm_file, local_server_rpm_dir))
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+    return 0
+
+
+def influxdb_build_check(current_dir, local_host, config, iso_cached_dir,
+                         distro, target_cpu, server_rpms):
+    """
+    Check and build influxdb RPM
+    """
+    # pylint: disable=too-many-arguments,too-many-return-statements
+    # pylint: disable=too-many-statements,too-many-branches,too-many-locals
+    local_distro_rpm_dir = ("%s/%s/%s/%s" %
+                            (iso_cached_dir, RPM_STRING, distro, target_cpu))
+    local_server_rpm_dir = ("%s/%s" %
+                            (local_distro_rpm_dir, SERVER_STRING))
+    command = ("mkdir -p %s && ls %s" %
+               (local_server_rpm_dir, local_server_rpm_dir))
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        logging.error("failed to run command [%s] on host [%s], "
+                      "ret = [%d], stdout = [%s], stderr = [%s]",
+                      command,
+                      local_host.sh_hostname,
+                      retval.cr_exit_status,
+                      retval.cr_stdout,
+                      retval.cr_stderr)
+        return -1
+    rpm_server_fnames = retval.cr_stdout.split()
+    influxdb_rpm_fname = ("influxdb-1.8.0-1.%s.rpm" % (target_cpu))
+
+    if influxdb_rpm_fname in rpm_server_fnames:
+        logging.info("RPM [%s] is already cached in directory [%s], not building "
+                     "Influxdb", influxdb_rpm_fname, local_server_rpm_dir)
+        server_rpms[influxdb_rpm_fname] = influxdb_rpm_fname
+        return 0
+
+    ret = influxdb_build(current_dir, local_host, config, iso_cached_dir,
+                         target_cpu, influxdb_rpm_fname,
+                         local_server_rpm_dir)
+    if ret:
+        logging.error("failed to build Influxdb")
+        return -1
+
+    # The url will not be used anyway.
+    server_rpms[influxdb_rpm_fname] = influxdb_rpm_fname
+    return 0
+
+
 def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
     """
     Build the ISO
@@ -952,9 +1159,11 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
         name = "grafana-6.7.3-1.aarch64.rpm"
         url = ("https://dl.grafana.com/oss/release/" + name)
         server_rpms[name] = url
-        if influxdb_rpm is None:
-            logging.info("please sepcify [influxdb_rpm] in the config file [%s]",
-                         config_fpath)
+
+        ret = influxdb_build_check(current_dir, local_host, config, iso_cached_dir,
+                                   distro, target_cpu, server_rpms)
+        if ret:
+            logging.error("failed to build influxdb")
             return -1
     else:
         logging.error("unsupported CPU type [%s]", target_cpu)

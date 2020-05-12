@@ -40,7 +40,7 @@ esmon-$(MONSYSTEM_PKGVER).$(target_cpu).iso: \
 	cp doc/*.docx $(ISO_PATH)
 	cp $(XML_DEFINITION_RPM_PATH) $(ISO_RPM)
 	cp $(ESMON_RPM) $(ISO_RPM_DISTRO_CPU)
-	cp influxdb.conf.diff $(ISO_PATH)
+	cp influxdb/influxdb.conf.diff $(ISO_PATH)
 	cp -a dashboards $(ISO_PATH)
 	cp DDN-Storage-RedBG.svg $(ISO_PATH)
 	cp DDN-Storage-RedBG.png $(ISO_PATH)
