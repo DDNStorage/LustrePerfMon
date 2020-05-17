@@ -599,7 +599,7 @@ class EsmonServer(object):
         """
         Change the logo of grafana
         """
-        command = ("/bin/cp -f %s/DDN-Storage-RedBG.svg "
+        command = ("/bin/cp -f %s/logo.svg "
                    "/usr/share/grafana/public/img/grafana_icon.svg" %
                    (self.es_iso_dir))
         retval = self.es_host.sh_run(command)
@@ -613,7 +613,7 @@ class EsmonServer(object):
                           retval.cr_stderr)
             return -1
 
-        command = ("/bin/cp -f %s/DDN-Storage-RedBG.png "
+        command = ("/bin/cp -f %s/logo.png "
                    "/usr/share/grafana/public/img/fav32.png" %
                    (self.es_iso_dir))
         retval = self.es_host.sh_run(command)
@@ -870,9 +870,9 @@ class EsmonServer(object):
             if ret:
                 return ret
 
-        ret = self.es_grafana_change_logo()
-        if ret:
-            return ret
+        #ret = self.es_grafana_change_logo()
+        #if ret:
+        #    return ret
 
         ret = self.es_grafana_install_plugins()
         if ret:

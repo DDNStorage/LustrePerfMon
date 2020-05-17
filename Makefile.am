@@ -42,8 +42,6 @@ esmon-$(MONSYSTEM_PKGVER).$(target_cpu).iso: \
 	cp $(ESMON_RPM) $(ISO_RPM_DISTRO_CPU)
 	cp influxdb/influxdb.conf.diff $(ISO_PATH)
 	cp -a dashboards $(ISO_PATH)
-	cp DDN-Storage-RedBG.svg $(ISO_PATH)
-	cp DDN-Storage-RedBG.png $(ISO_PATH)
 	mkisofs -joliet-long -R -o esmon-$(MONSYSTEM_PKGVER).$(target_cpu).iso $(ISO_PATH)
 
 esmon-$(MONSYSTEM_PKGVER).$(target_cpu).md5: \
