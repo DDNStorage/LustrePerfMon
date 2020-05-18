@@ -548,7 +548,7 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
                "epel-release perl-Regexp-Common python-pep8 pylint "
                "lua-devel byacc ganglia-devel libmicrohttpd-devel "
                "riemann-c-client-devel xfsprogs-devel uthash-devel "
-               "perl-ExtUtils-Embed -y")
+               "qpid-proton-c-devel perl-ExtUtils-Embed -y")
     retval = build_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
