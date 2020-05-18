@@ -663,7 +663,7 @@ class EsmonServer(object):
         """
         Install grafana plugins
         """
-        for plugin in esmon_common.GRAFANA_PLUGIN_GITS.iterkeys():
+        for plugin in esmon_common.GRAFANA_PLUGINS:
             ret = self.es_grafana_install_plugin(plugin)
             if ret:
                 logging.error("failed to install grafana plugin [%s]", plugin)

@@ -86,13 +86,19 @@ CSTR_LUSTRE_DEFAULT_VERSION = "lustre_default_version"
 CSTR_AUTO_OPEN_PORTS_ON_FIREWALL = "auto_open_ports_on_firewall"
 
 GRAFANA_STATUS_PANEL = "Grafana_Status_panel"
-GRAFANA_PIECHART_PANEL = "piechart-panel"
 GRAFANA_SAVANTLY_HEATMAP_PANEL = "savantly-heatmap-panel"
 GRAFANA_PLUGIN_GITS = {}
 GRAFANA_PLUGIN_GITS[GRAFANA_STATUS_PANEL] = "https://github.com/Vonage/Grafana_Status_panel.git"
-GRAFANA_PLUGIN_GITS[GRAFANA_PIECHART_PANEL] = "https://github.com/grafana/piechart-panel.git"
 GRAFANA_PLUGIN_GITS[GRAFANA_SAVANTLY_HEATMAP_PANEL] = ("https://github.com/savantly-net/"
                                                        "grafana-heatmap.git")
+
+GRAFANA_PIE_CHART_PANEL = "grafana-piechart-panel-3234d63"
+# When updating the URL, please use wget to get the final URL
+# Otherwise, not able to download it with the correct basename.
+GRAFANA_PIE_CHART_URL = ("https://codeload.github.com/grafana/piechart-panel/"
+                         "legacy.zip/3234d633402f53640c508dbc5aa48833247434ff")
+GRAFANA_PLUGINS = [GRAFANA_STATUS_PANEL, GRAFANA_SAVANTLY_HEATMAP_PANEL, GRAFANA_PIE_CHART_PANEL]
+
 # The files under plugin directory to check the directory is complete
 GRAFANA_PLUGIN_FILENAMES = ["src", "README.md", "package.json"]
 

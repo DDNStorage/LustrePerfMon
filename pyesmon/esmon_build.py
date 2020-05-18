@@ -660,7 +660,7 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
 
 def esmon_download_grafana_plugin(local_host, iso_cached_dir, plugin_name, git_url):
     """
-    Download grafana plugin
+    Download grafana plugin from git
     """
     panel_git_path = iso_cached_dir + "/" + plugin_name
     command = "test -e %s" % panel_git_path
@@ -707,6 +707,77 @@ def esmon_download_grafana_plugin(local_host, iso_cached_dir, plugin_name, git_u
     return 0
 
 
+def esmon_download_pie_chart_plugin(local_host, iso_cached_dir):
+    """
+    Download pie chart plugin
+    """
+    panel_path = iso_cached_dir + "/" + esmon_common.GRAFANA_PIE_CHART_PANEL
+    command = "test -e %s" % panel_path
+    retval = local_host.sh_run(command)
+    if retval.cr_exit_status:
+        command = "cd %s && wget %s" % (iso_cached_dir, esmon_common.GRAFANA_PIE_CHART_URL)
+        retval = local_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          local_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        basename = os.path.basename(esmon_common.GRAFANA_PIE_CHART_URL)
+        zip_fpath = iso_cached_dir + "/" + basename
+
+        command = "cd %s && unzip %s" % (iso_cached_dir, zip_fpath)
+        retval = local_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          local_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+        command = "test -e %s" % panel_path
+        retval = local_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to generate dir [%s] after unzip file [%s]",
+                          panel_path, zip_fpath)
+            return -1
+
+        command = "rm -f %s" % (zip_fpath)
+        retval = local_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          local_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+
+    for filename in ["dist/module.js", "README.md", "package.json"]:
+        filepath = "%s/%s" % (panel_path, filename)
+
+        command = "test -e %s" % filepath
+        retval = local_host.sh_run(command)
+        if retval.cr_exit_status:
+            logging.error("failed to run command [%s] on host [%s], "
+                          "ret = [%d], stdout = [%s], stderr = [%s]",
+                          command,
+                          local_host.sh_hostname,
+                          retval.cr_exit_status,
+                          retval.cr_stdout,
+                          retval.cr_stderr)
+            return -1
+    return 0
+
+
 def esmon_download_grafana_plugins(local_host, iso_cached_dir):
     """
     Download grafana plugin
@@ -714,9 +785,14 @@ def esmon_download_grafana_plugins(local_host, iso_cached_dir):
     for plugin_name, git_url in esmon_common.GRAFANA_PLUGIN_GITS.iteritems():
         ret = esmon_download_grafana_plugin(local_host, iso_cached_dir, plugin_name, git_url)
         if ret:
-            logging.error("failed to download Grafana plugin [%s] from url [%s]",
+            logging.error("failed to clone Grafana plugin [%s] from url [%s]",
                           plugin_name, git_url)
             return -1
+
+    ret = esmon_download_pie_chart_plugin(local_host, iso_cached_dir)
+    if ret:
+        logging.error("failed to download Grafana Piechart plugin")
+        return -1
     return 0
 
 
@@ -1212,7 +1288,7 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
         return -1
 
     dependent_existing_files = os.listdir(iso_cached_dir)
-    for panel_name in esmon_common.GRAFANA_PLUGIN_GITS.iterkeys():
+    for panel_name in esmon_common.GRAFANA_PLUGINS:
         dependent_existing_files.remove(panel_name)
     dependent_existing_files.remove("RPMS")
     for extra_fname in dependent_existing_files:
