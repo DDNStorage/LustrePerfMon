@@ -225,6 +225,12 @@ define(`SERVICE_STATS_MEAN',
 MATH_ENTRY($1, $2_stats_$3_sum_square, /, $2_stats_$3_samples, $2_stats_$3_mean_square, $3_mean_square, 0)')dnl
 dnl
 dnl $1: number of INDENT
+dnl $2: type of item
+dnl $3: unit of the stat, not used currently
+define(`CLIENT_STATS_MEAN',
+	`MATH_ENTRY($1, client_stats_$2_sum, /, client_stats_$2_samples, client_stats_$2_mean, $2_mean, 1)')dnl
+dnl
+dnl $1: number of INDENT
 dnl $2: index of FIELD
 dnl $3: name of FIELD
 dnl $4: type of FIELD
@@ -441,3 +447,44 @@ OPTION($1 + 1, type, $5, 0)
 OPTION($1 + 1, type_instance, $3, 0)
 OPTION($1 + 1, tsdb_name, ldlm_stats, 0)
 OPTION($1 + 1, tsdb_tags, optype=$3 fs_name=${subpath:fs_name} ost_index=${subpath:ost_index}, 0)', 1)')dnl
+dnl
+dnl $1: number of INDENT
+dnl $2: index of FIELD
+dnl $3: name of FIELD
+dnl $4: type of FIELD
+dnl $5: type OPTION
+define(`CLIENT_STATS_FIELD',
+	`ELEMENT($1, field,
+	`INDEX($1 + 1, $2, 1)
+NAME($1 + 1, $3, 0)
+TYPE($1 + 1, $4, 0)
+OPTION($1 + 1, host, ${key:hostname}, 0)
+OPTION($1 + 1, plugin, ${subpath:fs_name}-${subpath:client_uuid}, 0)
+OPTION($1 + 1, plugin_instance, client_stats, 0)
+OPTION($1 + 1, type, $5, 0)
+OPTION($1 + 1, type_instance, $3, 0)
+OPTION($1 + 1, tsdb_name, client_stats_$3, 0)
+OPTION($1 + 1, tsdb_tags, fs_name=${subpath:fs_name} client_uuid=${subpath:client_uuid}, 0)', 0)')dnl
+dnl
+dnl $1: number of INDENT
+dnl $2: name of CLIENT_STATS_ITEM
+dnl $3: unit of ITEM
+define(`CLIENT_STATS_ITEM_FOUR',
+	`ELEMENT($1, item,
+	`NAME($1 + 1, client_stats_$2, 1)
+PATTERN($1 + 1, `$2 +([[:digit:]]+) samples \[$3\] ([[:digit:]]+) ([[:digit:]]+) ([[:digit:]]+)', 0)
+CLIENT_STATS_FIELD($1 + 1, 1, $2_samples, number, gauge)
+CLIENT_STATS_FIELD($1 + 1, 2, $2_min, number, gauge)
+CLIENT_STATS_FIELD($1 + 1, 3, $2_max, number, gauge)
+CLIENT_STATS_FIELD($1 + 1, 4, $2_sum, number, gauge)
+', 1)')dnl
+dnl
+dnl $1: number of INDENT
+dnl $2: name of CLIENT_STATS_ITEM
+dnl $3: unit of ITEM
+define(`CLIENT_STATS_ITEM_ONE',
+	`ELEMENT($1, item,
+	`NAME($1 + 1, client_stats_$2, 1)
+PATTERN($1 + 1, `^$2 +([[:digit:]]+) samples \[$3\]', 0)
+CLIENT_STATS_FIELD($1 + 1, 1, $2_samples, number, gauge)
+', 1)')dnl
