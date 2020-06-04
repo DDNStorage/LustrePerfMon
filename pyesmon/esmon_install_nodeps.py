@@ -42,6 +42,7 @@ GRAFANA_PLUGIN_DIR = "/var/lib/grafana/plugins"
 GRAFANA_DASHBOARDS = {}
 GRAFANA_DASHBOARDS["Cluster Status"] = "cluster_status.json"
 GRAFANA_DASHBOARDS["Lustre MDT"] = "lustre_mdt.json"
+GRAFANA_DASHBOARDS["Lustre Client"] = "lustre_client.json"
 GRAFANA_DASHBOARDS["Lustre MDS"] = "lustre_mds.json"
 GRAFANA_DASHBOARDS["Lustre OSS"] = "lustre_oss.json"
 GRAFANA_DASHBOARDS["Lustre OST"] = "lustre_ost.json"
@@ -1433,8 +1434,8 @@ class EsmonClient(object):
     # pylint: disable=too-many-arguments
     def __init__(self, host, workspace, esmon_server, collect_interval,
                  enable_disk=False, lustre_oss=False, lustre_mds=False,
-                 ime=False, infiniband=False, sfas=None, enabled_plugins="",
-                 lustre_exp_ost=False, lustre_exp_mdt=False,
+                 lustre_client=False, ime=False, infiniband=False, sfas=None,
+                 enabled_plugins="", lustre_exp_ost=False, lustre_exp_mdt=False,
                  job_id_var=lustre.JOB_ID_UNKNOWN):
         self.ec_host = host
         self.ec_workspace = workspace
@@ -1447,6 +1448,7 @@ class EsmonClient(object):
         self.ec_enable_disk = enable_disk
         self.ec_enable_lustre_oss = lustre_oss
         self.ec_enable_lustre_mds = lustre_mds
+        self.ec_enable_lustre_client = lustre_client
         self.ec_enable_ime = ime
         # E.g. 1.1 or 1.2
         self.ec_ime_version = None
@@ -1694,10 +1696,11 @@ class EsmonClient(object):
         # by configuring it.
         config.cc_configs["Hostname"] = '"' + self.ec_fqdn + '"'
         config.cc_configs["Interval"] = collectd.COLLECTD_INTERVAL_TEST
-        if self.ec_enable_lustre_oss or self.ec_enable_lustre_mds:
+        if self.ec_enable_lustre_oss or self.ec_enable_lustre_mds or self.ec_enable_lustre_client:
             ret = config.cc_plugin_lustre(self.ec_lustre_version,
                                           lustre_oss=self.ec_enable_lustre_oss,
                                           lustre_mds=self.ec_enable_lustre_mds,
+                                          lustre_client=self.ec_enable_lustre_client,
                                           lustre_exp_ost=self.ec_enable_lustre_exp_ost,
                                           lustre_exp_mdt=self.ec_enable_lustre_exp_mdt)
             if ret:
@@ -1718,10 +1721,11 @@ class EsmonClient(object):
 
         config = collectd.CollectdConfig(self, self.ec_collect_interval,
                                          self.ec_job_id_var)
-        if self.ec_enable_lustre_oss or self.ec_enable_lustre_mds:
+        if self.ec_enable_lustre_oss or self.ec_enable_lustre_mds or self.ec_enable_lustre_client:
             ret = config.cc_plugin_lustre(self.ec_lustre_version,
                                           lustre_oss=self.ec_enable_lustre_oss,
                                           lustre_mds=self.ec_enable_lustre_mds,
+                                          lustre_client=self.ec_enable_lustre_client,
                                           lustre_exp_ost=self.ec_enable_lustre_exp_ost,
                                           lustre_exp_mdt=self.ec_enable_lustre_exp_mdt)
             if ret:
@@ -2446,6 +2450,13 @@ def esmon_install_parse_config(workspace, config, config_fpath):
         if lustre_mds:
             enabled_plugins += ", Lustre MDS"
 
+        ret, lustre_client = esmon_config.install_config_value(client_host_config,
+                                                               esmon_common.CSTR_LUSTRE_CLIENT)
+        if ret:
+            return -1, esmon_server, esmon_clients
+        if lustre_client:
+            enabled_plugins += ", Lustre CLIENT"
+
         ret, ime = esmon_config.install_config_value(client_host_config,
                                                      esmon_common.CSTR_IME)
         if ret:
@@ -2525,7 +2536,8 @@ def esmon_install_parse_config(workspace, config, config_fpath):
         esmon_client = EsmonClient(host, workspace, esmon_server, collect_interval,
                                    enable_disk=enable_disk,
                                    lustre_oss=lustre_oss,
-                                   lustre_mds=lustre_mds, ime=ime,
+                                   lustre_mds=lustre_mds,
+                                   lustre_client=lustre_client, ime=ime,
                                    infiniband=infiniband,
                                    sfas=sfas,
                                    enabled_plugins=enabled_plugins,

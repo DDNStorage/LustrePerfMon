@@ -334,8 +334,8 @@ PostCacheChain "PostCache"
         return 0
 
     def cc_plugin_lustre(self, lustre_version, lustre_oss=False,
-                         lustre_mds=False, lustre_exp_ost=False,
-                         lustre_exp_mdt=False):
+                         lustre_mds=False, lustre_client=False,
+                         lustre_exp_ost=False, lustre_exp_mdt=False):
         # pylint: disable=too-many-arguments,too-many-branches
         """
         Config the Lustre plugin
@@ -630,7 +630,112 @@ PostCacheChain "PostCache"
     </Item>
     # The other exp_ost_stats_* items are not enabled here
 """
-
+        if lustre_client:
+            config += """
+    # Client stats
+    <Item>
+        Type "client_stats_read"
+    </Item>
+    <Item>
+        Type "client_stats_write"
+    </Item>
+    <Item>
+        Type "client_stats_read_bytes"
+    </Item>
+    <Item>
+        Type "client_stats_write_bytes"
+    </Item>
+    <Item>
+        Type "client_stats_ioctl"
+    </Item>
+    <Item>
+        Type "client_stats_open"
+    </Item>
+    <Item>
+        Type "client_stats_close"
+    </Item>
+    <Item>
+        Type "client_stats_mmap"
+    </Item>
+    <Item>
+        Type "client_stats_page_fault"
+    </Item>
+    <Item>
+        Type "client_stats_page_mkwrite"
+    </Item>
+    <Item>
+        Type "client_stats_seek"
+    </Item>
+    <Item>
+        Type "client_stats_fsync"
+    </Item>
+    <Item>
+        Type "client_stats_readdir"
+    </Item>
+    <Item>
+        Type "client_stats_setattr"
+    </Item>
+    <Item>
+        Type "client_stats_truncate"
+    </Item>
+    <Item>
+        Type "client_stats_flock"
+    </Item>
+    <Item>
+        Type "client_stats_getattr"
+    </Item>
+    <Item>
+        Type "client_stats_fallocate"
+    </Item>
+    <Item>
+        Type "client_stats_create"
+    </Item>
+    <Item>
+        Type "client_stats_open"
+    </Item>
+    <Item>
+        Type "client_stats_link"
+    </Item>
+    <Item>
+        Type "client_stats_unlink"
+    </Item>
+    <Item>
+        Type "client_stats_symlink"
+    </Item>
+    <Item>
+        Type "client_stats_mkdir"
+    </Item>
+    <Item>
+        Type "client_stats_rmdir"
+    </Item>
+    <Item>
+        Type "client_stats_mknod"
+    </Item>
+    <Item>
+        Type "client_stats_rename"
+    </Item>
+    <Item>
+        Type "client_stats_statfs"
+    </Item>
+    <Item>
+        Type "client_stats_setxattr"
+    </Item>
+    <Item>
+        Type "client_stats_getxattr"
+    </Item>
+    <Item>
+        Type "client_stats_getxattr_hits"
+    </Item>
+    <Item>
+        Type "client_stats_listxattr"
+    </Item>
+    <Item>
+        Type "client_stats_removexattr"
+    </Item>
+    <Item>
+        Type "client_stats_inode_permission"
+    </Item>
+"""
         if lustre_mds:
             config += """
     # MDT stats

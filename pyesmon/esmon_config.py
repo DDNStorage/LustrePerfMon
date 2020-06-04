@@ -813,6 +813,7 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_AGENTS] = \
                                 esmon_common.CSTR_IME,
                                 esmon_common.CSTR_INFINIBAND,
                                 esmon_common.CSTR_LUSTRE_MDS,
+                                esmon_common.CSTR_LUSTRE_CLIENT,
                                 esmon_common.CSTR_LUSTRE_OSS,
                                 esmon_common.CSTR_SFAS],
                       default=[LOCALHOST_AGENT])
@@ -953,6 +954,13 @@ ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_MDS] = \
                       """This option determines whether to enable Lustre MDS metrics collection on
 this ES PERFMON agent.""",
                       default=True)
+
+ESMON_INSTALL_CSTRS[esmon_common.CSTR_LUSTRE_CLIENT] = \
+    EsmonConfigString(esmon_common.CSTR_LUSTRE_CLIENT,
+                      ESMON_CONFIG_CSTR_BOOL,
+                      """This option determines whether to enable Lustre client metrics
+collection on this ES PERFMON agent.""",
+                      default=False)
 
 INFO = """This option determines whether to enable Lustre OSS metrics collection on this
 ES PERFMON agent."""
