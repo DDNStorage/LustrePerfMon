@@ -70,9 +70,9 @@ def support_acctgroup_acctproject(lustre_version):
     """
     Whether this Lustre version supports acctgroup and acctproject
     """
-    if (lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES3 or
-            lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_2_7 or
-            lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES4):
+    if lustre_version.lv_name == lustre.LUSTRE_VERSION_NAME_ES2:
+        return False
+    if lustre_version.lv_name in lustre.LUSTER_VERSION_NAMES:
         return True
     return False
 
