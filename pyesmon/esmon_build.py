@@ -858,9 +858,9 @@ def influxdb_build(current_dir, local_host, config, iso_cached_dir,
 
     influxdb_git_url = esmon_common.config_value(config, "influxdb_git_url")
     if influxdb_git_url is None:
-        collectd_git_url = "https://github.com/influxdata/influxdb.git"
+        influxdb_git_url = "https://github.com/influxdata/influxdb.git"
         logging.info("can NOT find [influxdb_git_url] in the config, "
-                     "use default value [%s]", collectd_git_url)
+                     "use default value [%s]", influxdb_git_url)
 
     influxdb_git_branch = esmon_common.config_value(config, "influxdb_git_branch")
     if influxdb_git_branch is None:
