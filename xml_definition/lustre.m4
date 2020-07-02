@@ -99,6 +99,19 @@ PATTERN($1 + 1, `^$2 +([[:digit:]]+) samples .+', 0)
 FIELD($1 + 1, 1, $2, number, ${key:hostname}, ${subpath:fs_name}-${subpath:mdt_index}, md_stats, derive, $2, md_stats, optype=$2 fs_name=${subpath:fs_name} mdt_index=${subpath:mdt_index}, 0)', $3)')dnl
 dnl
 dnl $1: number of INDENT
+dnl $2: name of MD_STATS_ITEM_V2
+dnl $3: is first child of parent definition
+define(`MD_STATS_ITEM_V2',
+	`ELEMENT($1, item, 
+	`NAME($1 + 1, md_stats_$2, 1)
+PATTERN($1 + 1, `$2 +([[:digit:]]+) samples \[usecs\] ([[:digit:]]+) ([[:digit:]]+) ([[:digit:]]+) ([[:digit:]]+)', 0)
+FIELD($1 + 1, 1, $2, number, ${key:hostname}, ${subpath:fs_name}-${subpath:mdt_index}, md_stats, derive, $2, md_stats, optype=$2 fs_name=${subpath:fs_name} mdt_index=${subpath:mdt_index}, 0)
+FIELD($1 + 1, 2, $2, number, ${key:hostname}, ${subpath:fs_name}-${subpath:mdt_index}, md_stats_min, derive, $2, md_stats_min, optype=$2 fs_name=${subpath:fs_name} mdt_index=${subpath:mdt_index}, 0)
+FIELD($1 + 1, 3, $2, number, ${key:hostname}, ${subpath:fs_name}-${subpath:mdt_index}, md_stats_max, derive, $2, md_stats_max, optype=$2 fs_name=${subpath:fs_name} mdt_index=${subpath:mdt_index}, 0)
+FIELD($1 + 1, 4, $2, number, ${key:hostname}, ${subpath:fs_name}-${subpath:mdt_index}, md_stats_sum, derive, $2, md_stats_sum, optype=$2 fs_name=${subpath:fs_name} mdt_index=${subpath:mdt_index}, 0)
+FIELD($1 + 1, 5, $2, number, ${key:hostname}, ${subpath:fs_name}-${subpath:mdt_index}, md_stats_sumsq, derive, $2, md_stats_sumsq, optype=$2 fs_name=${subpath:fs_name} mdt_index=${subpath:mdt_index}, 0)', $3)')dnl
+dnl
+dnl $1: number of INDENT
 dnl $2: name of EXPORT_MD_STATS_ITEM
 dnl $3: is first child of parent definition
 define(`EXPORT_MD_STATS_ITEM',
@@ -106,6 +119,19 @@ define(`EXPORT_MD_STATS_ITEM',
 	`NAME($1 + 1, exp_md_stats_$2, 1)
 PATTERN($1 + 1, `^$2 +([[:digit:]]+) samples .+', 0)
 FIELD($1 + 1, 1, $2, number, ${key:hostname}, ${subpath:mdt_exp_client}-${subpath:mdt_exp_type}_${subpath:fs_name}-${subpath:mdt_index}, stats, derive, $2, exp_md_stats, optype=$2 exp_client=${subpath:mdt_exp_client} exp_type=${subpath:mdt_exp_type} fs_name=${subpath:fs_name} mdt_index=${subpath:mdt_index}, 0)', $3)')dnl
+dnl
+dnl $1: number of INDENT
+dnl $2: name of EXPORT_MD_STATS_ITEM_V2
+dnl $3: is first child of parent definition
+define(`EXPORT_MD_STATS_ITEM_V2',
+	`ELEMENT($1, item,
+	`NAME($1 + 1, exp_md_stats_$2, 1)
+PATTERN($1 + 1, `$2 +([[:digit:]]+) samples \[usecs\] +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+)', 0)
+FIELD($1 + 1, 1, $2, number, ${key:hostname}, ${subpath:mdt_exp_client}-${subpath:mdt_exp_type}_${subpath:fs_name}-${subpath:mdt_index}, stats, derive, $2, exp_md_stats, optype=$2 exp_client=${subpath:mdt_exp_client} exp_type=${subpath:mdt_exp_type} fs_name=${subpath:fs_name} mdt_index=${subpath:mdt_index}, 0)
+FIELD($1 + 1, 2, $2, number, ${key:hostname}, ${subpath:mdt_exp_client}-${subpath:mdt_exp_type}_${subpath:fs_name}-${subpath:mdt_index}, stats, derive, $2, exp_md_stats_min_latency, optype=$2 exp_client=${subpath:mdt_exp_client} exp_type=${subpath:mdt_exp_type} fs_name=${subpath:fs_name} mdt_index=${subpath:mdt_index}, 0)
+FIELD($1 + 1, 3, $2, number, ${key:hostname}, ${subpath:mdt_exp_client}-${subpath:mdt_exp_type}_${subpath:fs_name}-${subpath:mdt_index}, stats, derive, $2, exp_md_stats_max_latency, optype=$2 exp_client=${subpath:mdt_exp_client} exp_type=${subpath:mdt_exp_type} fs_name=${subpath:fs_name} mdt_index=${subpath:mdt_index}, 0)
+FIELD($1 + 1, 4, $2, number, ${key:hostname}, ${subpath:mdt_exp_client}-${subpath:mdt_exp_type}_${subpath:fs_name}-${subpath:mdt_index}, stats, derive, $2, exp_md_stats_sum_latency, optype=$2 exp_client=${subpath:mdt_exp_client} exp_type=${subpath:mdt_exp_type} fs_name=${subpath:fs_name} mdt_index=${subpath:mdt_index}, 0)
+FIELD($1 + 1, 5, $2, number, ${key:hostname}, ${subpath:mdt_exp_client}-${subpath:mdt_exp_type}_${subpath:fs_name}-${subpath:mdt_index}, stats, derive, $2, exp_md_stats_sumsq_latency, optype=$2 exp_client=${subpath:mdt_exp_client} exp_type=${subpath:mdt_exp_type} fs_name=${subpath:fs_name} mdt_index=${subpath:mdt_index}, 0)', $3)')dnl
 dnl
 dnl $1: number of INDENT
 dnl $2: name of OST_STATS_ITEM_PREFIX
@@ -117,6 +143,21 @@ define(`OST_STATS_ITEM_PREFIX',
 	`NAME($1 + 1, ost_stats_$2, 1)
 PATTERN($1 + 1, `$3 +([[:digit:]]+) samples \[$4\]', 0)
 FIELD($1 + 1, 1, $2, number, ${key:hostname}, ${subpath:fs_name}-${subpath:ost_index}, stats, derive, $2, ost_stats_samples, optype=$2 fs_name=${subpath:fs_name} ost_index=${subpath:ost_index}, 0)', $5)')dnl
+dnl
+dnl $1: number of INDENT
+dnl $2: name of OST_STATS_ITEM
+dnl $3: type of item
+dnl $4: is first child of parent definition
+define(`OST_STATS_ITEM_V2',
+	`ELEMENT($1, item,
+	`NAME($1 + 1, ost_stats_$2, 1)
+PATTERN($1 + 1, `$2 +([[:digit:]]+) samples \[$3\] +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+)', 0)
+FIELD($1 + 1, 1, $2, number, ${key:hostname}, ${subpath:fs_name}-${subpath:ost_index}, stats, derive, $2, ost_stats_samples, optype=$2 fs_name=${subpath:fs_name} ost_index=${subpath:ost_index}, 0)
+FIELD($1 + 1, 2, $2, number, ${key:hostname}, ${subpath:fs_name}-${subpath:ost_index}, stats, derive, $2, ost_stats_min_latency, optype=$2 fs_name=${subpath:fs_name} ost_index=${subpath:ost_index}, 0)
+FIELD($1 + 1, 3, $2, number, ${key:hostname}, ${subpath:fs_name}-${subpath:ost_index}, stats, derive, $2, ost_stats_max_latency, optype=$2 fs_name=${subpath:fs_name} ost_index=${subpath:ost_index}, 0)
+FIELD($1 + 1, 4, $2, number, ${key:hostname}, ${subpath:fs_name}-${subpath:ost_index}, stats, derive, $2, ost_stats_sum_latency, optype=$2 fs_name=${subpath:fs_name} ost_index=${subpath:ost_index}, 0)
+FIELD($1 + 1, 5, $2, number, ${key:hostname}, ${subpath:fs_name}-${subpath:ost_index}, stats, derive, $2, ost_stats_sumsq_latency, optype=$2 fs_name=${subpath:fs_name} ost_index=${subpath:ost_index}, 0)
+', $4)')dnl
 dnl
 dnl $1: number of INDENT
 dnl $2: name of OST_STATS_ITEM
@@ -135,6 +176,19 @@ define(`EXPORT_OST_STATS_ITEM',
 PATTERN($1 + 1, `$2 +([[:digit:]]+) samples \[$3\]', 0)
 FIELD($1 + 1, 1, $2, number, ${key:hostname}, ${subpath:ost_exp_client}-${subpath:ost_exp_type}_${subpath:fs_name}-${subpath:ost_index}, stats, derive, $2, exp_ost_stats_samples, optype=$2 exp_client=${subpath:ost_exp_client} exp_type=${subpath:ost_exp_type} fs_name=${subpath:fs_name} ost_index=${subpath:ost_index}, 0)', $4)')dnl
 dnl
+dnl $1: number of INDENT
+dnl $2: name of EXPORT_OST_STATS_ITEM
+dnl $3: type of item
+dnl $4: is first child of parent definition
+define(`EXPORT_OST_STATS_ITEM_V2',
+	`ELEMENT($1, item,
+	    `NAME($1 + 1, exp_ost_stats_$2, 1)
+PATTERN($1 + 1, `$2 +([[:digit:]]+) samples \[$3\] +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+)', 0)
+FIELD($1 + 1, 1, $2, number, ${key:hostname}, ${subpath:ost_exp_client}-${subpath:ost_exp_type}_${subpath:fs_name}-${subpath:ost_index}, stats, derive, $2, exp_ost_stats_samples, optype=$2 exp_client=${subpath:ost_exp_client} exp_type=${subpath:ost_exp_type} fs_name=${subpath:fs_name} ost_index=${subpath:ost_index}, 0)
+FIELD($1 + 1, 2, $2, number, ${key:hostname}, ${subpath:ost_exp_client}-${subpath:ost_exp_type}_${subpath:fs_name}-${subpath:ost_index}, stats, derive, $2, exp_ost_stats_min_latency, optype=$2 exp_client=${subpath:ost_exp_client} exp_type=${subpath:ost_exp_type} fs_name=${subpath:fs_name} ost_index=${subpath:ost_index}, 0)
+FIELD($1 + 1, 3, $2, number, ${key:hostname}, ${subpath:ost_exp_client}-${subpath:ost_exp_type}_${subpath:fs_name}-${subpath:ost_index}, stats, derive, $2, exp_ost_stats_max_latency, optype=$2 exp_client=${subpath:ost_exp_client} exp_type=${subpath:ost_exp_type} fs_name=${subpath:fs_name} ost_index=${subpath:ost_index}, 0)
+FIELD($1 + 1, 4, $2, number, ${key:hostname}, ${subpath:ost_exp_client}-${subpath:ost_exp_type}_${subpath:fs_name}-${subpath:ost_index}, stats, derive, $2, exp_ost_stats_sum_latency, optype=$2 exp_client=${subpath:ost_exp_client} exp_type=${subpath:ost_exp_type} fs_name=${subpath:fs_name} ost_index=${subpath:ost_index}, 0)
+FIELD($1 + 1, 5, $2, number, ${key:hostname}, ${subpath:ost_exp_client}-${subpath:ost_exp_type}_${subpath:fs_name}-${subpath:ost_index}, stats, derive, $2, exp_ost_stats_sumsq_latency, optype=$2 exp_client=${subpath:ost_exp_client} exp_type=${subpath:ost_exp_type} fs_name=${subpath:fs_name} ost_index=${subpath:ost_index}, 0)', $4)')dnl
 dnl $1: number of INDENT
 dnl $2: name of OST_STATS_ITEM_RW
 dnl $3: is first child of parent definition
@@ -178,6 +232,26 @@ dnl
 dnl $1: number of INDENT
 dnl $2: additional items
 dnl $3: is first child of parent definition
+define(`EXPORT_OST_STATS_ENTRY_V2',
+	`ELEMENT($1, entry,
+	`SUBPATH($1 + 1, constant, stats, 1)
+MODE($1 + 1, file, 0)
+EXPORT_OST_STATS_ITEM_RW($1 + 1, read, 0)
+EXPORT_OST_STATS_ITEM_RW($1 + 1, write, 0)
+EXPORT_OST_STATS_ITEM_V2($1 + 1, getattr, usecs, 0)
+EXPORT_OST_STATS_ITEM_V2($1 + 1, setattr, usecs, 0)
+EXPORT_OST_STATS_ITEM_V2($1 + 1, punch, usecs, 0)
+EXPORT_OST_STATS_ITEM_V2($1 + 1, sync, usecs, 0)
+EXPORT_OST_STATS_ITEM_V2($1 + 1, destroy, usecs, 0)
+EXPORT_OST_STATS_ITEM_V2($1 + 1, create, usecs, 0)
+EXPORT_OST_STATS_ITEM_V2($1 + 1, statfs, usecs, 0)
+EXPORT_OST_STATS_ITEM_V2($1 + 1, get_info, usecs, 0)
+EXPORT_OST_STATS_ITEM_V2($1 + 1, set_info_async, usecs, 0)
+$2', $3)')dnl
+dnl
+dnl $1: number of INDENT
+dnl $2: additional items
+dnl $3: is first child of parent definition
 define(`EXPORT_MD_STATS_ENTRY',
 	`ELEMENT($1, entry,
 	`SUBPATH($1 + 1, constant, stats, 1)
@@ -198,6 +272,31 @@ EXPORT_MD_STATS_ITEM($1 + 1, statfs, 0)
 EXPORT_MD_STATS_ITEM($1 + 1, sync, 0)
 EXPORT_MD_STATS_ITEM($1 + 1, samedir_rename, 0)
 EXPORT_MD_STATS_ITEM($1 + 1, crossdir_rename, 0)
+$2', $3)')dnl
+dnl
+dnl $1: number of INDENT
+dnl $2: additional items
+dnl $3: is first child of parent definition
+define(`EXPORT_MD_STATS_ENTRY_V2',
+	`ELEMENT($1, entry,
+	`SUBPATH($1 + 1, constant, stats, 1)
+MODE($1 + 1, file, 0)
+EXPORT_MD_STATS_ITEM_V2($1 + 1, open, 0)
+EXPORT_MD_STATS_ITEM_V2($1 + 1, close, 0)
+EXPORT_MD_STATS_ITEM_V2($1 + 1, mknod, 0)
+EXPORT_MD_STATS_ITEM_V2($1 + 1, link, 0)
+EXPORT_MD_STATS_ITEM_V2($1 + 1, unlink, 0)
+EXPORT_MD_STATS_ITEM_V2($1 + 1, mkdir, 0)
+EXPORT_MD_STATS_ITEM_V2($1 + 1, rmdir, 0)
+EXPORT_MD_STATS_ITEM_V2($1 + 1, rename, 0)
+EXPORT_MD_STATS_ITEM_V2($1 + 1, getattr, 0)
+EXPORT_MD_STATS_ITEM_V2($1 + 1, setattr, 0)
+EXPORT_MD_STATS_ITEM_V2($1 + 1, getxattr, 0)
+EXPORT_MD_STATS_ITEM_V2($1 + 1, setxattr, 0)
+EXPORT_MD_STATS_ITEM_V2($1 + 1, statfs, 0)
+EXPORT_MD_STATS_ITEM_V2($1 + 1, sync, 0)
+EXPORT_MD_STATS_ITEM_V2($1 + 1, samedir_rename, 0)
+EXPORT_MD_STATS_ITEM_V2($1 + 1, crossdir_rename, 0)
 $2', $3)')dnl
 dnl
 dnl $1: number of INDENT
@@ -327,6 +426,30 @@ OPTION($1 + 1, type_instance, $3, 0)
 OPTION($1 + 1, tsdb_name, $6_jobstats_$7, 0)
 OPTION($1 + 1, tsdb_tags, optype=$3 fs_name=${subpath:fs_name} $6_index=${subpath:$6_index} job_id=${content:job_id}, 0)', $8)')dnl
 dnl
+dnl
+dnl $1: number of INDENT
+dnl $2: index of FIELD
+dnl $3: name of FIELD
+dnl $4: type of FIELD
+dnl $5: type OPTION
+dnl $6: "mdt" or "ost"
+dnl $7: "samples" or "bytes"
+dnl $8: is first child of parent definition
+dnl $9: type of latency
+define(`JOBSTAT_FIELD_V2',
+	`ELEMENT($1, field,
+	`INDEX($1 + 1, $2, 1)
+NAME($1 + 1, $3, 0)
+TYPE($1 + 1, $4, 0)
+FIRST_VALUE($1 + 1, 0, 0)
+OPTION($1 + 1, host, ${key:hostname}, 0)
+OPTION($1 + 1, plugin, ${subpath:fs_name}-${subpath:$6_index}, 0)
+OPTION($1 + 1, plugin_instance, jobstat_${content:job_id}, 0)
+OPTION($1 + 1, type, $5, 0)
+OPTION($1 + 1, type_instance, $3, 0)
+OPTION($1 + 1, tsdb_name, $6_jobstats_$9, 0)
+OPTION($1 + 1, tsdb_tags, optype=$3 fs_name=${subpath:fs_name} $6_index=${subpath:$6_index} job_id=${content:job_id}, 0)', $8)')dnl
+dnl
 dnl $1: number of INDENT
 dnl $2: index of FIELD
 dnl $3: name of FIELD
@@ -344,6 +467,20 @@ dnl $5: type OPTION
 dnl $6: is first child of parent definition
 define(`OST_JOBSTAT_FIELD_BYTES',
 	`JOBSTAT_FIELD($1, $2, $3, $4, $5, ost, bytes, $6)')dnl
+dnl
+dnl $1: number of INDENT
+dnl $2: index of FIELD
+dnl $3: name of FIELD
+dnl $4: type of FIELD
+dnl $5: type OPTION
+dnl $6: ost or mdt
+dnl $7: is first child of parent definition
+define(`JOBSTAT_FIELD_META_OPERATIONS',
+	`JOBSTAT_FIELD($1, $2, $3, $4, $5, $6, samples, $7)
+	 JOBSTAT_FIELD_V2($1, eval(`$2 + 1'), $3, $4, $5, $6, $3, $7, min)
+	 JOBSTAT_FIELD_V2($1, eval(`$2 + 2'), $3, $4, $5, $6, $3, $7, max)
+	 JOBSTAT_FIELD_V2($1, eval(`$2 + 3'), $3, $4, $5, $6, $3, $7, sum)
+	 JOBSTAT_FIELD_V2($1, eval(`$2 + 4'), $3, $4, $5, $6, $3, $7, sumsq)')dnl
 dnl
 dnl $1: number of INDENT
 dnl $2: index of FIELD
