@@ -569,6 +569,7 @@ RPM_TESTS = "tests"
 RPM_TESTS_KMOD = "tests_kmod"
 RPM_MLNX_OFA = "mlnx_ofa"
 RPM_MLNX_KMOD = "mlnx_ofa_modules"
+RPM_KMOD_SPL = "kmod_spl"
 
 LUSTRE_ZFS_RPM_TYPES = [RPM_OSD_ZFS, RPM_OSD_ZFS_MOUNT]
 
@@ -703,17 +704,33 @@ LUSTRE_VERSION_2_12 = LustreVersion(LUSTRE_VERSION_NAME_2_12,
 
 ES5_1_PATTERNS = {
     RPM_KERNEL: r"^(kernel-3.+\.rpm)$",
-    RPM_LUSTRE: r"^(lustre-2\.12\.\d+_ddn.+\.rpm)$",
-    RPM_KMOD: r"^(kmod-lustre-2\.12\.\d+_ddn.+\.rpm)$",
-    RPM_OSD_LDISKFS: r"^(kmod-lustre-osd-ldiskfs-2\.12\.\d+_ddn.+\.rpm)$",
+    RPM_LUSTRE: r"^(lustre-2\.12\.3_ddn.+\.rpm)$",
+    RPM_KMOD: r"^(kmod-lustre-2\.12\.3_ddn.+\.rpm)$",
+    RPM_OSD_LDISKFS: r"^(kmod-lustre-osd-ldiskfs-2\.12\.3_ddn.+\.rpm)$",
     RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.12.+\.rpm)$",
-    RPM_OSD_ZFS: r"^(kmod-lustre-osd-zfs-2\.12\.\d+_ddn.+\.rpm)$",
+    RPM_OSD_ZFS: r"^(kmod-lustre-osd-zfs-2\.12\.3_ddn.+\.rpm)$",
+    RPM_KMOD_SPL: r"^(kmod-spl-3.+\.rpm)$",
     RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.12.+\.rpm)$"}
 
 LUSTRE_VERSION_NAME_ES5_1 = "es5.1"
 
 LUSTRE_VERSION_ES5_1 = LustreVersion(LUSTRE_VERSION_NAME_ES5_1,
                                      ES5_1_PATTERNS,  # rpm_patterns
+                                     "3")  # kernel_major_version
+ES5_2_PATTERNS = {
+    RPM_KERNEL: r"^(kernel-3.+\.rpm)$",
+    RPM_LUSTRE: r"^(lustre-2\.12\.5_ddn.+\.rpm)$",
+    RPM_KMOD: r"^(kmod-lustre-2\.12\.5_ddn.+\.rpm)$",
+    RPM_OSD_LDISKFS: r"^(kmod-lustre-osd-ldiskfs-2\.12\.5_ddn.+\.rpm)$",
+    RPM_OSD_LDISKFS_MOUNT: r"^(lustre-osd-ldiskfs-mount-2\.12.+\.rpm)$",
+    RPM_OSD_ZFS: r"^(kmod-lustre-osd-zfs-2\.12\.5_ddn.+\.rpm)$",
+    RPM_KMOD_SPL: r"^(kmod-spl-3.+\.rpm)$",
+    RPM_OSD_ZFS_MOUNT: r"^(lustre-osd-zfs-mount-2\.12.+\.rpm)$"}
+
+LUSTRE_VERSION_NAME_ES5_2 = "es5.2"
+
+LUSTRE_VERSION_ES5_2 = LustreVersion(LUSTRE_VERSION_NAME_ES5_2,
+                                     ES5_2_PATTERNS,  # rpm_patterns
                                      "3")  # kernel_major_version
 B2_13_PATTERNS = {
     RPM_KERNEL: r"^(kernel-3.+\.rpm)$",
@@ -732,15 +749,15 @@ LUSTRE_VERSION_2_13 = LustreVersion(LUSTRE_VERSION_NAME_2_13,
 
 LUSTER_VERSIONS = [LUSTRE_VERSION_ES2, LUSTRE_VERSION_ES3, LUSTRE_VERSION_ES4,
                    LUSTRE_VERSION_2_7, LUSTRE_VERSION_2_10, LUSTRE_VERSION_2_12,
-                   LUSTRE_VERSION_2_13]
+                   LUSTRE_VERSION_ES5_1, LUSTRE_VERSION_ES5_2, LUSTRE_VERSION_2_13]
 
 LUSTRE_VERSION_NAME_ERROR = "error"
 
 LUSTER_VERSION_NAMES = [LUSTRE_VERSION_NAME_ES2, LUSTRE_VERSION_NAME_ES3,
                         LUSTRE_VERSION_NAME_ES4, LUSTRE_VERSION_NAME_2_7,
                         LUSTRE_VERSION_NAME_2_10, LUSTRE_VERSION_NAME_2_12,
-                        LUSTRE_VERSION_NAME_ES5_1, LUSTRE_VERSION_NAME_2_13,
-                        LUSTRE_VERSION_NAME_ERROR]
+                        LUSTRE_VERSION_NAME_ES5_1, LUSTRE_VERSION_NAME_ES5_2,
+                        LUSTRE_VERSION_NAME_2_13, LUSTRE_VERSION_NAME_ERROR]
 
 
 def match_rpm_patterns(data, rpm_dict, possible_versions):
