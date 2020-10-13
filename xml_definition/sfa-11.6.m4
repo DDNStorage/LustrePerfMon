@@ -11,7 +11,7 @@ define(`DISK_RATE_AFTER_11_6',
         `ELEMENT($1, item,
         `NAME($1 + 1, $2_c_rates, 1)
 CONTEXT_SUBTYPE($1 + 1, `$4 Disk Counters:', $5, 0)
-PATTERN($1 + 1, `^ +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+)\| +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+)\|', 0)
+PATTERN($1 + 1, `^ +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) *\| +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) +([[:digit:]]+) *\|', 0)
 FIELD($1 + 1, 1, disk_index, string, ${extra_tag:extrahost}, $2_rate_${content:disk_index}, controller0, gauge, disk_index, $2_rate, type=disk_index controller=0 disk_index=${content:disk_index}, 0)
 FIELD($1 + 1, 2, controller0_iops, number, ${extra_tag:extrahost}, $2_rate_${content:disk_index}, controller0, gauge, iops, $2_rate, type=iops controller=0 disk_index=${content:disk_index}, 0)
 FIELD($1 + 1, 3, controller0_KiBps, number, ${extra_tag:extrahost}, $2_rate_${content:disk_index}, controller0, gauge, KiBps, $2_rate, type=KiBps controller=0 disk_index=${content:disk_index}, 0)
