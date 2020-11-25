@@ -1114,13 +1114,13 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
         logging.info("can NOT find [collectd_git_branch] in the config, "
                      "use default value [%s]", collectd_git_branch)
 
-    #ret = esmon_common.clone_src_from_git(collectd_git_path, collectd_git_url,
-    #                                      collectd_git_branch)
-    #if ret:
-    #    logging.error("failed to clone Collectd branch [%s] from [%s] to "
-    #                  "directory [%s]", collectd_git_branch,
-    #                  collectd_git_url, collectd_git_path)
-    #    return -1
+    ret = esmon_common.clone_src_from_git(collectd_git_path, collectd_git_url,
+                                          collectd_git_branch)
+    if ret:
+        logging.error("failed to clone Collectd branch [%s] from [%s] to "
+                      "directory [%s]", collectd_git_branch,
+                      collectd_git_url, collectd_git_path)
+        return -1
 
     command = ("cd %s && git rev-parse --short HEAD" %
                collectd_git_path)

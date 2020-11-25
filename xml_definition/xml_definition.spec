@@ -1,5 +1,7 @@
+%define build_timestamp %(date +%s)
+
 Name:		xml_definition
-Version:	2.1.g%{?rev}
+Version:	2.1.%{?build_timestamp}.g%{?rev}
 Release:	1
 Summary:	XML definition files and configure examples
 Group:		Applications/DDN
