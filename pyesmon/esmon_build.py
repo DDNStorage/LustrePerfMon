@@ -466,7 +466,7 @@ def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
 
 
 def host_build(workspace, build_host, local_host, collectd_git_path,
-               iso_cached_dir, collectd_version_release, build_timestamp, 
+               iso_cached_dir, collectd_version_release, build_timestamp,
                collectd_tarball_name):
     """
     Build on host
@@ -1150,9 +1150,9 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
                       retval.cr_stderr)
         return -1
 
-    build_timestamp = int(time.time())
+    build_timestamp = os.environ.get('TIMESTAMP', str(int(time.time())))
     collectd_version_string = retval.cr_stdout.strip()
-    collectd_version = collectd_version_string.replace('%{?build_timestamp}', str(build_timestamp))
+    collectd_version = collectd_version_string.replace('%{?build_timestamp}', build_timestamp)
     collectd_tarball_name = "collectd-" + collectd_version
 
     command = (r"cd %s && grep Release contrib/redhat/collectd.spec | "
