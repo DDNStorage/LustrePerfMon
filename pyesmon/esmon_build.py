@@ -11,7 +11,6 @@ import traceback
 import os
 import re
 import shutil
-import time
 import yaml
 
 # Local libs
@@ -178,8 +177,9 @@ def download_dependent_rpms(host, dependent_dir, distro, target_cpu):
     return 0
 
 
-def collectd_build(workspace, build_host, local_host, collectd_git_path,
-                   iso_cached_dir, collectd_tarball_name, build_timestamp,
+def collectd_build(workspace, build_host, local_host,
+                   collectd_git_path, iso_cached_dir,
+                   collectd_tarball_name,
                    distro, distro_number, target_cpu):
     """
     Build Collectd on a host
@@ -283,10 +283,9 @@ def collectd_build(workspace, build_host, local_host, collectd_git_path,
                '--without turbostat --without redis --without write_redis '
                '--without gps --without lvm --define "_topdir %s" '
                '--define="rev $(git rev-parse --short HEAD)" '
-               '--define="build_timestamp %s" '
                '--define="dist .el%s" '
                'contrib/redhat/collectd.spec' %
-               (host_collectd_git_dir, host_collectd_git_dir, build_timestamp, distro_number))
+               (host_collectd_git_dir, host_collectd_git_dir, distro_number))
     retval = build_host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
@@ -344,7 +343,7 @@ def collectd_build(workspace, build_host, local_host, collectd_git_path,
 
 
 def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
-                         iso_cached_dir, collectd_version_release, build_timestamp,
+                         iso_cached_dir, collectd_version_release,
                          collectd_tarball_name, distro, target_cpu):
     """
     Check and build Collectd RPMs
@@ -398,7 +397,7 @@ def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
 
     if not found:
         ret = collectd_build(workspace, build_host, local_host, collectd_git_path,
-                             iso_cached_dir, collectd_tarball_name, build_timestamp,
+                             iso_cached_dir, collectd_tarball_name,
                              distro, distro_number, target_cpu)
         if ret:
             logging.error("failed to build Collectd on host [%s]",
@@ -466,7 +465,7 @@ def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
 
 
 def host_build(workspace, build_host, local_host, collectd_git_path,
-               iso_cached_dir, collectd_version_release, build_timestamp,
+               iso_cached_dir, collectd_version_release,
                collectd_tarball_name):
     """
     Build on host
@@ -576,7 +575,7 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
         return -1
 
     ret = collectd_build_check(workspace, build_host, local_host, collectd_git_path,
-                               iso_cached_dir, collectd_version_release, build_timestamp,
+                               iso_cached_dir, collectd_version_release,
                                collectd_tarball_name, distro, target_cpu)
     if ret:
         return -1
@@ -1150,10 +1149,8 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
                       retval.cr_stderr)
         return -1
 
-    build_timestamp = os.environ.get('TIMESTAMP', str(int(time.time())))
     collectd_version_string = retval.cr_stdout.strip()
-    collectd_version = collectd_version_string.replace('%{?build_timestamp}', build_timestamp)
-    collectd_tarball_name = "collectd-" + collectd_version
+    collectd_tarball_name = "collectd-" + collectd_version_string
 
     command = (r"cd %s && grep Release contrib/redhat/collectd.spec | "
                r"grep -v \# | awk '{print $2}'" %
@@ -1171,13 +1168,12 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
     collectd_release_string = retval.cr_stdout.strip()
     collectd_release_string = collectd_release_string.replace('%{?rev}', collectd_git_version)
     collectd_release = collectd_release_string.replace('%{?dist}', '')
-    collectd_version_release = collectd_version + "-" + collectd_release
+    collectd_version_release = collectd_version_string + "-" + collectd_release
 
     if centos6_host is not None:
         centos6_workspace = ESMON_BUILD_LOG_DIR + "/" + relative_workspace
         ret = host_build(centos6_workspace, centos6_host, local_host, collectd_git_path,
-                         iso_cached_dir, collectd_version_release, build_timestamp,
-                         collectd_tarball_name)
+                         iso_cached_dir, collectd_version_release, collectd_tarball_name)
         if ret:
             logging.error("failed to prepare RPMs of CentOS6 on host [%s]",
                           centos6_host.sh_hostname)
@@ -1187,8 +1183,7 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
     # host
     local_workspace = current_dir + "/" + relative_workspace
     ret = host_build(local_workspace, local_host, local_host, collectd_git_path,
-                     iso_cached_dir, collectd_version_release, build_timestamp,
-                     collectd_tarball_name)
+                     iso_cached_dir, collectd_version_release, collectd_tarball_name)
     if ret:
         logging.error("failed to prepare RPMs of CentOS7 on local host")
         return -1
