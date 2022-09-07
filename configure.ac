@@ -154,7 +154,7 @@ AC_SUBST(XML_DEFINITION_VERSION)
 # -------- check for xml_definition release --------
 AC_MSG_CHECKING([for xml_definition release])
 XML_DEFINITION_RELEASE=$(grep Release xml_definition/xml_definition.spec | \
-	awk '{print $2}' | sed -e "s/%{?dist}//g")
+	awk '{print $2}' | sed -e "s/%{?rev}/${XML_DEFINITION_REV}/g" | sed -e "s/%{?dist}//g")
 AC_MSG_RESULT([$XML_DEFINITION_RELEASE])
 AC_SUBST(XML_DEFINITION_RELEASE)
 
