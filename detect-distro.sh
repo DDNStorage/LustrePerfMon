@@ -19,7 +19,7 @@ if which lsb_release >/dev/null 2>&1; then
 		"EnterpriseEnterpriseServer")
 			name="oel"
 			;;
-		"RedHatEnterpriseServer" | "ScientificSL" | "CentOS")
+		"RedHatEnterpriseServer" | "ScientificSL" | "CentOS" | "AlmaLinux")
 			name="rhel"
 			;;
 		"SUSE LINUX")
