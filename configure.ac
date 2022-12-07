@@ -146,15 +146,16 @@ if [[[ $? -ne 0 ]]]; then
 fi
 AC_SUBST(XML_DEFINITION_REV)
 
-XML_DEFINITION_VERSION=$(grep Version xml_definition/xml_definition.spec | \
-	awk '{print $2}' | sed -e "s/%{?rev}/${XML_DEFINITION_REV}/g")
+XML_DEFINITION_VERSION=$(awk '/^Version/{print $2}' \
+	xml_definition/xml_definition.spec)
 AC_MSG_RESULT([$XML_DEFINITION_VERSION])
 AC_SUBST(XML_DEFINITION_VERSION)
 
 # -------- check for xml_definition release --------
 AC_MSG_CHECKING([for xml_definition release])
-XML_DEFINITION_RELEASE=$(grep Release xml_definition/xml_definition.spec | \
-	awk '{print $2}' | sed -e "s/%{?dist}//g")
+XML_DEFINITION_RELEASE=$(awk '/^Release/{print $2}' \
+	xml_definition/xml_definition.spec | \
+	sed -e "s|%{?dist}||g" -e "s|%{?rev}|${XML_DEFINITION_REV}|g")
 AC_MSG_RESULT([$XML_DEFINITION_RELEASE])
 AC_SUBST(XML_DEFINITION_RELEASE)
 

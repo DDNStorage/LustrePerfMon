@@ -25,7 +25,7 @@ ESMON_VIRT_CONFIG = "/etc/" + ESMON_VIRT_CONFIG_FNAME
 ESMON_VIRT_LOG_DIR = "/var/log/esmon_virt"
 
 
-class VirtTemplate(object):
+class VirtTemplate():
     """
     Each virtual machine template has an object of this type
     """
@@ -1200,9 +1200,6 @@ def main():
     """
     Install virtual machines
     """
-    # pylint: disable=unused-variable
-    reload(sys)
-    sys.setdefaultencoding("utf-8")
     config_fpath = ESMON_VIRT_CONFIG
 
     if len(sys.argv) == 2:

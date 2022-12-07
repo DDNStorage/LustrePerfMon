@@ -148,7 +148,7 @@ def esmon_launch_ioload_daemon(lustre_fs):
 
     ostnum = len(lustre_fs.lf_osts)
     count = 0
-    for client_index, client in lustre_fs.lf_clients.iteritems():
+    for client_index, client in list(lustre_fs.lf_clients.items()):
         if count == 0:
             ret = esmon_remove_allfiles(client)
             if ret:

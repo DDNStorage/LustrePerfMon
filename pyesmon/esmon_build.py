@@ -39,8 +39,7 @@ def download_dependent_rpms(host, dependent_dir, distro, target_cpu):
     """
     # pylint: disable=too-many-locals,too-many-return-statements
     # pylint: disable=too-many-branches,too-many-statements
-    # The yumdb might be broken, so sync
-    command = "yumdb sync"
+    command = "yum clean all"
     retval = host.sh_run(command)
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
@@ -112,9 +111,9 @@ def download_dependent_rpms(host, dependent_dir, distro, target_cpu):
             return -1
 
         rpm_fullname = rpm_fullnames[0]
-        sha256sum = host.sh_yumdb_sha256(rpm_fullname)
-        if sha256sum is None:
-            logging.error("failed to get sha256 of RPM [%s] on host [%s]",
+        rpm_checksum = host.sh_rpm_package_checksum(rpm_fullname)
+        if rpm_checksum is None:
+            logging.error("failed to get checksum of RPM [%s] on host [%s]",
                           rpm_fullname, host.sh_hostname)
             return -1
 
@@ -123,16 +122,16 @@ def download_dependent_rpms(host, dependent_dir, distro, target_cpu):
         found = False
         for filename in existing_rpm_fnames[:]:
             if filename == rpm_filename:
-                file_sha256sum = host.sh_sha256sum(fpath)
-                if sha256sum != file_sha256sum:
-                    logging.debug("found RPM [%s] with wrong sha256sum, "
+                file_checksum = host.sh_rpm_file_checksum(fpath)
+                if file_checksum != rpm_checksum:
+                    logging.debug("found RPM [%s] with wrong checksum, "
                                   "deleting it", fpath)
                     ret = host.sh_remove_file(fpath)
                     if ret:
                         return -1
                     break
 
-                logging.debug("found RPM [%s] with correct sha256sum", fpath)
+                logging.debug("found RPM [%s] with correct checkum", fpath)
                 existing_rpm_fnames.remove(filename)
                 found = True
                 break
@@ -160,11 +159,11 @@ def download_dependent_rpms(host, dependent_dir, distro, target_cpu):
             return -1
 
         # Don't trust yumdownloader, check again
-        file_sha256sum = host.sh_sha256sum(fpath)
-        if sha256sum != file_sha256sum:
+        file_checksum = host.sh_rpm_file_checksum(fpath)
+        if file_checksum != rpm_checksum:
             logging.error("downloaded RPM [%s] on host [%s] with wrong "
-                          "sha256sum, expected [%s], got [%s]", fpath,
-                          host.sh_hostname, sha256sum, file_sha256sum)
+                          "checksum, expected [%s], got [%s]", fpath,
+                          host.sh_hostname, rpm_checksum, file_checksum)
             return -1
 
     for fname in existing_rpm_fnames:
@@ -368,7 +367,11 @@ def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
         return -1
     rpm_collectd_fnames = retval.cr_stdout.split()
 
-    if distro == ssh_host.DISTRO_RHEL7:
+    if distro == ssh_host.DISTRO_RHEL9:
+        distro_number = "9"
+    elif distro == ssh_host.DISTRO_RHEL8:
+        distro_number = "8"
+    elif distro == ssh_host.DISTRO_RHEL7:
         distro_number = "7"
     elif distro == ssh_host.DISTRO_RHEL6:
         distro_number = "6"
@@ -435,6 +438,9 @@ def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
                 logging.error("RPM [%s] not found in directory [%s] after "
                               "building Collectd", collect_rpm_full,
                               local_collectd_rpm_dir)
+                if (distro in (ssh_host.DISTRO_RHEL8, ssh_host.DISTRO_RHEL9)
+                        and collect_rpm_name == "collectd-ssh"):
+                    continue
                 return -1
     else:
         collect_rpm_pattern = (r"collectd-\S+-%s.el%s.%s.rpm" %
@@ -536,22 +542,29 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
 
     # The RPMs needed by Collectd building
     # riemann-c-client-devel is not available for RHEL6, but that is fine
-    command = ("yum install libgcrypt-devel libtool-ltdl-devel curl-devel "
+    command = ("yum install -y libgcrypt-devel libtool-ltdl-devel curl-devel "
                "libxml2-devel yajl-devel libdbi-devel libpcap-devel "
                "OpenIPMI-devel iptables-devel libvirt-devel "
                "libvirt-devel libmemcached-devel mysql-devel libnotify-devel "
                "libesmtp-devel postgresql-devel rrdtool-devel "
                "lm_sensors-libs lm_sensors-devel net-snmp-devel libcap-devel "
-               "lvm2-devel libmodbus-devel libmnl-devel iproute-devel "
+               "lvm2-devel libmnl-devel iproute-devel "
                "hiredis-devel libatasmart-devel protobuf-c-devel "
                "mosquitto-devel gtk2-devel openldap-devel "
-               "zeromq3-devel libssh2-devel rrdtool-devel rrdtool "
+               "zeromq-devel libssh2-devel rrdtool-devel rrdtool "
                "createrepo mkisofs yum-utils redhat-lsb unzip "
-               "epel-release perl-Regexp-Common python-pep8 pylint "
+               "epel-release perl-Regexp-Common "
                "lua-devel byacc ganglia-devel libmicrohttpd-devel "
                "riemann-c-client-devel xfsprogs-devel uthash-devel "
-               "qpid-proton-c-devel perl-ExtUtils-Embed -y")
+               "qpid-proton-c-devel perl-ExtUtils-Embed")
+
+    if distro in (ssh_host.DISTRO_RHEL8, ssh_host.DISTRO_RHEL9):
+        command += " python3-pylint"
+    else:
+        command += " libmodbus-devel python36-pylint"
+
     retval = build_host.sh_run(command)
+
     if retval.cr_exit_status:
         logging.error("failed to run command [%s] on host [%s], "
                       "ret = [%d], stdout = [%s], stderr = [%s]",
@@ -784,7 +797,7 @@ def esmon_download_grafana_plugins(local_host, iso_cached_dir):
     """
     Download grafana plugin
     """
-    for plugin_name, git_url in esmon_common.GRAFANA_PLUGIN_GITS.iteritems():
+    for plugin_name, git_url in list(esmon_common.GRAFANA_PLUGIN_GITS.items()):
         ret = esmon_download_grafana_plugin(local_host, iso_cached_dir, plugin_name, git_url)
         if ret:
             logging.error("failed to clone Grafana plugin [%s] from url [%s]",
@@ -1076,8 +1089,8 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
 
     local_host = ssh_host.SSHHost("localhost", local=True)
     distro = local_host.sh_distro()
-    if distro != ssh_host.DISTRO_RHEL7:
-        logging.error("build can only be launched on RHEL7/CentOS7 host")
+    if distro not in (ssh_host.DISTRO_RHEL7, ssh_host.DISTRO_RHEL8):
+        logging.error("build can only be launched on RHEL7 or RHEL8 host")
         return -1
 
     target_cpu = local_host.sh_target_cpu()
@@ -1246,7 +1259,7 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
         logging.error("unsupported CPU type [%s]", target_cpu)
         return -1
 
-    for name, url in server_rpms.iteritems():
+    for name, url in list(server_rpms.items()):
         fpath = ("%s/%s" % (local_server_rpm_dir, name))
         command = "test -e %s" % fpath
         retval = local_host.sh_run(command)
@@ -1266,7 +1279,7 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
                 return -1
 
     server_existing_files = os.listdir(local_server_rpm_dir)
-    for server_rpm in server_rpms.iterkeys():
+    for server_rpm in list(server_rpms.keys()):
         server_existing_files.remove(server_rpm)
     for extra_fname in server_existing_files:
         logging.warning("find unknown file [%s] under directory [%s], removing",
@@ -1373,9 +1386,6 @@ def main():
     """
     Install Exascaler monitoring
     """
-    # pylint: disable=unused-variable
-    reload(sys)
-    sys.setdefaultencoding("utf-8")
     config_fpath = ESMON_BUILD_CONFIG
 
     if len(sys.argv) == 2:
@@ -1429,5 +1439,5 @@ def main():
     if ret:
         logging.error("build failed")
         sys.exit(ret)
-    logging.info("Exascaler monistoring system is successfully built")
+    logging.info("Exascaler monitoring system is successfully built")
     sys.exit(0)

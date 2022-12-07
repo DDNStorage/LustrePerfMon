@@ -1,9 +1,9 @@
-#!/usr/bin/python -u
+#!/usr/bin/python3 -u
 # Copyright (c) 2018 DataDirect Networks, Inc.
 # All Rights Reserved.
 # Author: Qian Yingjin <qian@ddn.com>
 """
-Test Exascaler monistoring system
+Test Exascaler monitoring system
 """
 from pyesmon import esmon_ioload
 

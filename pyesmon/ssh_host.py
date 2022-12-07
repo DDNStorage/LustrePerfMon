@@ -21,6 +21,10 @@ from pyesmon import utils
 DISTRO_RHEL6 = "rhel6"
 # OS distribution RHEL7/CentOS7
 DISTRO_RHEL7 = "rhel7"
+# OS distribution RHEL8
+DISTRO_RHEL8 = "rhel8"
+# OS distribution RHEL9
+DISTRO_RHEL9 = "rhel9"
 # The shortest time that a reboot could finish. It is used to check whether
 # a host has actually rebooted or not.
 SHORTEST_TIME_REBOOT = 10
@@ -126,7 +130,7 @@ def ssh_run(hostname, command, login_name="root", timeout=None,
                      quit_func=quit_func, flush_tee=flush_tee)
 
 
-class SSHHost(object):
+class SSHHost():
     """
     Each SSH host has an object of SSHHost
     """
@@ -217,6 +221,14 @@ class SSHHost(object):
         return self.sh_wait_update("true", expect_exit_status=0,
                                    timeout=timeout)
 
+    def sh_checksum_type(self):
+        """
+        Return thhe type of RPM checksum
+        """
+        if self.sh_distro() in (DISTRO_RHEL8, DISTRO_RHEL9):
+            return "SHA256HEADER"
+        return "SHA1HEADER"
+
     def sh_distro(self):
         """
         Return the distro of this host
@@ -241,7 +253,13 @@ class SSHHost(object):
                               command, self.sh_hostname)
                 return None
             else:
-                if "el7" in ret.cr_stdout:
+                if "el9" in ret.cr_stdout:
+                    self.sh_cached_distro = DISTRO_RHEL9
+                    return DISTRO_RHEL9
+                elif "el8" in ret.cr_stdout:
+                    self.sh_cached_distro = DISTRO_RHEL8
+                    return DISTRO_RHEL8
+                elif "el7" in ret.cr_stdout:
                     self.sh_cached_distro = DISTRO_RHEL7
                     return DISTRO_RHEL7
                 elif "el6" in ret.cr_stdout:
@@ -268,10 +286,15 @@ class SSHHost(object):
             return None
         version = ret.cr_stdout.strip('\n')
 
-        if (name == "RedHatEnterpriseServer" or
-                name == "ScientificSL" or
-                name == "CentOS"):
-            if version.startswith("7"):
+        if name in ('RedHatEnterpriseServer', 'RedHatEnterprise',
+                    'ScientificSL', 'CentOS', 'AlmaLinux', 'Rocky'):
+            if version.startswith("9"):
+                self.sh_cached_distro = DISTRO_RHEL9
+                return DISTRO_RHEL9
+            elif version.startswith("8"):
+                self.sh_cached_distro = DISTRO_RHEL8
+                return DISTRO_RHEL8
+            elif version.startswith("7"):
                 self.sh_cached_distro = DISTRO_RHEL7
                 return DISTRO_RHEL7
             elif version.startswith("6"):
@@ -536,7 +559,7 @@ class SSHHost(object):
         umask = os.umask(0)
         os.umask(umask)
 
-        max_privs = 0777 & ~umask
+        max_privs = 0o777 & ~umask
 
         def set_file_privs(filename):
             """
@@ -547,8 +570,8 @@ class SSHHost(object):
             file_privs = max_privs
             # if the original file permissions do not have at least one
             # executable bit then do not set it anywhere
-            if not file_stat.st_mode & 0111:
-                file_privs &= ~0111
+            if not file_stat.st_mode & 0o111:
+                file_privs &= ~0o111
 
             os.chmod(filename, file_privs)
 
@@ -582,7 +605,7 @@ class SSHHost(object):
         dest = os.path.abspath(dest)
 
         if self.sh_local:
-            if isinstance(source, basestring):
+            if isinstance(source, str):
                 if os.path.isdir(dest):
                     source_dir = os.path.basename(source)
                     command = "test %s -ef %s" % (source_dir, dest)
@@ -599,7 +622,7 @@ class SSHHost(object):
                                       "the same with dest [%s]", source, dest)
                         return 0
 
-        if isinstance(source, basestring):
+        if isinstance(source, str):
             source = [source]
 
         if delete_dest and os.path.isdir(dest):
@@ -690,7 +713,7 @@ class SSHHost(object):
         # pylint: disable=too-many-arguments,too-many-locals,too-many-return-statements
         # pylint: disable=too-many-branches
         if self.sh_local:
-            if isinstance(source, basestring):
+            if isinstance(source, str):
                 if os.path.isdir(dest):
                     source_dir = os.path.basename(source)
                     command = "test %s -ef %s" % (source_dir, dest)
@@ -707,7 +730,7 @@ class SSHHost(object):
                                       "the same with dest [%s]", source, dest)
                         return 0
 
-        if isinstance(source, basestring):
+        if isinstance(source, str):
             source = [source]
 
         if self.sh_local:
@@ -1316,7 +1339,7 @@ class SSHHost(object):
 
     def sh_md5sum(self, fpath):
         """
-        Calculate the md5sum of a file
+        Calculate the checksum of a file
         """
         command = "md5sum %s | awk '{print $1}'" % fpath
         retval = self.sh_run(command)
@@ -1415,66 +1438,31 @@ class SSHHost(object):
             return -1
         return 0
 
-    def sh_yumdb_info(self, rpm_name):
+    def sh_rpm_package_checksum(self, pkg):
         """
-        Get the key/value pairs of a RPM from yumdb
+        Get the checksum of a RPM from rpmdb
         """
-        command = "yumdb info %s" % rpm_name
+        checksum_type = self.sh_checksum_type()
+        command = "rpm --query --queryformat '%%{%s}' %s" % (
+            checksum_type, pkg)
         retval = self.sh_run(command)
-        if retval.cr_exit_status:
+        if retval.cr_exit_status != 0:
             logging.error("failed to run command [%s] on host [%s], "
                           "ret = [%d], stdout = [%s], stderr = [%s]",
-                          command,
-                          self.sh_hostname,
+                          command, self.sh_hostname,
                           retval.cr_exit_status,
                           retval.cr_stdout,
                           retval.cr_stderr)
             return None
-        lines = retval.cr_stdout.splitlines()
-        output_pattern = (r"^ +(?P<key>\S+) = (?P<value>.+)$")
-        output_regular = re.compile(output_pattern)
-        infos = {}
-        for line in lines:
-            match = output_regular.match(line)
-            if match:
-                logging.debug("matched pattern [%s] with line [%s]",
-                              output_pattern, line)
-                key = match.group("key")
-                value = match.group("value")
-                infos[key] = value
+        return retval.cr_stdout.strip()
 
-        return infos
-
-    def sh_yumdb_sha256(self, rpm_name):
+    def sh_rpm_file_checksum(self, path):
         """
-        Get the SHA256 checksum of a RPM from yumdb
+        Calculate the checksum of a rpm file
         """
-        rpm_infos = self.sh_yumdb_info(rpm_name)
-        if rpm_infos is None:
-            logging.error("failed to get YUM info of [%s] on host [%s]",
-                          rpm_name, self.sh_hostname)
-            return None
-
-        if ("checksum_data" not in rpm_infos or
-                "checksum_type" not in rpm_infos):
-            logging.error("failed to get YUM info of [%s] on host [%s]",
-                          rpm_name, self.sh_hostname)
-            return None
-
-        if rpm_infos["checksum_type"] != "sha256":
-            logging.error("unexpected checksum type of RPM [%s] on host [%s], "
-                          "expected [sha256], got [%s]",
-                          rpm_name, self.sh_hostname,
-                          rpm_infos["checksum_type"])
-            return None
-
-        return rpm_infos["checksum_data"]
-
-    def sh_sha256sum(self, fpath):
-        """
-        Calculate the sha256sum of a file
-        """
-        command = "sha256sum %s | awk '{print $1}'" % fpath
+        checksum_type = self.sh_checksum_type()
+        command = "rpm --query --queryformat '%%{%s}' --package %s" % (
+            checksum_type, path)
         retval = self.sh_run(command)
         if retval.cr_exit_status != 0:
             logging.error("failed to run command [%s] on host [%s], "
@@ -1565,7 +1553,7 @@ class SSHHost(object):
             return -1
 
         status = self.sh_selinux_status()
-        if status == "Disabled" or status == "Permissive":
+        if status in ('Disabled', 'Permissive'):
             logging.debug("SELinux is already [%s] on host [%s]",
                           status, self.sh_hostname)
             return 0

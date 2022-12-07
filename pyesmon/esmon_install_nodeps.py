@@ -10,9 +10,14 @@ import logging
 import traceback
 import os
 import shutil
-import httplib
+import http.client
 import re
 import json
+
+import filelock
+import requests
+import slugify
+import yaml
 
 # Local libs
 from pyesmon import lustre
@@ -24,10 +29,6 @@ from pyesmon import esmon_common
 from pyesmon import esmon_influxdb
 from pyesmon import esmon_install_common
 from pyesmon import esmon_config
-import requests
-import yaml
-import filelock
-import slugify
 
 
 ESMON_INSTALL_LOG_DIR = "/var/log/esmon_install"
@@ -90,7 +91,7 @@ def sed_replacement_escape(path):
     return path.replace("/", r"\/")
 
 
-class EsmonServer(object):
+class EsmonServer():
     """
     ESMON server host has an object of this type
     """
@@ -397,7 +398,7 @@ class EsmonServer(object):
             logging.debug("not able to connect to [%s]: %s", url,
                           traceback.format_exc())
             return -1
-        if response.status_code != httplib.OK:
+        if response.status_code != http.client.OK:
             logging.debug("got grafana status [%d] when acessing grafana url "
                           "[%s]", response.status_code, url)
             self.es_grafana_failure = True
@@ -430,7 +431,7 @@ class EsmonServer(object):
             logging.error("not able to create data source through [%s]: %s",
                           url, traceback.format_exc())
             return -1
-        if response.status_code != httplib.OK:
+        if response.status_code != http.client.OK:
             logging.error("got grafana status [%d] when creating datasource",
                           response.status_code)
             return -1
@@ -452,7 +453,7 @@ class EsmonServer(object):
             logging.error("not able to delete data source through [%s]: %s",
                           url, traceback.format_exc())
             return -1
-        if response.status_code != httplib.OK:
+        if response.status_code != http.client.OK:
             logging.error("got grafana status [%d] when deleting datasource",
                           response.status_code)
             return -1
@@ -476,9 +477,9 @@ class EsmonServer(object):
             logging.error("not able to get data source through [%s]: %s",
                           url, traceback.format_exc())
             return -1
-        if response.status_code == httplib.OK:
+        if response.status_code == http.client.OK:
             return 1
-        elif response.status_code == httplib.NOT_FOUND:
+        elif response.status_code == http.client.NOT_FOUND:
             return 0
         logging.error("got grafana status [%d] when get datasource of influxdb",
                       response.status_code)
@@ -499,7 +500,7 @@ class EsmonServer(object):
             logging.error("not able to get data sources through [%s]: %s",
                           url, traceback.format_exc())
             return -1
-        if response.status_code != httplib.OK:
+        if response.status_code != http.client.OK:
             logging.error("got grafana status [%d]", response.status_code)
             return -1
         return 0
@@ -528,7 +529,7 @@ class EsmonServer(object):
             logging.error("not able to add bashboard through [%s]: %s",
                           url, traceback.format_exc())
             return -1
-        if response.status_code != httplib.OK:
+        if response.status_code != http.client.OK:
             logging.error("got grafana status [%d] when adding dashbard [%s]",
                           response.status_code, name)
             return -1
@@ -550,7 +551,7 @@ class EsmonServer(object):
             logging.error("not able to delete dashboard through [%s]: %s",
                           url, traceback.format_exc())
             return -1
-        if response.status_code != httplib.OK:
+        if response.status_code != http.client.OK:
             logging.error("got grafana status [%d] when deleting dashboard",
                           response.status_code)
             return -1
@@ -573,9 +574,9 @@ class EsmonServer(object):
             logging.error("not able to get dashboard through [%s]: %s",
                           url, traceback.format_exc())
             return -1
-        if response.status_code == httplib.OK:
+        if response.status_code == http.client.OK:
             return 1
-        elif response.status_code == httplib.NOT_FOUND:
+        elif response.status_code == http.client.NOT_FOUND:
             return 0
         logging.error("got grafana status [%d] when get dashboard",
                       response.status_code)
@@ -687,9 +688,9 @@ class EsmonServer(object):
             logging.error("not able to get users through [%s]: %s",
                           url, traceback.format_exc())
             return -1, None
-        if response.status_code == httplib.OK:
+        if response.status_code == http.client.OK:
             return 1, response.json()
-        elif response.status_code == httplib.NOT_FOUND:
+        elif response.status_code == http.client.NOT_FOUND:
             return 0, None
         logging.error("got grafana status [%d] when getting user info",
                       response.status_code)
@@ -710,7 +711,7 @@ class EsmonServer(object):
             logging.error("not able to delete users through [%s]: %s",
                           url, traceback.format_exc())
             return -1
-        if response.status_code == httplib.OK:
+        if response.status_code == http.client.OK:
             return 0
         logging.error("got grafana status [%d] when deleting user",
                       response.status_code)
@@ -738,7 +739,7 @@ class EsmonServer(object):
             logging.error("not able to add user through [%s]: %s",
                           url, traceback.format_exc())
             return -1
-        if response.status_code != httplib.OK:
+        if response.status_code != http.client.OK:
             logging.error("got grafana status [%d] when adding user [%s]",
                           response.status_code, name)
             return -1
@@ -837,7 +838,7 @@ class EsmonServer(object):
             return ret
 
         collect_interval = str(self.es_collect_interval)
-        for name, fname in GRAFANA_DASHBOARDS.iteritems():
+        for name, fname in list(GRAFANA_DASHBOARDS.items()):
             dashboard_template_fpath = (mnt_path + "/" + GRAFANA_DASHBOARD_DIR +
                                         "/" + fname + ".template")
             if os.path.isfile(dashboard_template_fpath):
@@ -1143,7 +1144,7 @@ class EsmonServer(object):
                           query)
             return -1
 
-        if response.status_code != httplib.OK:
+        if response.status_code != http.client.OK:
             logging.error("got InfluxDB status [%d] when creating "
                           "continuous query with query [%s]",
                           response.status_code, query)
@@ -1166,7 +1167,7 @@ class EsmonServer(object):
                           query)
             return -1
 
-        if response.status_code != httplib.OK:
+        if response.status_code != http.client.OK:
             logging.error("got InfluxDB status [%d] when droping "
                           "continuous query with query [%s]",
                           response.status_code, query)
@@ -1206,7 +1207,7 @@ def int_safe(int_str):
     return i
 
 
-class EsmonSFA(object):
+class EsmonSFA():
     """
     Each SFA config block on a ESMON agent has an object of this type
     """
@@ -1273,7 +1274,7 @@ class EsmonSFA(object):
                           command, self.esfa_name, retval.cr_stdout)
             return -1
 
-        if controller_index != "0" and controller_index != "1":
+        if controller_index not in ('0', '1'):
             logging.error("unexpected index [%s] from output of command [%s] "
                           "on controller [%s] of SFA [%s], unsupported "
                           "version of SFA? Output:\n%s",
@@ -1426,7 +1427,7 @@ class EsmonSFA(object):
         return 0
 
 
-class EsmonClient(object):
+class EsmonClient():
     """
     Each client ESMON host has an object of this type
     """
@@ -2128,7 +2129,7 @@ class EsmonClient(object):
         measurement_name = args[0]
         tags = args[1]
         tag_string = ""
-        for key, value in tags.iteritems():
+        for key, value in list(tags.items()):
             if tag_string != "":
                 tag_string += " AND"
             else:
@@ -2144,7 +2145,7 @@ class EsmonClient(object):
                           query)
             return -1
 
-        if response.status_code != httplib.OK:
+        if response.status_code != http.client.OK:
             logging.debug("got InfluxDB status [%d] with query [%s]",
                           response.status_code, query)
             return -1
@@ -2616,7 +2617,7 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
                      "" if drop_database else "NOT ")
 
     if agents_reinstall:
-        for esmon_client in esmon_clients.values():
+        for esmon_client in list(esmon_clients.values()):
             logging.info("support for metrics of [%s] will be enabled on "
                          "ESMON client [%s] according to the config",
                          esmon_client.ec_enabled_plugins,
@@ -2632,7 +2633,7 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
             return -1
 
     if agents_reinstall:
-        for esmon_client in esmon_clients.values():
+        for esmon_client in list(esmon_clients.values()):
             no_copy = (esmon_server.es_host.sh_hostname ==
                        esmon_client.ec_host.sh_hostname)
             if not server_reinstall:
@@ -2645,7 +2646,7 @@ def esmon_do_install(workspace, config, config_fpath, mnt_path):
     else:
         logging.info("ESMON clients won't be reinstalled according to the "
                      "config, restarting ESMON client instead")
-        for esmon_client in esmon_clients.values():
+        for esmon_client in list(esmon_clients.values()):
             ret = esmon_client.ec_collectd_restart()
             if ret:
                 logging.error("failed to start esmon client on host [%s]",
@@ -2777,8 +2778,6 @@ def main():
     """
     Install Exascaler monitoring
     """
-    reload(sys)
-    sys.setdefaultencoding("utf-8")
     config_fpath = esmon_common.ESMON_INSTALL_CONFIG
 
     if len(sys.argv) == 2:
@@ -2812,6 +2811,6 @@ def main():
         logging.error("installation failed, please check [%s] for more log\n",
                       workspace)
         sys.exit(ret)
-    logging.info("Exascaler monistoring system is installed, please check [%s] "
+    logging.info("Exascaler monitoring system is installed, please check [%s] "
                  "for more log", workspace)
     sys.exit(0)

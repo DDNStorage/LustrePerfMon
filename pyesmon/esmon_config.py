@@ -37,7 +37,7 @@ ESMON_CONFIG_COMMNAD_WRITE_QUIT = "wq"
 ESMON_CONFIG_EDIT_QUIT = 1
 
 
-class EsmonConfigInputStatus(object):
+class EsmonConfigInputStatus():
     """
     Input status
     """
@@ -75,7 +75,7 @@ class EsmonConfigInputStatus(object):
                     if self.ecis_status == self.STATUS_COMMAND:
                         if begin == 0:
                             # first word
-                            candidates = ESMON_CONFIG_COMMNADS.keys()
+                            candidates = list(ESMON_CONFIG_COMMNADS.keys())
                         else:
                             # later word
                             first = words[0]
@@ -113,7 +113,7 @@ class EsmonConfigInputStatus(object):
 ESMON_INPUT_STATUS = EsmonConfigInputStatus()
 
 
-class EsmonConfigCommand(object):
+class EsmonConfigCommand():
     """
     Config command
     """
@@ -349,8 +349,7 @@ def esmon_command_edit(arg_string):
     current = ESMON_CONFIG_WALK_STACK[-1]
     current_config = current.ewe_config
 
-    if (isinstance(current_config, dict) or
-            isinstance(current_config, list)):
+    if isinstance(current_config, (dict, list)):
         logging.error('cannot edit "%s" directly, please edit its children '
                       'instead', current.ewe_key)
         return -1
@@ -412,7 +411,7 @@ def esmon_command_ls(arg_string):
         else:
             logging.info(current_config)
     elif arg_string == "-r":
-        if isinstance(current_config, int) or isinstance(current_config, str):
+        if isinstance(current_config, (int, str)):
             logging.info(current_config)
         else:
             logging.info(yaml.dump(current_config, Dumper=EsmonYamlDumper,
@@ -619,7 +618,7 @@ class EsmonYamlDumper(yaml.Dumper):
         return super(EsmonYamlDumper, self).increase_indent(flow, False)
 
 
-class EsmonConfigString(object):
+class EsmonConfigString():
     """
     Config string
     """
@@ -1097,7 +1096,7 @@ ESMON_CONFIG_ADD_PREFIX = EsmonConfigString("prefix",
                                             "")
 
 
-class EsmonWalkEntry(object):
+class EsmonWalkEntry():
     """
     When walking to the subdir, an entry will be allocated
     """
@@ -1156,7 +1155,7 @@ def esmon_children():
 
     if isinstance(current_config, dict):
         children = []
-        for key, value in current_config.iteritems():
+        for key, value in list(current_config.items()):
             children.append(key)
     elif isinstance(current_config, list):
         children = esmon_list_children(current)
@@ -1329,7 +1328,7 @@ def esmon_edit(current):
                       key, cstring.ecs_type, cstring_types)
         return -1
 
-    logging.info(cstring.ecs_help_info + "\n")
+    logging.info(cstring.ecs_help_info)
     logging.info('Current value: "%s"', current_config)
 
     ret, value = esmon_cstr_input_loop(cstring)
@@ -1366,7 +1365,7 @@ def esmon_cstr_input_loop(cstring, prompt=None):
     """
     Loop until allowed string is inputed
     """
-    # pylint: disable=too-many-branches,redefined-variable-type,bare-except
+    # pylint: disable=too-many-branches,bare-except
     # pylint: disable=too-many-statements
     ESMON_INPUT_STATUS.ecis_status = ESMON_INPUT_STATUS.STATUS_CSTR
     if prompt is None:
@@ -1404,7 +1403,7 @@ def esmon_cstr_input_loop(cstring, prompt=None):
     while ESMON_CONFIG_RUNNING:
         try:
             logging.debug(prompt)
-            cmd_line = raw_input(prompt)
+            cmd_line = eval(input(prompt))
         except (KeyboardInterrupt, EOFError):
             logging.debug("keyboard interrupt recieved")
             ret = ESMON_CONFIG_EDIT_QUIT
@@ -1417,9 +1416,9 @@ def esmon_cstr_input_loop(cstring, prompt=None):
             continue
 
         if cstring.ecs_type == ESMON_CONFIG_CSTR_BOOL:
-            if cmd_line == 'T' or cmd_line == 't':
+            if cmd_line in ('T', 't'):
                 value = True
-            elif cmd_line == 'F' or cmd_line == 'f':
+            elif cmd_line in ('F', 'f'):
                 value = False
             else:
                 logging.error('"%s" is neither "t" nor "f"', cmd_line)
@@ -1543,7 +1542,7 @@ def esmon_command(cmd_line):
     ret = -1
     try:
         ret = config_command.ecc_function(arg_string)
-    except Exception, err:
+    except Exception as err:
         logging.error('failed to run command "%s", exception: %s, %s',
                       cmd_line, err, traceback.format_exc())
         return -1
@@ -1560,7 +1559,7 @@ def esmon_command_input_loop():
         try:
             prompt = '[%s]$ (h for help): ' % esmon_pwd()
             logging.debug(prompt)
-            cmd_line = raw_input(prompt)
+            cmd_line = eval(input(prompt))
         except (KeyboardInterrupt, EOFError):
             logging.debug("keryboard interrupt recieved")
             logging.info("")
@@ -1611,7 +1610,7 @@ def esmon_config_dict_check(root_config, config, path, cstr,
             elif simplify is None:
                 config[expected_child] = copy.copy(child_cstr.ecs_default)
 
-    for child_name, child_config in config.items():
+    for child_name, child_config in list(config.items()):
         if child_name not in child_names:
             logging.error('illegal configuration: config "%s" should not have '
                           'child [%s]', path, child_name)
@@ -1767,7 +1766,7 @@ def esmon_config_list_check(root_config, config, path, cstr,
                 elif simplify is None:
                     child_config[expected_grandon] = copy.copy(grandson_cstr.ecs_default)
 
-        for grandson_name, grandson_config in child_config.items():
+        for grandson_name, grandson_config in list(child_config.items()):
             if grandson_name not in grandson_names:
                 logging.error('illegal configuration: config "%s" should not '
                               'have child [%s]', child_path, grandson_name)
@@ -2076,8 +2075,7 @@ def main():
     """
     # pylint: disable=global-statement
     global CONFIG_FPATH
-    reload(sys)
-    sys.setdefaultencoding("utf-8")
+
     CONFIG_FPATH = esmon_common.ESMON_INSTALL_CONFIG
 
     if len(sys.argv) == 2:

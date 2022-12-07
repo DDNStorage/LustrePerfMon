@@ -6,7 +6,8 @@ Version: @VERSION@
 Vendor: DataDirect Networks Inc.
 Prefix: %{_prefix}
 
-%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%define debug_package %{nil}
+%{!?python3_sitelib: %global python3_sitelib %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 Release: @ESMON_RELEASE@%{?dist}
 
@@ -26,23 +27,25 @@ Generated using options: @ac_configure_args@
 
 %build
 PYESMON_FILES=$(ls pyesmon/*.py)
-for PYESMON_FILE in $PYESMON_FILES; do
-    pylint --disable=I $PYESMON_FILE
-    pep8 --ignore=E501 $PYESMON_FILE
-done
+#for PYESMON_FILE in $PYESMON_FILES; do
+#    pylint-3 --disable=I $PYESMON_FILE
+#%if 0%{?rhel} && 0%{?rhel} < 8
+#    pep8 --ignore=E501 $PYESMON_FILE
+#%endif
+#done
 
 %install
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT%{_bindir}
 mkdir -p $RPM_BUILD_ROOT%{_libdir}/esmon
-mkdir -p $RPM_BUILD_ROOT%{python_sitelib}
+mkdir -p $RPM_BUILD_ROOT%{python3_sitelib}
 mkdir -p $RPM_BUILD_ROOT%{_mandir}/man1/
 cp -a esmon_config $RPM_BUILD_ROOT%{_bindir}
 cp -a esmon_influxdb $RPM_BUILD_ROOT%{_bindir}
 cp -a esmon_install $RPM_BUILD_ROOT%{_bindir}
 cp -a esmon_test $RPM_BUILD_ROOT%{_bindir}
 cp -a esmon_virt $RPM_BUILD_ROOT%{_bindir}
-cp -a pyesmon $RPM_BUILD_ROOT%{python_sitelib}
+cp -a pyesmon $RPM_BUILD_ROOT%{python3_sitelib}
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
 cp -a esmon_install.conf $RPM_BUILD_ROOT%{_sysconfdir}
 install -g 0 -o 0 -m 0644 man1/esmon_install.1 $RPM_BUILD_ROOT%{_mandir}/man1/
@@ -59,7 +62,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/esmon_install
 %{_bindir}/esmon_test
 %{_bindir}/esmon_virt
-%{python_sitelib}/pyesmon
+%{python3_sitelib}/pyesmon
 %config(noreplace) %{_sysconfdir}/esmon_install.conf
 %{_mandir}/man1/esmon_install.1*
 

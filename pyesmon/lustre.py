@@ -67,7 +67,7 @@ def lustre_mdt_index2string(index_number):
     return 0, index_string
 
 
-class LustreFilesystem(object):
+class LustreFilesystem():
     """
     Information about Lustre file system
     """
@@ -112,14 +112,14 @@ class LustreFilesystem(object):
                           "configured, not able to format", self.lf_fsname)
             return -1
 
-        for mdt_index, mdt in self.lf_mdts.iteritems():
+        for mdt_index, mdt in list(self.lf_mdts.items()):
             ret = mdt.lmdt_format()
             if ret:
                 logging.error("failed to format MDT [%d] of Lustre file "
                               "system [%s]", mdt_index, self.lf_fsname)
                 return -1
 
-        for ost_index, ost in self.lf_osts.iteritems():
+        for ost_index, ost in list(self.lf_osts.items()):
             ret = ost.lost_format()
             if ret:
                 logging.error("failed to format OST [%d] of Lustre file "
@@ -131,21 +131,21 @@ class LustreFilesystem(object):
         """
         Mount the whole file system
         """
-        for mdt_index, mdt in self.lf_mdts.iteritems():
+        for mdt_index, mdt in list(self.lf_mdts.items()):
             ret = mdt.lmdt_mount()
             if ret:
                 logging.error("failed to mount MDT [%d] of Lustre file "
                               "system [%s]", mdt_index, self.lf_fsname)
                 return -1
 
-        for ost_index, ost in self.lf_osts.iteritems():
+        for ost_index, ost in list(self.lf_osts.items()):
             ret = ost.lost_mount()
             if ret:
                 logging.error("failed to mount OST [%d] of Lustre file "
                               "system [%s]", ost_index, self.lf_fsname)
                 return -1
 
-        for client_index, client in self.lf_clients.iteritems():
+        for client_index, client in list(self.lf_clients.items()):
             ret = client.lc_mount()
             if ret:
                 logging.error("failed to mount client [%d] of Lustre file "
@@ -157,21 +157,21 @@ class LustreFilesystem(object):
         """
         Umount the whole file system
         """
-        for client_index, client in self.lf_clients.iteritems():
+        for client_index, client in list(self.lf_clients.items()):
             ret = client.lc_umount()
             if ret:
                 logging.error("failed to umount client [%d] of Lustre file "
                               "system [%s]", client_index, self.lf_fsname)
                 return -1
 
-        for mdt_index, mdt in self.lf_mdts.iteritems():
+        for mdt_index, mdt in list(self.lf_mdts.items()):
             ret = mdt.lmdt_umount()
             if ret:
                 logging.error("failed to umount MDT [%d] of Lustre file "
                               "system [%s]", mdt_index, self.lf_fsname)
                 return -1
 
-        for ost_index, ost in self.lf_osts.iteritems():
+        for ost_index, ost in list(self.lf_osts.items()):
             ret = ost.lost_umount()
             if ret:
                 logging.error("failed to umount OST [%d] of Lustre file "
@@ -203,7 +203,7 @@ class LustreFilesystem(object):
             return -1
 
 
-class LustreMDT(object):
+class LustreMDT():
     """
     Lustre MDT service
     """
@@ -344,7 +344,7 @@ class LustreMDT(object):
         return 0
 
 
-class LustreOST(object):
+class LustreOST():
     """
     Lustre OST service
     """
@@ -484,7 +484,7 @@ class LustreOST(object):
         return 0
 
 
-class LustreClient(object):
+class LustreClient():
     """
     Lustre client
     """
@@ -538,7 +538,7 @@ class LustreClient(object):
         return 0
 
 
-class LustreVersion(object):
+class LustreVersion():
     """
     RPM version of Lustre
     """
@@ -770,7 +770,7 @@ def match_rpm_patterns(data, rpm_dict, possible_versions):
     for version in possible_versions:
         patterns = version.lv_rpm_patterns
         matched = False
-        for key in patterns.keys():
+        for key in list(patterns.keys()):
             match = re.search(patterns[key], data)
             if match:
                 value = match.group(1)
@@ -805,7 +805,7 @@ def match_rpm_patterns(data, rpm_dict, possible_versions):
     return 0
 
 
-class LustreRPMs(object):
+class LustreRPMs():
     """
     Lustre OST service
     """
@@ -840,7 +840,7 @@ class LustreRPMs(object):
                          len(possible_versions), possible_versions[0])
         self.lr_lustre_version = possible_versions[0]
 
-        for key in self.lr_lustre_version.lv_rpm_patterns.keys():
+        for key in list(self.lr_lustre_version.lv_rpm_patterns.keys()):
             if key not in self.lr_rpm_names:
                 if key in LUSTRE_ZFS_RPM_TYPES:
                     logging.info("disabling ZFS support, because no RPM [%s] "
@@ -1153,7 +1153,7 @@ class LustreServerHost(ssh_host.SSHHost):
                           self.sh_hostname)
             return -1
 
-        for client in clients.values():
+        for client in list(clients.values()):
             command = ("umount %s" % client.lc_mnt)
             retval = self.sh_run(command)
             if retval.cr_exit_status:
@@ -1188,7 +1188,7 @@ class LustreServerHost(ssh_host.SSHHost):
         if client_only:
             return 0
 
-        for mdt in mdts.values():
+        for mdt in list(mdts.values()):
             command = ("umount %s" % mdt.lmdt_mnt)
             retval = self.sh_run(command)
             if retval.cr_exit_status:
@@ -1201,7 +1201,7 @@ class LustreServerHost(ssh_host.SSHHost):
                               retval.cr_stderr)
                 return -1
 
-        for ost in osts.values():
+        for ost in list(osts.values()):
             command = ("umount %s" % ost.lost_mnt)
             retval = self.sh_run(command)
             if retval.cr_exit_status:

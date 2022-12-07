@@ -10,7 +10,7 @@ http://docs.grafana.org/reference/dashboard/
 import json
 
 
-class GrafanaTimePicker(object):
+class GrafanaTimePicker():
     """
     Each Grafana Timepicker has an object of this type
     """
@@ -42,7 +42,7 @@ class GrafanaTimePicker(object):
                 "type": self.gtp_type}
 
 
-class GrafanaTemplating(object):
+class GrafanaTemplating():
     """
     Each Grafana Templating has an object of this type
     """
@@ -61,7 +61,7 @@ class GrafanaTemplating(object):
                 "list": self.gt_list}
 
 
-class GrafanaAnnotations(object):
+class GrafanaAnnotations():
     """
     Each Grafana Annotations has an object of this type
     """
@@ -79,7 +79,7 @@ class GrafanaAnnotations(object):
                 "list": self.ga_list}
 
 
-class GrafanaTime(object):
+class GrafanaTime():
     """
     Each Grafana Time has an object of this type
     """
@@ -96,7 +96,7 @@ class GrafanaTime(object):
                 "to": self.gt_to}
 
 
-class GrafanaRow(object):
+class GrafanaRow():
     """
     Each Grafana Row has an object of this type
     """
@@ -124,7 +124,7 @@ class GrafanaRow(object):
                 "title": self.gr_title}
 
 
-class GrafanaDashboard(object):
+class GrafanaDashboard():
     """
     Each Grafana Dashboard has an object of this type
     # Use example:

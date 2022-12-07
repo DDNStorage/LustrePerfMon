@@ -38,7 +38,7 @@ def iso_path_in_config(local_host):
     return lines[0]
 
 
-class EsmonInstallServer(object):
+class EsmonInstallServer():
     """
     ESMON server host has an object of this type
     """
@@ -233,7 +233,7 @@ def main():
 
     local_host = ssh_host.SSHHost("localhost", local=True)
     missing_dependencies = dependency_find(local_host)
-    if len(missing_dependencies):
+    if missing_dependencies:
         ret = dependency_install(local_host)
         if ret:
             sys.exit(-1)
