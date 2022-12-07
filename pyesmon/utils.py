@@ -5,12 +5,11 @@
 Misc utility library
 """
 
-from __future__ import print_function
 import os
 import time
 import signal
 import subprocess
-import StringIO
+import io
 import select
 import logging
 import logging.handlers
@@ -95,7 +94,7 @@ def nuke_subprocess(subproc):
             return subproc.poll()
 
 
-class CommandResult(object):
+class CommandResult():
     """
     All command will return a command result of this class
     """
@@ -108,7 +107,7 @@ class CommandResult(object):
         self.cr_duration = duration
 
 
-class CommandJob(object):
+class CommandJob():
     """
     Each running of a command has an object of this class
     """
@@ -126,16 +125,16 @@ class CommandJob(object):
         self.cj_quit_func = quit_func
         # allow for easy stdin input by string, we'll let subprocess create
         # a pipe for stdin input and we'll write to it in the wait loop
-        if isinstance(stdin, basestring):
+        if isinstance(stdin, str):
             self.cj_string_stdin = stdin
             self.cj_stdin = subprocess.PIPE
         else:
             self.cj_string_stdin = None
             self.cj_stdin = None
         if return_stdout:
-            self.cj_stdout_file = StringIO.StringIO()
+            self.cj_stdout_file = io.StringIO()
         if return_stderr:
-            self.cj_stderr_file = StringIO.StringIO()
+            self.cj_stderr_file = io.StringIO()
         self.cj_started = False
         self.cj_killed = False
         self.cj_start_time = None
@@ -161,6 +160,7 @@ class CommandJob(object):
         self.cj_subprocess = subprocess.Popen(self.cj_command,
                                               stdout=subprocess.PIPE,
                                               stderr=subprocess.PIPE,
+                                              universal_newlines=True,
                                               shell=True,
                                               executable=shell,
                                               stdin=self.cj_stdin)
@@ -251,7 +251,7 @@ class CommandJob(object):
                     break
                 for file_no, events in epoll_list:
                     if select.EPOLLIN & events:
-                        tmp_data.append(os.read(file_no, 1024))
+                        tmp_data.append(os.read(file_no, 1024).decode("utf-8"))
                         if len(tmp_data[-1]) == 0:
                             loop = False
                     elif select.EPOLLHUP & events:
@@ -261,7 +261,7 @@ class CommandJob(object):
             data = "".join(tmp_data)
         else:
             # perform a single read
-            data = os.read(pipe.fileno(), 1024)
+            data = os.read(pipe.fileno(), 1024).decode("utf-8")
         if buf is not None:
             buf.write(data)
         if tee:
@@ -420,7 +420,7 @@ def random_word(length):
     """
     Return random lowercase word with given length
     """
-    return ''.join(random.choice(string.lowercase) for i in range(length))
+    return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
 
 
 def which(program):

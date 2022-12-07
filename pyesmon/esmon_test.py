@@ -179,7 +179,7 @@ def lustre_host_metric_check(lustre_host, esmon_client):
                     "ost_filesinfo_used",
                     "ost_kbytesinfo_used"]
 
-    for ost in lustre_host.lsh_osts.values():
+    for ost in list(lustre_host.lsh_osts.values()):
         lustre_fs = ost.lost_lustre_fs
         fsname = lustre_fs.lf_fsname
         ret, ost_index = lustre.lustre_ost_index2string(ost.lost_index)
@@ -204,7 +204,7 @@ def lustre_host_metric_check(lustre_host, esmon_client):
                     "mdt_filesinfo_total",
                     "mdt_filesinfo_used"]
 
-    for mdt in lustre_host.lsh_mdts.values():
+    for mdt in list(lustre_host.lsh_mdts.values()):
         lustre_fs = mdt.lmdt_lustre_fs
         fsname = lustre_fs.lf_fsname
         ret, mdt_index = lustre.lustre_mdt_index2string(mdt.lmdt_index)
@@ -450,7 +450,7 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
             lustre.LustreClient(lustre_fs, host, mnt)
 
         # Umount all clients first, so as to prevent stuck caused by umounted OSTs/MDTs
-        for host_id, lustre_host in lustre_hosts.iteritems():
+        for host_id, lustre_host in list(lustre_hosts.items()):
             logging.debug("trying to umount Lustre clients on host [%s] with host_id [%s]",
                           lustre_host.sh_hostname, host_id)
             ret = lustre_host.lsh_lustre_umount_services(client_only=True)
@@ -458,7 +458,7 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
                 logging.info("failed to umount Lustre clients, reboot is needed")
 
         # Install RPMs on MDS, OSS and clients
-        for host_id, lustre_host in lustre_hosts.iteritems():
+        for host_id, lustre_host in list(lustre_hosts.items()):
             logging.debug("trying to install Lustre RPMs on host [%s] with host_id [%s]",
                           lustre_host.sh_hostname, host_id)
             ret = lustre_host.lsh_lustre_prepare(workspace, lustre_rpms,
@@ -496,7 +496,7 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
             logging.error("failed to parse config [%s]", config_fpath)
             return -1
 
-        for esmon_client in esmon_clients.values():
+        for esmon_client in list(esmon_clients.values()):
             ret = esmon_client.ec_collectd_send_config(True)
             if ret:
                 logging.error("failed to send test config to esmon client on host [%s]",
@@ -515,9 +515,9 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
                               "host [%s]", esmon_client.ec_host.sh_hostname)
                 return -1
 
-        for host_id, lustre_host in lustre_hosts.iteritems():
+        for host_id, lustre_host in list(lustre_hosts.items()):
             esmon_client = None
-            for tmp_client in esmon_clients.values():
+            for tmp_client in list(esmon_clients.values()):
                 if tmp_client.ec_host.sh_host_id == host_id:
                     esmon_client = tmp_client
                     break
@@ -531,7 +531,7 @@ def esmon_test_lustre(workspace, hosts, config, config_fpath, install_config,
                               "host [%s]", lustre_host.sh_hostname)
                 return -1
 
-        for esmon_client in esmon_clients.values():
+        for esmon_client in list(esmon_clients.values()):
             ret = esmon_client.ec_collectd_send_config(False)
             if ret:
                 logging.error("failed to send final config to esmon client on host [%s]",
@@ -842,8 +842,6 @@ def main():
     # English.
     os.environ["LANG"] = "en_us"
 
-    reload(sys)
-    sys.setdefaultencoding("utf-8")
     config_fpath = ESMON_TEST_CONFIG
 
     if len(sys.argv) == 2:

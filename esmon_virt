@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/python3 -u
 # Copyright (c) 2017 DataDirect Networks, Inc.
 # All Rights Reserved.
 # Author: lixi@ddn.com

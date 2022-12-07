@@ -19,7 +19,7 @@ def watched_io_open(fname, func, args):
     """Open watched IO file.
     Codes copied from io.py
     """
-    if not isinstance(fname, (basestring, int)):
+    if not isinstance(fname, (str, int)):
         raise TypeError("invalid file: %r" % fname)
     mode = "w"
     raw = io.FileIO(fname, mode)
@@ -58,7 +58,7 @@ class WatchedIO(io.TextIOWrapper):
         """
         # pylint: disable=bare-except
         self.wi_check_time = time_util.utcnow()
-        data = unicode(data, encoding='utf-8', errors='ignore')
+        data = str(data, encoding='utf-8', errors='ignore')
         try:
             super(WatchedIO, self).write(data)
         except:

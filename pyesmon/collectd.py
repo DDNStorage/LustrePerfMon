@@ -82,7 +82,7 @@ def support_acctgroup_acctproject(lustre_version):
     return False
 
 
-class CollectdConfig(object):
+class CollectdConfig():
     """
     Each collectd config has an object of this type
     """
@@ -119,7 +119,7 @@ class CollectdConfig(object):
             fout.write("# Collectd config file generated automatcially by "
                        "ESMON\n# Please contact DDN Storage for information "
                        "and support\n\n")
-            for config_name, config in self.cc_configs.iteritems():
+            for config_name, config in list(self.cc_configs.items()):
                 text = '%s %s\n' % (config_name, config)
                 fout.write(text)
             fout.write("\n")
@@ -129,7 +129,7 @@ class CollectdConfig(object):
 <Plugin "aggregation">
 """
                 fout.write(config)
-                for config in self.cc_aggregations.values():
+                for config in list(self.cc_aggregations.values()):
                     fout.write(config)
                 config = """
 </Plugin>
@@ -144,7 +144,7 @@ PostCacheChain "PostCache"
 <Chain "PostCache">
 """
                 fout.write(config)
-                for config in self.cc_post_cache_chain_rules.values():
+                for config in list(self.cc_post_cache_chain_rules.values()):
                     fout.write(config)
                 config = """
     Target "write"
@@ -222,7 +222,7 @@ PostCacheChain "PostCache"
 </Plugin>
 
 """
-                for sfa in self.cc_sfas.values():
+                for sfa in list(self.cc_sfas.values()):
                     if sfa.esfa_subsystem_name == "":
                         name = ""
                     else:
@@ -245,10 +245,10 @@ PostCacheChain "PostCache"
                 config = """LoadPlugin filedata
 """
                 fout.write(config)
-                for config in self.cc_filedatas.values():
+                for config in list(self.cc_filedatas.values()):
                     fout.write(config)
 
-            for plugin_name, plugin_config in self.cc_plugins.iteritems():
+            for plugin_name, plugin_config in list(self.cc_plugins.items()):
                 text = 'LoadPlugin %s\n' % plugin_name
                 text += plugin_config + '\n'
                 fout.write(text)
@@ -267,7 +267,7 @@ PostCacheChain "PostCache"
         """
         Config the syslog plugin
         """
-        if log_level != "err" and log_level != "info" and log_level != "debug":
+        if log_level not in ('err', 'info', 'debug'):
             return -1
         config = ('<Plugin "syslog">\n'
                   '    LogLevel %s\n'
@@ -1034,7 +1034,7 @@ PostCacheChain "PostCache"
         Config the IME plugin
         """
         ime_config_file = "ime-%s.xml" % ime_version
-        if ime_config_file != XML_FNAME_IME_1_1 and ime_config_file != XML_FNAME_IME_1_2:
+        if ime_config_file not in (XML_FNAME_IME_1_1, XML_FNAME_IME_1_2):
             logging.error("unsupported IME version [%s]",
                           ime_version)
             return -1
@@ -1203,7 +1203,7 @@ PostCacheChain "PostCache"
         client = self.cc_esmon_client
         measurement = "vd_rate"
 
-        for sfa in self.cc_sfas.values():
+        for sfa in list(self.cc_sfas.values()):
             fqdn = sfa.esfa_name
 
             ret = client.ec_influxdb_measurement_check(measurement, fqdn=fqdn)
