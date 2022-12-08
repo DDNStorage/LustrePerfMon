@@ -1,0 +1,36 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    container: 
+      image: centos:7
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Runs a single command using the runners shell
+      - name: Install dependencies
+        run: |
+          yum -y install epel-release redhat-lsb
+          yum -y install python-devel python-dateutil PyYAML wget git flex bison bzip2 rpm-build
+          yum -y install libmodbus-devel mosquitto-devel riemann-c-client-devel ganglia-devel
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Build
+        run: ./esmon_build
