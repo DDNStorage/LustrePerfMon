@@ -166,19 +166,13 @@ AC_MSG_RESULT([$XML_DEFINITION_RPM])
 AC_SUBST(XML_DEFINITION_RPM)
 
 # ------- check for python --------
-AC_CHECK_PROGS([PYTHON], [python], [])
+AC_CHECK_PROGS([PYTHON], [python3 python-3 python], [])
 if test "x$PYTHON" = "x"; then
-	AC_MSG_ERROR([Python is needed for test of xml_definition. Install python.])
-fi
-
-# ------- check for pep8 --------
-AC_CHECK_PROGS([PEP8], [pep8], [])
-if test "x$PEP8" = "x"; then
-	AC_MSG_ERROR([pep8 is needed to check python coding style. Install pep8.])
+	AC_MSG_ERROR([Python3 is needed for test of xml_definition. Install python.])
 fi
 
 # ------- check for pylint --------
-AC_CHECK_PROGS([PYLINT], [pylint], [])
+AC_CHECK_PROGS([PYLINT], [pylint3 pylint-3 pylint], [])
 if test "x$PYLINT" = "x"; then
 	AC_MSG_ERROR([pylint is needed to check python coding style. Install pylint.])
 fi
