@@ -196,8 +196,5 @@ ESMON_SERVER_DEPENDENT_RPMS = ["rsync", "patch", "fontpackages-filesystem",
 
 # yajl is needed by collectd
 # lm_sensors-libs is needed by collectd-sensors
-# zeromq3 is needed by collectd-ssh
-# openpgm is needed by zeromq3
 # libmnl is needed by collectd
-ESMON_CLIENT_DEPENDENT_RPMS = ["rsync", "yajl", "lm_sensors-libs",
-                               "openpgm", "zeromq", "libmnl"]
+ESMON_CLIENT_DEPENDENT_RPMS = ["rsync", "yajl", "lm_sensors-libs", "libmnl"]
