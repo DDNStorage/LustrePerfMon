@@ -27,8 +27,7 @@ COLLECT_GIT_STRING = COLLECTD_STRING + ".git"
 RPM_STRING = "RPMS"
 COPYING_STRING = "copying"
 COLLECTD_RPM_NAMES = ["collectd", "collectd-disk", "collectd-filedata",
-                      "collectd-ime", "collectd-sensors", "collectd-ssh",
-                      "libcollectdclient"]
+                      "collectd-ime", "collectd-sensors", "libcollectdclient"]
 SERVER_STRING = "server"
 ESMON_BUILD_LOG_DIR = "/var/log"
 
@@ -438,9 +437,6 @@ def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
                 logging.error("RPM [%s] not found in directory [%s] after "
                               "building Collectd", collect_rpm_full,
                               local_collectd_rpm_dir)
-                if (distro in (ssh_host.DISTRO_RHEL8, ssh_host.DISTRO_RHEL9)
-                        and collect_rpm_name == "collectd-ssh"):
-                    continue
                 return -1
     else:
         collect_rpm_pattern = (r"collectd-\S+-%s.el%s.%s.rpm" %
@@ -537,9 +533,6 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
                               retval.cr_stderr)
                 return -1
 
-    command = ("rpm -e zeromq-devel")
-    build_host.sh_run(command)
-
     # The RPMs needed by Collectd building
     # riemann-c-client-devel is not available for RHEL6, but that is fine
     command = ("yum install -y libgcrypt-devel libtool-ltdl-devel curl-devel "
@@ -551,7 +544,7 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
                "lvm2-devel libmnl-devel iproute-devel "
                "hiredis-devel libatasmart-devel protobuf-c-devel "
                "mosquitto-devel gtk2-devel openldap-devel "
-               "zeromq-devel libssh2-devel rrdtool-devel rrdtool "
+               "rrdtool-devel rrdtool "
                "createrepo mkisofs yum-utils redhat-lsb unzip "
                "epel-release perl-Regexp-Common "
                "lua-devel byacc ganglia-devel libmicrohttpd-devel "

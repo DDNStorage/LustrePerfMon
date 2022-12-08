@@ -1,7 +1,7 @@
 
 Name:		xml_definition
 Version:	2.3
-Release:	1.g%{?rev}
+Release:	2.g%{?rev}
 Summary:	XML definition files and configure examples
 Group:		Applications/DDN
 License:	Share
