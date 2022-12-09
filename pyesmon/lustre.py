@@ -1345,7 +1345,8 @@ class LustreServerHost(ssh_host.SSHHost):
                           "sg3_utils", "nfs-utils", "sysstat"]
 
         distro = self.sh_distro()
-        if distro == ssh_host.DISTRO_RHEL7:
+        if distro in (ssh_host.DISTRO_RHEL7, ssh_host.DISTRO_RHEL8,
+                      ssh_host.DISTRO_RHEL9):
             dependent_rpms += ["net-snmp-agent-libs"]
         elif distro == ssh_host.DISTRO_RHEL6:
             pass
@@ -1394,7 +1395,8 @@ class LustreServerHost(ssh_host.SSHHost):
             return -1
 
         # RHEL6 doesn't has perl-File-Path in yum by default
-        if distro == ssh_host.DISTRO_RHEL7:
+        if distro in (ssh_host.DISTRO_RHEL7, ssh_host.DISTRO_RHEL8,
+                      ssh_host.DISTRO_RHEL9):
             # perl-File-Path is reqired by lustre-iokit
             retval = self.sh_run("yum install perl-File-Path -y")
             if retval.cr_exit_status != 0:

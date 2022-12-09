@@ -47,7 +47,8 @@ class EsmonInstallServer():
         self.eis_host = host
         self.eis_iso_dir = iso_dir
         distro = host.sh_distro()
-        if distro != ssh_host.DISTRO_RHEL7:
+        if distro not in (ssh_host.DISTRO_RHEL7, ssh_host.DISTRO_RHEL8,
+                          ssh_host.DISTRO_RHEL9):
             reason = ("unsupported distro [%s] for install host [%s]" %
                       distro, host.sh_hostname)
             raise Exception(reason)
@@ -80,7 +81,16 @@ class EsmonInstallServer():
             self.eis_rpm_dependent_fnames = retval.cr_stdout.split()
 
         rpm_dir = self.eis_rpm_dependent_dir
-        rpm_pattern = (esmon_common.RPM_PATTERN_RHEL7 % name)
+        distro = self.eis_host.sh_distro()
+        if distro == ssh_host.DISTRO_RHEL9:
+            rpm_pattern = (esmon_common.RPM_PATTERN_RHEL9 % name)
+        elif distro == ssh_host.DISTRO_RHEL8:
+            rpm_pattern = (esmon_common.RPM_PATTERN_RHEL8 % name)
+        elif distro == ssh_host.DISTRO_RHEL7:
+            rpm_pattern = (esmon_common.RPM_PATTERN_RHEL7 % name)
+        else:
+            logging.error("distro [%s] of host [%s] is not supported",
+                          distro, self.eis_host.sh_hostname)
         rpm_regular = re.compile(rpm_pattern)
         matched_fname = None
         for filename in self.eis_rpm_dependent_fnames[:]:
@@ -116,7 +126,12 @@ def dependency_find(local_host):
     Find missing pylibs
     """
     missing_dependencies = []
-    for dependent_rpm in esmon_common.ESMON_INSTALL_DEPENDENT_RPMS:
+    distro = local_host.host.sh_distro()
+    if distro == ssh_host.DISTRO_RHEL7:
+        dependent_rpms = esmon_common.ESMON_INSTALL_DEPENDENT_RPMS_RHEL7
+    else:
+        dependent_rpms = esmon_common.ESMON_INSTALL_DEPENDENT_RPMS
+    for dependent_rpm in dependent_rpms:
         ret = local_host.sh_rpm_query(dependent_rpm)
         if ret == 0:
             continue

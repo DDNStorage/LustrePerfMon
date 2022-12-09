@@ -13,6 +13,8 @@ ESMON_INSTALL_CONFIG_FNAME = "esmon_install.conf"
 ESMON_INSTALL_CONFIG = "/etc/" + ESMON_INSTALL_CONFIG_FNAME
 RPM_PATTERN_RHEL6 = r"^%s-\d.+(\.el6|).*\.rpm$"
 RPM_PATTERN_RHEL7 = r"^%s-\d.+(\.el7|).*\.rpm$"
+RPM_PATTERN_RHEL8 = r"^%s-\d.+(\.el8|).*\.rpm$"
+RPM_PATTERN_RHEL9 = r"^%s-\d.+(\.el9|).*\.rpm$"
 PATTERN_PYTHON_LIBRARY = r"^%s-\d+\.\d+\.\d+\.tar\.gz$"
 
 # Config strings
@@ -159,27 +161,29 @@ def clone_src_from_git(build_dir, git_url, branch,
 #
 # python-chardet and python-urllib3 are needed by python-requests.
 #
-# python-backports-ssl_match_hostname and python-six are needed by
-# python-urllib3.
-#
-# python-ipaddress and python-backports are needed by
-# python-backports-ssl_match_hostname.
-#
 # libyaml is needed by PyYAML.
+ESMON_INSTALL_DEPENDENT_RPMS_RHEL7 = ["rsync",
+                                      "python36-chardet",
+                                      "python36-six",
+                                      "python36-urllib3",
+                                      "libyaml",
+                                      "python36-PyYAML",
+                                      "python36-requests",
+                                      "python36-filelock",
+                                      "python36-django",
+                                      "python36-pytz",
+                                      "python36-dateutil"]
 ESMON_INSTALL_DEPENDENT_RPMS = ["rsync",
-                                "python-chardet",
-                                "python-backports",
-                                "python-ipaddress",
-                                "python-backports-ssl_match_hostname",
-                                "python-six",
-                                "python-urllib3",
+                                "python3-chardet",
+                                "python3-six",
+                                "python3-urllib3",
                                 "libyaml",
-                                "PyYAML",
-                                "python-requests",
-                                "python2-filelock",
-                                "python-slugify",
-                                "pytz",
-                                "python-dateutil"]
+                                "python3-pyyaml",
+                                "python3-requests",
+                                "python3-filelock",
+                                "python3-django",
+                                "python3-pytz",
+                                "python3-dateutil"]
 
 # patch is needed to patch /etc/influxdb/influxdb.conf file
 # fontconfig and urw-base35-fonts are needed by grafana rpm
@@ -190,7 +194,7 @@ ESMON_INSTALL_DEPENDENT_RPMS = ["rsync",
 # libfontenc is needed by libXfont
 ESMON_SERVER_DEPENDENT_RPMS = ["rsync", "patch", "fontpackages-filesystem",
                                "bitmap-console-fonts", "fontconfig",
-                               "libfontenc", "libXfont",
+                               "libfontenc",
                                "xorg-x11-font-utils", "urw-base35-fonts"]
 
 

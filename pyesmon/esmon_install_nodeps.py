@@ -14,9 +14,9 @@ import http.client
 import re
 import json
 
+from django.utils.text import slugify
 import filelock
 import requests
-import slugify
 import yaml
 
 # Local libs
@@ -116,8 +116,9 @@ class EsmonServer():
         Check whether this host is proper for a ESMON server
         """
         distro = self.es_host.sh_distro()
-        if distro != ssh_host.DISTRO_RHEL7:
-            logging.error("ESMON server should be RHEL7/CentOS7 host, but got "
+        if distro not in (ssh_host.DISTRO_RHEL7, ssh_host.DISTRO_RHEL8,
+                          ssh_host.DISTRO_RHEL9):
+            logging.error("ESMON server should be RHEL[7-9] host, but got "
                           "[%s]", distro)
             return -1
 
@@ -543,8 +544,7 @@ class EsmonServer():
         headers = {"Content-type": "application/json",
                    "Accept": "application/json"}
 
-        url = self.es_grafana_url("/api/dashboards/db/%s" %
-                                  slugify.slugify(name.decode('unicode-escape')))
+        url = self.es_grafana_url("/api/dashboards/db/%s" % slugify(name))
         try:
             response = requests.delete(url, headers=headers)
         except:
@@ -566,8 +566,7 @@ class EsmonServer():
         headers = {"Content-type": "application/json",
                    "Accept": "application/json"}
 
-        url = self.es_grafana_url("/api/dashboards/db/%s" %
-                                  slugify.slugify(name.decode('unicode-escape')))
+        url = self.es_grafana_url("/api/dashboards/db/%s" % slugify(name))
         try:
             response = requests.get(url, headers=headers)
         except:
@@ -680,8 +679,7 @@ class EsmonServer():
         headers = {"Content-type": "application/json",
                    "Accept": "application/json"}
 
-        url = self.es_grafana_url("/api/users/lookup?loginOrEmail=%s" %
-                                  (slugify.slugify(name.decode('unicode-escape'))))
+        url = self.es_grafana_url("/api/users/lookup?loginOrEmail=%s" % slugify(name))
         try:
             response = requests.get(url, headers=headers)
         except:
@@ -1618,7 +1616,11 @@ class EsmonClient():
 
         distro = self.ec_host.sh_distro()
         self.ec_distro = distro
-        if distro == ssh_host.DISTRO_RHEL7:
+        if distro == ssh_host.DISTRO_RHEL9:
+            self.ec_rpm_pattern = esmon_common.RPM_PATTERN_RHEL9
+        elif distro == ssh_host.DISTRO_RHEL8:
+            self.ec_rpm_pattern = esmon_common.RPM_PATTERN_RHEL8
+        elif distro == ssh_host.DISTRO_RHEL7:
             self.ec_rpm_pattern = esmon_common.RPM_PATTERN_RHEL7
         elif distro == ssh_host.DISTRO_RHEL6:
             self.ec_rpm_pattern = esmon_common.RPM_PATTERN_RHEL6
@@ -1772,7 +1774,10 @@ class EsmonClient():
                                   retval.cr_stderr)
                     return -1
 
-        for dependent_rpm in esmon_common.ESMON_CLIENT_DEPENDENT_RPMS:
+        dependent_rpms = esmon_common.ESMON_CLIENT_DEPENDENT_RPMS[:]
+        if self.ec_host.sh_distro() == ssh_host.DISTRO_RHEL7:
+            dependent_rpms += ["libssh2", "openpgm", "zeromq3"]
+        for dependent_rpm in dependent_rpms:
             ret = self.ec_host.sh_rpm_query(dependent_rpm)
             if ret:
                 ret = self.ec_rpm_install(dependent_rpm, RPM_TYPE_DEPENDENT)

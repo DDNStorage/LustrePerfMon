@@ -65,11 +65,18 @@ def download_dependent_rpms(host, dependent_dir, distro, target_cpu):
 
     dependent_rpms = esmon_common.ESMON_CLIENT_DEPENDENT_RPMS[:]
     if distro == ssh_host.DISTRO_RHEL7:
+        dependent_rpms += ["libssh2", "openpgm", "zeromq3"]
+    if distro in (ssh_host.DISTRO_RHEL7, ssh_host.DISTRO_RHEL8,
+                  ssh_host.DISTRO_RHEL9):
         for rpm_name in esmon_common.ESMON_SERVER_DEPENDENT_RPMS:
             if rpm_name not in dependent_rpms:
                 dependent_rpms.append(rpm_name)
 
-        for rpm_name in esmon_common.ESMON_INSTALL_DEPENDENT_RPMS:
+        if distro == ssh_host.DISTRO_RHEL7:
+            rpm_names = esmon_common.ESMON_INSTALL_DEPENDENT_RPMS_RHEL7
+        else:
+            rpm_names = esmon_common.ESMON_INSTALL_DEPENDENT_RPMS
+        for rpm_name in rpm_names:
             if rpm_name not in dependent_rpms:
                 dependent_rpms.append(rpm_name)
 
@@ -141,7 +148,7 @@ def download_dependent_rpms(host, dependent_dir, distro, target_cpu):
         logging.debug("downloading RPM [%s] on host [%s]", fpath,
                       host.sh_hostname)
         if target_cpu == "x86_64":
-            command = (r"cd %s && yumdownloader -x \*i686 --archlist=x86_64 %s" %
+            command = (r"cd %s && yumdownloader --exclude \*i686 %s" %
                        (dependent_dir, rpm_name))
         else:
             command = (r"cd %s && yumdownloader %s" %
@@ -379,7 +386,10 @@ def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
         return -1
 
     found = False
-    for collect_rpm_name in COLLECTD_RPM_NAMES:
+    collect_rpm_names = COLLECTD_RPM_NAMES[:]
+    if distro == ssh_host.DISTRO_RHEL7:
+        collect_rpm_names.append("collectd-ssh")
+    for collect_rpm_name in collect_rpm_names:
         collect_rpm_full = ("%s-%s.el%s.%s.rpm" %
                             (collect_rpm_name, collectd_version_release,
                              distro_number, target_cpu))
@@ -420,7 +430,7 @@ def collectd_build_check(workspace, build_host, local_host, collectd_git_path,
             return -1
         rpm_collectd_fnames = retval.cr_stdout.split()
 
-        for collect_rpm_name in COLLECTD_RPM_NAMES:
+        for collect_rpm_name in collect_rpm_names:
             collect_rpm_full = ("%s-%s.el%s.%s.rpm" %
                                 (collect_rpm_name, collectd_version_release,
                                  distro_number, target_cpu))
@@ -533,6 +543,9 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
                               retval.cr_stderr)
                 return -1
 
+    command = ("yum remove -y zeromq-devel")
+    build_host.sh_run(command)
+
     # The RPMs needed by Collectd building
     # riemann-c-client-devel is not available for RHEL6, but that is fine
     command = ("yum install -y libgcrypt-devel libtool-ltdl-devel curl-devel "
@@ -544,17 +557,19 @@ def host_build(workspace, build_host, local_host, collectd_git_path,
                "lvm2-devel libmnl-devel iproute-devel "
                "hiredis-devel libatasmart-devel protobuf-c-devel "
                "mosquitto-devel gtk2-devel openldap-devel "
-               "rrdtool-devel rrdtool "
+               "rrdtool-devel rrdtool wget flex bison rpm-build "
                "createrepo mkisofs yum-utils redhat-lsb unzip "
-               "epel-release perl-Regexp-Common "
+               "epel-release perl-Regexp-Common python3-devel "
                "lua-devel byacc ganglia-devel libmicrohttpd-devel "
                "riemann-c-client-devel xfsprogs-devel uthash-devel "
                "qpid-proton-c-devel perl-ExtUtils-Embed")
 
     if distro in (ssh_host.DISTRO_RHEL8, ssh_host.DISTRO_RHEL9):
-        command += " python3-pylint"
+        command += " python3-yaml python3-dateutil python3-pylint"
     else:
-        command += " libmodbus-devel python36-pylint"
+        command += " python36-yaml python36-dateutil python36-pylint"
+        command += " openpgm-devel zeromq3-devel libssh2-devel"
+        command += " libmodbus-devel"
 
     retval = build_host.sh_run(command)
 
@@ -1082,8 +1097,9 @@ def esmon_do_build(current_dir, relative_workspace, config, config_fpath):
 
     local_host = ssh_host.SSHHost("localhost", local=True)
     distro = local_host.sh_distro()
-    if distro not in (ssh_host.DISTRO_RHEL7, ssh_host.DISTRO_RHEL8):
-        logging.error("build can only be launched on RHEL7 or RHEL8 host")
+    if distro not in (ssh_host.DISTRO_RHEL7, ssh_host.DISTRO_RHEL8,
+                      ssh_host.DISTRO_RHEL9):
+        logging.error("build can only be launched on RHEL[7-9] host")
         return -1
 
     target_cpu = local_host.sh_target_cpu()
