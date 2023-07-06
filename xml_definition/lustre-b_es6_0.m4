@@ -481,6 +481,8 @@ HEAD(Lustre-es6_0)
   statfs: +\{ samples: +([[:digit:]]+), unit: usecs, min: *([[:digit:]]+), max: *([[:digit:]]+), sum: *([[:digit:]]+), sumsq: *([[:digit:]]+) }
   sync: +\{ samples: +([[:digit:]]+), unit: usecs, min: *([[:digit:]]+), max: *([[:digit:]]+), sum: *([[:digit:]]+), sumsq: *([[:digit:]]+) }
   samedir_rename: +\{ samples: +([[:digit:]]+), unit: usecs, min: *([[:digit:]]+), max: *([[:digit:]]+), sum: *([[:digit:]]+), sumsq: *([[:digit:]]+) }
+  parallel_rename_file: +\{ samples: +([[:digit:]]+), unit: usecs, min: *([[:digit:]]+), max: *([[:digit:]]+), sum: *([[:digit:]]+), sumsq: *([[:digit:]]+) }
+  parallel_rename_dir: +\{ samples: +([[:digit:]]+), unit: usecs, min: *([[:digit:]]+), max: *([[:digit:]]+), sum: *([[:digit:]]+), sumsq: *([[:digit:]]+) }
   crossdir_rename: +\{ samples: +([[:digit:]]+), unit: usecs, min: *([[:digit:]]+), max: *([[:digit:]]+), sum: *([[:digit:]]+), sumsq: *([[:digit:]]+) }</pattern>
 						JOBSTAT_FIELD(6, 1, job_id, string, derive, mdt, jobid, 1)
 						JOBSTAT_FIELD_META_OPERATIONS(6, 2, open, number, derive, mdt, 1)
@@ -498,7 +500,9 @@ HEAD(Lustre-es6_0)
 						JOBSTAT_FIELD_META_OPERATIONS(6, 62, statfs, number, derive, mdt, 1)
 						JOBSTAT_FIELD_META_OPERATIONS(6, 67, sync, number, derive, mdt, 1)
 						JOBSTAT_FIELD_META_OPERATIONS(6, 72, samedir_rename, number, derive, mdt, 1)
-						JOBSTAT_FIELD_META_OPERATIONS(6, 77, crossdir_rename, number, derive, mdt, 1)
+                                                JOBSTAT_FIELD_META_OPERATIONS(6, 77, parallel_rename_file, number, derive, mdt, 1)
+                                                JOBSTAT_FIELD_META_OPERATIONS(6, 82, parallel_rename_dir, number, derive, mdt, 1)
+                                                JOBSTAT_FIELD_META_OPERATIONS(6, 87, crossdir_rename, number, derive, mdt, 1)
 					</item>
 				</entry>
 			</entry>

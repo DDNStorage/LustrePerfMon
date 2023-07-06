@@ -155,6 +155,20 @@ LoadPlugin lustre
 		##        "samedir_rename" times on the MDT
 		Type "md_stats_samedir_rename"
 	</Item>
+        <Item>
+                ## "parallel_rename_file" samples on MDT
+                ## Entry: md_stats
+                ## Field: derive-rename
+                ##        "parallel_rename_file" times on the MDT
+                Type "md_stats_parallel_rename_file"
+        </Item>
+        <Item>
+                ## "parallel_rename_dir" samples on MDT
+                ## Entry: md_stats
+                ## Field: derive-rename
+                ##        "parallel_rename_dir" times on the MDT
+                Type "md_stats_parallel_rename_dir"
+        </Item>
 	<Item>
 		## "crossdir_rename" samples on MDT
 		## Entry: md_stats
