@@ -181,7 +181,7 @@ ESMON_INSTALL_DEPENDENT_RPMS = ["rsync",
                                 "python3-pyyaml",
                                 "python3-requests",
                                 "python3-filelock",
-                                "python3-django",
+                                "python3-django3",
                                 "python3-pytz",
                                 "python3-dateutil"]
 
