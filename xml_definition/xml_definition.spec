@@ -32,6 +32,7 @@ This package includes XML definition files and configure examples for monitor sy
 %{__install} -Dp -m0644 lustre-b_es5_1.xml %{buildroot}%{_sysconfdir}/lustre-b_es5_1.xml
 %{__install} -Dp -m0644 lustre-b_es5_2.xml %{buildroot}%{_sysconfdir}/lustre-b_es5_2.xml
 %{__install} -Dp -m0644 lustre-b_es6_0.xml %{buildroot}%{_sysconfdir}/lustre-b_es6_0.xml
+%{__install} -Dp -m0644 lustre-b_es6_3.xml %{buildroot}%{_sysconfdir}/lustre-b_es6_3.xml
 %{__install} -Dp -m0644 lustre-2.13.xml %{buildroot}%{_sysconfdir}/lustre-2.13.xml
 %{__install} -Dp -m0644 gpfs-3.5.xml %{buildroot}%{_sysconfdir}/gpfs-3.5_definition.xml
 %{__install} -Dp -m0644 sfa-3.0.xml %{buildroot}%{_sysconfdir}/sfa-3.0_definition.xml
@@ -64,6 +65,7 @@ This package includes XML definition files and configure examples for monitor sy
 %{_sysconfdir}/lustre-b_es5_1.xml
 %{_sysconfdir}/lustre-b_es5_2.xml
 %{_sysconfdir}/lustre-b_es6_0.xml
+%{_sysconfdir}/lustre-b_es6_3.xml
 %{_sysconfdir}/lustre-2.13.xml
 %{_sysconfdir}/gpfs-3.5_definition.xml
 %{_sysconfdir}/sfa-3.0_definition.xml
