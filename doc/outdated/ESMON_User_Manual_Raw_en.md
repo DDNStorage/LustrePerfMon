@@ -15,13 +15,13 @@
 
 - **Lustre**: The *Lustre* file system is an open-source, parallel file system that supports many requirements of leadership class HPC simulation environments.
 
-##Introduction
+## Introduction
 
 *ESMON* is a monitoring system which can collect system statistics of DDN Exascaler for performance monitoring and analyzing. It is based on multiple widely used open-source software. Some extra plugins and are developed by DDN for enhancemen.
 
 One of the main components of *ESMON* is *Collectd*. *Collectd* is a daemon which collects system performance statistics periodically and provides mechanisms to store the values in a variety of ways. *ESMON* is based on the open-source *Collectd*, yet includes more plugins, such as Lustre, GPFS, Ganglia, Nagios, Stress, Zabbix and so on.
 
-###Collectd plugins of DDN
+### Collectd plugins of DDN
 
 Several additional plugins are added to *Collectd* in *ESMON* to support various functions.
 
@@ -33,30 +33,30 @@ Several additional plugins are added to *Collectd* in *ESMON* to support various
 - **Stress plugin:** The *Stress* plugin can push a large amount of metrics to server from *Collectd* client in order to benchmark the performance of the collecting system under high pressure.
 - **Zabbix plugin:** The *Zabbix* plugin is able to send metrics from *Collectd* to *Zabbix* system.
 
-##Installation Requirements
+## Installation Requirements
 
-###Installation Server
+### Installation Server
 
 - OS distribution: CenOS7/RHEL7
 - Free disk space: > 500 MB. The *installation server* will save all installation logs to */var/log/esmon_install* directory, which requires some free disk space.
 - Network:  The *installation server* be able to start SSH connections to the *monitoring server* and *monitoring clients* without  password prompt
 - *ESMON* ISO image :  The *installation server* should posses the *ESMON* ISO image.
 
-###Monitoring Server
+### Monitoring Server
 
 - OS distribution: CenOS7/RHEL7
 - Free disk space:  > 5G. *Influxdb* will be running on this server. More disk space is required to keep more data into *Influxdb* 
 - Network: SSHD should be running on the *monitoring server* and it should be able to be connected by *installation server* without prompting for password.
 
-###Monitoring Client
+### Monitoring Client
 
 - OS distribution: CenOS7/RHEL7 or CentOS6/RHEL6
 - Free disk space:  > 200M. The *installation server* will save necessary RPMs in directory */var/log/esmon_install*, which requires some free disk space.
 - Network: SSHD should be running on the *monitoring client* and it should be able to be connected by *installation server* without prompting for password.
 
-##Installation Process
+## Installation Process
 
-###1. Install the *ESMON* RPM on *Installation Server*
+### 1. Install the *ESMON* RPM on *Installation Server*
 
 1. Grab the *ESMON* ISO image file to the *installation server*, for example: /ISOs/esmon.iso.
 
@@ -72,7 +72,7 @@ Several additional plugins are added to *Collectd* in *ESMON* to support various
       # rpm -ivh /media/RPMS/rhel7/esmon*.rpm
       ```
 
-###2. Update the Configuration File on the *Installation Server*
+### 2. Update the Configuration File on the *Installation Server*
 
 The configuration file */etc/esmon_install.conf* includes all the necessary information for installation. Following is an example:
 
@@ -112,7 +112,7 @@ server_host:
 **host_id** in **server_host** is the host ID that *ESMON* server packages should be installed and configured. If **erase_influxdb** is true, all of the data and metadata of *Influxdb* will be erased completely. And if **drop_database** is true, the database of ESMON in *Influxdb* will be dropped. **erase_influxdb** and
 **drop_database** should only be when the data in *Influxdb* is not needed any more. By enabling **erage_influxdb**, some corruption problems of *Influxdb* could be fixed.
 
-###3. Start the Installation on the Cluster
+### 3. Start the Installation on the Cluster
 
 After the */etc/esmon_install.conf* file has been updated correctly on the *installation server*, following command could be run to start the installation on the cluster:
 
@@ -122,13 +122,13 @@ After the */etc/esmon_install.conf* file has been updated correctly on the *inst
 
 All the logs which are useful for debugging are saved under */var/log/esmon_install* directory of the *installation server*.
 
-###4. Access the Monitoring Web Page
+### 4. Access the Monitoring Web Page
 
 The *Grafana* service is started on the *monitoring server* automatically. The default HTTP port is 3000. A login web page will been shown through that port.  The default user and password are both "admin". 
 
 | ![Login Dashboard](pic/login.jpg)
 
-##Dashboards
+## Dashboards
 
 By selection dashboards, different metrics collectd by *ESMON* can be shown.
 
@@ -136,7 +136,7 @@ Different dashboards can be chosen to view different metrics collectd by *ESMON*
 
 | ![Home Dashboard](pic/home.jpg)
 
-###Cluster Status Dashboard
+### Cluster Status Dashboard
 The *Cluster Status* dashboard shows a summarized status of the servers in the cluster.
 The back ground color of panels show the servers' working status.
 
@@ -157,7 +157,7 @@ The back ground color of panels show the servers' working status.
 
 | ![Cluster Status Dashboard](pic/cluster_status.jpg)
 
-###Lustre Status Dashboard
+### Lustre Status Dashboard
 
 The *Lustre Statistics* dashboard show metrics of *Lustre* file systems. TODO: copy the markdown introduction from Grafana dashboard discription.
 
@@ -181,7 +181,7 @@ Following pictures are some of the panels in *Lustre Statistics* Dashboard
 
 | ![Quota Accounting(Inode) Panel of Lustre Statistics Dashboard](pic/lustre_statistics_quota2.jpg)
 
-###Server Statistics
+### Server Statistics
 
 The *Server Statistics* dashboard shows detailed information about a server.
 
